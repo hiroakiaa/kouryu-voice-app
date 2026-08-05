@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>交流君 音声通話</title>
+  <style>
+    :root {
+      --aqua: #31c3df;
+      --aqua-deep: #057f9d;
+      --aqua-soft: #eafbff;
+      --line: #9ee8f5;
+      --ink: #07384a;
+      --muted: #5e7b84;
+      --danger: #ef5f84;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100svh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      background: linear-gradient(180deg, #f1fcff, #dff8ff);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(100%, 520px);
+      display: grid;
+      gap: 1rem;
+      padding: 1rem;
+      border: 3px solid var(--line);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.96);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .app-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 3.6rem;
+      height: 3.6rem;
+      border-radius: 20px;
+      background: var(--aqua-soft);
+      color: var(--aqua-deep);
+      font-size: 1.8rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.45rem, 7vw, 2.2rem);
+      line-height: 1.15;
+    }
+
+    .status-card {
+      display: grid;
+      gap: 0.5rem;
+      padding: 1rem;
+      border: 2px solid var(--line);
+      border-radius: 20px;
+      background: #fbfeff;
+    }
+
+    .status-card strong {
+      font-size: 1.15rem;
+    }
+
+    .status-card span {
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .participants {
+      display: grid;
+      gap: 0.45rem;
+      min-height: 4rem;
+    }
+
+    .participant {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.6rem;
+      padding: 0.64rem 0.72rem;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--aqua-soft);
+      font-weight: 800;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+    }
+
+    button, a.return-link {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-height: 3.2rem;
+      padding: 0.7rem 0.9rem;
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      background: #ffffff;
+      color: var(--aqua-deep);
+      font: inherit;
+      font-weight: 900;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--aqua);
+      background: var(--aqua);
+      color: #ffffff;
+    }
+
+    button.danger {
+      border-color: #ffabc0;
+      color: #b91c45;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .return-link {
+      grid-column: 1 / -1;
+    }
+
+    .notice {
+      min-height: 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <span class="app-icon" aria-hidden="true">🎧</span>
+      <div>
+        <h1>音声で説明</h1>
+        <div id="roomLabel" class="notice">接続準備中です。</div>
+      </div>
+    </header>
+
+    <section class="status-card">
+      <strong id="statusTitle">まだ通話に入っていません</strong>
+      <span id="statusText">「参加する」を押すと、このブラウザでマイク許可を確認します。</span>
+    </section>
+
+    <section>
+      <h2 style="margin:0 0 .55rem;font-size:1rem;">参加中</h2>
+      <div id="participants" class="participants"></div>
+    </section>
+
+    <div class="controls">
+      <button id="joinBtn" class="primary" type="button">参加する</button>
+      <button id="muteBtn" type="button" disabled>ミュート</button>
+      <button id="leaveBtn" class="danger" type="button" disabled>退出</button>
+      <a id="returnLink" class="return-link" href="#" target="_self">共同描画へ戻る</a>
+    </div>
+
+    <div id="notice" class="notice"></div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import {
+      getFirestore,
+      addDoc,
+      collection,
+      doc,
+      getDoc,
+      onSnapshot,
+      orderBy,
+      query,
+      serverTimestamp,
+      setDoc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrzlXIwJrlm9oXNjMw-vCF3OS-2Xe2gZ8",
+      authDomain: "test-project-579c6.firebaseapp.com",
+      projectId: "test-project-579c6",
+      messagingSenderId: "1084238558066",
+      appId: "1:1084238558066:web:69ae41be07e19e3513e3eb",
+      measurementId: "G-PPM2DBQXQ1"
+    };
+
+    const rtcConfig = {
+      iceServers: [
+        { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }
+      ]
+    };
+
+    const params = new URLSearchParams(location.search);
+    const roomId = params.get('roomId') || '';
+    const callId = params.get('callId') || '';
+    const messageId = params.get('messageId') || '';
+    const userId = params.get('userId') || ('voice-' + Math.random().toString(36).slice(2));
+    const userName = params.get('userName') || '匿名さん';
+    const returnUrl = params.get('returnUrl') || '';
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const el = {
+      roomLabel: document.getElementById('roomLabel'),
+      statusTitle: document.getElementById('statusTitle'),
+      statusText: document.getElementById('statusText'),
+      participants: document.getElementById('participants'),
+      join: document.getElementById('joinBtn'),
+      mute: document.getElementById('muteBtn'),
+      leave: document.getElementById('leaveBtn'),
+      notice: document.getElementById('notice'),
+      returnLink: document.getElementById('returnLink')
+    };
+
+    let call = null;
+    let peer = null;
+    let localStream = null;
+    let remoteAudio = null;
+    let muted = false;
+    let joined = false;
+    let processedSignals = {};
+    let unsubSignals = null;
+    let unsubParticipants = null;
+
+    if (returnUrl) {
+      el.returnLink.href = returnUrl;
+    } else {
+      el.returnLink.style.display = 'none';
+    }
+
+    init();
+
+    async function init() {
+      if (!roomId || !callId) {
+        setStatus('通話情報が足りません', '共同描画からもう一度開いてください。');
+        el.join.disabled = true;
+        return;
+      }
+      el.roomLabel.textContent = '通話ID: ' + callId;
+      const callRef = doc(db, 'chatRooms', roomId, 'voiceCalls', callId);
+      onSnapshot(callRef, function(snapshot) {
+        call = snapshot.exists() ? Object.assign({ id: snapshot.id }, snapshot.data()) : null;
+        if (!call || call.status === 'ended') {
+          setStatus('通話は終了しました', '必要な場合は共同描画からもう一度開始してください。');
+          stopLocalCall(false);
+          return;
+        }
+        if (joined && call.status === 'waiting') {
+          updateDoc(callRef, { status: 'active', startedAt: serverTimestamp(), updatedAt: serverTimestamp() }).catch(console.warn);
+        }
+      });
+      watchParticipants();
+      el.join.addEventListener('click', joinCall);
+      el.mute.addEventListener('click', toggleMute);
+      el.leave.addEventListener('click', function() { leaveCall(true); });
+      window.addEventListener('beforeunload', function() {
+        if (joined) markLeft();
+      });
+    }
+
+    async function joinCall() {
+      if (joined) return;
+      try {
+        setStatus('マイクを確認中', 'ブラウザのマイク許可で「許可」を選んでください。');
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        joined = true;
+        el.join.disabled = true;
+        el.mute.disabled = false;
+        el.leave.disabled = false;
+        await setDoc(doc(db, 'chatRooms', roomId, 'voiceCalls', callId, 'participants', userId), {
+          userId,
+          userName,
+          role: call && call.createdBy === userId ? 'caller' : 'participant',
+          joined: true,
+          left: false,
+          muted: false,
+          connected: false,
+          joinedAt: serverTimestamp(),
+          lastSeenAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        await updateDoc(doc(db, 'chatRooms', roomId, 'voiceCalls', callId), {
+          status: 'active',
+          updatedAt: serverTimestamp()
+        });
+        startPeer();
+      } catch (error) {
+        console.warn(error);
+        setStatus('マイクを使えませんでした', 'ブラウザや端末のマイク許可を確認してください。');
+      }
+    }
+
+    function startPeer() {
+      peer = new RTCPeerConnection(rtcConfig);
+      localStream.getTracks().forEach(function(track) {
+        peer.addTrack(track, localStream);
+      });
+      remoteAudio = document.createElement('audio');
+      remoteAudio.autoplay = true;
+      remoteAudio.playsInline = true;
+      document.body.appendChild(remoteAudio);
+      peer.ontrack = function(event) {
+        remoteAudio.srcObject = event.streams[0];
+        setStatus('通話中です', '相手の声が聞こえない時は音量とマイク許可を確認してください。');
+      };
+      peer.onicecandidate = function(event) {
+        if (!event.candidate) return;
+        addSignal('candidate', {
+          candidate: event.candidate.candidate,
+          sdpMid: event.candidate.sdpMid,
+          sdpMLineIndex: event.candidate.sdpMLineIndex
+        }, 'any');
+      };
+      peer.onconnectionstatechange = function() {
+        const connected = peer && ['connected', 'completed'].indexOf(peer.connectionState) !== -1;
+        setDoc(doc(db, 'chatRooms', roomId, 'voiceCalls', callId, 'participants', userId), {
+          connected,
+          lastSeenAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true }).catch(console.warn);
+        if (connected) setStatus('通話中です', '共同描画を見ながら話せます。');
+      };
+      watchSignals();
+      if (call && call.createdBy === userId) {
+        createOffer();
+      } else {
+        setStatus('相手を待っています', '通話相手が参加するとつながります。');
+      }
+    }
+
+    async function createOffer() {
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      await addSignal('offer', { type: offer.type, sdp: offer.sdp }, 'any');
+      setStatus('相手を待っています', '相手が参加すると通話が始まります。');
+    }
+
+    async function watchSignals() {
+      if (unsubSignals) unsubSignals();
+      const signalsRef = collection(db, 'chatRooms', roomId, 'voiceCalls', callId, 'signals');
+      unsubSignals = onSnapshot(query(signalsRef, orderBy('createdAt', 'asc')), async function(snapshot) {
+        for (const change of snapshot.docChanges()) {
+          const id = change.doc.id;
+          if (processedSignals[id]) continue;
+          processedSignals[id] = true;
+          const signal = change.doc.data() || {};
+          if (signal.from === userId) continue;
+          if (signal.to && signal.to !== 'any' && signal.to !== userId) continue;
+          await handleSignal(signal);
+        }
+      });
+    }
+
+    async function handleSignal(signal) {
+      if (!peer) return;
+      if (signal.type === 'offer' && signal.payload && !peer.currentRemoteDescription) {
+        await peer.setRemoteDescription(new RTCSessionDescription(signal.payload));
+        const answer = await peer.createAnswer();
+        await peer.setLocalDescription(answer);
+        await addSignal('answer', { type: answer.type, sdp: answer.sdp }, signal.from);
+      } else if (signal.type === 'answer' && signal.payload && !peer.currentRemoteDescription) {
+        await peer.setRemoteDescription(new RTCSessionDescription(signal.payload));
+      } else if (signal.type === 'candidate' && signal.payload && peer.remoteDescription) {
+        try {
+          await peer.addIceCandidate(new RTCIceCandidate(signal.payload));
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+    }
+
+    function addSignal(type, payload, to) {
+      return addDoc(collection(db, 'chatRooms', roomId, 'voiceCalls', callId, 'signals'), {
+        from: userId,
+        fromName: userName,
+        to: to || 'any',
+        type,
+        payload,
+        createdAt: serverTimestamp()
+      });
+    }
+
+    function watchParticipants() {
+      const participantsRef = collection(db, 'chatRooms', roomId, 'voiceCalls', callId, 'participants');
+      unsubParticipants = onSnapshot(participantsRef, function(snapshot) {
+        const items = [];
+        snapshot.forEach(function(item) {
+          const data = item.data() || {};
+          if (data.left === true) return;
+          items.push(data);
+        });
+        renderParticipants(items);
+      });
+    }
+
+    function renderParticipants(items) {
+      if (!items.length) {
+        el.participants.innerHTML = '<div class="notice">まだ参加者はいません。</div>';
+        return;
+      }
+      el.participants.innerHTML = items.map(function(item) {
+        return '<div class="participant"><span>' + escapeHtml(item.userName || '匿名さん') + '</span><span>' + (item.muted ? 'ミュート' : (item.connected ? '接続中' : '待機')) + '</span></div>';
+      }).join('');
+    }
+
+    function toggleMute() {
+      muted = !muted;
+      if (localStream) {
+        localStream.getAudioTracks().forEach(function(track) { track.enabled = !muted; });
+      }
+      el.mute.textContent = muted ? 'ミュート解除' : 'ミュート';
+      setDoc(doc(db, 'chatRooms', roomId, 'voiceCalls', callId, 'participants', userId), {
+        muted,
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(console.warn);
+    }
+
+    function leaveCall(goBack) {
+      markLeft();
+      stopLocalCall(true);
+      if (goBack && returnUrl) location.href = returnUrl;
+    }
+
+    function markLeft() {
+      setDoc(doc(db, 'chatRooms', roomId, 'voiceCalls', callId, 'participants', userId), {
+        left: true,
+        connected: false,
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(console.warn);
+    }
+
+    function stopLocalCall(updateStatus) {
+      joined = false;
+      if (unsubSignals) unsubSignals();
+      unsubSignals = null;
+      if (peer) peer.close();
+      peer = null;
+      if (localStream) localStream.getTracks().forEach(function(track) { track.stop(); });
+      localStream = null;
+      el.join.disabled = false;
+      el.mute.disabled = true;
+      el.leave.disabled = true;
+      if (updateStatus) setStatus('退出しました', '共同描画からもう一度参加できます。');
+    }
+
+    function setStatus(title, text) {
+      el.statusTitle.textContent = title;
+      el.statusText.textContent = text || '';
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, function(ch) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+      });
+    }
+  </script>
+</body>
+</html>
