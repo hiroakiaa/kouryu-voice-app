@@ -316,12 +316,14 @@
 
     const PARTICIPANT_STALE_MS = 90 * 1000;
     const HEARTBEAT_MS = 15000;
+    const DEFAULT_CALL_ID = 'main-room';
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const params = new URLSearchParams(location.search);
     const userId = getOrCreateUserId();
     const callId = ensureCallId(params.get('call'));
+    const isDefaultCall = callId === DEFAULT_CALL_ID;
 
     const el = {
       roomLabel: document.getElementById('roomLabel'),
@@ -350,8 +352,10 @@
     let heartbeatTimer = null;
 
     el.name.value = getStoredName();
-    el.roomLabel.textContent = '通話ID: ' + callId;
-    setStatus('参加できます', '「参加する」を押すとマイク確認が開きます。URLを共有した人だけが同じ通話に入れます。');
+    el.roomLabel.textContent = isDefaultCall ? '共通通話' : '通話ID: ' + callId;
+    setStatus('参加できます', isDefaultCall
+      ? 'このアプリURLを開いた人は、同じ音声通話に入れます。'
+      : '「参加する」を押すとマイク確認が開きます。URLを共有した人だけが同じ通話に入れます。');
 
     init();
 
@@ -753,11 +757,7 @@
     function ensureCallId(value) {
       const safe = String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48);
       if (safe) return safe;
-      const next = createCallId();
-      const url = new URL(location.href);
-      url.searchParams.set('call', next);
-      history.replaceState(null, '', url.toString());
-      return next;
+      return DEFAULT_CALL_ID;
     }
 
     function createCallId() {
