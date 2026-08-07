@@ -673,6 +673,7 @@
     .metrics-modal-card {
       width: min(100%, 31rem);
       max-height: min(88svh, 38rem);
+      position: relative;
       overflow-x: hidden;
       overflow-y: auto;
       display: grid;
@@ -970,9 +971,9 @@
 
     .metrics-note-popover,
     .metrics-rate-popover {
-      position: fixed;
+      position: absolute;
       z-index: 55;
-      width: min(17rem, calc(100vw - 2rem));
+      width: min(17rem, calc(100% - 1rem));
       padding: 0.65rem 0.72rem;
       border: 0.07rem solid var(--accent-deep);
       border-radius: 0.72rem;
@@ -1211,12 +1212,12 @@
         <button id="metricsCopyBtn" class="metrics-copy-btn" type="button" aria-label="計測結果をコピー"><i class="fa-solid fa-copy"></i></button>
       </div>
       <pre id="metricsOutput" class="metrics-output"></pre>
+      <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
+        現在の通話金額は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
+      </div>
+      <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
     </div>
   </div>
-  <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
-    現在の通話金額は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
-  </div>
-  <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
@@ -2898,6 +2899,27 @@
       }
       const rect = button.getBoundingClientRect();
       const popRect = popover.getBoundingClientRect();
+      const metricsCard = popover.closest(".metrics-modal-card");
+      if (metricsCard) {
+        const cardRect = metricsCard.getBoundingClientRect();
+        const centerInCard = rect.left - cardRect.left + rect.width / 2 + metricsCard.scrollLeft;
+        const minLeft = popRect.width / 2 + 8;
+        const maxLeft = metricsCard.clientWidth - popRect.width / 2 - 8;
+        const left = Math.min(maxLeft, Math.max(minLeft, centerInCard));
+        const aboveTop = rect.top - cardRect.top + metricsCard.scrollTop - popRect.height - 8;
+        const belowTop = rect.bottom - cardRect.top + metricsCard.scrollTop + 8;
+        const minTop = metricsCard.scrollTop + 8;
+        const maxTop = metricsCard.scrollTop + metricsCard.clientHeight - popRect.height - 8;
+        const preferredTop = aboveTop >= minTop ? aboveTop : belowTop;
+        popover.style.left = left + "px";
+        popover.style.top = Math.min(maxTop, Math.max(minTop, preferredTop)) + "px";
+        if (!wasOpen) {
+          popover.classList.remove("is-open");
+          popover.classList.remove("is-showing");
+          popover.style.visibility = "";
+        }
+        return;
+      }
       const left = Math.min(window.innerWidth - popRect.width / 2 - 8, Math.max(popRect.width / 2 + 8, rect.left + rect.width / 2));
       const top = Math.max(8, rect.top - popRect.height - 8);
       popover.style.left = left + "px";
