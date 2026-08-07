@@ -728,10 +728,8 @@
       <button id="joinBtn" class="primary primary-action" type="button"><i class="fa-solid fa-phone"></i><span>参加する</span></button>
       <div class="secondary-controls">
         <button id="muteBtn" type="button" disabled><i class="fa-solid fa-microphone-slash"></i><span>ミュート</span></button>
-        <button id="micTestBtn" type="button"><i class="fa-solid fa-stethoscope"></i><span>テスト</span></button>
         <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
-        <button id="qualityModeBtn" type="button"><i class="fa-solid fa-sliders"></i><span>標準</span></button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規</span></button>
       </div>
     </div>
@@ -774,45 +772,16 @@
     const HEARTBEAT_MS = 30000;
     const SPEAKING_WRITE_MS = 6500;
     const DEFAULT_CALL_ID = "main-room";
-    const VOICE_MODES = {
-      standard: {
-        label: "標準",
-        notice: "標準モードです。声の自然さとノイズ抑制のバランスを取ります。",
-        autoGainControl: false,
-        highpass: 120,
-        lowpass: 12000,
-        compressorThreshold: -34,
-        compressorRatio: 2.4,
-        idleGain: 0.55,
-        floorGain: 0.16,
-        maxBitrate: 48000
-      },
-      voice: {
-        label: "声優先",
-        notice: "声優先モードです。イヤホン利用時に声を聞き取りやすくします。",
-        autoGainControl: false,
-        highpass: 90,
-        lowpass: 14000,
-        compressorThreshold: -38,
-        compressorRatio: 2,
-        idleGain: 0.72,
-        floorGain: 0.24,
-        maxBitrate: 56000
-      },
-      quiet: {
-        label: "静か",
-        notice: "静かモードです。スピーカー利用時のザー音を抑えます。",
-        autoGainControl: false,
-        highpass: 150,
-        lowpass: 9500,
-        compressorThreshold: -32,
-        compressorRatio: 3,
-        idleGain: 0.38,
-        floorGain: 0.08,
-        maxBitrate: 40000
-      }
+    const VOICE_SETTINGS = {
+      autoGainControl: false,
+      highpass: 120,
+      lowpass: 12000,
+      compressorThreshold: -34,
+      compressorRatio: 2.4,
+      idleGain: 0.55,
+      floorGain: 0.16,
+      maxBitrate: 48000
     };
-    const VOICE_MODE_ORDER = ["standard", "voice", "quiet"];
 
     const params = new URLSearchParams(location.search);
     const isDemoMode = params.get("demo") === "1" || location.hash === "#demo";
@@ -841,10 +810,8 @@
       name: document.getElementById("nameInput"),
       join: document.getElementById("joinBtn"),
       mute: document.getElementById("muteBtn"),
-      micTest: document.getElementById("micTestBtn"),
       share: document.getElementById("shareBtn"),
       reconnect: document.getElementById("reconnectBtn"),
-      qualityMode: document.getElementById("qualityModeBtn"),
       newCall: document.getElementById("newCallBtn"),
       notice: document.getElementById("notice"),
       avatarTooltip: document.getElementById("avatarTooltip")
@@ -874,7 +841,6 @@
     let lastMuteReminderAt = 0;
     let knownParticipantNames = new Map();
     let hasParticipantSnapshot = false;
-    let voiceMode = getStoredVoiceMode();
 
     el.name.value = getStoredName();
     el.roomLabel.textContent = isDefaultCall ? "共通電話" : "通話ID: " + callId;
@@ -901,13 +867,6 @@
         }
         toggleMute();
       });
-      el.micTest.addEventListener("click", function() {
-        if (isDemoMode) {
-          runDemoMicTest();
-          return;
-        }
-        runMicTest();
-      });
       el.share.addEventListener("click", function() {
         if (isDemoMode) {
           copyDemoShareUrl();
@@ -922,7 +881,6 @@
         }
         reconnectCall();
       });
-      el.qualityMode.addEventListener("click", cycleVoiceMode);
       el.newCall.addEventListener("click", function() {
         if (isDemoMode) {
           openDemoNewCall();
@@ -946,7 +904,6 @@
         if (!isDemoMode && document.visibilityState === "hidden" && joined) updatePresence();
       });
       updateDeviceTip();
-      updateQualityModeButton(false);
       if (isDemoMode) {
         initDemoMode();
         return;
@@ -1103,12 +1060,11 @@
 
       try {
         setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
-        const voiceSettings = getVoiceModeSettings();
         rawLocalStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: { ideal: true },
             noiseSuppression: { ideal: true },
-            autoGainControl: { ideal: voiceSettings.autoGainControl },
+            autoGainControl: { ideal: VOICE_SETTINGS.autoGainControl },
             channelCount: { ideal: 1 },
             sampleRate: { ideal: 48000 },
             sampleSize: { ideal: 16 }
@@ -1631,77 +1587,6 @@
       }, ms || 1400);
     }
 
-    async function runMicTest() {
-      let testStream = null;
-      let testContext = null;
-      let testTimer = null;
-      try {
-        el.micTest.disabled = true;
-        setStatus("マイクテスト中", "声を出すと下のバーが動きます。");
-        setNotice("3秒ほど声を出してください。声の大きさを確認します。");
-        const voiceSettings = getVoiceModeSettings();
-        const stream = rawLocalStream || localStream || await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: { ideal: true },
-            noiseSuppression: { ideal: true },
-            autoGainControl: { ideal: voiceSettings.autoGainControl },
-            channelCount: { ideal: 1 }
-          },
-          video: false
-        });
-        if (!rawLocalStream && !localStream) testStream = stream;
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) {
-          setNotice("このブラウザでは音量テストを表示できません。");
-          return;
-        }
-        testContext = new AudioContextClass();
-        const source = testContext.createMediaStreamSource(stream);
-        const analyser = testContext.createAnalyser();
-        analyser.fftSize = 512;
-        source.connect(analyser);
-        const data = new Uint8Array(analyser.fftSize);
-        const startedAt = Date.now();
-        const tick = function() {
-          analyser.getByteTimeDomainData(data);
-          let sum = 0;
-          for (let i = 0; i < data.length; i += 1) {
-            const value = (data[i] - 128) / 128;
-            sum += value * value;
-          }
-          const rms = Math.sqrt(sum / data.length);
-          updateAudioHealth(rms, rms > 0.026, "テスト中");
-          if (Date.now() - startedAt < 2600) {
-            testTimer = window.setTimeout(tick, 120);
-          } else {
-            if (rms > 0.026) {
-              setNotice("声がしっかり届いています。");
-            } else if (rms > 0.012) {
-              setNotice("マイクは反応しています。少し声が小さめです。");
-            } else {
-              setNotice("マイク音量が小さいようです。端末のマイク許可や入力先を確認してください。");
-            }
-          }
-        };
-        if (el.audioHealth) el.audioHealth.hidden = false;
-        tick();
-      } catch (error) {
-        console.warn(error);
-        setNotice(getMicPermissionHelp(error));
-      } finally {
-        window.setTimeout(function() {
-          if (testTimer) window.clearTimeout(testTimer);
-          if (testStream) testStream.getTracks().forEach(function(track) { track.stop(); });
-          if (testContext && typeof testContext.close === "function") testContext.close().catch(function() {});
-          el.micTest.disabled = false;
-          if (!joined) {
-            updateAudioHealth(0, false, "停止中");
-            setReadyStatus();
-          }
-        }, 2900);
-      }
-    }
-
     function reconnectCall() {
       if (!joined) {
         setNotice("参加してから再接続できます。");
@@ -1760,55 +1645,8 @@
       }
     }
 
-    function getStoredVoiceMode() {
-      try {
-        const stored = localStorage.getItem("standaloneVoiceMode");
-        return VOICE_MODES[stored] ? stored : "standard";
-      } catch (error) {
-        return "standard";
-      }
-    }
-
     function getVoiceModeSettings() {
-      return VOICE_MODES[voiceMode] || VOICE_MODES.standard;
-    }
-
-    function updateQualityModeButton(showNotice) {
-      if (!el.qualityMode) return;
-      const settings = getVoiceModeSettings();
-      el.qualityMode.innerHTML = '<i class="fa-solid fa-sliders"></i><span>' + escapeHtml(settings.label) + '</span>';
-      el.qualityMode.setAttribute("aria-label", "音質モード: " + settings.label);
-      if (el.qualityTip) {
-        el.qualityTip.innerHTML = '<i class="fa-solid fa-wave-square"></i><span>音質: ' + escapeHtml(settings.label) + '</span>';
-      }
-      if (showNotice) setNotice(settings.notice + (joined ? " 通話中の音にも反映します。" : ""));
-    }
-
-    function cycleVoiceMode() {
-      const index = VOICE_MODE_ORDER.indexOf(voiceMode);
-      voiceMode = VOICE_MODE_ORDER[(index + 1) % VOICE_MODE_ORDER.length];
-      try {
-        localStorage.setItem("standaloneVoiceMode", voiceMode);
-      } catch (error) {
-        // 保存できなくても、その場の設定は切り替えます。
-      }
-      applyVoiceModeToAudioGraph();
-      updateQualityModeButton(true);
-    }
-
-    function applyVoiceModeToAudioGraph() {
-      const settings = getVoiceModeSettings();
-      if (localHighpass) localHighpass.frequency.value = settings.highpass;
-      if (localLowpass) localLowpass.frequency.value = settings.lowpass;
-      if (localCompressor) {
-        localCompressor.threshold.value = settings.compressorThreshold;
-        localCompressor.ratio.value = settings.compressorRatio;
-      }
-      if (rawLocalStream) tuneLocalAudioTrack(rawLocalStream);
-      Array.from(peers.values()).forEach(function(state) {
-        if (!state || !state.peer) return;
-        state.peer.getSenders().forEach(tuneAudioSender);
-      });
+      return VOICE_SETTINGS;
     }
 
     function getMicPermissionHelp(error) {
