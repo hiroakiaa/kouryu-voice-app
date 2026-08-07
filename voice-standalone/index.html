@@ -736,7 +736,7 @@
 
       peer.ontrack = function(event) {
         state.audio.srcObject = event.streams[0];
-        state.audio.volume = 0.72;
+        state.audio.volume = 0.58;
         state.audio.play().catch(function() {});
         setStatus("通話中です", "このページを開いたまま話してください。");
       };
@@ -1004,7 +1004,7 @@
       audio.id = "remote-audio-" + cssEscape(remoteId);
       audio.autoplay = true;
       audio.playsInline = true;
-      audio.volume = 0.72;
+      audio.volume = 0.58;
       document.body.appendChild(audio);
       return audio;
     }
@@ -1055,20 +1055,36 @@
         highpass.frequency.value = 120;
         highpass.Q.value = 0.7;
 
-        const compressor = localAudioContext.createDynamicsCompressor();
-        compressor.threshold.value = -42;
-        compressor.knee.value = 24;
-        compressor.ratio.value = 3;
-        compressor.attack.value = 0.012;
-        compressor.release.value = 0.18;
+        const lowpass = localAudioContext.createBiquadFilter();
+        lowpass.type = "lowpass";
+        lowpass.frequency.value = 8500;
+        lowpass.Q.value = 0.5;
+
+        const gate = localAudioContext.createScriptProcessor(1024, 1, 1);
+        let gateLevel = 1;
+        gate.onaudioprocess = function(event) {
+          const input = event.inputBuffer.getChannelData(0);
+          const output = event.outputBuffer.getChannelData(0);
+          let sum = 0;
+          for (let i = 0; i < input.length; i += 1) {
+            sum += input[i] * input[i];
+          }
+          const rms = Math.sqrt(sum / input.length);
+          const target = rms < 0.018 ? 0.04 : 1;
+          gateLevel += (target - gateLevel) * 0.18;
+          for (let i = 0; i < input.length; i += 1) {
+            output[i] = input[i] * gateLevel;
+          }
+        };
 
         const gain = localAudioContext.createGain();
-        gain.gain.value = 0.78;
+        gain.gain.value = 0.62;
         const destination = localAudioContext.createMediaStreamDestination();
 
         source.connect(highpass);
-        highpass.connect(compressor);
-        compressor.connect(gain);
+        highpass.connect(lowpass);
+        lowpass.connect(gate);
+        gate.connect(gain);
         gain.connect(destination);
         return destination.stream;
       } catch (error) {
