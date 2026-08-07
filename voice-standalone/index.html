@@ -8,12 +8,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
-      --bg: #050b12;
-      --panel: #0b1520;
-      --panel-soft: #101f2c;
-      --panel-raised: #132838;
-      --line: #22495a;
-      --line-strong: #36c2df;
+      --bg: #03070c;
+      --panel: #060b12;
+      --panel-soft: #0b1420;
+      --panel-raised: #101d29;
+      --line: #16495b;
+      --line-strong: #2dd4f4;
       --text: #f4fbff;
       --muted: #9fb9c6;
       --quiet: #758d99;
@@ -43,18 +43,16 @@
       padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 20% 0%, rgba(56, 199, 230, 0.18), transparent 28rem),
-        linear-gradient(145deg, #06131d 0%, var(--bg) 62%);
+      background: var(--bg);
       overflow: hidden;
     }
 
     main {
-      width: min(100%, 42rem);
-      height: min(100svh - 1.5rem, 44rem);
+      width: min(100%, 43rem);
+      height: min(100svh - 1.5rem, 43.5rem);
       display: grid;
-      grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
-      gap: 0.7rem;
+      grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto;
+      gap: 0.6rem;
       padding: clamp(0.75rem, 2.4vw, 1.05rem);
       border: 0.125rem solid var(--line-strong);
       border-radius: 1.3rem;
@@ -104,7 +102,7 @@
 
     .name-box {
       flex: 0 0 auto;
-      width: min(38vw, 8.5rem);
+      width: min(32vw, 8.4rem);
       display: grid;
       gap: 0.18rem;
       color: var(--quiet);
@@ -131,6 +129,7 @@
     .status-card {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
+      padding-block: 0.68rem;
     }
 
     .status-card strong {
@@ -160,6 +159,21 @@
       font-size: 0.76rem;
       font-weight: 900;
       white-space: nowrap;
+    }
+
+    .connection-pill.is-active {
+      color: var(--ok);
+      border-color: var(--ok);
+    }
+
+    .connection-pill.is-connecting {
+      color: var(--warn);
+      border-color: var(--warn);
+    }
+
+    .connection-pill.is-unstable {
+      color: var(--danger);
+      border-color: var(--danger);
     }
 
     .audio-health {
@@ -206,6 +220,29 @@
       color: var(--quiet);
     }
 
+    .call-tips {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.52rem;
+    }
+
+    .tip-item {
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .tip-item i {
+      color: var(--accent);
+      font-size: 0.88rem;
+    }
+
     label {
       display: grid;
       gap: 0.35rem;
@@ -243,12 +280,14 @@
 
     .participants {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 0.48rem;
       align-items: center;
       min-height: 3rem;
-      overflow-y: auto;
+      overflow-x: auto;
+      overflow-y: hidden;
       padding-right: 0.1rem;
+      scrollbar-width: thin;
     }
 
     .participant {
@@ -283,6 +322,7 @@
 
     .participant.is-speaking {
       border-color: var(--ok);
+      background: #0f2b30;
     }
 
     .participant.is-speaking::after {
@@ -292,6 +332,34 @@
       border: 0.08rem solid rgba(100, 230, 195, 0.78);
       border-radius: 1rem;
       pointer-events: none;
+    }
+
+    .participant.is-speaking .avatar-mark {
+      color: var(--ok);
+    }
+
+    .participant .speaking-bars {
+      position: absolute;
+      left: 0.18rem;
+      bottom: 0.16rem;
+      display: inline-flex;
+      gap: 0.08rem;
+      align-items: end;
+      opacity: 0;
+    }
+
+    .participant .speaking-bars span {
+      width: 0.12rem;
+      border-radius: 999rem;
+      background: var(--ok);
+    }
+
+    .participant .speaking-bars span:nth-child(1) { height: 0.34rem; }
+    .participant .speaking-bars span:nth-child(2) { height: 0.58rem; }
+    .participant .speaking-bars span:nth-child(3) { height: 0.42rem; }
+
+    .participant.is-speaking .speaking-bars {
+      opacity: 1;
     }
 
     .is-connected {
@@ -313,7 +381,7 @@
 
     .secondary-controls {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 0.48rem;
     }
 
@@ -339,7 +407,7 @@
     button.primary {
       border-color: var(--accent);
       background: var(--accent);
-      color: #03131a;
+      color: #001017;
     }
 
     button.danger {
@@ -359,7 +427,7 @@
     }
 
     .primary-action {
-      min-height: 3rem;
+      min-height: 3.2rem;
       font-size: 1rem;
     }
 
@@ -422,13 +490,28 @@
         grid-template-columns: 1fr;
       }
 
+      .call-tips {
+        grid-template-columns: 1fr;
+      }
+
       .audio-health {
         grid-template-columns: 1fr;
         gap: 0.38rem;
       }
 
       .participants {
-        max-height: 7.2rem;
+        max-height: 4.2rem;
+      }
+
+      .secondary-controls {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 0.1rem;
+        scrollbar-width: thin;
+      }
+
+      .secondary-controls button {
+        min-width: 4.35rem;
       }
 
       button {
@@ -460,6 +543,12 @@
       <span id="connectionPill" class="connection-pill"><i class="fa-solid fa-signal"></i><span>待機</span></span>
     </section>
 
+    <section id="callTips" class="card call-tips" aria-live="polite">
+      <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span>近くの端末ではイヤホン推奨</span></span>
+      <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span>端末の音量を小さめに</span></span>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span>音声品質を確認中</span></span>
+    </section>
+
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <span id="micState"><i class="fa-solid fa-microphone-lines"></i> マイク待機</span>
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
@@ -475,7 +564,9 @@
       <button id="joinBtn" class="primary primary-action" type="button"><i class="fa-solid fa-phone"></i><span>参加する</span></button>
       <div class="secondary-controls">
         <button id="muteBtn" type="button" disabled><i class="fa-solid fa-microphone-slash"></i><span>ミュート</span></button>
+        <button id="micTestBtn" type="button"><i class="fa-solid fa-stethoscope"></i><span>テスト</span></button>
         <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
+        <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規</span></button>
       </div>
     </div>
@@ -514,8 +605,8 @@
       ]
     };
 
-    const PARTICIPANT_STALE_MS = 90 * 1000;
-    const HEARTBEAT_MS = 15000;
+    const PARTICIPANT_STALE_MS = 45 * 1000;
+    const HEARTBEAT_MS = 10000;
     const DEFAULT_CALL_ID = "main-room";
 
     const app = initializeApp(firebaseConfig);
@@ -533,6 +624,9 @@
       statusText: document.getElementById("statusText"),
       connectionPill: document.getElementById("connectionPill"),
       audioHealth: document.getElementById("audioHealth"),
+      callTips: document.getElementById("callTips"),
+      deviceTip: document.getElementById("deviceTip"),
+      qualityTip: document.getElementById("qualityTip"),
       micState: document.getElementById("micState"),
       micLevelBar: document.getElementById("micLevelBar"),
       noiseGuardState: document.getElementById("noiseGuardState"),
@@ -540,7 +634,9 @@
       name: document.getElementById("nameInput"),
       join: document.getElementById("joinBtn"),
       mute: document.getElementById("muteBtn"),
+      micTest: document.getElementById("micTestBtn"),
       share: document.getElementById("shareBtn"),
+      reconnect: document.getElementById("reconnectBtn"),
       newCall: document.getElementById("newCallBtn"),
       notice: document.getElementById("notice"),
       avatarTooltip: document.getElementById("avatarTooltip")
@@ -565,6 +661,7 @@
     let unsubSignals = null;
     let unsubParticipants = null;
     let heartbeatTimer = null;
+    let lastMuteReminderAt = 0;
 
     el.name.value = getStoredName();
     el.roomLabel.textContent = isDefaultCall ? "共通電話" : "通話ID: " + callId;
@@ -597,7 +694,9 @@
         }
       });
       el.mute.addEventListener("click", toggleMute);
+      el.micTest.addEventListener("click", runMicTest);
       el.share.addEventListener("click", copyShareUrl);
+      el.reconnect.addEventListener("click", reconnectCall);
       el.newCall.addEventListener("click", openNewCall);
       el.name.addEventListener("input", enforceNameLimit);
       el.name.addEventListener("change", saveName);
@@ -607,6 +706,13 @@
       window.addEventListener("beforeunload", function() {
         if (joined) markLeft();
       });
+      window.addEventListener("pagehide", function() {
+        if (joined) markLeft();
+      });
+      document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === "hidden" && joined) updatePresence();
+      });
+      updateDeviceTip();
     }
 
     function watchCall() {
@@ -624,9 +730,10 @@
       joined = true;
       signalAcceptAfterMs = Date.now() - 5000;
       processedSignals = new Set();
-      muted = false;
+      muted = true;
       updateJoinButton();
       el.mute.disabled = true;
+      el.reconnect.disabled = true;
       updateAudioHealth(0, false, "準備中");
 
       try {
@@ -637,7 +744,7 @@
           userName,
           joined: true,
           left: false,
-          muted: false,
+          muted: true,
           connected: false,
           speaking: false,
           joinedAt: serverTimestamp(),
@@ -672,15 +779,18 @@
         });
         tuneLocalAudioTrack(rawLocalStream);
         localStream = createCleanAudioStream(rawLocalStream);
+        applyMuteState(false);
         startSpeakingMonitor();
         el.mute.disabled = false;
+        el.reconnect.disabled = false;
         updateAudioHealth(0, false, "ノイズ抑制中");
-        setStatus("相手を待っています", "ほかの人が同じURLから参加すると、自動でつながります。");
+        setStatus("相手を待っています", "最初はマイクOFFです。話す時だけミュートを解除してください。");
         updatePresence();
         ensurePeersForParticipants();
       } catch (error) {
         console.warn(error);
         el.mute.disabled = true;
+        el.reconnect.disabled = true;
         await setDoc(participantRef(userId), {
           sessionId,
           muted: true,
@@ -958,6 +1068,7 @@
         if (item.speaking && !item.muted) classes.push("is-speaking");
         return '<button class="' + classes.join(" ") + '" type="button" data-name="' + escapeHtml(name + (isSelf ? "（自分）" : "")) + '" data-status="' + escapeHtml(status) + '" aria-label="' + escapeHtml(name + " " + status) + '">' +
           '<span class="avatar-initial">' + escapeHtml(initial) + '</span>' +
+          '<span class="speaking-bars" aria-hidden="true"><span></span><span></span><span></span></span>' +
           '<i class="fa-solid fa-user avatar-mark ' + statusClass + '"></i>' +
           '</button>';
       }).join("");
@@ -970,7 +1081,7 @@
         return item.peer && ["connected", "completed"].indexOf(item.peer.connectionState) !== -1;
       });
       if (connected) {
-        setStatus("通話中です", "相手の声が聞こえます。このページを開いたまま話してください。");
+        setStatus("通話中です", muted ? "マイクOFFです。話す時だけ解除できます。" : "話していない時はミュートがおすすめです。");
       } else if (others.length) {
         setStatus("接続しています", "相手と音声をつないでいます。少し待ってください。");
       } else {
@@ -983,7 +1094,10 @@
       const connected = Array.from(peers.values()).some(function(item) {
         return item.peer && ["connected", "completed"].indexOf(item.peer.connectionState) !== -1;
       });
-      updateConnectionPill(connected ? "通話中" : (participants.length > 1 ? "接続中" : "待機"));
+      const unstable = Array.from(peers.values()).some(function(item) {
+        return item.peer && ["failed", "disconnected"].indexOf(item.peer.connectionState) !== -1;
+      });
+      updateConnectionPill(unstable ? "不安定" : (connected ? "通話中" : (participants.length > 1 ? "接続中" : "待機")));
       setDoc(participantRef(userId), {
         sessionId,
         connected,
@@ -1006,6 +1120,10 @@
 
     function toggleMute() {
       muted = !muted;
+      applyMuteState(true);
+    }
+
+    function applyMuteState(writePresence) {
       if (localStream) {
         localStream.getAudioTracks().forEach(function(track) { track.enabled = !muted; });
       }
@@ -1014,6 +1132,7 @@
         : '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
       updateSoftNoiseGuard(0, false);
       updateAudioHealth(0, false, muted ? "ミュート中" : "ノイズ抑制中");
+      if (!writePresence) return;
       setDoc(participantRef(userId), {
         sessionId,
         muted,
@@ -1056,6 +1175,7 @@
       muted = false;
       updateJoinButton();
       el.mute.disabled = true;
+      el.reconnect.disabled = true;
       el.mute.innerHTML = '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
       updateConnectionPill("待機");
       if (updateStatus) setStatus("退室しました", "もう一度参加できます。");
@@ -1086,10 +1206,84 @@
       const url = getShareUrl();
       try {
         await navigator.clipboard.writeText(url);
-        setNotice("通話URLをコピーしました。");
+        setNotice("通話URLをコピーしました。同じURLを開くとこの通話に入れます。");
       } catch (error) {
         setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。");
       }
+    }
+
+    async function runMicTest() {
+      let testStream = null;
+      let testContext = null;
+      let testTimer = null;
+      try {
+        el.micTest.disabled = true;
+        setNotice("マイクをテストしています。少し話してみてください。");
+        const stream = rawLocalStream || localStream || await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: { ideal: true },
+            noiseSuppression: { ideal: true },
+            autoGainControl: { ideal: false },
+            channelCount: { ideal: 1 }
+          },
+          video: false
+        });
+        if (!rawLocalStream && !localStream) testStream = stream;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+          setNotice("このブラウザでは音量テストを表示できません。");
+          return;
+        }
+        testContext = new AudioContextClass();
+        const source = testContext.createMediaStreamSource(stream);
+        const analyser = testContext.createAnalyser();
+        analyser.fftSize = 512;
+        source.connect(analyser);
+        const data = new Uint8Array(analyser.fftSize);
+        const startedAt = Date.now();
+        const tick = function() {
+          analyser.getByteTimeDomainData(data);
+          let sum = 0;
+          for (let i = 0; i < data.length; i += 1) {
+            const value = (data[i] - 128) / 128;
+            sum += value * value;
+          }
+          const rms = Math.sqrt(sum / data.length);
+          updateAudioHealth(rms, rms > 0.026, "テスト中");
+          if (Date.now() - startedAt < 2600) {
+            testTimer = window.setTimeout(tick, 120);
+          } else {
+            setNotice(rms > 0.012 ? "マイクは反応しています。" : "マイク音量が小さいようです。端末のマイク許可を確認してください。");
+          }
+        };
+        if (el.audioHealth) el.audioHealth.hidden = false;
+        tick();
+      } catch (error) {
+        console.warn(error);
+        setNotice("マイクテストを開始できませんでした。マイク許可を確認してください。");
+      } finally {
+        window.setTimeout(function() {
+          if (testTimer) window.clearTimeout(testTimer);
+          if (testStream) testStream.getTracks().forEach(function(track) { track.stop(); });
+          if (testContext && typeof testContext.close === "function") testContext.close().catch(function() {});
+          el.micTest.disabled = false;
+          if (!joined) updateAudioHealth(0, false, "停止中");
+        }, 2900);
+      }
+    }
+
+    function reconnectCall() {
+      if (!joined) {
+        setNotice("参加してから再接続できます。");
+        return;
+      }
+      Array.from(peers.keys()).forEach(closePeer);
+      processedSignals = new Set();
+      signalAcceptAfterMs = Date.now() - 1000;
+      setNotice("音声をつなぎ直しています。");
+      updateConnectionPill("接続中");
+      ensurePeersForParticipants();
+      updateLocalStatus();
     }
 
     function openNewCall() {
@@ -1111,10 +1305,28 @@
       el.join.disabled = false;
     }
 
+    function updateDeviceTip() {
+      if (!el.deviceTip) return;
+      const ua = navigator.userAgent || "";
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isMobile = /Android|Mobile|iPad|iPhone|iPod/.test(ua) || navigator.maxTouchPoints > 1;
+      const text = isIOS
+        ? "iPhone/iPadはイヤホンだと安定しやすいです"
+        : (isMobile ? "スマホはスピーカー音量を小さめに" : "PCはイヤホンかヘッドセット推奨");
+      el.deviceTip.innerHTML = '<i class="fa-solid fa-mobile-screen-button"></i><span>' + escapeHtml(text) + '</span>';
+    }
+
     function updateConnectionPill(text) {
       if (!el.connectionPill) return;
-      const icon = text === "通話中" ? "fa-phone-volume" : (text === "接続中" ? "fa-spinner" : "fa-signal");
+      const icon = text === "通話中" ? "fa-phone-volume" : (text === "接続中" ? "fa-spinner" : (text === "不安定" ? "fa-triangle-exclamation" : "fa-signal"));
+      el.connectionPill.classList.toggle("is-active", text === "通話中");
+      el.connectionPill.classList.toggle("is-connecting", text === "接続中");
+      el.connectionPill.classList.toggle("is-unstable", text === "不安定");
       el.connectionPill.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(text) + '</span>';
+      if (el.qualityTip) {
+        const label = text === "通話中" ? "音声品質は良好です" : (text === "不安定" ? "通信が不安定です。再接続できます" : "音声接続を確認中");
+        el.qualityTip.innerHTML = '<i class="fa-solid fa-wave-square"></i><span>' + escapeHtml(label) + '</span>';
+      }
     }
 
     function createCleanAudioStream(stream) {
@@ -1248,6 +1460,10 @@
           updateSoftNoiseGuard(rms, nextSpeaking);
           updateAudioHealth(rms, nextSpeaking, muted ? "ミュート中" : (nextSpeaking ? "会話中" : "ノイズ抑制中"));
           const now = Date.now();
+          if (!muted && !nextSpeaking && participants.length > 1 && now - lastMuteReminderAt > 45000) {
+            lastMuteReminderAt = now;
+            setNotice("話していない時はミュートにすると、相手にノイズが届きにくくなります。");
+          }
           if (nextSpeaking !== speakingState || now - lastSpeakingWrite > 1800) {
             speakingState = nextSpeaking;
             lastSpeakingWrite = now;
@@ -1276,7 +1492,7 @@
 
     function updateAudioHealth(rms, isSpeaking, label) {
       if (!el.audioHealth) return;
-      el.audioHealth.hidden = !joined;
+      el.audioHealth.hidden = !joined && label !== "テスト中";
       const level = Math.max(0, Math.min(100, Math.round(rms * 520)));
       if (el.micLevelBar) el.micLevelBar.style.width = level + "%";
       el.audioHealth.classList.toggle("is-speaking", !!isSpeaking);
