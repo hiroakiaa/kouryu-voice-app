@@ -115,14 +115,6 @@
       flex-wrap: wrap;
     }
 
-    .room-id {
-      margin-top: 0.18rem;
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 800;
-      overflow-wrap: anywhere;
-    }
-
     .name-box {
       width: min(33vw, 9.4rem);
       display: grid;
@@ -1086,7 +1078,6 @@
     <div class="brand">
       <h1>共通電話</h1>
       <div class="brand-subline">
-        <div id="roomLabel" class="room-id"></div>
         <button id="connectionPill" class="connection-pill" type="button" aria-expanded="false" aria-label="接続状態の詳細"><i class="fa-solid fa-signal"></i><span>待機</span></button>
       </div>
     </div>
@@ -1248,7 +1239,6 @@
     normalizeCallUrl();
 
     const el = {
-      roomLabel: document.getElementById("roomLabel"),
       connectionPill: document.getElementById("connectionPill"),
       connectionTooltip: document.getElementById("connectionTooltip"),
       audioHealth: document.getElementById("audioHealth"),
@@ -1333,7 +1323,6 @@
     window.voiceFirestoreMetrics = metrics;
 
     el.name.value = getStoredName();
-    el.roomLabel.textContent = isDefaultCall ? "共通電話" : "通話ID: " + callId;
     renderMetrics();
     setReadyStatus();
 
@@ -1417,7 +1406,6 @@
       joined = false;
       muted = false;
       participants = createDemoParticipants(false);
-      el.roomLabel.textContent = "デモ / Firestore未接続";
       el.mute.disabled = true;
       el.reconnect.disabled = false;
       if (el.audioHealth) el.audioHealth.hidden = false;
