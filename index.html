@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- kouryu standalone voice app shared default room 2026-08-07 -->
+<!-- kouryu standalone voice app shared default room 2026-08-08-reliability-polish -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -113,6 +113,21 @@
       gap: 0.42rem;
       min-width: 0;
       flex-wrap: wrap;
+    }
+
+    .version-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.4rem;
+      padding: 0.14rem 0.48rem;
+      border: 0.07rem solid rgba(139, 233, 255, 0.28);
+      border-radius: 999rem;
+      color: var(--quiet);
+      background: rgba(139, 233, 255, 0.05);
+      font-size: 0.64rem;
+      font-weight: 850;
+      line-height: 1;
+      white-space: nowrap;
     }
 
     .name-box {
@@ -539,6 +554,17 @@
       overscroll-behavior-x: contain;
       scrollbar-width: thin;
       padding: 0.08rem 0 0.18rem;
+    }
+
+    .secondary-controls::-webkit-scrollbar,
+    .participants::-webkit-scrollbar {
+      height: 0.38rem;
+    }
+
+    .secondary-controls::-webkit-scrollbar-thumb,
+    .participants::-webkit-scrollbar-thumb {
+      border-radius: 999rem;
+      background: rgba(139, 233, 255, 0.26);
     }
 
     .secondary-controls #reconnectBtn {
@@ -1097,6 +1123,7 @@
       <h1>共通電話</h1>
       <div class="brand-subline">
         <button id="connectionPill" class="connection-pill" type="button" aria-expanded="false" aria-label="接続状態の詳細"><i class="fa-solid fa-signal"></i><span>待機</span></button>
+        <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
       </div>
     </div>
       <div class="header-actions">
@@ -1223,13 +1250,14 @@
       ]
     };
 
-    const PARTICIPANT_STALE_MS = 150 * 1000;
-    const HEARTBEAT_MS = 45000;
+    const APP_VERSION = "2026-08-08-reliability-polish";
+    const PARTICIPANT_STALE_MS = 180 * 1000;
+    const HEARTBEAT_MS = 60000;
     const SPEAKING_MONITOR_MS = 260;
     const SPEAKING_ON_HOLD_MS = 220;
     const SPEAKING_OFF_HOLD_MS = 1400;
-    const SPEAKING_MIN_WRITE_MS = 4500;
-    const SPEAKING_REFRESH_MS = 120000;
+    const SPEAKING_MIN_WRITE_MS = 8000;
+    const SPEAKING_REFRESH_MS = 180000;
     const CONNECTION_REFRESH_MS = 60000;
     const DEFAULT_CALL_ID = "main-room";
     const VOICE_SETTINGS = {
@@ -1258,6 +1286,7 @@
 
     const el = {
       connectionPill: document.getElementById("connectionPill"),
+      versionPill: document.getElementById("versionPill"),
       connectionTooltip: document.getElementById("connectionTooltip"),
       audioHealth: document.getElementById("audioHealth"),
       callTips: document.getElementById("callTips"),
@@ -1331,6 +1360,7 @@
     let hasParticipantSnapshot = false;
     let lastParticipantsRenderSignature = "";
     let metricTimers = [];
+    let joinSlowTimer = null;
     let exchangeRateTimer = null;
     let exchangeRateInfo = {
       source: "手入力",
@@ -1341,8 +1371,10 @@
     };
     const metrics = createMetrics();
     window.voiceFirestoreMetrics = metrics;
+    window.kouryuVoiceAppVersion = APP_VERSION;
 
     el.name.value = getStoredName();
+    setVersionLabel();
     renderMetrics();
     setReadyStatus();
 
@@ -1402,6 +1434,7 @@
       if (el.metricsModal) el.metricsModal.addEventListener("click", handleMetricsDetailClick);
       if (el.metricsRateInput) el.metricsRateInput.addEventListener("input", renderMetrics);
       bindHorizontalWheel(document.querySelector(".secondary-controls"));
+      bindHorizontalWheel(el.participants);
       initExchangeRate();
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
@@ -1533,6 +1566,7 @@
       processedSignals = new Set();
       muted = true;
       setJoinBusy(true, "接続中");
+      startJoinSlowTimer();
       updateJoinButton();
       el.mute.disabled = true;
       el.reconnect.disabled = true;
@@ -1557,6 +1591,7 @@
         startHeartbeat();
         startLiveWatchers();
         setJoinBusy(false);
+        clearJoinSlowTimer();
         updateJoinButton();
         if (!typedName) {
           setNotice("表示名が未入力なので匿名名で参加します。名前を入れると相手に分かりやすくなります。");
@@ -1565,6 +1600,7 @@
         console.warn(error);
         joined = false;
         setJoinBusy(false);
+        clearJoinSlowTimer();
         updateJoinButton();
         el.mute.disabled = true;
         stopHeartbeat();
@@ -1600,6 +1636,7 @@
       } catch (error) {
         console.warn(error);
         setJoinBusy(false);
+        clearJoinSlowTimer();
         updateJoinButton();
         el.mute.disabled = true;
         el.reconnect.disabled = true;
@@ -2116,14 +2153,16 @@
     }
 
     function stopLocalCall(updateStatus) {
-      if (joined) {
+      const shouldMarkEnded = joined;
+      if (shouldMarkEnded) {
         metrics.endedAt = Date.now();
-        markMetricMilestone("call-ended");
       }
+      clearJoinSlowTimer();
       joined = false;
       clearMetricTimers();
       stopHeartbeat();
       stopLiveWatchers();
+      if (shouldMarkEnded) markMetricMilestone("call-ended");
       stopSpeakingMonitor();
       Array.from(peers.keys()).forEach(closePeer);
       peers.clear();
@@ -2242,7 +2281,32 @@
 
     function setJoinBusy(isBusy) {
       joinBusy = !!isBusy;
+      if (!joinBusy) clearJoinSlowTimer();
       updateJoinButton();
+    }
+
+    function startJoinSlowTimer() {
+      clearJoinSlowTimer();
+      joinSlowTimer = window.setTimeout(function() {
+        if (!joinBusy && !joined) return;
+        setNotice("接続準備に時間がかかっています。表示が止まる場合は再接続してください。");
+        if (joinBusy) {
+          setStatus("接続を確認中", "マイク許可や通信状態を確認しています。時間がかかる場合は再読み込みしてください。");
+        }
+      }, 12000);
+    }
+
+    function clearJoinSlowTimer() {
+      if (!joinSlowTimer) return;
+      window.clearTimeout(joinSlowTimer);
+      joinSlowTimer = null;
+    }
+
+    function setVersionLabel() {
+      if (!el.versionPill) return;
+      const shortVersion = APP_VERSION.replace(/^20/, "").replace(/-reliability-polish$/, "");
+      el.versionPill.textContent = "v" + shortVersion.replace(/-/g, ".");
+      el.versionPill.title = "更新番号: " + APP_VERSION;
     }
 
     function updateDeviceTip() {
@@ -2466,6 +2530,9 @@
 
     function shouldSyncSpeakingState(nextSpeaking, now) {
       if (!joined) return false;
+      if (participants.length <= 1) {
+        return speakingState && !nextSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS;
+      }
       if (nextSpeaking !== speakingState && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS) return true;
       if (nextSpeaking && now - lastSpeakingWrite >= SPEAKING_REFRESH_MS) return true;
       return false;
@@ -3179,6 +3246,9 @@
       const deltaWrites = connected ? Math.max(0, writes - connected.writes) : writes;
       const deltaDeletes = connected ? Math.max(0, deletes - connected.deletes) : deletes;
       const minuteYen = firestoreCostYen(deltaReads / minutes, deltaWrites / minutes, deltaDeletes / minutes, yenPerDollar);
+      const readsPerMinute = Math.round(deltaReads / minutes);
+      const writesPerMinute = Math.round(deltaWrites / minutes);
+      const deletesPerMinute = Math.round(deltaDeletes / minutes);
 
       if (el.metricsCurrentCost) el.metricsCurrentCost.textContent = formatYen(totalYen);
       if (el.metricsMinuteCost) el.metricsMinuteCost.textContent = formatYen(minuteYen) + "/分";
@@ -3201,8 +3271,11 @@
         el.metricsDetailListeners.innerHTML = renderMetricDetail("listeners", sumMetric(metrics.listenersOpened) + " / " + sumMetric(metrics.listenersClosed), "リアルタイム監視の開始と解除です。終了時にclosedが増えていれば、監視を閉じられています。");
       }
       el.metricsOutput.textContent =
+        "version: " + APP_VERSION + "\n" +
         "latest: " + latest.label + "\n" +
         "estimatedReads: " + metrics.estimatedReads + "\n" +
+        "connectedFixedReads: " + (connected ? connected.estimatedReads : 0) + "\n" +
+        "ongoingPerMinute: " + JSON.stringify({ reads: readsPerMinute, writes: writesPerMinute, deletes: deletesPerMinute }) + "\n" +
         "writes: " + JSON.stringify(metrics.writes, null, 2) + "\n" +
         "deletes: " + JSON.stringify(metrics.deletes, null, 2) + "\n" +
         "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
