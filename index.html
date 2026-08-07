@@ -683,12 +683,37 @@
 
     .metrics-cost-card {
       padding: 0.68rem;
+      display: grid;
+      gap: 0.24rem;
     }
 
     .metrics-label {
+      display: flex;
+      align-items: center;
+      gap: 0.32rem;
       color: var(--muted);
       font-size: 0.7rem;
       font-weight: 850;
+    }
+
+    .metrics-help-btn,
+    .metrics-copy-btn {
+      width: 1.7rem;
+      height: 1.7rem;
+      min-height: 1.7rem;
+      padding: 0;
+      border-radius: 0.55rem;
+      font-size: 0.72rem;
+      color: var(--accent);
+      background: rgba(139, 233, 255, 0.06);
+    }
+
+    .metrics-help-btn:not(:disabled):hover,
+    .metrics-help-btn:not(:disabled):focus-visible,
+    .metrics-copy-btn:not(:disabled):hover,
+    .metrics-copy-btn:not(:disabled):focus-visible {
+      border-color: var(--accent);
+      background: var(--accent-soft);
     }
 
     .metrics-value {
@@ -698,11 +723,28 @@
       font-weight: 950;
     }
 
-    .metrics-note {
+    .metrics-note-popover {
+      position: absolute;
+      z-index: 55;
+      width: min(17rem, calc(100vw - 2rem));
+      padding: 0.65rem 0.72rem;
+      border: 0.07rem solid var(--accent-deep);
+      border-radius: 0.72rem;
+      background: #071a29;
       color: var(--quiet);
       font-size: 0.68rem;
       font-weight: 720;
       line-height: 1.45;
+      opacity: 0;
+      transform: translateY(0.3rem);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .metrics-note-popover.is-open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
 
     .metrics-breakdown {
@@ -712,12 +754,28 @@
     }
 
     .metrics-line {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto 1rem;
+      align-items: center;
       gap: 0.75rem;
+      width: 100%;
+      min-height: 2.15rem;
+      padding: 0.4rem 0.46rem;
+      border: 0.06rem solid transparent;
+      border-radius: 0.62rem;
       color: var(--muted);
       font-size: 0.72rem;
       font-weight: 820;
+      text-align: left;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .metrics-line:not(:disabled):hover,
+    .metrics-line:not(:disabled):focus-visible,
+    .metrics-line.is-open {
+      border-color: var(--accent-deep);
+      background: rgba(139, 233, 255, 0.06);
     }
 
     .metrics-line strong {
@@ -725,11 +783,84 @@
       font-weight: 950;
     }
 
+    .metrics-line i {
+      color: var(--quiet);
+      font-size: 0.68rem;
+      transition: transform 160ms ease;
+    }
+
+    .metrics-line.is-open i {
+      transform: rotate(180deg);
+    }
+
+    .metrics-detail {
+      display: none;
+      gap: 0.4rem;
+      padding: 0.5rem 0.46rem 0.58rem;
+      border: 0.06rem solid var(--line);
+      border-radius: 0.7rem;
+      background: rgba(3, 15, 25, 0.55);
+    }
+
+    .metrics-detail.is-open {
+      display: grid;
+    }
+
+    .metrics-bars {
+      display: grid;
+      gap: 0.34rem;
+    }
+
+    .metrics-bar-row {
+      display: grid;
+      grid-template-columns: 6.2rem minmax(0, 1fr) 3.2rem;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--muted);
+      font-size: 0.66rem;
+      font-weight: 760;
+    }
+
+    .metrics-bar-track {
+      height: 0.48rem;
+      overflow: hidden;
+      border: 0.05rem solid var(--line);
+      border-radius: 999rem;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .metrics-bar-fill {
+      display: block;
+      width: var(--bar, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
+
+    .metrics-detail-note {
+      color: var(--quiet);
+      font-size: 0.66rem;
+      line-height: 1.45;
+    }
+
+    .metrics-output-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: -0.25rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 850;
+    }
+
     .metrics-output {
       margin: 0;
       max-height: 10rem;
       overflow: auto;
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
       line-height: 1.55;
       color: var(--muted);
       font-size: 0.68rem;
@@ -855,9 +986,29 @@
         font-size: 0.72rem;
       }
 
-      .metrics-cost-grid,
       .metrics-rate-row {
         grid-template-columns: 1fr;
+      }
+
+      .metrics-modal-card {
+        width: min(100%, 30rem);
+      }
+
+      .metrics-cost-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0.42rem;
+      }
+
+      .metrics-cost-card {
+        padding: 0.52rem;
+      }
+
+      .metrics-value {
+        font-size: 0.9rem;
+      }
+
+      .metrics-bar-row {
+        grid-template-columns: 4.8rem minmax(0, 1fr) 2.6rem;
       }
     }
   </style>
@@ -937,21 +1088,33 @@
       </label>
       <div class="metrics-cost-grid">
         <div class="metrics-cost-card">
-          <div class="metrics-label">現在この1回の通話金額</div>
+          <div class="metrics-label">
+            <span>現在この1回の通話金額</span>
+            <button id="metricsNoteBtn" class="metrics-help-btn" type="button" aria-label="料金計算の説明" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
+          </div>
           <div id="metricsCurrentCost" class="metrics-value">0.0000円</div>
-          <div class="metrics-note">接続準備から現在までの目安です。</div>
         </div>
         <div class="metrics-cost-card">
           <div class="metrics-label">通話中の1分あたり</div>
           <div id="metricsMinuteCost" class="metrics-value">0.0000円/分</div>
-          <div class="metrics-note">接続成立後の増え方から計算します。</div>
         </div>
       </div>
+      <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
+        現在の通話金額は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
+      </div>
       <div class="metrics-breakdown">
-        <div class="metrics-line"><span>推定reads</span><strong id="metricsReadsCount">0</strong></div>
-        <div class="metrics-line"><span>writes</span><strong id="metricsWritesCount">0</strong></div>
-        <div class="metrics-line"><span>deletes</span><strong id="metricsDeletesCount">0</strong></div>
-        <div class="metrics-line"><span>listener opened / closed</span><strong id="metricsListenersCount">0 / 0</strong></div>
+        <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
+        <div id="metricsDetailReads" class="metrics-detail" aria-hidden="true"></div>
+        <button class="metrics-line" type="button" data-metric-detail="writes" aria-expanded="false"><span>writes</span><strong id="metricsWritesCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
+        <div id="metricsDetailWrites" class="metrics-detail" aria-hidden="true"></div>
+        <button class="metrics-line" type="button" data-metric-detail="deletes" aria-expanded="false"><span>deletes</span><strong id="metricsDeletesCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
+        <div id="metricsDetailDeletes" class="metrics-detail" aria-hidden="true"></div>
+        <button class="metrics-line" type="button" data-metric-detail="listeners" aria-expanded="false"><span>listener opened / closed</span><strong id="metricsListenersCount">0 / 0</strong><i class="fa-solid fa-chevron-down"></i></button>
+        <div id="metricsDetailListeners" class="metrics-detail" aria-hidden="true"></div>
+      </div>
+      <div class="metrics-output-head">
+        <span>送信用データ</span>
+        <button id="metricsCopyBtn" class="metrics-copy-btn" type="button" aria-label="計測結果をコピー"><i class="fa-solid fa-copy"></i></button>
       </div>
       <pre id="metricsOutput" class="metrics-output"></pre>
     </div>
@@ -1029,6 +1192,9 @@
       metricsToggle: document.getElementById("metricsToggleBtn"),
       metricsModal: document.getElementById("metricsModal"),
       metricsClose: document.getElementById("metricsCloseBtn"),
+      metricsCopy: document.getElementById("metricsCopyBtn"),
+      metricsNote: document.getElementById("metricsNoteBtn"),
+      metricsNotePopover: document.getElementById("metricsNotePopover"),
       metricsRateInput: document.getElementById("metricsRateInput"),
       metricsCurrentCost: document.getElementById("metricsCurrentCost"),
       metricsMinuteCost: document.getElementById("metricsMinuteCost"),
@@ -1036,6 +1202,10 @@
       metricsWritesCount: document.getElementById("metricsWritesCount"),
       metricsDeletesCount: document.getElementById("metricsDeletesCount"),
       metricsListenersCount: document.getElementById("metricsListenersCount"),
+      metricsDetailReads: document.getElementById("metricsDetailReads"),
+      metricsDetailWrites: document.getElementById("metricsDetailWrites"),
+      metricsDetailDeletes: document.getElementById("metricsDetailDeletes"),
+      metricsDetailListeners: document.getElementById("metricsDetailListeners"),
       deviceTip: document.getElementById("deviceTip"),
       qualityTip: document.getElementById("qualityTip"),
       micState: document.getElementById("micState"),
@@ -1139,6 +1309,9 @@
       el.tipsToggle.addEventListener("click", toggleCallTips);
       if (el.metricsToggle) el.metricsToggle.addEventListener("click", toggleMetricsModal);
       if (el.metricsClose) el.metricsClose.addEventListener("click", closeMetricsModal);
+      if (el.metricsCopy) el.metricsCopy.addEventListener("click", copyMetricsOutput);
+      if (el.metricsNote) el.metricsNote.addEventListener("click", toggleMetricsNote);
+      if (el.metricsModal) el.metricsModal.addEventListener("click", handleMetricsDetailClick);
       if (el.metricsRateInput) el.metricsRateInput.addEventListener("input", renderMetrics);
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
@@ -2243,9 +2416,81 @@
       el.metricsModal.setAttribute("aria-hidden", "true");
       el.metricsToggle.classList.remove("is-open");
       el.metricsToggle.setAttribute("aria-expanded", "false");
+      hideMetricsNote();
+    }
+
+    function toggleMetricsNote(event) {
+      event.stopPropagation();
+      if (!el.metricsNote || !el.metricsNotePopover) return;
+      const isOpen = !el.metricsNotePopover.classList.contains("is-open");
+      if (isOpen) {
+        const rect = el.metricsNote.getBoundingClientRect();
+        el.metricsNotePopover.style.left = Math.min(window.innerWidth - 18, Math.max(12, rect.left)) + "px";
+        el.metricsNotePopover.style.top = Math.min(window.innerHeight - 18, rect.bottom + 8) + "px";
+      }
+      el.metricsNotePopover.classList.toggle("is-open", isOpen);
+      el.metricsNotePopover.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      el.metricsNote.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function hideMetricsNote() {
+      if (!el.metricsNote || !el.metricsNotePopover) return;
+      el.metricsNotePopover.classList.remove("is-open");
+      el.metricsNotePopover.setAttribute("aria-hidden", "true");
+      el.metricsNote.setAttribute("aria-expanded", "false");
+    }
+
+    function handleMetricsDetailClick(event) {
+      const button = event.target.closest("[data-metric-detail]");
+      if (!button) return;
+      event.stopPropagation();
+      const key = button.dataset.metricDetail;
+      const detail = getMetricDetailElement(key);
+      if (!detail) return;
+      const isOpen = !detail.classList.contains("is-open");
+      button.classList.toggle("is-open", isOpen);
+      button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      detail.classList.toggle("is-open", isOpen);
+      detail.setAttribute("aria-hidden", isOpen ? "false" : "true");
+    }
+
+    function getMetricDetailElement(key) {
+      return {
+        reads: el.metricsDetailReads,
+        writes: el.metricsDetailWrites,
+        deletes: el.metricsDetailDeletes,
+        listeners: el.metricsDetailListeners
+      }[key] || null;
+    }
+
+    async function copyMetricsOutput(event) {
+      if (event) event.stopPropagation();
+      if (!el.metricsOutput) return;
+      const text = el.metricsOutput.textContent || "";
+      try {
+        await navigator.clipboard.writeText(text);
+        setNotice("計測結果をコピーしました。");
+      } catch (error) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand("copy");
+          setNotice("計測結果をコピーしました。");
+        } catch (copyError) {
+          setNotice("コピーできませんでした。");
+        }
+        textarea.remove();
+      }
     }
 
     function handleOutsideTooltipClick(event) {
+      if (event.target.closest("#metricsNoteBtn") || event.target.closest("#metricsNotePopover")) return;
+      hideMetricsNote();
       if (event.target.closest("#metricsToggleBtn") || event.target.closest(".metrics-modal-card")) return;
       if (event.target.closest("#tipsToggleBtn") || event.target.closest("#callTips")) return;
       if (event.target.closest(".participant")) return;
@@ -2559,6 +2804,43 @@
       }) || null;
     }
 
+    function metricMilestoneValue(item, key) {
+      if (!item) return 0;
+      if (key === "reads") return item.estimatedReads || 0;
+      if (key === "writes") return item.writes || 0;
+      if (key === "deletes") return item.deletes || 0;
+      if (key === "listeners") return (item.listenerOpen || 0) + (item.listenerClose || 0);
+      return 0;
+    }
+
+    function formatMetricLabel(label) {
+      return String(label || "")
+        .replace("before-call-start", "開始前")
+        .replace("connected+1min", "1分後")
+        .replace("connected", "接続時")
+        .replace("call-ended", "終了時")
+        .replace("current", "現在");
+    }
+
+    function renderMetricDetail(key, total, note) {
+      const list = metrics.milestones.length ? metrics.milestones : [getMetricSnapshot("current")];
+      const maxValue = Math.max(1, ...list.map(function(item) {
+        return metricMilestoneValue(item, key);
+      }));
+      const rows = list.map(function(item) {
+        const value = metricMilestoneValue(item, key);
+        const pct = Math.max(2, Math.round((value / maxValue) * 100));
+        return '<div class="metrics-bar-row">' +
+          '<span>' + escapeHtml(formatMetricLabel(item.label)) + '</span>' +
+          '<span class="metrics-bar-track"><span class="metrics-bar-fill" style="--bar:' + pct + '%"></span></span>' +
+          '<strong>' + value + '</strong>' +
+          '</div>';
+      }).join("");
+      return '<div class="metrics-detail-note">' + escapeHtml(note) + '</div>' +
+        '<div class="metrics-bars">' + rows + '</div>' +
+        '<div class="metrics-detail-note">現在値: ' + total + '</div>';
+    }
+
     function renderMetrics() {
       if (!el.metricsOutput) return;
       const latest = metrics.milestones.length ? metrics.milestones[metrics.milestones.length - 1] : getMetricSnapshot("current");
@@ -2582,16 +2864,28 @@
       if (el.metricsListenersCount) {
         el.metricsListenersCount.textContent = sumMetric(metrics.listenersOpened) + " / " + sumMetric(metrics.listenersClosed);
       }
+      if (el.metricsDetailReads) {
+        el.metricsDetailReads.innerHTML = renderMetricDetail("reads", reads, "Firestoreから読んだ可能性があるdocument数の目安です。通話中に増えにくいほど軽くなります。");
+      }
+      if (el.metricsDetailWrites) {
+        el.metricsDetailWrites.innerHTML = renderMetricDetail("writes", writes, "参加、接続状態、ミュート、発話状態などを書いた回数です。発話状態の書き込みは抑制済みです。");
+      }
+      if (el.metricsDetailDeletes) {
+        el.metricsDetailDeletes.innerHTML = renderMetricDetail("deletes", deletes, "古いsignalなど、不要になった通信用データの削除回数です。");
+      }
+      if (el.metricsDetailListeners) {
+        el.metricsDetailListeners.innerHTML = renderMetricDetail("listeners", sumMetric(metrics.listenersOpened) + " / " + sumMetric(metrics.listenersClosed), "リアルタイム監視の開始と解除です。終了時にclosedが増えていれば、監視を閉じられています。");
+      }
       el.metricsOutput.textContent =
         "latest: " + latest.label + "\n" +
         "estimatedReads: " + metrics.estimatedReads + "\n" +
-        "writes: " + JSON.stringify(metrics.writes) + "\n" +
-        "deletes: " + JSON.stringify(metrics.deletes) + "\n" +
+        "writes: " + JSON.stringify(metrics.writes, null, 2) + "\n" +
+        "deletes: " + JSON.stringify(metrics.deletes, null, 2) + "\n" +
         "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
-        "listeners opened/closed: " + JSON.stringify(metrics.listenersOpened) + " / " + JSON.stringify(metrics.listenersClosed) + "\n" +
-        "snapshots callbacks: " + JSON.stringify(metrics.snapshotCallbacks) + "\n" +
-        "snapshots changes: " + JSON.stringify(metrics.snapshotChanges) + "\n" +
-        "ice: " + JSON.stringify(metrics.ice) + "\n" +
+        "listeners opened/closed: " + JSON.stringify(metrics.listenersOpened, null, 2) + " / " + JSON.stringify(metrics.listenersClosed, null, 2) + "\n" +
+        "snapshots callbacks: " + JSON.stringify(metrics.snapshotCallbacks, null, 2) + "\n" +
+        "snapshots changes: " + JSON.stringify(metrics.snapshotChanges, null, 2) + "\n" +
+        "ice: " + JSON.stringify(metrics.ice, null, 2) + "\n" +
         "milestones: " + JSON.stringify(metrics.milestones, null, 2);
     }
 
