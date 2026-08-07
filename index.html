@@ -989,7 +989,12 @@
 
     const PARTICIPANT_STALE_MS = 150 * 1000;
     const HEARTBEAT_MS = 45000;
-    const SPEAKING_WRITE_MS = 12000;
+    const SPEAKING_MONITOR_MS = 260;
+    const SPEAKING_ON_HOLD_MS = 220;
+    const SPEAKING_OFF_HOLD_MS = 1400;
+    const SPEAKING_MIN_WRITE_MS = 2500;
+    const SPEAKING_REFRESH_MS = 60000;
+    const CONNECTION_REFRESH_MS = 60000;
     const DEFAULT_CALL_ID = "main-room";
     const VOICE_SETTINGS = {
       autoGainControl: false,
@@ -1059,6 +1064,8 @@
     let localCompressor = null;
     let speakingTimer = null;
     let speakingState = false;
+    let speakingCandidateState = false;
+    let speakingCandidateSince = 0;
     let lastSpeakingWrite = 0;
     let muted = false;
     let joined = false;
@@ -1069,6 +1076,8 @@
     let unsubSignals = null;
     let unsubParticipants = null;
     let heartbeatTimer = null;
+    let lastConnectedState = null;
+    let lastConnectionWrite = 0;
     let lastMuteReminderAt = 0;
     let knownParticipantNames = new Map();
     let hasParticipantSnapshot = false;
@@ -1737,6 +1746,10 @@
         return item.peer && ["failed", "disconnected"].indexOf(item.peer.connectionState) !== -1;
       });
       updateConnectionPill(unstable ? "不安定" : (connected ? "通話中" : (participants.length > 1 ? "接続中" : "待機")));
+      const now = Date.now();
+      if (lastConnectedState === connected && now - lastConnectionWrite < CONNECTION_REFRESH_MS) return;
+      lastConnectedState = connected;
+      lastConnectionWrite = now;
       recordWrite("participantConnection");
       setDoc(participantRef(userId), {
         sessionId,
@@ -1760,6 +1773,11 @@
         : '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
       updateSoftNoiseGuard(0, false);
       updateAudioHealth(0, false, muted ? "ミュート中" : "ノイズ抑制中");
+      if (muted) {
+        speakingState = false;
+        speakingCandidateState = false;
+        speakingCandidateSince = 0;
+      }
       if (!writePresence) return;
       recordWrite("participantMute");
       setDoc(participantRef(userId), {
@@ -1799,6 +1817,8 @@
       stopSpeakingMonitor();
       Array.from(peers.keys()).forEach(closePeer);
       peers.clear();
+      lastConnectedState = null;
+      lastConnectionWrite = 0;
       if (localStream) localStream.getTracks().forEach(function(track) { track.stop(); });
       if (rawLocalStream) rawLocalStream.getTracks().forEach(function(track) { track.stop(); });
       if (localAudioContext && typeof localAudioContext.close === "function") localAudioContext.close().catch(function() {});
@@ -2054,6 +2074,10 @@
     function startSpeakingMonitor() {
       stopSpeakingMonitor();
       try {
+        speakingState = false;
+        speakingCandidateState = false;
+        speakingCandidateSince = Date.now();
+        lastSpeakingWrite = 0;
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
         if (!localAudioContext) localAudioContext = new AudioContextClass();
@@ -2075,7 +2099,8 @@
             sum += value * value;
           }
           const rms = Math.sqrt(sum / data.length);
-          const nextSpeaking = !muted && rms > 0.026;
+          const rawSpeaking = !muted && rms > 0.026;
+          const nextSpeaking = getStableSpeakingState(rawSpeaking, Date.now());
           updateSoftNoiseGuard(rms, nextSpeaking);
           updateAudioHealth(rms, nextSpeaking, muted ? "ミュート中" : (nextSpeaking ? "会話中" : "ノイズ抑制中"));
           const now = Date.now();
@@ -2083,7 +2108,7 @@
             lastMuteReminderAt = now;
             setNotice("話していない時はミュートにすると、相手にノイズが届きにくくなります。");
           }
-          if (nextSpeaking !== speakingState || now - lastSpeakingWrite > SPEAKING_WRITE_MS) {
+          if (shouldSyncSpeakingState(nextSpeaking, now)) {
             speakingState = nextSpeaking;
             lastSpeakingWrite = now;
             recordWrite("participantSpeaking");
@@ -2094,10 +2119,29 @@
               lastSeenAt: serverTimestamp()
             }, { merge: true }).catch(console.warn);
           }
-        }, 260);
+        }, SPEAKING_MONITOR_MS);
       } catch (error) {
         console.warn(error);
       }
+    }
+
+    function getStableSpeakingState(rawSpeaking, now) {
+      if (rawSpeaking !== speakingCandidateState) {
+        speakingCandidateState = rawSpeaking;
+        speakingCandidateSince = now;
+      }
+      const holdMs = rawSpeaking ? SPEAKING_ON_HOLD_MS : SPEAKING_OFF_HOLD_MS;
+      if (rawSpeaking !== speakingState && now - speakingCandidateSince < holdMs) {
+        return speakingState;
+      }
+      return rawSpeaking;
+    }
+
+    function shouldSyncSpeakingState(nextSpeaking, now) {
+      if (!joined) return false;
+      if (nextSpeaking !== speakingState && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS) return true;
+      if (nextSpeaking && now - lastSpeakingWrite >= SPEAKING_REFRESH_MS) return true;
+      return false;
     }
 
     function updateSoftNoiseGuard(rms, isSpeaking) {
@@ -2131,6 +2175,9 @@
         speakingTimer = null;
       }
       speakingState = false;
+      speakingCandidateState = false;
+      speakingCandidateSince = 0;
+      lastSpeakingWrite = 0;
       updateAudioHealth(0, false, "停止中");
     }
 
