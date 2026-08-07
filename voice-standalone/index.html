@@ -56,7 +56,7 @@
       height: min(100svh - 1.4rem, 40rem);
       position: relative;
       display: grid;
-      grid-template-rows: auto auto auto minmax(4.6rem, 1fr) auto auto;
+      grid-template-rows: auto auto auto minmax(4.6rem, 1fr) auto;
       gap: 0.65rem;
       padding: clamp(0.8rem, 2vw, 1.15rem);
       border: 0.09rem solid var(--accent-deep);
@@ -129,7 +129,7 @@
       text-align: right;
     }
 
-    .tips-toggle {
+    .header-icon-btn {
       width: 2.35rem;
       height: 2.35rem;
       min-height: 2.35rem;
@@ -141,9 +141,9 @@
       font-size: 0.92rem;
     }
 
-    .tips-toggle.is-open,
-    .tips-toggle:not(:disabled):hover,
-    .tips-toggle:not(:disabled):focus-visible {
+    .header-icon-btn.is-open,
+    .header-icon-btn:not(:disabled):hover,
+    .header-icon-btn:not(:disabled):focus-visible {
       border-color: var(--accent);
       background: var(--accent-soft);
       color: var(--text);
@@ -262,10 +262,10 @@
       right: clamp(0.8rem, 2vw, 1.15rem);
       z-index: 12;
       width: min(30rem, calc(100% - 1.6rem));
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.58rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+      gap: 0.5rem;
+      padding: 0.62rem;
       border-color: var(--accent-deep);
       background: #071c2a;
       opacity: 0;
@@ -282,8 +282,9 @@
 
     .tip-item {
       min-width: 0;
-      display: inline-flex;
-      align-items: center;
+      display: grid;
+      grid-template-columns: 1.55rem minmax(0, 1fr);
+      align-items: start;
       gap: 0.4rem;
       color: var(--muted);
       font-size: 0.72rem;
@@ -292,8 +293,32 @@
     }
 
     .tip-item i {
+      width: 1.55rem;
+      height: 1.55rem;
+      display: inline-grid;
+      place-items: center;
+      border: 0.06rem solid var(--line);
+      border-radius: 0.48rem;
+      background: rgba(139, 233, 255, 0.08);
       color: var(--accent);
       font-size: 0.88rem;
+    }
+
+    .tip-item strong {
+      display: block;
+      margin-bottom: 0.12rem;
+      color: var(--text);
+      font-size: 0.76rem;
+      font-weight: 950;
+      line-height: 1.15;
+    }
+
+    .tip-item span span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 760;
+      line-height: 1.35;
     }
 
     label {
@@ -332,6 +357,7 @@
     }
 
     .participants-card {
+      grid-row: 4;
       min-height: 0;
       overflow: hidden;
       gap: 0.28rem;
@@ -472,13 +498,15 @@
     }
 
     .controls {
+      grid-row: 5;
       display: grid;
       gap: 0.55rem;
+      align-self: end;
     }
 
     .secondary-controls {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.48rem;
     }
 
@@ -557,37 +585,158 @@
     }
 
     .notice {
+      position: absolute;
+      left: clamp(0.8rem, 2vw, 1.15rem);
+      right: clamp(0.8rem, 2vw, 1.15rem);
+      bottom: 0.25rem;
       min-height: 1.35rem;
       max-height: 2.7rem;
       overflow: hidden;
+      pointer-events: none;
+      text-align: center;
     }
 
-    .metrics-panel {
-      border: 0.0625rem solid var(--line);
-      border-radius: 0.9rem;
-      padding: 0.75rem;
+    .metrics-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: max(0.8rem, env(safe-area-inset-top)) max(0.8rem, env(safe-area-inset-right)) max(0.8rem, env(safe-area-inset-bottom)) max(0.8rem, env(safe-area-inset-left));
+      background: rgba(2, 10, 16, 0.72);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease;
+    }
+
+    .metrics-modal.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .metrics-modal-card {
+      width: min(100%, 31rem);
+      max-height: min(88svh, 38rem);
+      overflow: auto;
+      display: grid;
+      gap: 0.75rem;
+      padding: 0.9rem;
+      border: 0.09rem solid var(--accent-deep);
+      border-radius: 1rem;
+      background: #061522;
+      transform: translateY(0.4rem);
+      transition: transform 180ms ease;
+    }
+
+    .metrics-modal.is-open .metrics-modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .modal-head h2 {
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 950;
+    }
+
+    .modal-close {
+      width: 2.2rem;
+      height: 2.2rem;
+      min-height: 2.2rem;
+      padding: 0;
+      border-radius: 0.7rem;
+    }
+
+    .metrics-rate-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 8rem;
+      align-items: end;
+      gap: 0.65rem;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 850;
+    }
+
+    .metrics-rate-row input {
+      min-height: 2.25rem;
+      text-align: right;
+    }
+
+    .metrics-cost-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem;
+    }
+
+    .metrics-cost-card,
+    .metrics-breakdown {
+      border: 0.08rem solid var(--line);
+      border-radius: 0.86rem;
+      background: rgba(8, 28, 42, 0.8);
+    }
+
+    .metrics-cost-card {
+      padding: 0.68rem;
+    }
+
+    .metrics-label {
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 850;
+    }
+
+    .metrics-value {
+      margin-top: 0.16rem;
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 950;
+    }
+
+    .metrics-note {
+      color: var(--quiet);
+      font-size: 0.68rem;
+      font-weight: 720;
+      line-height: 1.45;
+    }
+
+    .metrics-breakdown {
+      display: grid;
+      gap: 0.42rem;
+      padding: 0.68rem;
+    }
+
+    .metrics-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
       color: var(--muted);
       font-size: 0.72rem;
-      background: rgba(6, 21, 34, 0.92);
+      font-weight: 820;
     }
 
-    .metrics-panel summary {
-      cursor: pointer;
+    .metrics-line strong {
       color: var(--text);
-      font-weight: 800;
-      list-style: none;
-    }
-
-    .metrics-panel summary::-webkit-details-marker {
-      display: none;
+      font-weight: 950;
     }
 
     .metrics-output {
-      margin: 0.55rem 0 0;
+      margin: 0;
       max-height: 10rem;
       overflow: auto;
       white-space: pre-wrap;
       line-height: 1.55;
+      color: var(--muted);
+      font-size: 0.68rem;
+      border: 0.08rem solid var(--line);
+      border-radius: 0.78rem;
+      padding: 0.62rem;
+      background: #04111c;
     }
 
     .secondary-controls button {
@@ -660,7 +809,7 @@
         gap: 0.42rem;
       }
 
-      .tips-toggle {
+      .header-icon-btn {
         width: 2.15rem;
         height: 2.15rem;
         min-height: 2.15rem;
@@ -688,7 +837,7 @@
 
       .secondary-controls {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         overflow: visible;
         padding-bottom: 0.1rem;
         scrollbar-width: thin;
@@ -705,6 +854,11 @@
         padding-inline: 0.45rem;
         font-size: 0.72rem;
       }
+
+      .metrics-cost-grid,
+      .metrics-rate-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -717,7 +871,10 @@
         <div id="roomLabel" class="room-id"></div>
       </div>
       <div class="header-actions">
-        <button id="tipsToggleBtn" class="tips-toggle" type="button" aria-controls="callTips" aria-expanded="false" aria-label="使い方のヒント">
+        <button id="metricsToggleBtn" class="header-icon-btn metrics-toggle" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="Firestore料金の目安">
+          <i class="fa-solid fa-yen-sign"></i>
+        </button>
+        <button id="tipsToggleBtn" class="header-icon-btn tips-toggle" type="button" aria-controls="callTips" aria-expanded="false" aria-label="使い方のヒント">
           <i class="fa-solid fa-circle-question"></i>
         </button>
         <label class="name-box">
@@ -736,9 +893,12 @@
     </section>
 
     <section id="callTips" class="card call-tips" aria-live="polite" aria-hidden="true">
-      <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span>近くの端末ではイヤホン推奨</span></span>
-      <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span>端末の音量を小さめに</span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span>音声品質を確認中</span></span>
+      <span class="tip-item"><i class="fa-solid fa-link"></i><span><strong>同じURLで参加</strong><span>URLを開いた人だけが同じ通話に入れます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>参加で開始</strong><span>表示名を入れてから参加すると相手に名前が伝わります。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
+      <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>料金目安を確認</strong><span>円マークから現在の読み書き量と概算金額を見られます。</span></span></span>
     </section>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
@@ -753,22 +913,49 @@
     </section>
 
     <div class="controls">
-      <button id="joinBtn" class="primary primary-action" type="button"><i class="fa-solid fa-phone"></i><span>参加する</span></button>
       <div class="secondary-controls">
         <button id="muteBtn" type="button" disabled><i class="fa-solid fa-microphone-slash"></i><span>ミュート</span></button>
         <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規</span></button>
       </div>
+      <button id="joinBtn" class="primary primary-action" type="button"><i class="fa-solid fa-phone"></i><span>参加する</span></button>
     </div>
 
     <div id="notice" class="notice" role="status" aria-live="polite"></div>
-    <details id="metricsPanel" class="metrics-panel" hidden>
-      <summary><i class="fa-solid fa-chart-line"></i> Firestore計測</summary>
-      <pre id="metricsOutput" class="metrics-output"></pre>
-    </details>
   </main>
   <div id="avatarTooltip" class="avatar-tooltip" role="tooltip" aria-hidden="true"></div>
+  <div id="metricsModal" class="metrics-modal" aria-hidden="true">
+    <div class="metrics-modal-card" role="dialog" aria-modal="true" aria-labelledby="metricsModalTitle">
+      <div class="modal-head">
+        <h2 id="metricsModalTitle"><i class="fa-solid fa-yen-sign"></i> Firestore料金の目安</h2>
+        <button id="metricsCloseBtn" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <label class="metrics-rate-row">
+        <span>1ドルあたりの円換算</span>
+        <input id="metricsRateInput" inputmode="decimal" value="158" aria-label="1ドルあたりの円換算">
+      </label>
+      <div class="metrics-cost-grid">
+        <div class="metrics-cost-card">
+          <div class="metrics-label">現在この1回の通話金額</div>
+          <div id="metricsCurrentCost" class="metrics-value">0.0000円</div>
+          <div class="metrics-note">接続準備から現在までの目安です。</div>
+        </div>
+        <div class="metrics-cost-card">
+          <div class="metrics-label">通話中の1分あたり</div>
+          <div id="metricsMinuteCost" class="metrics-value">0.0000円/分</div>
+          <div class="metrics-note">接続成立後の増え方から計算します。</div>
+        </div>
+      </div>
+      <div class="metrics-breakdown">
+        <div class="metrics-line"><span>推定reads</span><strong id="metricsReadsCount">0</strong></div>
+        <div class="metrics-line"><span>writes</span><strong id="metricsWritesCount">0</strong></div>
+        <div class="metrics-line"><span>deletes</span><strong id="metricsDeletesCount">0</strong></div>
+        <div class="metrics-line"><span>listener opened / closed</span><strong id="metricsListenersCount">0 / 0</strong></div>
+      </div>
+      <pre id="metricsOutput" class="metrics-output"></pre>
+    </div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -834,6 +1021,16 @@
       audioHealth: document.getElementById("audioHealth"),
       callTips: document.getElementById("callTips"),
       tipsToggle: document.getElementById("tipsToggleBtn"),
+      metricsToggle: document.getElementById("metricsToggleBtn"),
+      metricsModal: document.getElementById("metricsModal"),
+      metricsClose: document.getElementById("metricsCloseBtn"),
+      metricsRateInput: document.getElementById("metricsRateInput"),
+      metricsCurrentCost: document.getElementById("metricsCurrentCost"),
+      metricsMinuteCost: document.getElementById("metricsMinuteCost"),
+      metricsReadsCount: document.getElementById("metricsReadsCount"),
+      metricsWritesCount: document.getElementById("metricsWritesCount"),
+      metricsDeletesCount: document.getElementById("metricsDeletesCount"),
+      metricsListenersCount: document.getElementById("metricsListenersCount"),
       deviceTip: document.getElementById("deviceTip"),
       qualityTip: document.getElementById("qualityTip"),
       micState: document.getElementById("micState"),
@@ -847,7 +1044,6 @@
       reconnect: document.getElementById("reconnectBtn"),
       newCall: document.getElementById("newCallBtn"),
       notice: document.getElementById("notice"),
-      metricsPanel: document.getElementById("metricsPanel"),
       metricsOutput: document.getElementById("metricsOutput"),
       avatarTooltip: document.getElementById("avatarTooltip")
     };
@@ -882,9 +1078,6 @@
 
     el.name.value = getStoredName();
     el.roomLabel.textContent = isDefaultCall ? "共通電話" : "通話ID: " + callId;
-    if (el.metricsPanel) {
-      el.metricsPanel.hidden = !metricsEnabled;
-    }
     renderMetrics();
     setReadyStatus();
 
@@ -935,6 +1128,9 @@
       el.name.addEventListener("blur", saveName);
       el.participants.addEventListener("click", handleParticipantClick);
       el.tipsToggle.addEventListener("click", toggleCallTips);
+      if (el.metricsToggle) el.metricsToggle.addEventListener("click", toggleMetricsModal);
+      if (el.metricsClose) el.metricsClose.addEventListener("click", closeMetricsModal);
+      if (el.metricsRateInput) el.metricsRateInput.addEventListener("input", renderMetrics);
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
         if (!isDemoMode && joined) markLeft();
@@ -1966,6 +2162,7 @@
       event.stopPropagation();
       if (!el.callTips || !el.tipsToggle) return;
       const isOpen = el.callTips.classList.toggle("is-open");
+      if (isOpen) closeMetricsModal();
       el.callTips.setAttribute("aria-hidden", isOpen ? "false" : "true");
       el.tipsToggle.classList.toggle("is-open", isOpen);
       el.tipsToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
@@ -1979,11 +2176,35 @@
       el.tipsToggle.setAttribute("aria-expanded", "false");
     }
 
+    function toggleMetricsModal(event) {
+      event.stopPropagation();
+      if (!el.metricsModal || !el.metricsToggle) return;
+      const isOpen = !el.metricsModal.classList.contains("is-open");
+      if (isOpen) {
+        hideCallTips();
+        renderMetrics();
+      }
+      el.metricsModal.classList.toggle("is-open", isOpen);
+      el.metricsModal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      el.metricsToggle.classList.toggle("is-open", isOpen);
+      el.metricsToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function closeMetricsModal() {
+      if (!el.metricsModal || !el.metricsToggle) return;
+      el.metricsModal.classList.remove("is-open");
+      el.metricsModal.setAttribute("aria-hidden", "true");
+      el.metricsToggle.classList.remove("is-open");
+      el.metricsToggle.setAttribute("aria-expanded", "false");
+    }
+
     function handleOutsideTooltipClick(event) {
+      if (event.target.closest("#metricsToggleBtn") || event.target.closest(".metrics-modal-card")) return;
       if (event.target.closest("#tipsToggleBtn") || event.target.closest("#callTips")) return;
       if (event.target.closest(".participant")) return;
       hideAvatarTooltip();
       hideCallTips();
+      closeMetricsModal();
     }
 
     function callRef() {
@@ -2257,14 +2478,69 @@
       }, 0);
     }
 
+    function normalizeNumberInput(value, fallback) {
+      const normalized = String(value || "")
+        .replace(/[０-９]/g, function(ch) {
+          return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0);
+        })
+        .replace(/[．。]/g, ".")
+        .replace(/[，、]/g, ",")
+        .replace(/,/g, "")
+        .trim();
+      const number = Number(normalized);
+      return Number.isFinite(number) && number > 0 ? number : fallback;
+    }
+
+    function firestoreCostYen(reads, writes, deletes, yenPerDollar) {
+      const dollars =
+        (Number(reads) || 0) * 0.03 / 100000 +
+        (Number(writes) || 0) * 0.09 / 100000 +
+        (Number(deletes) || 0) * 0.01 / 100000;
+      return dollars * yenPerDollar;
+    }
+
+    function formatYen(value) {
+      if (!Number.isFinite(value) || value <= 0) return "0.0000円";
+      if (value < 0.0001) return value.toFixed(6) + "円";
+      if (value < 0.01) return value.toFixed(4) + "円";
+      return value.toFixed(3) + "円";
+    }
+
+    function getConnectedMetricSnapshot() {
+      return metrics.milestones.find(function(item) {
+        return item.label === "connected";
+      }) || null;
+    }
+
     function renderMetrics() {
-      if (!metricsEnabled || !el.metricsOutput) return;
+      if (!el.metricsOutput) return;
       const latest = metrics.milestones.length ? metrics.milestones[metrics.milestones.length - 1] : getMetricSnapshot("current");
+      const yenPerDollar = normalizeNumberInput(el.metricsRateInput && el.metricsRateInput.value, 158);
+      const reads = metrics.estimatedReads;
+      const writes = sumMetric(metrics.writes);
+      const deletes = sumMetric(metrics.deletes);
+      const totalYen = firestoreCostYen(reads, writes, deletes, yenPerDollar);
+      const connected = getConnectedMetricSnapshot();
+      const minutes = connected ? Math.max(0.1, (latest.seconds - connected.seconds) / 60) : Math.max(0.1, latest.seconds / 60);
+      const deltaReads = connected ? Math.max(0, reads - connected.estimatedReads) : reads;
+      const deltaWrites = connected ? Math.max(0, writes - connected.writes) : writes;
+      const deltaDeletes = connected ? Math.max(0, deletes - connected.deletes) : deletes;
+      const minuteYen = firestoreCostYen(deltaReads / minutes, deltaWrites / minutes, deltaDeletes / minutes, yenPerDollar);
+
+      if (el.metricsCurrentCost) el.metricsCurrentCost.textContent = formatYen(totalYen);
+      if (el.metricsMinuteCost) el.metricsMinuteCost.textContent = formatYen(minuteYen) + "/分";
+      if (el.metricsReadsCount) el.metricsReadsCount.textContent = String(reads);
+      if (el.metricsWritesCount) el.metricsWritesCount.textContent = String(writes);
+      if (el.metricsDeletesCount) el.metricsDeletesCount.textContent = String(deletes);
+      if (el.metricsListenersCount) {
+        el.metricsListenersCount.textContent = sumMetric(metrics.listenersOpened) + " / " + sumMetric(metrics.listenersClosed);
+      }
       el.metricsOutput.textContent =
         "latest: " + latest.label + "\n" +
         "estimatedReads: " + metrics.estimatedReads + "\n" +
         "writes: " + JSON.stringify(metrics.writes) + "\n" +
         "deletes: " + JSON.stringify(metrics.deletes) + "\n" +
+        "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
         "listeners opened/closed: " + JSON.stringify(metrics.listenersOpened) + " / " + JSON.stringify(metrics.listenersClosed) + "\n" +
         "snapshots callbacks: " + JSON.stringify(metrics.snapshotCallbacks) + "\n" +
         "snapshots changes: " + JSON.stringify(metrics.snapshotChanges) + "\n" +
