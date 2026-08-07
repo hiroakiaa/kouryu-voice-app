@@ -601,12 +601,14 @@
           audio: {
             echoCancellation: { ideal: true },
             noiseSuppression: { ideal: true },
-            autoGainControl: { ideal: false },
+            autoGainControl: { ideal: true },
             channelCount: { ideal: 1 },
-            sampleRate: { ideal: 48000 }
+            sampleRate: { ideal: 48000 },
+            sampleSize: { ideal: 16 }
           },
           video: false
         });
+        tuneLocalAudioTrack(rawLocalStream);
         localStream = createCleanAudioStream(rawLocalStream);
         startSpeakingMonitor();
         el.mute.disabled = false;
@@ -731,12 +733,14 @@
       peers.set(remoteId, state);
 
       localStream.getTracks().forEach(function(track) {
-        peer.addTrack(track, localStream);
+        if ("contentHint" in track) track.contentHint = "speech";
+        const sender = peer.addTrack(track, localStream);
+        tuneAudioSender(sender);
       });
 
       peer.ontrack = function(event) {
         state.audio.srcObject = event.streams[0];
-        state.audio.volume = 0.78;
+        state.audio.volume = 0.9;
         state.audio.play().catch(function() {});
         setStatus("通話中です", "このページを開いたまま話してください。");
       };
@@ -780,6 +784,7 @@
         state.peer.restartIce();
       }
       const offer = await state.peer.createOffer(restartIce ? { iceRestart: true } : undefined);
+      offer.sdp = enhanceVoiceSdp(offer.sdp);
       await state.peer.setLocalDescription(offer);
       await addSignal("offer", { type: offer.type, sdp: offer.sdp }, remoteId, state.remoteSessionId);
       scheduleReconnect(remoteId);
@@ -801,6 +806,7 @@
           await peer.setRemoteDescription(new RTCSessionDescription(signal.payload));
         }
         const answer = await peer.createAnswer();
+        answer.sdp = enhanceVoiceSdp(answer.sdp);
         await peer.setLocalDescription(answer);
         await addSignal("answer", { type: answer.type, sdp: answer.sdp }, signal.from, signal.fromSessionId || state.remoteSessionId);
         await flushCandidates(state);
@@ -1004,7 +1010,7 @@
       audio.id = "remote-audio-" + cssEscape(remoteId);
       audio.autoplay = true;
       audio.playsInline = true;
-      audio.volume = 0.78;
+      audio.volume = 0.9;
       document.body.appendChild(audio);
       return audio;
     }
@@ -1057,40 +1063,81 @@
 
         const lowpass = localAudioContext.createBiquadFilter();
         lowpass.type = "lowpass";
-        lowpass.frequency.value = 8500;
+        lowpass.frequency.value = 12000;
         lowpass.Q.value = 0.5;
 
-        const gate = localAudioContext.createScriptProcessor(1024, 1, 1);
-        let gateLevel = 1;
-        gate.onaudioprocess = function(event) {
-          const input = event.inputBuffer.getChannelData(0);
-          const output = event.outputBuffer.getChannelData(0);
-          let sum = 0;
-          for (let i = 0; i < input.length; i += 1) {
-            sum += input[i] * input[i];
-          }
-          const rms = Math.sqrt(sum / input.length);
-          const target = rms < 0.006 ? 0.35 : 1;
-          gateLevel += (target - gateLevel) * 0.12;
-          for (let i = 0; i < input.length; i += 1) {
-            output[i] = input[i] * gateLevel;
-          }
-        };
-
         const gain = localAudioContext.createGain();
-        gain.gain.value = 0.9;
+        gain.gain.value = 1;
         const destination = localAudioContext.createMediaStreamDestination();
 
         source.connect(highpass);
         highpass.connect(lowpass);
-        lowpass.connect(gate);
-        gate.connect(gain);
+        lowpass.connect(gain);
         gain.connect(destination);
         return destination.stream;
       } catch (error) {
         console.warn(error);
         return stream;
       }
+    }
+
+    function tuneLocalAudioTrack(stream) {
+      const track = stream && stream.getAudioTracks ? stream.getAudioTracks()[0] : null;
+      if (!track) return;
+      if ("contentHint" in track) track.contentHint = "speech";
+      if (typeof track.applyConstraints !== "function") return;
+      track.applyConstraints({
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1
+      }).catch(function(error) {
+        console.warn(error);
+      });
+    }
+
+    function tuneAudioSender(sender) {
+      if (!sender || typeof sender.getParameters !== "function" || typeof sender.setParameters !== "function") return;
+      try {
+        const params = sender.getParameters() || {};
+        params.encodings = params.encodings && params.encodings.length ? params.encodings : [{}];
+        params.encodings[0].maxBitrate = 48000;
+        params.encodings[0].priority = "high";
+        sender.setParameters(params).catch(function(error) {
+          console.warn(error);
+        });
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    function enhanceVoiceSdp(sdp) {
+      if (!sdp) return sdp;
+      const opusMatch = sdp.match(/a=rtpmap:(\d+) opus\/48000\/2/i);
+      if (!opusMatch) return sdp;
+      const payloadType = opusMatch[1];
+      const voiceParams = "minptime=10;useinbandfec=1;usedtx=1;maxaveragebitrate=48000;stereo=0;sprop-stereo=0";
+      const fmtpRegex = new RegExp("a=fmtp:" + payloadType + " ([^\\r\\n]*)", "i");
+      if (fmtpRegex.test(sdp)) {
+        return sdp.replace(fmtpRegex, function(line, params) {
+          const nextParams = params.split(";").map(function(item) {
+            return item.trim();
+          }).filter(Boolean);
+          voiceParams.split(";").forEach(function(item) {
+            const key = item.split("=")[0];
+            const index = nextParams.findIndex(function(param) {
+              return param.split("=")[0] === key;
+            });
+            if (index >= 0) nextParams[index] = item;
+            else nextParams.push(item);
+          });
+          return "a=fmtp:" + payloadType + " " + nextParams.join(";");
+        });
+      }
+      return sdp.replace(
+        new RegExp("(a=rtpmap:" + payloadType + " opus/48000/2\\r?\\n)", "i"),
+        "$1a=fmtp:" + payloadType + " " + voiceParams + "\\r\\n"
+      );
     }
 
     function startSpeakingMonitor() {
