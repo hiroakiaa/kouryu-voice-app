@@ -398,7 +398,7 @@
       overflow: hidden;
       gap: 0.28rem;
       padding-block: 0.52rem;
-      grid-template-rows: auto minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr) auto;
     }
 
     .participants-card h2 {
@@ -642,15 +642,14 @@
     }
 
     .notice {
-      position: absolute;
-      left: clamp(0.8rem, 2vw, 1.15rem);
-      right: clamp(0.8rem, 2vw, 1.15rem);
-      bottom: 0.25rem;
       min-height: 1.35rem;
-      max-height: 2.7rem;
+      max-height: 2.8rem;
       overflow: hidden;
       pointer-events: none;
       text-align: center;
+      align-self: end;
+      padding: 0.18rem 0.5rem 0;
+      border-top: 0.06rem solid rgba(139, 233, 255, 0.1);
     }
 
     .metrics-modal {
@@ -1158,6 +1157,7 @@
     <section class="card participants-card">
       <h2><i class="fa-solid fa-user-group"></i> 参加者</h2>
       <div id="participants" class="participants"></div>
+      <div id="notice" class="notice" role="status" aria-live="polite"></div>
     </section>
 
     <div class="controls">
@@ -1170,7 +1170,6 @@
       <button id="joinBtn" class="primary primary-action" type="button"><i class="fa-solid fa-phone"></i><span>参加する</span></button>
     </div>
 
-    <div id="notice" class="notice" role="status" aria-live="polite"></div>
   </main>
   <div id="avatarTooltip" class="avatar-tooltip" role="tooltip" aria-hidden="true"></div>
   <div id="metricsModal" class="metrics-modal" aria-hidden="true">
@@ -1197,10 +1196,6 @@
           <div id="metricsMinuteCost" class="metrics-value">0.0000円/分</div>
         </div>
       </div>
-      <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
-        現在の通話金額は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
-      </div>
-      <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
         <div id="metricsDetailReads" class="metrics-detail" aria-hidden="true"></div>
@@ -1218,6 +1213,10 @@
       <pre id="metricsOutput" class="metrics-output"></pre>
     </div>
   </div>
+  <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
+    現在の通話金額は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
+  </div>
+  <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
@@ -2815,6 +2814,7 @@
       el.metricsToggle.classList.remove("is-open");
       el.metricsToggle.setAttribute("aria-expanded", "false");
       hideMetricsNote();
+      hideMetricsRateTooltip();
     }
 
     function toggleMetricsNote(event) {
