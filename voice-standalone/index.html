@@ -2903,9 +2903,9 @@
       if (metricsCard) {
         const cardRect = metricsCard.getBoundingClientRect();
         const centerInCard = rect.left - cardRect.left + rect.width / 2 + metricsCard.scrollLeft;
-        const minLeft = popRect.width / 2 + 8;
-        const maxLeft = metricsCard.clientWidth - popRect.width / 2 - 8;
-        const left = Math.min(maxLeft, Math.max(minLeft, centerInCard));
+        const minLeft = metricsCard.scrollLeft + 8;
+        const maxLeft = metricsCard.scrollLeft + metricsCard.clientWidth - popRect.width - 8;
+        const left = Math.min(maxLeft, Math.max(minLeft, centerInCard - popRect.width / 2));
         const aboveTop = rect.top - cardRect.top + metricsCard.scrollTop - popRect.height - 8;
         const belowTop = rect.bottom - cardRect.top + metricsCard.scrollTop + 8;
         const minTop = metricsCard.scrollTop + 8;
