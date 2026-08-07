@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- kouryu standalone voice app shared default room 2026-08-08-reliability-polish -->
+<!-- kouryu standalone voice app shared default room 2026-08-08-datachannel-presence -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -1943,6 +1943,13 @@
       };
       channel.onclose = function() {
         state.dataChannelReady = false;
+        if (state.id) {
+          setRealtimeParticipantState(state.id, {
+            speaking: false,
+            connected: false,
+            dataAt: Date.now()
+          });
+        }
       };
       channel.onerror = function(error) {
         console.warn(error);

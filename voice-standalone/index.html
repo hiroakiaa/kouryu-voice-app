@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- kouryu standalone voice app shared default room 2026-08-08-reliability-polish -->
+<!-- kouryu standalone voice app shared default room 2026-08-08-datachannel-presence -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -1250,15 +1250,19 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-08-reliability-polish";
-    const PARTICIPANT_STALE_MS = 180 * 1000;
-    const HEARTBEAT_MS = 60000;
+    const APP_VERSION = "2026-08-08-datachannel-presence";
+    const PARTICIPANT_STALE_MS = 300 * 1000;
+    const HEARTBEAT_MS = 120000;
     const SPEAKING_MONITOR_MS = 260;
     const SPEAKING_ON_HOLD_MS = 220;
     const SPEAKING_OFF_HOLD_MS = 1400;
-    const SPEAKING_MIN_WRITE_MS = 8000;
-    const SPEAKING_REFRESH_MS = 180000;
+    const SPEAKING_MIN_WRITE_MS = 15000;
+    const SPEAKING_REFRESH_MS = 300000;
     const CONNECTION_REFRESH_MS = 60000;
+    const DATA_CHANNEL_LABEL = "kouryu-voice-state";
+    const DATA_CHANNEL_STALE_MS = 15000;
+    const DATA_SPEAKING_MIN_SEND_MS = 700;
+    const DATA_SPEAKING_REFRESH_MS = 8000;
     const DEFAULT_CALL_ID = "main-room";
     const VOICE_SETTINGS = {
       autoGainControl: false,
@@ -1341,6 +1345,8 @@
     let speakingCandidateState = false;
     let speakingCandidateSince = 0;
     let lastSpeakingWrite = 0;
+    let lastSpeakingDataSent = 0;
+    let lastSpeakingDataState = null;
     let muted = false;
     let joined = false;
     let joinBusy = false;
@@ -1348,6 +1354,7 @@
     let currentStatusTitle = "準備中です";
     let currentStatusText = "通話URLを開いた人だけで話せます。";
     let peers = new Map();
+    let realtimeParticipantState = new Map();
     let processedSignals = new Set();
     let signalAcceptAfterMs = Date.now();
     let unsubSignals = null;
@@ -1696,8 +1703,9 @@
         activeParticipants.sort(function(a, b) {
           return getTimestampMillis(a.joinedAt || a.updatedAt) - getTimestampMillis(b.joinedAt || b.updatedAt);
         });
-        notifyParticipantChanges(activeParticipants);
-        participants = activeParticipants;
+        const renderedParticipants = activeParticipants.map(applyRealtimeParticipantState);
+        notifyParticipantChanges(renderedParticipants);
+        participants = renderedParticipants;
         renderParticipants(participants);
         ensurePeersForParticipants();
         updateLocalStatus();
@@ -1828,6 +1836,8 @@
         sentCandidateKeys: new Set(),
         receivedCandidateKeys: new Set(),
         audio: createRemoteAudio(remoteId),
+        dataChannel: null,
+        dataChannelReady: false,
         offered: false,
         reconnectTimer: null
       };
@@ -1844,6 +1854,10 @@
         state.audio.volume = 0.9;
         state.audio.play().catch(function() {});
         setStatus("通話中です", "このページを開いたまま話してください。");
+      };
+
+      peer.ondatachannel = function(event) {
+        setupPeerDataChannel(state, event.channel);
       };
 
       peer.onicecandidate = function(event) {
@@ -1866,6 +1880,7 @@
         if (isPeerConnected(peer)) {
           markConnectedOnce();
           clearReconnectTimer(state);
+          sendLocalRealtimeState(state);
         }
         if (isPeerUnstable(peer)) {
           scheduleReconnect(remoteId);
@@ -1888,6 +1903,7 @@
 
       if (shouldCreateOffer(remoteId)) {
         state.offered = true;
+        createPeerDataChannel(state);
         createOffer(remoteId).catch(console.warn);
       }
 
@@ -1896,6 +1912,142 @@
 
     function shouldCreateOffer(remoteId) {
       return String(userId) < String(remoteId);
+    }
+
+    function createPeerDataChannel(state) {
+      if (!state || !state.peer || state.dataChannel) return;
+      try {
+        setupPeerDataChannel(state, state.peer.createDataChannel(DATA_CHANNEL_LABEL, {
+          ordered: false,
+          maxRetransmits: 0
+        }));
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    function setupPeerDataChannel(state, channel) {
+      if (!state || !channel) return;
+      if (state.dataChannel && state.dataChannel !== channel) {
+        try {
+          state.dataChannel.close();
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+      state.dataChannel = channel;
+      state.dataChannelReady = channel.readyState === "open";
+      channel.onopen = function() {
+        state.dataChannelReady = true;
+        sendLocalRealtimeState(state);
+      };
+      channel.onclose = function() {
+        state.dataChannelReady = false;
+        if (state.id) {
+          setRealtimeParticipantState(state.id, {
+            speaking: false,
+            connected: false,
+            dataAt: Date.now()
+          });
+        }
+      };
+      channel.onerror = function(error) {
+        console.warn(error);
+      };
+      channel.onmessage = function(event) {
+        handlePeerDataMessage(state, event.data);
+      };
+    }
+
+    function handlePeerDataMessage(state, raw) {
+      if (!state || !raw) return;
+      let message = null;
+      try {
+        message = JSON.parse(raw);
+      } catch (error) {
+        return;
+      }
+      if (!message || message.type !== "presence" || message.from !== state.id) return;
+      setRealtimeParticipantState(state.id, {
+        speaking: !!message.speaking,
+        muted: !!message.muted,
+        connected: true,
+        dataAt: Date.now()
+      });
+    }
+
+    function setRealtimeParticipantState(participantId, patch) {
+      if (!participantId) return;
+      const current = realtimeParticipantState.get(participantId) || {};
+      realtimeParticipantState.set(participantId, Object.assign({}, current, patch));
+      participants = participants.map(applyRealtimeParticipantState);
+      renderParticipants(participants);
+    }
+
+    function applyRealtimeParticipantState(person) {
+      if (!person || !person.userId) return person;
+      const realtime = realtimeParticipantState.get(person.userId);
+      if (!realtime || !realtime.dataAt || Date.now() - realtime.dataAt > DATA_CHANNEL_STALE_MS) return person;
+      return Object.assign({}, person, {
+        muted: !!realtime.muted,
+        speaking: !!realtime.speaking,
+        connected: person.connected || !!realtime.connected
+      });
+    }
+
+    function hasOpenDataChannels() {
+      return Array.from(peers.values()).some(function(state) {
+        return state && state.dataChannel && state.dataChannel.readyState === "open";
+      });
+    }
+
+    function sendPeerData(state, payload) {
+      if (!state || !state.dataChannel || state.dataChannel.readyState !== "open") return false;
+      try {
+        state.dataChannel.send(JSON.stringify(Object.assign({
+          from: userId,
+          sessionId,
+          sentAt: Date.now()
+        }, payload)));
+        return true;
+      } catch (error) {
+        console.warn(error);
+        return false;
+      }
+    }
+
+    function sendLocalRealtimeState(state) {
+      return sendPeerData(state, {
+        type: "presence",
+        muted,
+        speaking: speakingState
+      });
+    }
+
+    function broadcastLocalRealtimeState(force) {
+      if (!hasOpenDataChannels()) return false;
+      let sent = false;
+      peers.forEach(function(state) {
+        if (sendLocalRealtimeState(state)) sent = true;
+      });
+      if (sent || force) {
+        setRealtimeParticipantState(userId, {
+          speaking: speakingState,
+          muted,
+          connected: true,
+          dataAt: Date.now()
+        });
+      }
+      return sent;
+    }
+
+    function maybeBroadcastSpeakingState(now, force) {
+      if (!hasOpenDataChannels()) return false;
+      if (!force && lastSpeakingDataState === speakingState && now - lastSpeakingDataSent < DATA_SPEAKING_REFRESH_MS) return true;
+      if (!force && now - lastSpeakingDataSent < DATA_SPEAKING_MIN_SEND_MS) return true;
+      lastSpeakingDataSent = now;
+      lastSpeakingDataState = speakingState;
+      return broadcastLocalRealtimeState(force);
     }
 
     async function createOffer(remoteId, restartIce) {
@@ -2125,6 +2277,7 @@
         speakingCandidateState = false;
         speakingCandidateSince = 0;
       }
+      broadcastLocalRealtimeState(true);
       if (!writePresence) return;
       recordWrite("participantMute");
       setDoc(participantRef(userId), {
@@ -2166,8 +2319,11 @@
       stopSpeakingMonitor();
       Array.from(peers.keys()).forEach(closePeer);
       peers.clear();
+      realtimeParticipantState.clear();
       lastConnectedState = null;
       lastConnectionWrite = 0;
+      lastSpeakingDataSent = 0;
+      lastSpeakingDataState = null;
       if (localStream) localStream.getTracks().forEach(function(track) { track.stop(); });
       if (rawLocalStream) rawLocalStream.getTracks().forEach(function(track) { track.stop(); });
       if (localAudioContext && typeof localAudioContext.close === "function") localAudioContext.close().catch(function() {});
@@ -2196,9 +2352,17 @@
       const state = peers.get(remoteId);
       if (!state) return;
       clearReconnectTimer(state);
+      if (state.dataChannel) {
+        try {
+          state.dataChannel.close();
+        } catch (error) {
+          console.warn(error);
+        }
+      }
       if (state.peer) state.peer.close();
       if (state.audio) state.audio.remove();
       peers.delete(remoteId);
+      realtimeParticipantState.delete(remoteId);
     }
 
     function createRemoteAudio(remoteId) {
@@ -2469,6 +2633,8 @@
         speakingCandidateState = false;
         speakingCandidateSince = Date.now();
         lastSpeakingWrite = 0;
+        lastSpeakingDataSent = 0;
+        lastSpeakingDataState = null;
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
         if (!localAudioContext) localAudioContext = new AudioContextClass();
@@ -2499,8 +2665,14 @@
             lastMuteReminderAt = now;
             setNotice("話していない時はミュートにすると、相手にノイズが届きにくくなります。");
           }
-          if (shouldSyncSpeakingState(nextSpeaking, now)) {
+          const previousSpeaking = speakingState;
+          if (nextSpeaking !== speakingState) {
             speakingState = nextSpeaking;
+            maybeBroadcastSpeakingState(now, true);
+          } else {
+            maybeBroadcastSpeakingState(now, false);
+          }
+          if (shouldSyncSpeakingState(nextSpeaking, previousSpeaking, now)) {
             lastSpeakingWrite = now;
             recordWrite("participantSpeaking");
             setDoc(participantRef(userId), {
@@ -2528,12 +2700,17 @@
       return rawSpeaking;
     }
 
-    function shouldSyncSpeakingState(nextSpeaking, now) {
+    function shouldSyncSpeakingState(nextSpeaking, previousSpeaking, now) {
       if (!joined) return false;
       if (participants.length <= 1) {
-        return speakingState && !nextSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS;
+        return previousSpeaking && !nextSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS;
       }
-      if (nextSpeaking !== speakingState && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS) return true;
+      if (hasOpenDataChannels()) {
+        if (previousSpeaking && !nextSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS) return true;
+        if (nextSpeaking && now - lastSpeakingWrite >= SPEAKING_REFRESH_MS) return true;
+        return false;
+      }
+      if (nextSpeaking !== previousSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS) return true;
       if (nextSpeaking && now - lastSpeakingWrite >= SPEAKING_REFRESH_MS) return true;
       return false;
     }
