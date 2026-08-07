@@ -469,6 +469,7 @@
     const userId = getOrCreateUserId();
     const callId = ensureCallId(params.get("call"));
     const isDefaultCall = callId === DEFAULT_CALL_ID;
+    normalizeCallUrl();
 
     const el = {
       roomLabel: document.getElementById("roomLabel"),
@@ -554,7 +555,8 @@
 
     async function joinCall() {
       if (joined) return;
-      saveName();
+      const userName = resolveUserName();
+      saveName(userName);
       try {
         setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
         rawLocalStream = await navigator.mediaDevices.getUserMedia({
@@ -575,7 +577,7 @@
         el.mute.disabled = false;
         await setDoc(participantRef(userId), {
           userId,
-          userName: getUserName(),
+          userName,
           joined: true,
           left: false,
           muted: false,
@@ -920,7 +922,7 @@
     }
 
     async function copyShareUrl() {
-      const url = location.href;
+      const url = getShareUrl();
       try {
         await navigator.clipboard.writeText(url);
         setNotice("通話URLをコピーしました。");
@@ -930,7 +932,7 @@
     }
 
     function openNewCall() {
-      const url = new URL(location.href);
+      const url = new URL(location.origin + location.pathname);
       url.searchParams.set("call", createCallId());
       location.href = url.toString();
     }
@@ -1073,6 +1075,38 @@
       return safe || DEFAULT_CALL_ID;
     }
 
+    function normalizeCallUrl() {
+      try {
+        const url = new URL(location.href);
+        let changed = false;
+        if (url.searchParams.get("call") !== callId) {
+          url.searchParams.set("call", callId);
+          changed = true;
+        }
+        ["v", "ts", "cache", "cb"].forEach(function(key) {
+          if (url.searchParams.has(key)) {
+            url.searchParams.delete(key);
+            changed = true;
+          }
+        });
+        if (changed && history.replaceState) {
+          history.replaceState(null, "", url.toString());
+        }
+      } catch (error) {
+        // URLを整えられない環境でも、内部の通話IDは固定して続けます。
+      }
+    }
+
+    function getShareUrl() {
+      try {
+        const url = new URL(location.origin + location.pathname);
+        url.searchParams.set("call", callId);
+        return url.toString();
+      } catch (error) {
+        return location.href;
+      }
+    }
+
     function createCallId() {
       return "call-" + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-5);
     }
@@ -1098,10 +1132,18 @@
       }
     }
 
-    function saveName() {
+    function saveName(forcedName) {
       enforceNameLimit();
+      if (typeof forcedName === "string" && forcedName) {
+        el.name.value = getDisplayName(forcedName);
+      }
+      const typed = getDisplayName(el.name.value);
       try {
-        localStorage.setItem("standaloneVoiceUserName", getDisplayName(el.name.value.trim()));
+        if (typed) {
+          localStorage.setItem("standaloneVoiceUserName", typed);
+        } else {
+          localStorage.removeItem("standaloneVoiceUserName");
+        }
       } catch (error) {
         // 保存できない環境でも通話は続けます。
       }
@@ -1109,7 +1151,14 @@
     }
 
     function getUserName() {
-      return getDisplayName(el.name.value.trim() || "匿名" + userId.slice(-4));
+      return resolveUserName();
+    }
+
+    function resolveUserName() {
+      const typed = getDisplayName(el.name.value);
+      if (typed) return typed;
+      const anonymousSuffix = String(userId).replace(/[^a-zA-Z0-9]/g, "").slice(-4) || Math.random().toString(36).slice(2, 6);
+      return getDisplayName("匿名" + anonymousSuffix);
     }
 
     function getDisplayName(value) {
