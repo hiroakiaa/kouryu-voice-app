@@ -467,6 +467,7 @@
     const db = getFirestore(app);
     const params = new URLSearchParams(location.search);
     const userId = getOrCreateUserId();
+    const sessionId = createSessionId();
     const callId = ensureCallId(params.get("call"));
     const isDefaultCall = callId === DEFAULT_CALL_ID;
     normalizeCallUrl();
@@ -570,6 +571,7 @@
         setStatus("参加しています", "参加者として登録しています。");
         await setDoc(participantRef(userId), {
           userId,
+          sessionId,
           userName,
           joined: true,
           left: false,
@@ -615,6 +617,7 @@
         console.warn(error);
         el.mute.disabled = true;
         await setDoc(participantRef(userId), {
+          sessionId,
           muted: true,
           connected: false,
           speaking: false,
@@ -659,6 +662,7 @@
           const signal = change.doc.data() || {};
           if (signal.from === userId) continue;
           if (signal.to !== userId) continue;
+          if (signal.toSessionId && signal.toSessionId !== sessionId) continue;
           if (isStaleSignal(signal)) continue;
           await handleSignal(signal);
         }
@@ -684,6 +688,7 @@
     function updatePresence() {
       if (!joined) return;
       setDoc(participantRef(userId), {
+        sessionId,
         userName: getUserName(),
         left: false,
         muted,
@@ -705,11 +710,18 @@
     }
 
     function ensurePeer(remoteId, remoteName) {
-      if (peers.has(remoteId)) return peers.get(remoteId);
+      const remotePerson = participants.find(function(item) { return item.userId === remoteId; });
+      const remoteSessionId = remotePerson && remotePerson.sessionId ? String(remotePerson.sessionId) : "";
+      if (peers.has(remoteId)) {
+        const existing = peers.get(remoteId);
+        if (!remoteSessionId || existing.remoteSessionId === remoteSessionId) return existing;
+        closePeer(remoteId);
+      }
       const peer = new RTCPeerConnection(rtcConfig);
       const state = {
         id: remoteId,
         name: remoteName,
+        remoteSessionId,
         peer,
         candidates: [],
         audio: createRemoteAudio(remoteId),
@@ -735,7 +747,7 @@
           candidate: event.candidate.candidate,
           sdpMid: event.candidate.sdpMid,
           sdpMLineIndex: event.candidate.sdpMLineIndex
-        }, remoteId);
+        }, remoteId, state.remoteSessionId);
       };
 
       peer.onconnectionstatechange = function() {
@@ -761,17 +773,21 @@
       return String(userId) < String(remoteId);
     }
 
-    async function createOffer(remoteId) {
+    async function createOffer(remoteId, restartIce) {
       const state = peers.get(remoteId);
       if (!state || state.peer.signalingState !== "stable") return;
-      const offer = await state.peer.createOffer();
+      if (restartIce && typeof state.peer.restartIce === "function") {
+        state.peer.restartIce();
+      }
+      const offer = await state.peer.createOffer(restartIce ? { iceRestart: true } : undefined);
       await state.peer.setLocalDescription(offer);
-      await addSignal("offer", { type: offer.type, sdp: offer.sdp }, remoteId);
+      await addSignal("offer", { type: offer.type, sdp: offer.sdp }, remoteId, state.remoteSessionId);
       scheduleReconnect(remoteId);
     }
 
     async function handleSignal(signal) {
       if (!joined || !localStream || !signal.from) return;
+      if (signal.toSessionId && signal.toSessionId !== sessionId) return;
       const state = ensurePeer(signal.from, signal.fromName || "相手");
       const peer = state.peer;
 
@@ -786,7 +802,7 @@
         }
         const answer = await peer.createAnswer();
         await peer.setLocalDescription(answer);
-        await addSignal("answer", { type: answer.type, sdp: answer.sdp }, signal.from);
+        await addSignal("answer", { type: answer.type, sdp: answer.sdp }, signal.from, signal.fromSessionId || state.remoteSessionId);
         await flushCandidates(state);
       } else if (signal.type === "answer" && signal.payload) {
         if (peer.signalingState !== "stable") {
@@ -817,11 +833,13 @@
       }
     }
 
-    function addSignal(type, payload, to) {
+    function addSignal(type, payload, to, toSessionId) {
       return addDoc(collection(callRef(), "signals"), {
         from: userId,
+        fromSessionId: sessionId,
         fromName: getUserName(),
         to,
+        toSessionId: toSessionId || "",
         type,
         payload,
         createdAt: serverTimestamp()
@@ -841,8 +859,11 @@
         const current = peers.get(remoteId);
         if (!current || !joined || !localStream) return;
         if (["connected", "completed"].indexOf(current.peer.connectionState) !== -1) return;
-        if (current.peer.signalingState !== "stable") return;
-        createOffer(remoteId).catch(console.warn);
+        if (current.peer.signalingState !== "stable") {
+          scheduleReconnect(remoteId);
+          return;
+        }
+        createOffer(remoteId, true).catch(console.warn);
       }, 8000);
     }
 
@@ -895,6 +916,7 @@
       });
       updateConnectionPill(connected ? "通話中" : (participants.length > 1 ? "接続中" : "待機"));
       setDoc(participantRef(userId), {
+        sessionId,
         connected,
         lastSeenAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -922,6 +944,7 @@
         ? '<i class="fa-solid fa-microphone"></i><span>解除</span>'
         : '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
       setDoc(participantRef(userId), {
+        sessionId,
         muted,
         speaking: false,
         updatedAt: serverTimestamp()
@@ -936,6 +959,7 @@
     function markLeft() {
       stopHeartbeat();
       setDoc(participantRef(userId), {
+        sessionId,
         left: true,
         connected: false,
         speaking: false,
@@ -1079,6 +1103,7 @@
             speakingState = nextSpeaking;
             lastSpeakingWrite = now;
             setDoc(participantRef(userId), {
+              sessionId,
               speaking: speakingState,
               updatedAt: serverTimestamp(),
               lastSeenAt: serverTimestamp()
@@ -1173,6 +1198,10 @@
 
     function createCallId() {
       return "call-" + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-5);
+    }
+
+    function createSessionId() {
+      return "session-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
     }
 
     function getOrCreateUserId() {
