@@ -41,7 +41,7 @@
       margin: 0;
       display: grid;
       place-items: center;
-      padding: max(0.7rem, env(safe-area-inset-top)) max(0.7rem, env(safe-area-inset-right)) max(0.7rem, env(safe-area-inset-bottom)) max(0.7rem, env(safe-area-inset-left));
+      padding: max(0.7rem, env(safe-area-inset-top)) max(0.7rem, env(safe-area-inset-right)) max(0.9rem, env(safe-area-inset-bottom)) max(0.7rem, env(safe-area-inset-left));
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
@@ -63,6 +63,7 @@
       border-radius: 1.25rem;
       background: rgba(4, 18, 28, 0.96);
       overflow: hidden;
+      margin-bottom: max(0rem, env(safe-area-inset-bottom));
     }
 
     header {
@@ -100,9 +101,18 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(1.18rem, 3.8vw, 1.55rem);
+      font-size: clamp(1.05rem, 3.4vw, 1.38rem);
       line-height: 1.08;
       letter-spacing: 0;
+    }
+
+    .brand-subline {
+      margin-top: 0.22rem;
+      display: flex;
+      align-items: center;
+      gap: 0.42rem;
+      min-width: 0;
+      flex-wrap: wrap;
     }
 
     .room-id {
@@ -184,7 +194,7 @@
       gap: 0.35rem;
       min-height: 1.85rem;
       padding: 0.25rem 0.55rem;
-      border: 0.08rem solid var(--line);
+      border: 0;
       border-radius: 999rem;
       color: var(--ok);
       background: #071c2a;
@@ -195,17 +205,49 @@
 
     .connection-pill.is-active {
       color: var(--ok);
-      border-color: var(--ok);
+      background: rgba(94, 234, 212, 0.12);
     }
 
     .connection-pill.is-connecting {
       color: var(--warn);
-      border-color: var(--warn);
+      background: rgba(250, 204, 21, 0.1);
     }
 
     .connection-pill.is-unstable {
       color: var(--danger);
-      border-color: var(--danger);
+      background: rgba(251, 113, 133, 0.11);
+    }
+
+    .connection-tooltip {
+      position: fixed;
+      z-index: 80;
+      width: min(18rem, calc(100vw - 1.5rem));
+      padding: 0.62rem 0.7rem;
+      border: 0.07rem solid var(--accent-deep);
+      border-radius: 0.72rem;
+      color: var(--text);
+      background: #061522;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -0.25rem);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .connection-tooltip.is-showing {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .connection-tooltip strong {
+      display: block;
+      margin-bottom: 0.18rem;
+      font-size: 0.82rem;
+    }
+
+    .connection-tooltip span {
+      color: var(--muted);
+      font-size: 0.74rem;
+      line-height: 1.45;
     }
 
     .audio-health {
@@ -505,9 +547,14 @@
     }
 
     .secondary-controls {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      display: flex;
+      justify-content: center;
       gap: 0.48rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      scrollbar-width: thin;
+      padding: 0.08rem 0 0.18rem;
     }
 
     .secondary-controls #reconnectBtn {
@@ -617,7 +664,8 @@
     .metrics-modal-card {
       width: min(100%, 31rem);
       max-height: min(88svh, 38rem);
-      overflow: auto;
+      overflow-x: hidden;
+      overflow-y: auto;
       display: grid;
       gap: 0.75rem;
       padding: 0.9rem;
@@ -626,6 +674,10 @@
       background: #061522;
       transform: translateY(0.4rem);
       transition: transform 180ms ease;
+    }
+
+    .metrics-modal-card * {
+      min-width: 0;
     }
 
     .metrics-modal.is-open .metrics-modal-card {
@@ -655,7 +707,7 @@
 
     .metrics-rate-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 8rem;
+      grid-template-columns: minmax(0, 1fr) 8rem auto;
       align-items: end;
       gap: 0.65rem;
       color: var(--muted);
@@ -697,6 +749,7 @@
     }
 
     .metrics-help-btn,
+    .metrics-rate-help-btn,
     .metrics-copy-btn {
       width: 1.7rem;
       height: 1.7rem;
@@ -857,7 +910,8 @@
     .metrics-output {
       margin: 0;
       max-height: 10rem;
-      overflow: auto;
+      overflow-x: hidden;
+      overflow-y: auto;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       word-break: break-word;
@@ -871,6 +925,8 @@
     }
 
     .secondary-controls button {
+      flex: 0 0 7.8rem;
+      width: 7.8rem;
       min-height: 2.55rem;
       border-radius: 0.82rem;
       color: var(--muted);
@@ -887,8 +943,33 @@
     }
 
     body.is-demo-mode .connection-pill {
-      border-color: var(--accent);
       color: var(--accent);
+    }
+
+    .metrics-note-popover,
+    .metrics-rate-popover {
+      position: fixed;
+      z-index: 55;
+      width: min(17rem, calc(100vw - 2rem));
+      padding: 0.65rem 0.72rem;
+      border: 0.07rem solid var(--accent-deep);
+      border-radius: 0.72rem;
+      color: var(--text);
+      background: #071a29;
+      font-size: 0.72rem;
+      font-weight: 760;
+      line-height: 1.5;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(0.22rem);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .metrics-note-popover.is-open,
+    .metrics-rate-popover.is-open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
     }
 
     .avatar-tooltip {
@@ -916,11 +997,11 @@
 
     @media (max-width: 460px) {
       body {
-        padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+        padding: max(0.62rem, env(safe-area-inset-top)) max(0.62rem, env(safe-area-inset-right)) max(0.72rem, env(safe-area-inset-bottom)) max(0.62rem, env(safe-area-inset-left));
       }
 
       main {
-        height: calc(100svh - 1rem);
+        height: calc(100svh - 1.34rem);
         border-radius: 1.12rem;
         gap: 0.42rem;
         padding: 0.58rem;
@@ -967,16 +1048,18 @@
       }
 
       .secondary-controls {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        overflow: visible;
+        display: flex;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: hidden;
         padding-bottom: 0.1rem;
         scrollbar-width: thin;
         gap: 0.34rem;
       }
 
       .secondary-controls button {
-        min-width: 0;
+        flex: 0 0 6.6rem;
+        width: 6.6rem;
         min-height: 2.25rem;
         padding-inline: 0.3rem;
       }
@@ -987,7 +1070,7 @@
       }
 
       .metrics-rate-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) 6.8rem auto;
       }
 
       .metrics-modal-card {
@@ -1016,11 +1099,14 @@
 <body>
   <main>
     <header>
-      <span class="app-icon" aria-hidden="true"><i class="fa-solid fa-headphones-simple"></i></span>
-      <div class="brand">
-        <h1>共通電話</h1>
+    <span class="app-icon" aria-hidden="true"><i class="fa-solid fa-headphones-simple"></i></span>
+    <div class="brand">
+      <h1>共通電話</h1>
+      <div class="brand-subline">
         <div id="roomLabel" class="room-id"></div>
+        <button id="connectionPill" class="connection-pill" type="button" aria-expanded="false" aria-label="接続状態の詳細"><i class="fa-solid fa-signal"></i><span>待機</span></button>
       </div>
+    </div>
       <div class="header-actions">
         <button id="metricsToggleBtn" class="header-icon-btn metrics-toggle" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="Firestore料金の目安">
           <i class="fa-solid fa-yen-sign"></i>
@@ -1040,7 +1126,6 @@
         <strong id="statusTitle">準備中です</strong>
         <span id="statusText">通話URLを開いた人だけで話せます。</span>
       </div>
-      <span id="connectionPill" class="connection-pill"><i class="fa-solid fa-signal"></i><span>待機</span></span>
     </section>
 
     <section id="callTips" class="card call-tips" aria-live="polite" aria-hidden="true">
@@ -1085,6 +1170,7 @@
       <label class="metrics-rate-row">
         <span>1ドルあたりの円換算</span>
         <input id="metricsRateInput" inputmode="decimal" value="158" aria-label="1ドルあたりの円換算">
+        <button id="metricsRateHelpBtn" class="metrics-rate-help-btn" type="button" aria-label="為替レートの取得時刻" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
       </label>
       <div class="metrics-cost-grid">
         <div class="metrics-cost-card">
@@ -1102,6 +1188,7 @@
       <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
         現在の通話金額は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
       </div>
+      <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
         <div id="metricsDetailReads" class="metrics-detail" aria-hidden="true"></div>
@@ -1119,6 +1206,7 @@
       <pre id="metricsOutput" class="metrics-output"></pre>
     </div>
   </div>
+  <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -1169,6 +1257,8 @@
       floorGain: 0.16,
       maxBitrate: 48000
     };
+    const EXCHANGE_RATE_CACHE_KEY = "kouryu-voice-usd-jpy-rate";
+    const EXCHANGE_RATE_REFRESH_MS = 6 * 60 * 60 * 1000;
 
     const params = new URLSearchParams(location.search);
     const isDemoMode = params.get("demo") === "1" || location.hash === "#demo";
@@ -1186,6 +1276,7 @@
       statusTitle: document.getElementById("statusTitle"),
       statusText: document.getElementById("statusText"),
       connectionPill: document.getElementById("connectionPill"),
+      connectionTooltip: document.getElementById("connectionTooltip"),
       audioHealth: document.getElementById("audioHealth"),
       callTips: document.getElementById("callTips"),
       tipsToggle: document.getElementById("tipsToggleBtn"),
@@ -1195,6 +1286,8 @@
       metricsCopy: document.getElementById("metricsCopyBtn"),
       metricsNote: document.getElementById("metricsNoteBtn"),
       metricsNotePopover: document.getElementById("metricsNotePopover"),
+      metricsRateHelp: document.getElementById("metricsRateHelpBtn"),
+      metricsRateTooltip: document.getElementById("metricsRateTooltip"),
       metricsRateInput: document.getElementById("metricsRateInput"),
       metricsCurrentCost: document.getElementById("metricsCurrentCost"),
       metricsMinuteCost: document.getElementById("metricsMinuteCost"),
@@ -1252,6 +1345,14 @@
     let knownParticipantNames = new Map();
     let hasParticipantSnapshot = false;
     let metricTimers = [];
+    let exchangeRateTimer = null;
+    let exchangeRateInfo = {
+      source: "手入力",
+      fetchedAt: 0,
+      rateUpdatedAt: "",
+      ok: false,
+      message: "まだ自動取得していません。"
+    };
     const metrics = createMetrics();
     window.voiceFirestoreMetrics = metrics;
 
@@ -1311,8 +1412,12 @@
       if (el.metricsClose) el.metricsClose.addEventListener("click", closeMetricsModal);
       if (el.metricsCopy) el.metricsCopy.addEventListener("click", copyMetricsOutput);
       if (el.metricsNote) el.metricsNote.addEventListener("click", toggleMetricsNote);
+      if (el.metricsRateHelp) el.metricsRateHelp.addEventListener("click", toggleMetricsRateTooltip);
+      if (el.connectionPill) el.connectionPill.addEventListener("click", toggleConnectionTooltip);
       if (el.metricsModal) el.metricsModal.addEventListener("click", handleMetricsDetailClick);
       if (el.metricsRateInput) el.metricsRateInput.addEventListener("input", renderMetrics);
+      bindHorizontalWheel(document.querySelector(".secondary-controls"));
+      initExchangeRate();
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
         if (!isDemoMode && joined) markLeft();
@@ -1730,11 +1835,23 @@
       };
 
       peer.onconnectionstatechange = function() {
-        if (["connected", "completed"].indexOf(peer.connectionState) !== -1) {
+        if (isPeerConnected(peer)) {
           markConnectedOnce();
           clearReconnectTimer(state);
         }
-        if (["failed", "disconnected"].indexOf(peer.connectionState) !== -1) {
+        if (isPeerUnstable(peer)) {
+          scheduleReconnect(remoteId);
+        }
+        updateParticipantConnection();
+        updateLocalStatus();
+      };
+
+      peer.oniceconnectionstatechange = function() {
+        if (isPeerConnected(peer)) {
+          markConnectedOnce();
+          clearReconnectTimer(state);
+        }
+        if (isPeerUnstable(peer)) {
           scheduleReconnect(remoteId);
         }
         updateParticipantConnection();
@@ -1853,7 +1970,7 @@
       state.reconnectTimer = window.setTimeout(function() {
         const current = peers.get(remoteId);
         if (!current || !joined || !localStream) return;
-        if (["connected", "completed"].indexOf(current.peer.connectionState) !== -1) return;
+        if (isPeerConnected(current.peer)) return;
         if (current.peer.signalingState !== "stable") {
           scheduleReconnect(remoteId);
           return;
@@ -1895,11 +2012,23 @@
       }).join("");
     }
 
+    function isPeerConnected(peer) {
+      if (!peer) return false;
+      return ["connected", "completed"].indexOf(peer.connectionState) !== -1 ||
+        ["connected", "completed"].indexOf(peer.iceConnectionState) !== -1;
+    }
+
+    function isPeerUnstable(peer) {
+      if (!peer) return false;
+      return ["failed", "disconnected"].indexOf(peer.connectionState) !== -1 ||
+        ["failed", "disconnected"].indexOf(peer.iceConnectionState) !== -1;
+    }
+
     function updateLocalStatus() {
       if (!joined) return;
       const others = participants.filter(function(item) { return item.userId && item.userId !== userId; });
       const connected = Array.from(peers.values()).some(function(item) {
-        return item.peer && ["connected", "completed"].indexOf(item.peer.connectionState) !== -1;
+        return isPeerConnected(item.peer);
       });
       if (connected) {
         setStatus("通話中です", muted ? "マイクOFFです。話す時だけ解除できます。" : "話していない時はミュートがおすすめです。");
@@ -1913,10 +2042,10 @@
     function updateParticipantConnection() {
       if (!joined) return;
       const connected = Array.from(peers.values()).some(function(item) {
-        return item.peer && ["connected", "completed"].indexOf(item.peer.connectionState) !== -1;
+        return isPeerConnected(item.peer);
       });
       const unstable = Array.from(peers.values()).some(function(item) {
-        return item.peer && ["failed", "disconnected"].indexOf(item.peer.connectionState) !== -1;
+        return isPeerUnstable(item.peer);
       });
       updateConnectionPill(unstable ? "不安定" : (connected ? "通話中" : (participants.length > 1 ? "接続中" : "待機")));
       const now = Date.now();
@@ -2424,9 +2553,7 @@
       if (!el.metricsNote || !el.metricsNotePopover) return;
       const isOpen = !el.metricsNotePopover.classList.contains("is-open");
       if (isOpen) {
-        const rect = el.metricsNote.getBoundingClientRect();
-        el.metricsNotePopover.style.left = Math.min(window.innerWidth - 18, Math.max(12, rect.left)) + "px";
-        el.metricsNotePopover.style.top = Math.min(window.innerHeight - 18, rect.bottom + 8) + "px";
+        positionPopoverAbove(el.metricsNote, el.metricsNotePopover);
       }
       el.metricsNotePopover.classList.toggle("is-open", isOpen);
       el.metricsNotePopover.setAttribute("aria-hidden", isOpen ? "false" : "true");
@@ -2438,6 +2565,79 @@
       el.metricsNotePopover.classList.remove("is-open");
       el.metricsNotePopover.setAttribute("aria-hidden", "true");
       el.metricsNote.setAttribute("aria-expanded", "false");
+    }
+
+    function toggleMetricsRateTooltip(event) {
+      event.stopPropagation();
+      if (!el.metricsRateHelp || !el.metricsRateTooltip) return;
+      const isOpen = !el.metricsRateTooltip.classList.contains("is-open");
+      if (isOpen) {
+        renderExchangeRateTooltip();
+        positionPopoverAbove(el.metricsRateHelp, el.metricsRateTooltip);
+      }
+      el.metricsRateTooltip.classList.toggle("is-open", isOpen);
+      el.metricsRateTooltip.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      el.metricsRateHelp.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function hideMetricsRateTooltip() {
+      if (!el.metricsRateHelp || !el.metricsRateTooltip) return;
+      el.metricsRateTooltip.classList.remove("is-open");
+      el.metricsRateTooltip.setAttribute("aria-hidden", "true");
+      el.metricsRateHelp.setAttribute("aria-expanded", "false");
+    }
+
+    function toggleConnectionTooltip(event) {
+      event.stopPropagation();
+      if (!el.connectionPill || !el.connectionTooltip) return;
+      const isOpen = !el.connectionTooltip.classList.contains("is-showing");
+      if (isOpen) {
+        const title = el.statusTitle ? el.statusTitle.textContent : "";
+        const text = el.statusText ? el.statusText.textContent : "";
+        el.connectionTooltip.innerHTML = "<strong>" + escapeHtml(title || "接続状態") + "</strong><span>" + escapeHtml(text || "現在の接続状態です。") + "</span>";
+        positionPopoverAbove(el.connectionPill, el.connectionTooltip);
+      }
+      el.connectionTooltip.classList.toggle("is-showing", isOpen);
+      el.connectionTooltip.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      el.connectionPill.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function hideConnectionTooltip() {
+      if (!el.connectionPill || !el.connectionTooltip) return;
+      el.connectionTooltip.classList.remove("is-showing");
+      el.connectionTooltip.setAttribute("aria-hidden", "true");
+      el.connectionPill.setAttribute("aria-expanded", "false");
+    }
+
+    function bindHorizontalWheel(scroller) {
+      if (!scroller) return;
+      scroller.addEventListener("wheel", function(event) {
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        if (scroller.scrollWidth <= scroller.clientWidth + 1) return;
+        event.preventDefault();
+        scroller.scrollLeft += event.deltaY;
+      }, { passive: false });
+    }
+
+    function positionPopoverAbove(button, popover) {
+      if (!button || !popover) return;
+      const wasOpen = popover.classList.contains("is-open") || popover.classList.contains("is-showing");
+      if (!wasOpen) {
+        popover.style.visibility = "hidden";
+        popover.classList.add("is-open");
+        popover.classList.add("is-showing");
+      }
+      const rect = button.getBoundingClientRect();
+      const popRect = popover.getBoundingClientRect();
+      const left = Math.min(window.innerWidth - popRect.width / 2 - 8, Math.max(popRect.width / 2 + 8, rect.left + rect.width / 2));
+      const top = Math.max(8, rect.top - popRect.height - 8);
+      popover.style.left = left + "px";
+      popover.style.top = top + "px";
+      if (!wasOpen) {
+        popover.classList.remove("is-open");
+        popover.classList.remove("is-showing");
+        popover.style.visibility = "";
+      }
     }
 
     function handleMetricsDetailClick(event) {
@@ -2491,6 +2691,10 @@
     function handleOutsideTooltipClick(event) {
       if (event.target.closest("#metricsNoteBtn") || event.target.closest("#metricsNotePopover")) return;
       hideMetricsNote();
+      if (event.target.closest("#metricsRateHelpBtn") || event.target.closest("#metricsRateTooltip")) return;
+      hideMetricsRateTooltip();
+      if (event.target.closest("#connectionPill") || event.target.closest("#connectionTooltip")) return;
+      hideConnectionTooltip();
       if (event.target.closest("#metricsToggleBtn") || event.target.closest(".metrics-modal-card")) return;
       if (event.target.closest("#tipsToggleBtn") || event.target.closest("#callTips")) return;
       if (event.target.closest(".participant")) return;
@@ -2781,6 +2985,100 @@
         .trim();
       const number = Number(normalized);
       return Number.isFinite(number) && number > 0 ? number : fallback;
+    }
+
+    function initExchangeRate() {
+      loadCachedExchangeRate();
+      fetchUsdJpyRate(false);
+      if (exchangeRateTimer) window.clearInterval(exchangeRateTimer);
+      exchangeRateTimer = window.setInterval(function() {
+        fetchUsdJpyRate(true);
+      }, EXCHANGE_RATE_REFRESH_MS);
+    }
+
+    function loadCachedExchangeRate() {
+      try {
+        const raw = localStorage.getItem(EXCHANGE_RATE_CACHE_KEY);
+        if (!raw) return;
+        const cached = JSON.parse(raw);
+        const rate = normalizeNumberInput(cached.rate, 0);
+        if (!rate) return;
+        exchangeRateInfo = {
+          source: cached.source || "前回取得",
+          fetchedAt: Number(cached.fetchedAt) || 0,
+          rateUpdatedAt: cached.rateUpdatedAt || "",
+          ok: true,
+          message: "前回取得した為替レートを使っています。"
+        };
+        if (el.metricsRateInput) el.metricsRateInput.value = formatRateInput(rate);
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    async function fetchUsdJpyRate(isBackground) {
+      try {
+        const response = await fetch("https://open.er-api.com/v6/latest/USD", { cache: "no-store" });
+        if (!response.ok) throw new Error("rate fetch failed");
+        const data = await response.json();
+        const rate = data && data.rates ? Number(data.rates.JPY) : 0;
+        if (!Number.isFinite(rate) || rate < 50 || rate > 300) throw new Error("invalid rate");
+        exchangeRateInfo = {
+          source: "open.er-api.com",
+          fetchedAt: Date.now(),
+          rateUpdatedAt: data.time_last_update_utc || data.time_last_update_unix || "",
+          ok: true,
+          message: "自動取得した為替レートです。"
+        };
+        if (el.metricsRateInput) el.metricsRateInput.value = formatRateInput(rate);
+        localStorage.setItem(EXCHANGE_RATE_CACHE_KEY, JSON.stringify({
+          rate,
+          source: exchangeRateInfo.source,
+          fetchedAt: exchangeRateInfo.fetchedAt,
+          rateUpdatedAt: exchangeRateInfo.rateUpdatedAt
+        }));
+        renderMetrics();
+        renderExchangeRateTooltip();
+      } catch (error) {
+        exchangeRateInfo = {
+          source: exchangeRateInfo.source || "手入力",
+          fetchedAt: exchangeRateInfo.fetchedAt || 0,
+          rateUpdatedAt: exchangeRateInfo.rateUpdatedAt || "",
+          ok: false,
+          message: isBackground ? "為替レートの自動更新に失敗しました。現在の入力値で計算しています。" : "為替レートを取得できませんでした。現在の入力値で計算しています。"
+        };
+        renderExchangeRateTooltip();
+      }
+    }
+
+    function formatRateInput(rate) {
+      return Number(rate).toFixed(2).replace(/\.00$/, "");
+    }
+
+    function renderExchangeRateTooltip() {
+      if (!el.metricsRateTooltip) return;
+      const fetchedAt = exchangeRateInfo.fetchedAt ? formatLocalDateTime(exchangeRateInfo.fetchedAt) : "未取得";
+      const source = exchangeRateInfo.source || "手入力";
+      const updated = exchangeRateInfo.rateUpdatedAt ? String(exchangeRateInfo.rateUpdatedAt) : "更新時刻は取得できませんでした。";
+      el.metricsRateTooltip.innerHTML =
+        "<strong>為替レート</strong><br>" +
+        "取得: " + escapeHtml(fetchedAt) + "<br>" +
+        "提供元: " + escapeHtml(source) + "<br>" +
+        "元データ: " + escapeHtml(updated) + "<br>" +
+        escapeHtml(exchangeRateInfo.message || "");
+    }
+
+    function formatLocalDateTime(value) {
+      try {
+        return new Intl.DateTimeFormat("ja-JP", {
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(new Date(value));
+      } catch (error) {
+        return String(value || "");
+      }
     }
 
     function firestoreCostYen(reads, writes, deletes, yenPerDollar) {
