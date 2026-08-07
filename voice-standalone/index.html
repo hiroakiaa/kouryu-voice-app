@@ -168,19 +168,6 @@
       background: rgba(9, 27, 42, 0.88);
     }
 
-    .status-card {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
-      padding-block: 0.68rem;
-    }
-
-    .status-card strong {
-      display: block;
-      font-size: 0.95rem;
-      font-weight: 950;
-    }
-
-    .status-card span,
     .notice {
       color: var(--muted);
       font-size: 0.8rem;
@@ -1027,10 +1014,6 @@
         min-height: 2.15rem;
       }
 
-      .status-card {
-        grid-template-columns: 1fr;
-      }
-
       .call-tips {
         grid-template-columns: 1fr;
         top: 4.25rem;
@@ -1120,13 +1103,6 @@
         </label>
       </div>
     </header>
-
-    <section class="card status-card">
-      <div>
-        <strong id="statusTitle">準備中です</strong>
-        <span id="statusText">通話URLを開いた人だけで話せます。</span>
-      </div>
-    </section>
 
     <section id="callTips" class="card call-tips" aria-live="polite" aria-hidden="true">
       <span class="tip-item"><i class="fa-solid fa-link"></i><span><strong>同じURLで参加</strong><span>URLを開いた人だけが同じ通話に入れます。</span></span></span>
@@ -1273,8 +1249,6 @@
 
     const el = {
       roomLabel: document.getElementById("roomLabel"),
-      statusTitle: document.getElementById("statusTitle"),
-      statusText: document.getElementById("statusText"),
       connectionPill: document.getElementById("connectionPill"),
       connectionTooltip: document.getElementById("connectionTooltip"),
       audioHealth: document.getElementById("audioHealth"),
@@ -1333,6 +1307,8 @@
     let muted = false;
     let joined = false;
     let participants = [];
+    let currentStatusTitle = "準備中です";
+    let currentStatusText = "通話URLを開いた人だけで話せます。";
     let peers = new Map();
     let processedSignals = new Set();
     let signalAcceptAfterMs = Date.now();
@@ -2592,8 +2568,8 @@
       if (!el.connectionPill || !el.connectionTooltip) return;
       const isOpen = !el.connectionTooltip.classList.contains("is-showing");
       if (isOpen) {
-        const title = el.statusTitle ? el.statusTitle.textContent : "";
-        const text = el.statusText ? el.statusText.textContent : "";
+        const title = currentStatusTitle || "";
+        const text = currentStatusText || "";
         el.connectionTooltip.innerHTML = "<strong>" + escapeHtml(title || "接続状態") + "</strong><span>" + escapeHtml(text || "現在の接続状態です。") + "</span>";
         positionPopoverAbove(el.connectionPill, el.connectionTooltip);
       }
@@ -2843,8 +2819,9 @@
     }
 
     function setStatus(title, text) {
-      el.statusTitle.textContent = title;
-      el.statusText.textContent = text || "";
+      currentStatusTitle = title || "";
+      currentStatusText = text || "";
+      title = currentStatusTitle;
       if (title.indexOf("通話中") !== -1) updateConnectionPill("通話中");
       else if (title.indexOf("不安定") !== -1 || title.indexOf("できません") !== -1 || title.indexOf("未接続") !== -1) updateConnectionPill("不安定");
       else if (title.indexOf("接続") !== -1 || title.indexOf("参加しています") !== -1 || title.indexOf("マイク") !== -1) updateConnectionPill("接続中");
