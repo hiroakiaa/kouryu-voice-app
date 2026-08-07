@@ -736,7 +736,7 @@
 
       peer.ontrack = function(event) {
         state.audio.srcObject = event.streams[0];
-        state.audio.volume = 0.58;
+        state.audio.volume = 0.78;
         state.audio.play().catch(function() {});
         setStatus("通話中です", "このページを開いたまま話してください。");
       };
@@ -1004,7 +1004,7 @@
       audio.id = "remote-audio-" + cssEscape(remoteId);
       audio.autoplay = true;
       audio.playsInline = true;
-      audio.volume = 0.58;
+      audio.volume = 0.78;
       document.body.appendChild(audio);
       return audio;
     }
@@ -1070,15 +1070,15 @@
             sum += input[i] * input[i];
           }
           const rms = Math.sqrt(sum / input.length);
-          const target = rms < 0.018 ? 0.04 : 1;
-          gateLevel += (target - gateLevel) * 0.18;
+          const target = rms < 0.006 ? 0.35 : 1;
+          gateLevel += (target - gateLevel) * 0.12;
           for (let i = 0; i < input.length; i += 1) {
             output[i] = input[i] * gateLevel;
           }
         };
 
         const gain = localAudioContext.createGain();
-        gain.gain.value = 0.62;
+        gain.gain.value = 0.9;
         const destination = localAudioContext.createMediaStreamDestination();
 
         source.connect(highpass);
