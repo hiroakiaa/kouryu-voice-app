@@ -53,7 +53,7 @@
       width: min(100%, 42rem);
       height: min(100svh - 1.5rem, 44rem);
       display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
       gap: 0.7rem;
       padding: clamp(0.75rem, 2.4vw, 1.05rem);
       border: 0.125rem solid var(--line-strong);
@@ -160,6 +160,50 @@
       font-size: 0.76rem;
       font-weight: 900;
       white-space: nowrap;
+    }
+
+    .audio-health {
+      display: grid;
+      grid-template-columns: auto minmax(5rem, 1fr) auto;
+      align-items: center;
+      gap: 0.55rem;
+      min-height: 2.2rem;
+      padding: 0.42rem 0.58rem;
+      border: 0.08rem solid var(--line);
+      border-radius: 0.85rem;
+      background: #07141c;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 850;
+    }
+
+    .audio-health[hidden] {
+      display: none;
+    }
+
+    .mic-level {
+      height: 0.48rem;
+      overflow: hidden;
+      border: 0.08rem solid var(--line);
+      border-radius: 999rem;
+      background: #02080d;
+    }
+
+    .mic-level-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      transition: width 120ms ease, background-color 160ms ease;
+    }
+
+    .audio-health.is-speaking .mic-level-bar {
+      background: var(--ok);
+    }
+
+    .noise-guard {
+      white-space: nowrap;
+      color: var(--quiet);
     }
 
     label {
@@ -378,6 +422,11 @@
         grid-template-columns: 1fr;
       }
 
+      .audio-health {
+        grid-template-columns: 1fr;
+        gap: 0.38rem;
+      }
+
       .participants {
         max-height: 7.2rem;
       }
@@ -409,6 +458,12 @@
         <span id="statusText">通話URLを開いた人だけで話せます。</span>
       </div>
       <span id="connectionPill" class="connection-pill"><i class="fa-solid fa-signal"></i><span>待機</span></span>
+    </section>
+
+    <section id="audioHealth" class="audio-health" hidden aria-live="polite">
+      <span id="micState"><i class="fa-solid fa-microphone-lines"></i> マイク待機</span>
+      <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
+      <span id="noiseGuardState" class="noise-guard">ノイズ抑制中</span>
     </section>
 
     <section class="card participants-card">
@@ -477,6 +532,10 @@
       statusTitle: document.getElementById("statusTitle"),
       statusText: document.getElementById("statusText"),
       connectionPill: document.getElementById("connectionPill"),
+      audioHealth: document.getElementById("audioHealth"),
+      micState: document.getElementById("micState"),
+      micLevelBar: document.getElementById("micLevelBar"),
+      noiseGuardState: document.getElementById("noiseGuardState"),
       participants: document.getElementById("participants"),
       name: document.getElementById("nameInput"),
       join: document.getElementById("joinBtn"),
@@ -491,6 +550,8 @@
     let localStream = null;
     let localAudioContext = null;
     let localAnalyser = null;
+    let localVoiceGain = null;
+    let localVoiceAnalyser = null;
     let speakingTimer = null;
     let speakingState = false;
     let lastSpeakingWrite = 0;
@@ -566,6 +627,7 @@
       muted = false;
       updateJoinButton();
       el.mute.disabled = true;
+      updateAudioHealth(0, false, "準備中");
 
       try {
         setStatus("参加しています", "参加者として登録しています。");
@@ -601,7 +663,7 @@
           audio: {
             echoCancellation: { ideal: true },
             noiseSuppression: { ideal: true },
-            autoGainControl: { ideal: true },
+            autoGainControl: { ideal: false },
             channelCount: { ideal: 1 },
             sampleRate: { ideal: 48000 },
             sampleSize: { ideal: 16 }
@@ -612,6 +674,7 @@
         localStream = createCleanAudioStream(rawLocalStream);
         startSpeakingMonitor();
         el.mute.disabled = false;
+        updateAudioHealth(0, false, "ノイズ抑制中");
         setStatus("相手を待っています", "ほかの人が同じURLから参加すると、自動でつながります。");
         updatePresence();
         ensurePeersForParticipants();
@@ -949,6 +1012,8 @@
       el.mute.innerHTML = muted
         ? '<i class="fa-solid fa-microphone"></i><span>解除</span>'
         : '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
+      updateSoftNoiseGuard(0, false);
+      updateAudioHealth(0, false, muted ? "ミュート中" : "ノイズ抑制中");
       setDoc(participantRef(userId), {
         sessionId,
         muted,
@@ -986,6 +1051,8 @@
       rawLocalStream = null;
       localAudioContext = null;
       localAnalyser = null;
+      localVoiceGain = null;
+      localVoiceAnalyser = null;
       muted = false;
       updateJoinButton();
       el.mute.disabled = true;
@@ -1066,13 +1133,26 @@
         lowpass.frequency.value = 12000;
         lowpass.Q.value = 0.5;
 
+        const compressor = localAudioContext.createDynamicsCompressor();
+        compressor.threshold.value = -34;
+        compressor.knee.value = 18;
+        compressor.ratio.value = 2.4;
+        compressor.attack.value = 0.006;
+        compressor.release.value = 0.18;
+
+        localVoiceAnalyser = localAudioContext.createAnalyser();
+        localVoiceAnalyser.fftSize = 1024;
+
         const gain = localAudioContext.createGain();
         gain.gain.value = 1;
+        localVoiceGain = gain;
         const destination = localAudioContext.createMediaStreamDestination();
 
         source.connect(highpass);
         highpass.connect(lowpass);
-        lowpass.connect(gain);
+        lowpass.connect(compressor);
+        compressor.connect(localVoiceAnalyser);
+        localVoiceAnalyser.connect(gain);
         gain.connect(destination);
         return destination.stream;
       } catch (error) {
@@ -1089,7 +1169,7 @@
       track.applyConstraints({
         echoCancellation: true,
         noiseSuppression: true,
-        autoGainControl: true,
+        autoGainControl: false,
         channelCount: 1
       }).catch(function(error) {
         console.warn(error);
@@ -1146,10 +1226,14 @@
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
         if (!localAudioContext) localAudioContext = new AudioContextClass();
-        const source = localAudioContext.createMediaStreamSource(rawLocalStream || localStream);
-        localAnalyser = localAudioContext.createAnalyser();
-        localAnalyser.fftSize = 512;
-        source.connect(localAnalyser);
+        if (localVoiceAnalyser) {
+          localAnalyser = localVoiceAnalyser;
+        } else {
+          const source = localAudioContext.createMediaStreamSource(rawLocalStream || localStream);
+          localAnalyser = localAudioContext.createAnalyser();
+          localAnalyser.fftSize = 512;
+          source.connect(localAnalyser);
+        }
         const data = new Uint8Array(localAnalyser.fftSize);
         speakingTimer = window.setInterval(function() {
           if (!localAnalyser || !joined) return;
@@ -1160,7 +1244,9 @@
             sum += value * value;
           }
           const rms = Math.sqrt(sum / data.length);
-          const nextSpeaking = !muted && rms > 0.035;
+          const nextSpeaking = !muted && rms > 0.026;
+          updateSoftNoiseGuard(rms, nextSpeaking);
+          updateAudioHealth(rms, nextSpeaking, muted ? "ミュート中" : (nextSpeaking ? "会話中" : "ノイズ抑制中"));
           const now = Date.now();
           if (nextSpeaking !== speakingState || now - lastSpeakingWrite > 1800) {
             speakingState = nextSpeaking;
@@ -1178,12 +1264,37 @@
       }
     }
 
+    function updateSoftNoiseGuard(rms, isSpeaking) {
+      if (!localVoiceGain || !localAudioContext) return;
+      const targetGain = muted ? 0 : (isSpeaking ? 1 : (rms < 0.009 ? 0.16 : 0.55));
+      try {
+        localVoiceGain.gain.setTargetAtTime(targetGain, localAudioContext.currentTime, isSpeaking ? 0.025 : 0.11);
+      } catch (error) {
+        localVoiceGain.gain.value = targetGain;
+      }
+    }
+
+    function updateAudioHealth(rms, isSpeaking, label) {
+      if (!el.audioHealth) return;
+      el.audioHealth.hidden = !joined;
+      const level = Math.max(0, Math.min(100, Math.round(rms * 520)));
+      if (el.micLevelBar) el.micLevelBar.style.width = level + "%";
+      el.audioHealth.classList.toggle("is-speaking", !!isSpeaking);
+      if (el.micState) {
+        const icon = muted ? "fa-microphone-slash" : (isSpeaking ? "fa-microphone-lines" : "fa-microphone");
+        const text = muted ? "マイクOFF" : (isSpeaking ? "話しています" : "待機中");
+        el.micState.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + text;
+      }
+      if (el.noiseGuardState) el.noiseGuardState.textContent = label || "ノイズ抑制中";
+    }
+
     function stopSpeakingMonitor() {
       if (speakingTimer) {
         window.clearInterval(speakingTimer);
         speakingTimer = null;
       }
       speakingState = false;
+      updateAudioHealth(0, false, "停止中");
     }
 
     function handleParticipantClick(event) {
