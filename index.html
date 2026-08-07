@@ -1,5 +1,5 @@
-<!doctype html>
-<!-- kouryu standalone voice app shared default room 2026-08-08-datachannel-presence -->
+﻿<!doctype html>
+<!-- kouryu standalone voice app shared default room 2026-08-08-reliability-diagnostics -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -59,7 +59,7 @@
       height: min(100svh - 1.4rem, 40rem);
       position: relative;
       display: grid;
-      grid-template-rows: auto auto auto minmax(4.6rem, 1fr) auto;
+      grid-template-rows: auto auto auto auto minmax(4.6rem, 1fr) auto;
       gap: 0.65rem;
       padding: clamp(0.8rem, 2vw, 1.15rem);
       border: 0.09rem solid var(--accent-deep);
@@ -293,6 +293,153 @@
     .noise-guard {
       white-space: nowrap;
       color: var(--quiet);
+    }
+
+    .call-reliability-panel {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.52rem;
+      padding: 0.48rem 0.58rem;
+    }
+
+    .call-reliability-main,
+    .call-quality-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.36rem;
+      min-width: 0;
+    }
+
+    .connection-state-badge,
+    .quality-chip,
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.28rem;
+      min-height: 1.55rem;
+      padding: 0.18rem 0.52rem;
+      border: 0.07rem solid var(--line);
+      border-radius: 999rem;
+      background: #04111c;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .connection-state-badge.is-waiting {
+      border-color: rgba(139, 233, 255, 0.38);
+      color: var(--accent);
+    }
+
+    .connection-state-badge.is-connecting,
+    .connection-state-badge.is-reconnecting {
+      border-color: rgba(199, 244, 255, 0.46);
+      color: var(--warn);
+    }
+
+    .connection-state-badge.is-connected,
+    .quality-chip.is-good {
+      border-color: rgba(157, 242, 207, 0.46);
+      color: var(--ok);
+    }
+
+    .connection-state-badge.is-failed,
+    .quality-chip.is-poor {
+      border-color: rgba(255, 109, 146, 0.5);
+      color: var(--danger);
+    }
+
+    .quality-chip.is-fair {
+      border-color: rgba(251, 191, 36, 0.42);
+      color: #fde68a;
+    }
+
+    .call-state-detail {
+      min-width: 0;
+      color: var(--quiet);
+      font-size: 0.68rem;
+      font-weight: 780;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .reliability-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.38rem;
+      min-width: 0;
+    }
+
+    .audio-preset-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.34rem;
+      min-height: 2rem;
+      padding: 0.18rem 0.28rem 0.18rem 0.52rem;
+      border: 0.07rem solid var(--line);
+      border-radius: 999rem;
+      background: #04111c;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .audio-preset-control select {
+      min-height: 1.55rem;
+      border: 0;
+      border-radius: 999rem;
+      background: #071c2a;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.68rem;
+      font-weight: 900;
+      outline: none;
+      padding: 0.12rem 0.5rem;
+    }
+
+    .diagnostics-toggle {
+      width: 2rem;
+      height: 2rem;
+      min-height: 2rem;
+      padding: 0;
+      border-radius: 999rem;
+      color: var(--accent);
+    }
+
+    .diagnostics-panel {
+      grid-column: 1 / -1;
+      display: none;
+      max-height: 5.6rem;
+      overflow-y: auto;
+      padding: 0.52rem;
+      border: 0.07rem solid var(--line);
+      border-radius: 0.7rem;
+      background: #04111c;
+      color: var(--muted);
+      font-size: 0.66rem;
+      line-height: 1.42;
+    }
+
+    .diagnostics-panel.is-open {
+      display: grid;
+      gap: 0.28rem;
+    }
+
+    .diagnostic-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 0.32rem;
+      align-items: start;
+    }
+
+    .diagnostic-item time {
+      color: var(--quiet);
+      font-variant-numeric: tabular-nums;
     }
 
     .call-tips {
@@ -551,7 +698,6 @@
     }
 
     .controls {
-      grid-row: 5;
       display: grid;
       gap: 0.55rem;
       align-self: end;
@@ -1167,6 +1313,30 @@
       <span id="noiseGuardState" class="noise-guard">ノイズ抑制中</span>
     </section>
 
+    <section id="callReliabilityPanel" class="card call-reliability-panel" aria-live="polite">
+      <div class="call-reliability-main">
+        <span id="connectionStateBadge" class="connection-state-badge is-waiting"><i class="fa-solid fa-signal"></i><span id="connectionStateLabel">&#30456;&#25163;&#24453;&#12385;</span></span>
+        <span id="connectionStateDetail" class="call-state-detail">&#21442;&#21152;&#12377;&#12427;&#12392;&#12289;&#36890;&#35441;&#12398;&#25509;&#32154;&#29366;&#24907;&#12434;&#34920;&#31034;&#12375;&#12414;&#12377;&#12290;</span>
+      </div>
+      <div class="reliability-actions">
+        <label class="audio-preset-control" for="audioPresetSelect"><i class="fa-solid fa-sliders"></i><span>&#38899;&#22768;</span>
+          <select id="audioPresetSelect">
+            <option value="earphones">&#12452;&#12516;&#12507;&#12531;</option>
+            <option value="speaker">&#12473;&#12500;&#12540;&#12459;&#12540;</option>
+            <option value="nearby">&#36817;&#36317;&#38626;&#12486;&#12473;&#12488;</option>
+          </select>
+        </label>
+        <button id="diagnosticsToggleBtn" class="diagnostics-toggle" type="button" aria-controls="diagnosticsPanel" aria-expanded="false" aria-label="&#25509;&#32154;&#35386;&#26029;"><i class="fa-solid fa-stethoscope"></i></button>
+      </div>
+      <div class="call-quality-row">
+        <span id="qualityBadge" class="quality-chip"><i class="fa-solid fa-wave-square"></i><span>&#21697;&#36074;: --</span></span>
+        <span id="rttBadge" class="stat-chip">RTT --</span>
+        <span id="jitterBadge" class="stat-chip">jitter --</span>
+        <span id="packetLossBadge" class="stat-chip">loss --</span>
+      </div>
+      <div id="diagnosticsPanel" class="diagnostics-panel" aria-hidden="true"></div>
+    </section>
+
     <section class="card participants-card">
       <h2><i class="fa-solid fa-user-group"></i> 参加者</h2>
       <div id="participants" class="participants"></div>
@@ -1262,7 +1432,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-08-datachannel-presence";
+    const APP_VERSION = "2026-08-08-reliability-diagnostics";
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
     const SPEAKING_MONITOR_MS = 260;
@@ -1275,7 +1445,48 @@
     const DATA_CHANNEL_STALE_MS = 15000;
     const DATA_SPEAKING_MIN_SEND_MS = 700;
     const DATA_SPEAKING_REFRESH_MS = 8000;
+    const STATS_MONITOR_MS = 5000;
+    const AUTO_RECONNECT_DELAY_MS = 1800;
+    const AUTO_RECONNECT_GIVEUP_MS = 18000;
     const DEFAULT_CALL_ID = "main-room";
+    const VOICE_PRESETS = {
+      earphones: {
+        label: "\u30a4\u30e4\u30db\u30f3",
+        autoGainControl: false,
+        highpass: 120,
+        lowpass: 12000,
+        compressorThreshold: -34,
+        compressorRatio: 2.4,
+        idleGain: 0.55,
+        floorGain: 0.16,
+        maxBitrate: 48000,
+        remoteVolume: 0.9
+      },
+      speaker: {
+        label: "\u30b9\u30d4\u30fc\u30ab\u30fc",
+        autoGainControl: true,
+        highpass: 150,
+        lowpass: 9000,
+        compressorThreshold: -38,
+        compressorRatio: 3.2,
+        idleGain: 0.34,
+        floorGain: 0.08,
+        maxBitrate: 36000,
+        remoteVolume: 0.72
+      },
+      nearby: {
+        label: "\u8fd1\u8ddd\u96e2\u30c6\u30b9\u30c8",
+        autoGainControl: false,
+        highpass: 170,
+        lowpass: 8000,
+        compressorThreshold: -40,
+        compressorRatio: 3.8,
+        idleGain: 0.22,
+        floorGain: 0.04,
+        maxBitrate: 32000,
+        remoteVolume: 0.55
+      }
+    };
     const VOICE_SETTINGS = {
       autoGainControl: false,
       highpass: 120,
@@ -1284,7 +1495,8 @@
       compressorRatio: 2.4,
       idleGain: 0.55,
       floorGain: 0.16,
-      maxBitrate: 48000
+      maxBitrate: 48000,
+      remoteVolume: 0.9
     };
     const EXCHANGE_RATE_CACHE_KEY = "kouryu-voice-usd-jpy-rate";
     const EXCHANGE_RATE_REFRESH_MS = 6 * 60 * 60 * 1000;
@@ -1331,6 +1543,16 @@
       micState: document.getElementById("micState"),
       micLevelBar: document.getElementById("micLevelBar"),
       noiseGuardState: document.getElementById("noiseGuardState"),
+      connectionStateBadge: document.getElementById("connectionStateBadge"),
+      connectionStateLabel: document.getElementById("connectionStateLabel"),
+      connectionStateDetail: document.getElementById("connectionStateDetail"),
+      qualityBadge: document.getElementById("qualityBadge"),
+      rttBadge: document.getElementById("rttBadge"),
+      jitterBadge: document.getElementById("jitterBadge"),
+      packetLossBadge: document.getElementById("packetLossBadge"),
+      audioPreset: document.getElementById("audioPresetSelect"),
+      diagnosticsToggle: document.getElementById("diagnosticsToggleBtn"),
+      diagnosticsPanel: document.getElementById("diagnosticsPanel"),
       participants: document.getElementById("participants"),
       name: document.getElementById("nameInput"),
       join: document.getElementById("joinBtn"),
@@ -1381,6 +1603,12 @@
     let metricTimers = [];
     let joinSlowTimer = null;
     let exchangeRateTimer = null;
+    let statsTimer = null;
+    let callPhase = "waiting";
+    let diagnostics = [];
+    let lastInboundStats = new Map();
+    let autoReconnectTimers = new Map();
+    let activeStats = { rttMs: null, jitterMs: null, lossPct: null, quality: "idle" };
     let exchangeRateInfo = {
       source: "手入力",
       fetchedAt: 0,
@@ -1450,11 +1678,15 @@
       if (el.metricsNote) el.metricsNote.addEventListener("click", toggleMetricsNote);
       if (el.metricsRateHelp) el.metricsRateHelp.addEventListener("click", toggleMetricsRateTooltip);
       if (el.connectionPill) el.connectionPill.addEventListener("click", toggleConnectionTooltip);
+      if (el.audioPreset) el.audioPreset.addEventListener("change", handleAudioPresetChange);
+      if (el.diagnosticsToggle) el.diagnosticsToggle.addEventListener("click", toggleDiagnosticsPanel);
       if (el.metricsModal) el.metricsModal.addEventListener("click", handleMetricsDetailClick);
       if (el.metricsRateInput) el.metricsRateInput.addEventListener("input", renderMetrics);
       bindHorizontalWheel(document.querySelector(".secondary-controls"));
       bindHorizontalWheel(el.participants);
       initExchangeRate();
+      initAudioPreset();
+      setCallPhase("waiting", "\u53c2\u52a0\u3059\u308b\u3068\u63a5\u7d9a\u72b6\u614b\u3092\u8868\u793a\u3057\u307e\u3059\u3002");
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
         if (!isDemoMode && joined) markLeft();
@@ -1581,6 +1813,8 @@
       saveName(userName);
 
       joined = true;
+      setCallPhase("connecting", "\u53c2\u52a0\u8005\u3068\u3057\u3066\u767b\u9332\u3057\u3066\u3044\u307e\u3059\u3002");
+      pushDiagnostic("info", "\u53c2\u52a0\u51e6\u7406\u3092\u958b\u59cb", getShareUrl());
       signalAcceptAfterMs = Date.now() - 5000;
       processedSignals = new Set();
       muted = true;
@@ -1618,6 +1852,8 @@
       } catch (error) {
         console.warn(error);
         joined = false;
+        setCallPhase("failed", "\u53c2\u52a0\u8005\u60c5\u5831\u3092Firestore\u306b\u4fdd\u5b58\u3067\u304d\u307e\u305b\u3093\u3002");
+        pushDiagnostic("error", "\u53c2\u52a0\u767b\u9332\u306b\u5931\u6557", error && error.message ? error.message : "");
         setJoinBusy(false);
         clearJoinSlowTimer();
         updateJoinButton();
@@ -1631,6 +1867,7 @@
 
       try {
         setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
+        setCallPhase("connecting", "\u30de\u30a4\u30af\u8a31\u53ef\u3092\u78ba\u8a8d\u3057\u3066\u3044\u307e\u3059\u3002");
         rawLocalStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: { ideal: true },
@@ -1648,6 +1885,8 @@
         startSpeakingMonitor();
         el.mute.disabled = false;
         el.reconnect.disabled = false;
+        setCallPhase("waiting", "\u76f8\u624b\u306e\u53c2\u52a0\u3068\u97f3\u58f0\u63a5\u7d9a\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
+        pushDiagnostic("info", "\u30de\u30a4\u30af\u8a31\u53ef\u3092\u78ba\u8a8d", "\u76f8\u624b\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
         updateAudioHealth(0, false, "ノイズ抑制中");
         setStatus("相手を待っています", "最初はマイクOFFです。話す時だけミュートを解除してください。");
         updatePresence();
@@ -1669,6 +1908,8 @@
           updatedAt: serverTimestamp()
         }, { merge: true }).catch(console.warn);
         const help = getMicPermissionHelp(error);
+        setCallPhase("failed", help);
+        pushDiagnostic("error", "\u30de\u30a4\u30af\u958b\u59cb\u306b\u5931\u6557", error && error.name ? error.name : "");
         setStatus("参加中・マイク未接続", help);
         setNotice(help);
       }
@@ -1723,6 +1964,8 @@
         updateLocalStatus();
       }, function(error) {
         console.warn(error);
+        setCallPhase("failed", "\u53c2\u52a0\u8005\u4e00\u89a7\u3092\u8aad\u307f\u8fbc\u3081\u307e\u305b\u3093\u3002Firestore Rules\u3068\u901a\u4fe1\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+        pushDiagnostic("error", "\u53c2\u52a0\u8005\u76e3\u8996\u306b\u5931\u6557", error && error.message ? error.message : "");
         el.participants.innerHTML = '<div class="notice">参加者を読み込めませんでした。</div>';
       });
     }
@@ -1777,6 +2020,8 @@
         }
       }, function(error) {
         console.warn(error);
+        setCallPhase("failed", "\u63a5\u7d9a\u60c5\u5831\u3092\u8aad\u307f\u8fbc\u3081\u307e\u305b\u3093\u3002Firestore Rules\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+        pushDiagnostic("error", "\u30b7\u30b0\u30ca\u30eb\u76e3\u8996\u306b\u5931\u6557", error && error.message ? error.message : "");
         setNotice("接続情報を読み込めませんでした。");
       });
     }
@@ -1851,7 +2096,8 @@
         dataChannel: null,
         dataChannelReady: false,
         offered: false,
-        reconnectTimer: null
+        reconnectTimer: null,
+        reconnectGiveupTimer: null
       };
       peers.set(remoteId, state);
 
@@ -1863,8 +2109,12 @@
 
       peer.ontrack = function(event) {
         state.audio.srcObject = event.streams[0];
-        state.audio.volume = 0.9;
+        setRemoteAudioVolume(state.audio);
         state.audio.play().catch(function() {});
+        clearAutoReconnectTimer(state);
+        setCallPhase("connected", "\u76f8\u624b\u306e\u97f3\u58f0\u3092\u53d7\u4fe1\u3057\u3066\u3044\u307e\u3059\u3002");
+        pushDiagnostic("info", "\u97f3\u58f0\u30c8\u30e9\u30c3\u30af\u3092\u53d7\u4fe1", state.name || remoteId);
+        startStatsMonitor();
         setStatus("通話中です", "このページを開いたまま話してください。");
       };
 
@@ -1892,10 +2142,14 @@
         if (isPeerConnected(peer)) {
           markConnectedOnce();
           clearReconnectTimer(state);
+          clearAutoReconnectTimer(state);
+          setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
+          startStatsMonitor();
           sendLocalRealtimeState(state);
         }
         if (isPeerUnstable(peer)) {
           scheduleReconnect(remoteId);
+          scheduleAutoReconnect(remoteId, peer.connectionState || peer.iceConnectionState);
         }
         updateParticipantConnection();
         updateLocalStatus();
@@ -1905,9 +2159,13 @@
         if (isPeerConnected(peer)) {
           markConnectedOnce();
           clearReconnectTimer(state);
+          clearAutoReconnectTimer(state);
+          setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
+          startStatsMonitor();
         }
         if (isPeerUnstable(peer)) {
           scheduleReconnect(remoteId);
+          scheduleAutoReconnect(remoteId, peer.iceConnectionState || peer.connectionState);
         }
         updateParticipantConnection();
         updateLocalStatus();
@@ -1916,7 +2174,11 @@
       if (shouldCreateOffer(remoteId)) {
         state.offered = true;
         createPeerDataChannel(state);
-        createOffer(remoteId).catch(console.warn);
+        createOffer(remoteId).catch(function(error) {
+          console.warn(error);
+          setCallPhase("failed", "\u63a5\u7d9a\u60c5\u5831\u306e\u4f5c\u6210\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002");
+          pushDiagnostic("error", "offer\u4f5c\u6210\u306b\u5931\u6557", error && error.message ? error.message : "");
+        });
       }
 
       return state;
@@ -2167,7 +2429,10 @@
           scheduleReconnect(remoteId);
           return;
         }
-        createOffer(remoteId, true).catch(console.warn);
+        createOffer(remoteId, true).catch(function(error) {
+          console.warn(error);
+          pushDiagnostic("error", "\u518d\u63a5\u7d9aoffer\u306b\u5931\u6557", error && error.message ? error.message : "");
+        });
       }, 8000);
     }
 
@@ -2175,6 +2440,49 @@
       if (!state || !state.reconnectTimer) return;
       window.clearTimeout(state.reconnectTimer);
       state.reconnectTimer = null;
+    }
+
+    function scheduleAutoReconnect(remoteId, reason) {
+      const state = peers.get(remoteId);
+      if (!state || !joined || !localStream || autoReconnectTimers.has(remoteId)) return;
+      setCallPhase("reconnecting", "\u901a\u4fe1\u304c\u63fa\u308c\u305f\u305f\u3081\u81ea\u52d5\u3067\u623b\u3057\u3066\u3044\u307e\u3059\u3002");
+      pushDiagnostic("warn", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3092\u958b\u59cb", reason || "");
+      const timer = window.setTimeout(function() {
+        autoReconnectTimers.delete(remoteId);
+        const current = peers.get(remoteId);
+        if (!current || !joined || !localStream || isPeerConnected(current.peer)) return;
+        try {
+          if (shouldCreateOffer(remoteId) && current.peer.signalingState === "stable") {
+            createOffer(remoteId, true).catch(function(error) {
+              pushDiagnostic("error", "\u518d\u63a5\u7d9aoffer\u306b\u5931\u6557", error && error.message ? error.message : "");
+            });
+          } else if (typeof current.peer.restartIce === "function") {
+            current.peer.restartIce();
+          }
+        } catch (error) {
+          pushDiagnostic("error", "\u518d\u63a5\u7d9a\u51e6\u7406\u306b\u5931\u6557", error && error.message ? error.message : "");
+        }
+        current.reconnectGiveupTimer = window.setTimeout(function() {
+          const latest = peers.get(remoteId);
+          if (!latest || !joined || isPeerConnected(latest.peer)) return;
+          setCallPhase("failed", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3067\u623b\u308c\u307e\u305b\u3093\u3067\u3057\u305f\u3002URL\u3084\u901a\u4fe1\u74b0\u5883\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+          pushDiagnostic("error", "\u518d\u63a5\u7d9a\u304c\u6642\u9593\u5185\u306b\u5b8c\u4e86\u3057\u307e\u305b\u3093", remoteId);
+        }, AUTO_RECONNECT_GIVEUP_MS);
+      }, AUTO_RECONNECT_DELAY_MS);
+      autoReconnectTimers.set(remoteId, timer);
+    }
+
+    function clearAutoReconnectTimer(state) {
+      if (!state) return;
+      const timer = autoReconnectTimers.get(state.id);
+      if (timer) {
+        window.clearTimeout(timer);
+        autoReconnectTimers.delete(state.id);
+      }
+      if (state.reconnectGiveupTimer) {
+        window.clearTimeout(state.reconnectGiveupTimer);
+        state.reconnectGiveupTimer = null;
+      }
     }
 
     function renderParticipants(items) {
@@ -2239,12 +2547,23 @@
       const connected = Array.from(peers.values()).some(function(item) {
         return isPeerConnected(item.peer);
       });
+      const unstable = Array.from(peers.values()).some(function(item) {
+        return isPeerUnstable(item.peer);
+      });
+      if (unstable) {
+        setCallPhase("reconnecting", "\u901a\u4fe1\u304c\u63fa\u308c\u305f\u305f\u3081\u3001\u81ea\u52d5\u3067\u623b\u3057\u3066\u3044\u307e\u3059\u3002");
+        setStatus("\u518d\u63a5\u7d9a\u4e2d\u3067\u3059", "\u4f55\u3082\u64cd\u4f5c\u305b\u305a\u3001\u5c11\u3057\u3060\u3051\u5f85\u3063\u3066\u304f\u3060\u3055\u3044\u3002");
+        return;
+      }
       if (connected) {
-        setStatus("通話中です", muted ? "マイクOFFです。話す時だけ解除できます。" : "話していない時はミュートがおすすめです。");
+        setCallPhase("connected", muted ? "\u30de\u30a4\u30afOFF\u3067\u901a\u8a71\u4e2d\u3067\u3059\u3002" : "\u901a\u8a71\u3067\u304d\u3066\u3044\u307e\u3059\u3002");
+        setStatus("\u901a\u8a71\u4e2d\u3067\u3059", muted ? "\u30de\u30a4\u30afOFF\u3067\u3059\u3002\u8a71\u3059\u6642\u3060\u3051\u89e3\u9664\u3067\u304d\u307e\u3059\u3002" : "\u8a71\u3057\u3066\u3044\u306a\u3044\u6642\u306f\u30df\u30e5\u30fc\u30c8\u304c\u304a\u3059\u3059\u3081\u3067\u3059\u3002");
       } else if (others.length) {
-        setStatus("接続しています", "相手と音声をつないでいます。少し待ってください。");
+        setCallPhase("connecting", "\u76f8\u624b\u3068\u97f3\u58f0\u63a5\u7d9a\u3092\u4f5c\u3063\u3066\u3044\u307e\u3059\u3002");
+        setStatus("\u63a5\u7d9a\u3057\u3066\u3044\u307e\u3059", "\u76f8\u624b\u3068\u97f3\u58f0\u3092\u3064\u306a\u3044\u3067\u3044\u307e\u3059\u3002\u5c11\u3057\u5f85\u3063\u3066\u304f\u3060\u3055\u3044\u3002");
       } else {
-        setStatus("相手を待っています", "ほかの人が同じURLから参加すると、自動でつながります。");
+        setCallPhase("waiting", "\u76f8\u624b\u304c\u53c2\u52a0\u3059\u308b\u3068\u81ea\u52d5\u3067\u63a5\u7d9a\u3057\u307e\u3059\u3002");
+        setStatus("\u76f8\u624b\u3092\u5f85\u3063\u3066\u3044\u307e\u3059", "\u307b\u304b\u306e\u4eba\u304c\u540c\u3058URL\u304b\u3089\u53c2\u52a0\u3059\u308b\u3068\u3001\u81ea\u52d5\u3067\u3064\u306a\u304c\u308a\u307e\u3059\u3002");
       }
     }
 
@@ -2256,7 +2575,16 @@
       const unstable = Array.from(peers.values()).some(function(item) {
         return isPeerUnstable(item.peer);
       });
-      updateConnectionPill(unstable ? "不安定" : (connected ? "通話中" : (participants.length > 1 ? "接続中" : "待機")));
+      if (unstable) {
+        setCallPhase("reconnecting", "\u901a\u4fe1\u304c\u63fa\u308c\u305f\u305f\u3081\u3001\u81ea\u52d5\u3067\u623b\u3057\u3066\u3044\u307e\u3059\u3002");
+      } else if (connected) {
+        setCallPhase("connected", "\u901a\u8a71\u3067\u304d\u3066\u3044\u307e\u3059\u3002");
+      } else if (participants.length > 1) {
+        setCallPhase("connecting", "\u53c2\u52a0\u8005\u3068\u63a5\u7d9a\u4e2d\u3067\u3059\u3002");
+      } else {
+        setCallPhase("waiting", "\u76f8\u624b\u5f85\u3061\u3067\u3059\u3002");
+      }
+      updateConnectionPill(unstable ? "\u518d\u63a5\u7d9a\u4e2d" : (connected ? "\u901a\u8a71\u4e2d" : (participants.length > 1 ? "\u63a5\u7d9a\u4e2d" : "\u5f85\u6a5f")));
       const now = Date.now();
       if (lastConnectedState === connected && now - lastConnectionWrite < CONNECTION_REFRESH_MS) return;
       lastConnectedState = connected;
@@ -2269,7 +2597,6 @@
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(console.warn);
     }
-
     function toggleMute() {
       muted = !muted;
       applyMuteState(true);
@@ -2325,8 +2652,12 @@
       clearJoinSlowTimer();
       joined = false;
       clearMetricTimers();
+      stopStatsMonitor();
       stopHeartbeat();
       stopLiveWatchers();
+      autoReconnectTimers.forEach(function(timerId) { window.clearTimeout(timerId); });
+      autoReconnectTimers.clear();
+      const activeListeners = verifyListenerCleanup();
       if (shouldMarkEnded) markMetricMilestone("call-ended");
       stopSpeakingMonitor();
       Array.from(peers.keys()).forEach(closePeer);
@@ -2357,6 +2688,7 @@
       el.reconnect.disabled = true;
       el.mute.innerHTML = '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
       updateConnectionPill("待機");
+      setCallPhase("ended", "\u901a\u8a71\u306f\u7d42\u4e86\u3057\u307e\u3057\u305f\u3002Firestore listener: " + activeListeners);
       if (updateStatus) setStatus("退室しました", "もう一度参加できます。");
     }
 
@@ -2364,6 +2696,10 @@
       const state = peers.get(remoteId);
       if (!state) return;
       clearReconnectTimer(state);
+      clearAutoReconnectTimer(state);
+      Array.from(lastInboundStats.keys()).forEach(function(key) {
+        if (key.indexOf(remoteId + ":") === 0) lastInboundStats.delete(key);
+      });
       if (state.dataChannel) {
         try {
           state.dataChannel.close();
@@ -2384,7 +2720,7 @@
       audio.id = "remote-audio-" + cssEscape(remoteId);
       audio.autoplay = true;
       audio.playsInline = true;
-      audio.volume = 0.9;
+      setRemoteAudioVolume(audio);
       document.body.appendChild(audio);
       return audio;
     }
@@ -2415,6 +2751,8 @@
         setNotice("参加してから再接続できます。");
         return;
       }
+      setCallPhase("reconnecting", "\u624b\u52d5\u3067\u97f3\u58f0\u63a5\u7d9a\u3092\u4f5c\u308a\u76f4\u3057\u3066\u3044\u307e\u3059\u3002");
+      pushDiagnostic("info", "\u624b\u52d5\u518d\u63a5\u7d9a\u3092\u958b\u59cb", "\u65e2\u5b58\u306eWebRTC\u63a5\u7d9a\u3092\u9589\u3058\u3066\u4f5c\u308a\u76f4\u3057\u307e\u3059\u3002");
       Array.from(peers.keys()).forEach(closePeer);
       processedSignals = new Set();
       signalAcceptAfterMs = Date.now() - 1000;
@@ -2507,6 +2845,232 @@
         const label = text === "通話中" ? "音声品質は良好です" : (text === "不安定" ? "通信が不安定です。再接続できます" : "音声接続を確認中");
         el.qualityTip.innerHTML = '<i class="fa-solid fa-wave-square"></i><span>' + escapeHtml(label) + '</span>';
       }
+    }
+
+    function getPhaseConfig(phase) {
+      return {
+        waiting: { label: "\u76f8\u624b\u5f85\u3061", icon: "fa-user-clock", className: "is-waiting" },
+        connecting: { label: "\u63a5\u7d9a\u4e2d", icon: "fa-spinner", className: "is-connecting" },
+        connected: { label: "\u63a5\u7d9a\u6e08\u307f", icon: "fa-phone-volume", className: "is-connected" },
+        reconnecting: { label: "\u518d\u63a5\u7d9a\u4e2d", icon: "fa-rotate", className: "is-reconnecting" },
+        failed: { label: "\u5931\u6557", icon: "fa-triangle-exclamation", className: "is-failed" },
+        ended: { label: "\u7d42\u4e86", icon: "fa-circle-check", className: "is-waiting" }
+      }[phase] || { label: "\u76f8\u624b\u5f85\u3061", icon: "fa-signal", className: "is-waiting" };
+    }
+
+    function setCallPhase(phase, detail) {
+      callPhase = phase || "waiting";
+      const config = getPhaseConfig(callPhase);
+      if (el.connectionStateBadge) {
+        el.connectionStateBadge.classList.remove("is-waiting", "is-connecting", "is-reconnecting", "is-connected", "is-failed");
+        el.connectionStateBadge.classList.add(config.className);
+        el.connectionStateBadge.innerHTML = '<i class="fa-solid ' + config.icon + '"></i><span id="connectionStateLabel">' + escapeHtml(config.label) + '</span>';
+        el.connectionStateLabel = document.getElementById("connectionStateLabel");
+      }
+      if (el.connectionStateDetail) el.connectionStateDetail.textContent = detail || getDefaultPhaseDetail(callPhase);
+      if (el.connectionPill) {
+        el.connectionPill.classList.toggle("is-active", callPhase === "connected");
+        el.connectionPill.classList.toggle("is-connecting", callPhase === "connecting" || callPhase === "reconnecting");
+        el.connectionPill.classList.toggle("is-unstable", callPhase === "failed");
+        el.connectionPill.innerHTML = '<i class="fa-solid ' + config.icon + '"></i><span>' + escapeHtml(config.label) + '</span>';
+      }
+    }
+
+    function getDefaultPhaseDetail(phase) {
+      return {
+        waiting: "\u76f8\u624b\u304c\u53c2\u52a0\u3059\u308b\u3068\u81ea\u52d5\u3067\u63a5\u7d9a\u3057\u307e\u3059\u3002",
+        connecting: "\u97f3\u58f0\u901a\u8a71\u306e\u6e96\u5099\u3092\u3057\u3066\u3044\u307e\u3059\u3002",
+        connected: "\u901a\u8a71\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002",
+        reconnecting: "\u901a\u4fe1\u304c\u63fa\u308c\u305f\u305f\u3081\u3001\u81ea\u52d5\u3067\u623b\u3057\u3066\u3044\u307e\u3059\u3002",
+        failed: "\u63a5\u7d9a\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002\u8a3a\u65ad\u30ed\u30b0\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+        ended: "\u901a\u8a71\u306f\u7d42\u4e86\u3057\u307e\u3057\u305f\u3002"
+      }[phase] || "\u63a5\u7d9a\u72b6\u614b\u3092\u78ba\u8a8d\u3057\u3066\u3044\u307e\u3059\u3002";
+    }
+
+    function toggleDiagnosticsPanel(event) {
+      if (event) event.stopPropagation();
+      if (!el.diagnosticsPanel || !el.diagnosticsToggle) return;
+      const isOpen = !el.diagnosticsPanel.classList.contains("is-open");
+      if (isOpen) renderDiagnostics();
+      el.diagnosticsPanel.classList.toggle("is-open", isOpen);
+      el.diagnosticsPanel.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      el.diagnosticsToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function hideDiagnosticsPanel() {
+      if (!el.diagnosticsPanel || !el.diagnosticsToggle) return;
+      el.diagnosticsPanel.classList.remove("is-open");
+      el.diagnosticsPanel.setAttribute("aria-hidden", "true");
+      el.diagnosticsToggle.setAttribute("aria-expanded", "false");
+    }
+
+    function pushDiagnostic(level, message, detail) {
+      diagnostics.unshift({ level: level || "info", message: message || "", detail: detail || "", time: new Date() });
+      diagnostics = diagnostics.slice(0, 40);
+      renderDiagnostics();
+    }
+
+    function renderDiagnostics() {
+      if (!el.diagnosticsPanel) return;
+      if (!diagnostics.length) {
+        el.diagnosticsPanel.innerHTML = '<div class="diagnostic-item"><strong>' + escapeHtml("\u307e\u3060\u8a3a\u65ad\u30ed\u30b0\u306f\u3042\u308a\u307e\u305b\u3093\u3002") + '</strong><span>' + escapeHtml("\u63a5\u7d9a\u3092\u958b\u59cb\u3059\u308b\u3068\u3001\u3053\u3053\u306b\u72b6\u614b\u304c\u6b8b\u308a\u307e\u3059\u3002") + '</span></div>';
+        return;
+      }
+      el.diagnosticsPanel.innerHTML = diagnostics.map(function(item) {
+        const time = item.time ? item.time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+        const icon = item.level === "error" ? "fa-circle-exclamation" : (item.level === "warn" ? "fa-triangle-exclamation" : "fa-circle-info");
+        return '<div class="diagnostic-item is-' + escapeHtml(item.level) + '">' +
+          '<time>' + escapeHtml(time) + '</time>' +
+          '<strong><i class="fa-solid ' + icon + '"></i> ' + escapeHtml(item.message) + '</strong>' +
+          (item.detail ? '<span>' + escapeHtml(item.detail) + '</span>' : '') +
+          '</div>';
+      }).join("");
+    }
+
+    function initAudioPreset() {
+      let saved = "earphones";
+      try {
+        saved = localStorage.getItem("kouryu-voice-audio-preset") || "earphones";
+      } catch (error) {
+        saved = "earphones";
+      }
+      const presetName = VOICE_PRESETS[saved] ? saved : "earphones";
+      if (el.audioPreset) el.audioPreset.value = presetName;
+      applyVoicePreset(presetName, false);
+    }
+
+    function handleAudioPresetChange() {
+      const value = el.audioPreset && VOICE_PRESETS[el.audioPreset.value] ? el.audioPreset.value : "earphones";
+      try {
+        localStorage.setItem("kouryu-voice-audio-preset", value);
+      } catch (error) {}
+      applyVoicePreset(value, true);
+    }
+
+    function applyVoicePreset(name, announce) {
+      const preset = VOICE_PRESETS[name] || VOICE_PRESETS.earphones;
+      Object.keys(VOICE_SETTINGS).forEach(function(key) {
+        if (Object.prototype.hasOwnProperty.call(preset, key)) VOICE_SETTINGS[key] = preset[key];
+      });
+      if (rawLocalStream) tuneLocalAudioTrack(rawLocalStream);
+      if (localHighpass) localHighpass.frequency.value = VOICE_SETTINGS.highpass;
+      if (localLowpass) localLowpass.frequency.value = VOICE_SETTINGS.lowpass;
+      if (localCompressor) {
+        localCompressor.threshold.value = VOICE_SETTINGS.compressorThreshold;
+        localCompressor.ratio.value = VOICE_SETTINGS.compressorRatio;
+      }
+      peers.forEach(function(state) {
+        if (state.audio) setRemoteAudioVolume(state.audio);
+        if (state.peer) state.peer.getSenders().forEach(tuneAudioSender);
+      });
+      if (announce) pushDiagnostic("info", "\u97f3\u58f0\u30d7\u30ea\u30bb\u30c3\u30c8\u3092\u5909\u66f4", preset.label);
+    }
+
+    function setRemoteAudioVolume(audio) {
+      if (!audio) return;
+      audio.volume = Math.max(0, Math.min(1, VOICE_SETTINGS.remoteVolume || 0.85));
+    }
+
+    function startStatsMonitor() {
+      if (statsTimer) return;
+      collectWebRtcStats();
+      statsTimer = window.setInterval(collectWebRtcStats, STATS_MONITOR_MS);
+    }
+
+    function stopStatsMonitor() {
+      if (statsTimer) {
+        window.clearInterval(statsTimer);
+        statsTimer = null;
+      }
+      lastInboundStats.clear();
+      updateQualityUi({ rttMs: null, jitterMs: null, lossPct: null, quality: "idle" });
+    }
+
+    async function collectWebRtcStats() {
+      if (!joined || !peers.size) return;
+      const values = { rtt: [], jitter: [], lost: 0, packets: 0 };
+      for (const state of peers.values()) {
+        if (!state || !state.peer || !isPeerConnected(state.peer)) continue;
+        try {
+          const report = await state.peer.getStats();
+          report.forEach(function(item) {
+            if (item.type === "candidate-pair" && item.state === "succeeded" && (item.nominated || item.selected || item.currentRoundTripTime)) {
+              if (typeof item.currentRoundTripTime === "number") values.rtt.push(item.currentRoundTripTime * 1000);
+            }
+            if (item.type === "inbound-rtp" && (item.kind === "audio" || item.mediaType === "audio")) {
+              if (typeof item.jitter === "number") values.jitter.push(item.jitter * 1000);
+              const key = state.id + ":" + item.id;
+              const previous = lastInboundStats.get(key);
+              const currentLost = Number(item.packetsLost || 0);
+              const currentReceived = Number(item.packetsReceived || 0);
+              if (previous) {
+                values.lost += Math.max(0, currentLost - previous.lost);
+                values.packets += Math.max(0, currentReceived - previous.received);
+              }
+              lastInboundStats.set(key, { lost: currentLost, received: currentReceived });
+            }
+          });
+        } catch (error) {
+          pushDiagnostic("warn", "\u54c1\u8cea\u60c5\u5831\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093", error && error.message ? error.message : "");
+        }
+      }
+      updateQualityUi({
+        rttMs: average(values.rtt),
+        jitterMs: average(values.jitter),
+        lossPct: values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null,
+        quality: classifyQuality(average(values.rtt), average(values.jitter), values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null)
+      });
+    }
+
+    function average(values) {
+      if (!values || !values.length) return null;
+      return values.reduce(function(sum, value) { return sum + value; }, 0) / values.length;
+    }
+
+    function classifyQuality(rttMs, jitterMs, lossPct) {
+      if (rttMs == null && jitterMs == null && lossPct == null) return "idle";
+      if ((rttMs != null && rttMs > 300) || (jitterMs != null && jitterMs > 60) || (lossPct != null && lossPct > 5)) return "poor";
+      if ((rttMs != null && rttMs > 150) || (jitterMs != null && jitterMs > 30) || (lossPct != null && lossPct > 1)) return "fair";
+      return "good";
+    }
+
+    function updateQualityUi(stats) {
+      const previousQuality = activeStats && activeStats.quality;
+      activeStats = stats || activeStats;
+      const labels = {
+        idle: "\u54c1\u8cea: --",
+        good: "\u54c1\u8cea: \u826f\u597d",
+        fair: "\u54c1\u8cea: \u3084\u3084\u4e0d\u5b89\u5b9a",
+        poor: "\u54c1\u8cea: \u8981\u78ba\u8a8d"
+      };
+      if (el.qualityBadge) {
+        el.qualityBadge.classList.remove("is-good", "is-fair", "is-poor");
+        if (activeStats.quality && activeStats.quality !== "idle") el.qualityBadge.classList.add("is-" + activeStats.quality);
+        el.qualityBadge.innerHTML = '<i class="fa-solid fa-wave-square"></i><span>' + escapeHtml(labels[activeStats.quality] || labels.idle) + '</span>';
+      }
+      if (el.rttBadge) el.rttBadge.textContent = "RTT " + formatStat(activeStats.rttMs, "ms");
+      if (el.jitterBadge) el.jitterBadge.textContent = "jitter " + formatStat(activeStats.jitterMs, "ms");
+      if (el.packetLossBadge) el.packetLossBadge.textContent = "loss " + formatStat(activeStats.lossPct, "%");
+      if (activeStats.quality && activeStats.quality !== "idle" && activeStats.quality !== previousQuality) {
+        const detail = "RTT " + formatStat(activeStats.rttMs, "ms") + " / jitter " + formatStat(activeStats.jitterMs, "ms") + " / loss " + formatStat(activeStats.lossPct, "%");
+        pushDiagnostic(activeStats.quality === "poor" ? "warn" : "info", "\u901a\u8a71\u54c1\u8cea: " + (labels[activeStats.quality] || labels.idle).replace("\u54c1\u8cea: ", ""), detail);
+      }
+    }
+
+    function formatStat(value, unit) {
+      if (value == null || !isFinite(value)) return "--";
+      const fixed = unit === "%" ? value.toFixed(1) : Math.round(value);
+      return fixed + unit;
+    }
+
+    function verifyListenerCleanup() {
+      const active = (unsubParticipants ? 1 : 0) + (unsubSignals ? 1 : 0);
+      if (active === 0) {
+        pushDiagnostic("info", "Firestore listener: 0", "\u7d42\u8a71\u5f8c\u306e\u76e3\u8996\u89e3\u9664\u3092\u78ba\u8a8d\u3057\u307e\u3057\u305f\u3002");
+      } else {
+        pushDiagnostic("warn", "Firestore listener: " + active, "\u7d42\u8a71\u5f8c\u3082\u76e3\u8996\u304c\u6b8b\u3063\u3066\u3044\u307e\u3059\u3002");
+      }
+      return active;
     }
 
     function getVoiceModeSettings() {
@@ -2998,6 +3562,8 @@
       hideMetricsNote();
       if (event.target.closest("#metricsRateHelpBtn") || event.target.closest("#metricsRateTooltip")) return;
       hideMetricsRateTooltip();
+      if (event.target.closest("#diagnosticsToggleBtn") || event.target.closest("#diagnosticsPanel")) return;
+      hideDiagnosticsPanel();
       if (event.target.closest("#connectionPill") || event.target.closest("#connectionTooltip")) return;
       hideConnectionTooltip();
       if (event.target.closest("#metricsToggleBtn") || event.target.closest(".metrics-modal-card")) return;
@@ -3223,6 +3789,9 @@
     function markConnectedOnce() {
       if (metrics.connectedAt) return;
       metrics.connectedAt = Date.now();
+      setCallPhase("connected", "\u901a\u8a71\u304c\u5b89\u5b9a\u3057\u3066\u3064\u306a\u304c\u308a\u307e\u3057\u305f\u3002");
+      pushDiagnostic("info", "\u63a5\u7d9a\u5b8c\u4e86", "\u3053\u3053\u304b\u3089\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u901a\u4fe1\u3057\u307e\u3059\u3002");
+      startStatsMonitor();
       markMetricMilestone("connected");
       scheduleMetricMilestones();
     }
@@ -3492,6 +4061,7 @@
         "writes: " + JSON.stringify(metrics.writes, null, 2) + "\n" +
         "deletes: " + JSON.stringify(metrics.deletes, null, 2) + "\n" +
         "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
+        "activeListenersNow: " + ((unsubParticipants ? 1 : 0) + (unsubSignals ? 1 : 0)) + "\n" +
         "listeners opened/closed: " + JSON.stringify(metrics.listenersOpened, null, 2) + " / " + JSON.stringify(metrics.listenersClosed, null, 2) + "\n" +
         "snapshots callbacks: " + JSON.stringify(metrics.snapshotCallbacks, null, 2) + "\n" +
         "snapshots changes: " + JSON.stringify(metrics.snapshotChanges, null, 2) + "\n" +
