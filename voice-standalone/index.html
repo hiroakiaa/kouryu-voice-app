@@ -581,13 +581,13 @@
       getFirestore,
       addDoc,
       collection,
+      deleteDoc,
       doc,
       onSnapshot,
-      orderBy,
       query,
       serverTimestamp,
       setDoc,
-      updateDoc
+      where
     } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -657,7 +657,6 @@
     let peers = new Map();
     let processedSignals = new Set();
     let signalAcceptAfterMs = Date.now();
-    let unsubCall = null;
     let unsubSignals = null;
     let unsubParticipants = null;
     let heartbeatTimer = null;
@@ -672,17 +671,6 @@
     init();
 
     async function init() {
-      await setDoc(callRef(), {
-        callId,
-        status: "waiting",
-        updatedAt: serverTimestamp(),
-        createdAt: serverTimestamp()
-      }, { merge: true }).catch(function(error) {
-        console.warn(error);
-        setNotice("通話情報を作れませんでした。Firestore Rulesを確認してください。");
-      });
-
-      watchCall();
       watchParticipants();
       watchSignals();
 
@@ -715,13 +703,6 @@
       updateDeviceTip();
     }
 
-    function watchCall() {
-      unsubCall = onSnapshot(callRef(), function() {}, function(error) {
-        console.warn(error);
-        setNotice("通話情報を読み込めませんでした。");
-      });
-    }
-
     async function joinCall() {
       if (joined) return;
       const userName = resolveUserName();
@@ -752,7 +733,6 @@
           updatedAt: serverTimestamp()
         }, { merge: true });
         startHeartbeat();
-        await updateCallStatus("active");
       } catch (error) {
         console.warn(error);
         joined = false;
@@ -805,13 +785,15 @@
     }
 
     function watchParticipants() {
-      unsubParticipants = onSnapshot(collection(callRef(), "participants"), function(snapshot) {
+      unsubParticipants = onSnapshot(query(collection(callRef(), "participants"), where("left", "==", false)), function(snapshot) {
         const activeParticipants = [];
         snapshot.forEach(function(item) {
           const data = item.data() || {};
-          if (data.left === true) return;
           const person = Object.assign({ id: item.id }, data);
-          if (!isParticipantActive(person)) return;
+          if (!isParticipantActive(person)) {
+            markParticipantStale(item, data);
+            return;
+          }
           activeParticipants.push(person);
         });
         activeParticipants.sort(function(a, b) {
@@ -819,7 +801,6 @@
         });
         participants = activeParticipants;
         renderParticipants(participants);
-        updateCallStatus(participants.length >= 2 ? "active" : "waiting");
         ensurePeersForParticipants();
         updateLocalStatus();
       }, function(error) {
@@ -829,17 +810,34 @@
     }
 
     function watchSignals() {
-      unsubSignals = onSnapshot(query(collection(callRef(), "signals"), orderBy("createdAt", "asc")), async function(snapshot) {
-        for (const change of snapshot.docChanges()) {
+      unsubSignals = onSnapshot(query(collection(callRef(), "signals"), where("to", "==", userId)), async function(snapshot) {
+        const changes = snapshot.docChanges().sort(function(a, b) {
+          return getTimestampMillis((a.doc.data() || {}).createdAt) - getTimestampMillis((b.doc.data() || {}).createdAt);
+        });
+        for (const change of changes) {
+          if (change.type === "removed") continue;
           const id = change.doc.id;
           if (processedSignals.has(id)) continue;
           processedSignals.add(id);
           const signal = change.doc.data() || {};
-          if (signal.from === userId) continue;
-          if (signal.to !== userId) continue;
-          if (signal.toSessionId && signal.toSessionId !== sessionId) continue;
-          if (isStaleSignal(signal)) continue;
-          await handleSignal(signal);
+          if (signal.from === userId || signal.to !== userId) {
+            deleteSignalDoc(change.doc).catch(console.warn);
+            continue;
+          }
+          if (signal.toSessionId && signal.toSessionId !== sessionId) {
+            deleteSignalDoc(change.doc).catch(console.warn);
+            continue;
+          }
+          if (isStaleSignal(signal)) {
+            deleteSignalDoc(change.doc).catch(console.warn);
+            continue;
+          }
+          try {
+            await handleSignal(signal);
+            deleteSignalDoc(change.doc).catch(console.warn);
+          } catch (error) {
+            console.warn(error);
+          }
         }
       }, function(error) {
         console.warn(error);
@@ -868,6 +866,16 @@
         left: false,
         muted,
         lastSeenAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(console.warn);
+    }
+
+    function markParticipantStale(participantDoc, data) {
+      if (!participantDoc || !data || data.userId === userId || data.left === true) return;
+      setDoc(participantDoc.ref, {
+        left: true,
+        connected: false,
+        speaking: false,
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(console.warn);
     }
@@ -1030,6 +1038,10 @@
       return !!timeValue && timeValue < signalAcceptAfterMs;
     }
 
+    function deleteSignalDoc(signalDoc) {
+      return deleteDoc(signalDoc.ref);
+    }
+
     function scheduleReconnect(remoteId) {
       const state = peers.get(remoteId);
       if (!state || !shouldCreateOffer(remoteId)) return;
@@ -1104,18 +1116,6 @@
         lastSeenAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(console.warn);
-    }
-
-    function updateCallStatus(status) {
-      const payload = {
-        status,
-        participantCount: participants.length || (joined ? 1 : 0),
-        updatedAt: serverTimestamp()
-      };
-      if (status === "active") payload.startedAt = serverTimestamp();
-      return updateDoc(callRef(), payload).catch(function(error) {
-        console.warn(error);
-      });
     }
 
     function toggleMute() {
