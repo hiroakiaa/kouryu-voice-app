@@ -557,24 +557,14 @@
       if (joined) return;
       const userName = resolveUserName();
       saveName(userName);
+
+      joined = true;
+      muted = false;
+      updateJoinButton();
+      el.mute.disabled = true;
+
       try {
-        setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
-        rawLocalStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: { ideal: true },
-            noiseSuppression: { ideal: true },
-            autoGainControl: { ideal: false },
-            channelCount: { ideal: 1 },
-            sampleRate: { ideal: 48000 }
-          },
-          video: false
-        });
-        localStream = createCleanAudioStream(rawLocalStream);
-        startSpeakingMonitor();
-        joined = true;
-        muted = false;
-        updateJoinButton();
-        el.mute.disabled = false;
+        setStatus("参加しています", "参加者として登録しています。");
         await setDoc(participantRef(userId), {
           userId,
           userName,
@@ -589,11 +579,47 @@
         }, { merge: true });
         startHeartbeat();
         await updateCallStatus("active");
+      } catch (error) {
+        console.warn(error);
+        joined = false;
+        updateJoinButton();
+        el.mute.disabled = true;
+        stopHeartbeat();
+        setStatus("参加者登録できませんでした", "Firestore Rulesで参加者の保存が許可されているか確認してください。");
+        setNotice("参加者を保存できませんでした。Firestore Rulesを確認してください。");
+        return;
+      }
+
+      try {
+        setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
+        rawLocalStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: { ideal: true },
+            noiseSuppression: { ideal: true },
+            autoGainControl: { ideal: false },
+            channelCount: { ideal: 1 },
+            sampleRate: { ideal: 48000 }
+          },
+          video: false
+        });
+        localStream = createCleanAudioStream(rawLocalStream);
+        startSpeakingMonitor();
+        el.mute.disabled = false;
         setStatus("相手を待っています", "ほかの人が同じURLから参加すると、自動でつながります。");
+        updatePresence();
         ensurePeersForParticipants();
       } catch (error) {
         console.warn(error);
-        setStatus("マイクを使えませんでした", "ブラウザや端末のマイク許可を確認してください。");
+        el.mute.disabled = true;
+        await setDoc(participantRef(userId), {
+          muted: true,
+          connected: false,
+          speaking: false,
+          lastSeenAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true }).catch(console.warn);
+        setStatus("参加中・マイク未接続", "マイク許可を確認してください。参加者欄には表示されています。");
+        setNotice("マイク接続はできませんでしたが、参加者としては表示されています。");
       }
     }
 
