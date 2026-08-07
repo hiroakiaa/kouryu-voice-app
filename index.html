@@ -4,26 +4,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>音声で説明</title>
+  <title>共通電話</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
-      --bg: #03070c;
-      --panel: #060b12;
-      --panel-soft: #0b1420;
-      --panel-raised: #101d29;
-      --line: #16495b;
-      --line-strong: #2dd4f4;
-      --text: #f4fbff;
-      --muted: #9fb9c6;
-      --quiet: #758d99;
-      --accent: #38c7e6;
-      --accent-deep: #0988a5;
-      --accent-soft: #103443;
-      --danger: #ff6b91;
-      --danger-soft: #32131f;
-      --ok: #64e6c3;
-      --warn: #ffd166;
+      --bg: #03101a;
+      --panel: #061522;
+      --panel-soft: #091b2a;
+      --panel-raised: #0c2234;
+      --line: #1b5570;
+      --line-strong: #86e9ff;
+      --text: #f2fbff;
+      --muted: #bdd8e4;
+      --quiet: #89a9b8;
+      --accent: #8be9ff;
+      --accent-deep: #38c6e8;
+      --accent-soft: #0d3447;
+      --danger: #ff6d92;
+      --danger-soft: #2b0d18;
+      --ok: #93e6ff;
+      --warn: #c7f4ff;
+      --control: #061521;
     }
 
     * {
@@ -40,29 +41,33 @@
       margin: 0;
       display: grid;
       place-items: center;
-      padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+      padding: max(0.7rem, env(safe-area-inset-top)) max(0.7rem, env(safe-area-inset-right)) max(0.7rem, env(safe-area-inset-bottom)) max(0.7rem, env(safe-area-inset-left));
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(139, 233, 255, 0.12), transparent 22rem),
+        radial-gradient(circle at 84% 92%, rgba(56, 198, 232, 0.1), transparent 18rem),
+        var(--bg);
       overflow: hidden;
     }
 
     main {
-      width: min(100%, 43rem);
-      height: min(100svh - 1.5rem, 43.5rem);
+      width: min(100%, 52rem);
+      height: min(100svh - 1.4rem, 40rem);
+      position: relative;
       display: grid;
-      grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto;
-      gap: 0.6rem;
-      padding: clamp(0.75rem, 2.4vw, 1.05rem);
-      border: 0.125rem solid var(--line-strong);
-      border-radius: 1.3rem;
-      background: var(--panel);
+      grid-template-rows: auto auto auto minmax(4.6rem, 1fr) auto auto;
+      gap: 0.65rem;
+      padding: clamp(0.8rem, 2vw, 1.15rem);
+      border: 0.09rem solid var(--accent-deep);
+      border-radius: 1.25rem;
+      background: rgba(4, 18, 28, 0.96);
       overflow: hidden;
     }
 
     header {
       display: flex;
-      gap: 0.65rem;
+      gap: 0.75rem;
       align-items: center;
       min-width: 0;
     }
@@ -70,14 +75,14 @@
     .app-icon {
       display: inline-grid;
       place-items: center;
-      width: 2.75rem;
-      height: 2.75rem;
+      width: 2.8rem;
+      height: 2.8rem;
       flex: 0 0 auto;
-      border: 0.1rem solid var(--line);
+      border: 0.08rem solid var(--accent-deep);
       border-radius: 0.9rem;
-      background: var(--panel-soft);
+      background: #0a2535;
       color: var(--accent);
-      font-size: 1.22rem;
+      font-size: 1.15rem;
     }
 
     .brand {
@@ -85,9 +90,17 @@
       flex: 1 1 auto;
     }
 
+    .header-actions {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: end;
+      gap: 0.55rem;
+      min-width: 0;
+    }
+
     h1 {
       margin: 0;
-      font-size: clamp(1.2rem, 4.8vw, 1.55rem);
+      font-size: clamp(1.18rem, 3.8vw, 1.55rem);
       line-height: 1.08;
       letter-spacing: 0;
     }
@@ -95,17 +108,16 @@
     .room-id {
       margin-top: 0.18rem;
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 800;
       overflow-wrap: anywhere;
     }
 
     .name-box {
-      flex: 0 0 auto;
-      width: min(32vw, 8.4rem);
+      width: min(33vw, 9.4rem);
       display: grid;
       gap: 0.18rem;
-      color: var(--quiet);
+      color: var(--muted);
       font-size: 0.68rem;
       font-weight: 800;
     }
@@ -117,13 +129,33 @@
       text-align: right;
     }
 
+    .tips-toggle {
+      width: 2.35rem;
+      height: 2.35rem;
+      min-height: 2.35rem;
+      padding: 0;
+      border-color: var(--line);
+      border-radius: 0.72rem;
+      color: var(--accent);
+      background: var(--control);
+      font-size: 0.92rem;
+    }
+
+    .tips-toggle.is-open,
+    .tips-toggle:not(:disabled):hover,
+    .tips-toggle:not(:disabled):focus-visible {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
     .card {
       display: grid;
-      gap: 0.5rem;
-      padding: 0.72rem;
-      border: 0.1rem solid var(--line);
+      gap: 0.48rem;
+      padding: 0.68rem;
+      border: 0.08rem solid var(--line);
       border-radius: 0.95rem;
-      background: var(--panel-soft);
+      background: rgba(9, 27, 42, 0.88);
     }
 
     .status-card {
@@ -134,14 +166,14 @@
 
     .status-card strong {
       display: block;
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       font-weight: 950;
     }
 
     .status-card span,
     .notice {
       color: var(--muted);
-      font-size: 0.86rem;
+      font-size: 0.8rem;
       font-weight: 750;
       line-height: 1.45;
     }
@@ -150,12 +182,12 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      min-height: 1.9rem;
-      padding: 0.28rem 0.56rem;
+      min-height: 1.85rem;
+      padding: 0.25rem 0.55rem;
       border: 0.08rem solid var(--line);
       border-radius: 999rem;
       color: var(--ok);
-      background: #07151b;
+      background: #071c2a;
       font-size: 0.76rem;
       font-weight: 900;
       white-space: nowrap;
@@ -181,11 +213,11 @@
       grid-template-columns: auto minmax(5rem, 1fr) auto;
       align-items: center;
       gap: 0.55rem;
-      min-height: 2.2rem;
-      padding: 0.42rem 0.58rem;
-      border: 0.08rem solid var(--line);
+      min-height: 2rem;
+      padding: 0.36rem 0.55rem;
+      border: 0.07rem solid var(--line);
       border-radius: 0.85rem;
-      background: #07141c;
+      background: #071c2a;
       color: var(--muted);
       font-size: 0.76rem;
       font-weight: 850;
@@ -195,12 +227,16 @@
       display: none;
     }
 
+    .audio-health[hidden] + .participants-card {
+      grid-row: 3 / span 2;
+    }
+
     .mic-level {
       height: 0.48rem;
       overflow: hidden;
-      border: 0.08rem solid var(--line);
+      border: 0.07rem solid var(--line);
       border-radius: 999rem;
-      background: #02080d;
+      background: #020b12;
     }
 
     .mic-level-bar {
@@ -221,10 +257,27 @@
     }
 
     .call-tips {
+      position: absolute;
+      top: 4.65rem;
+      right: clamp(0.8rem, 2vw, 1.15rem);
+      z-index: 12;
+      width: min(30rem, calc(100% - 1.6rem));
       grid-template-columns: repeat(3, minmax(0, 1fr));
       align-items: center;
       gap: 0.45rem;
-      padding: 0.52rem;
+      padding: 0.58rem;
+      border-color: var(--accent-deep);
+      background: #071c2a;
+      opacity: 0;
+      transform: translateY(-0.25rem);
+      pointer-events: none;
+      transition: opacity 170ms ease, transform 170ms ease;
+    }
+
+    .call-tips.is-open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
 
     .tip-item {
@@ -233,7 +286,7 @@
       align-items: center;
       gap: 0.4rem;
       color: var(--muted);
-      font-size: 0.76rem;
+      font-size: 0.72rem;
       font-weight: 850;
       line-height: 1.25;
     }
@@ -252,11 +305,11 @@
 
     input {
       width: 100%;
-      min-height: 3rem;
-      padding: 0.7rem 0.85rem;
+      min-height: 2.75rem;
+      padding: 0.62rem 0.8rem;
       border: 0.1rem solid var(--line);
       border-radius: 0.9rem;
-      background: #08121b;
+      background: #04111c;
       color: var(--text);
       font: inherit;
       font-weight: 800;
@@ -269,25 +322,69 @@
 
     h2 {
       margin: 0;
-      font-size: 0.84rem;
+      min-height: 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.32rem;
+      font-size: 0.8rem;
+      line-height: 1.15;
       color: var(--muted);
     }
 
     .participants-card {
       min-height: 0;
       overflow: hidden;
+      gap: 0.28rem;
+      padding-block: 0.52rem;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .participants-card h2 {
+      min-height: 1rem;
+      padding-block: 0;
+      color: var(--text);
+      opacity: 0.9;
     }
 
     .participants {
       display: flex;
       flex-wrap: nowrap;
-      gap: 0.48rem;
+      gap: 0.5rem;
       align-items: center;
-      min-height: 3rem;
+      min-height: 3.25rem;
       overflow-x: auto;
       overflow-y: hidden;
       padding-right: 0.1rem;
       scrollbar-width: thin;
+    }
+
+    .participants-card.is-empty .participants {
+      min-height: 100%;
+      justify-content: center;
+      align-items: center;
+      padding: 0.25rem;
+    }
+
+    .empty-participants {
+      width: min(100%, 26rem);
+      display: grid;
+      place-items: center;
+      gap: 0.42rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-participants strong {
+      color: var(--text);
+      font-size: 0.98rem;
+      font-weight: 950;
+    }
+
+    .empty-participants span {
+      color: var(--quiet);
+      font-size: 0.78rem;
+      font-weight: 780;
+      line-height: 1.45;
     }
 
     .participant {
@@ -297,7 +394,7 @@
       display: inline-grid;
       place-items: center;
       border: 0.1rem solid var(--line);
-      border-radius: 0.88rem;
+      border-radius: 0.82rem;
       background: var(--panel-raised);
       color: var(--text);
       font-size: 1rem;
@@ -322,14 +419,14 @@
 
     .participant.is-speaking {
       border-color: var(--ok);
-      background: #0f2b30;
+      background: #0d3044;
     }
 
     .participant.is-speaking::after {
       content: "";
       position: absolute;
       inset: -0.18rem;
-      border: 0.08rem solid rgba(100, 230, 195, 0.78);
+      border: 0.08rem solid rgba(139, 233, 255, 0.76);
       border-radius: 1rem;
       pointer-events: none;
     }
@@ -367,16 +464,16 @@
     }
 
     .is-waiting {
-      color: var(--warn);
+      color: var(--accent);
     }
 
     .is-muted {
-      color: #7d929c;
+      color: #839eaa;
     }
 
     .controls {
       display: grid;
-      gap: 0.52rem;
+      gap: 0.55rem;
     }
 
     .secondary-controls {
@@ -385,20 +482,24 @@
       gap: 0.48rem;
     }
 
+    .secondary-controls #reconnectBtn {
+      display: none;
+    }
+
     button {
       appearance: none;
-      min-height: 2.6rem;
-      padding: 0.56rem 0.68rem;
+      min-height: 2.45rem;
+      padding: 0.5rem 0.64rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.42rem;
-      border: 0.1rem solid var(--line);
-      border-radius: 0.82rem;
-      background: #071018;
+      border: 0.08rem solid var(--line);
+      border-radius: 0.78rem;
+      background: var(--control);
       color: var(--text);
       font: inherit;
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       font-weight: 900;
       cursor: pointer;
       transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
@@ -407,13 +508,13 @@
     button.primary {
       border-color: var(--accent);
       background: var(--accent);
-      color: #001017;
+      color: #02111a;
     }
 
     button.danger {
       border-color: var(--danger);
       background: var(--danger-soft);
-      color: #ffdce6;
+      color: #ffe3eb;
     }
 
     button:disabled {
@@ -424,23 +525,62 @@
     button:not(:disabled):hover,
     button:not(:disabled):focus-visible {
       border-color: var(--line-strong);
+      background: #0d2d3f;
+    }
+
+    button.primary:not(:disabled):hover,
+    button.primary:not(:disabled):focus-visible {
+      border-color: #d2f7ff;
+      background: #a7efff;
     }
 
     .primary-action {
-      min-height: 3.2rem;
+      min-height: 3.55rem;
+      border-radius: 999rem;
       font-size: 1rem;
+      letter-spacing: 0;
+    }
+
+    .primary-action i {
+      width: 2rem;
+      height: 2rem;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999rem;
+      background: rgba(2, 18, 11, 0.12);
     }
 
     .primary-action.is-leaving {
       border-color: var(--danger);
       background: transparent;
-      color: #ffdce6;
+      color: #ffe3eb;
     }
 
     .notice {
       min-height: 1.35rem;
       max-height: 2.7rem;
       overflow: hidden;
+    }
+
+    .secondary-controls button {
+      min-height: 2.55rem;
+      border-radius: 0.82rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .secondary-controls button:not(:disabled):hover,
+    .secondary-controls button:not(:disabled):focus-visible {
+      color: var(--text);
+    }
+
+    body.is-demo-mode main {
+      border-color: var(--accent-deep);
+    }
+
+    body.is-demo-mode .connection-pill {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     .avatar-tooltip {
@@ -450,7 +590,7 @@
       padding: 0.45rem 0.65rem;
       border: 0.08rem solid var(--line-strong);
       border-radius: 0.65rem;
-      background: #02080d;
+      background: #020b12;
       color: var(--text);
       font-size: 0.82rem;
       font-weight: 850;
@@ -474,7 +614,9 @@
       main {
         height: calc(100svh - 1rem);
         border-radius: 1.12rem;
-        gap: 0.55rem;
+        gap: 0.42rem;
+        padding: 0.58rem;
+        grid-template-rows: auto auto auto minmax(4.4rem, 1fr) auto auto;
       }
 
       .app-icon {
@@ -483,7 +625,17 @@
       }
 
       .name-box {
-        width: 7rem;
+        width: min(38vw, 7rem);
+      }
+
+      .header-actions {
+        gap: 0.42rem;
+      }
+
+      .tips-toggle {
+        width: 2.15rem;
+        height: 2.15rem;
+        min-height: 2.15rem;
       }
 
       .status-card {
@@ -492,6 +644,9 @@
 
       .call-tips {
         grid-template-columns: 1fr;
+        top: 4.25rem;
+        right: 0.65rem;
+        width: calc(100% - 1.3rem);
       }
 
       .audio-health {
@@ -500,23 +655,27 @@
       }
 
       .participants {
-        max-height: 4.2rem;
+        max-height: 4rem;
       }
 
       .secondary-controls {
-        display: flex;
-        overflow-x: auto;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        overflow: visible;
         padding-bottom: 0.1rem;
         scrollbar-width: thin;
+        gap: 0.34rem;
       }
 
       .secondary-controls button {
-        min-width: 4.35rem;
+        min-width: 0;
+        min-height: 2.25rem;
+        padding-inline: 0.3rem;
       }
 
       button {
         padding-inline: 0.45rem;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
       }
     }
   </style>
@@ -526,13 +685,18 @@
     <header>
       <span class="app-icon" aria-hidden="true"><i class="fa-solid fa-headphones-simple"></i></span>
       <div class="brand">
-        <h1>音声で説明</h1>
+        <h1>共通電話</h1>
         <div id="roomLabel" class="room-id"></div>
       </div>
-      <label class="name-box">
-        表示名
-        <input id="nameInput" autocomplete="name" maxlength="8" placeholder="名前">
-      </label>
+      <div class="header-actions">
+        <button id="tipsToggleBtn" class="tips-toggle" type="button" aria-controls="callTips" aria-expanded="false" aria-label="使い方のヒント">
+          <i class="fa-solid fa-circle-question"></i>
+        </button>
+        <label class="name-box">
+          表示名
+          <input id="nameInput" autocomplete="name" maxlength="8" placeholder="名前">
+        </label>
+      </div>
     </header>
 
     <section class="card status-card">
@@ -543,7 +707,7 @@
       <span id="connectionPill" class="connection-pill"><i class="fa-solid fa-signal"></i><span>待機</span></span>
     </section>
 
-    <section id="callTips" class="card call-tips" aria-live="polite">
+    <section id="callTips" class="card call-tips" aria-live="polite" aria-hidden="true">
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span>近くの端末ではイヤホン推奨</span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span>端末の音量を小さめに</span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span>音声品質を確認中</span></span>
@@ -567,6 +731,7 @@
         <button id="micTestBtn" type="button"><i class="fa-solid fa-stethoscope"></i><span>テスト</span></button>
         <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
+        <button id="qualityModeBtn" type="button"><i class="fa-solid fa-sliders"></i><span>標準</span></button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規</span></button>
       </div>
     </div>
@@ -605,13 +770,54 @@
       ]
     };
 
-    const PARTICIPANT_STALE_MS = 45 * 1000;
-    const HEARTBEAT_MS = 10000;
+    const PARTICIPANT_STALE_MS = 90 * 1000;
+    const HEARTBEAT_MS = 30000;
+    const SPEAKING_WRITE_MS = 6500;
     const DEFAULT_CALL_ID = "main-room";
+    const VOICE_MODES = {
+      standard: {
+        label: "標準",
+        notice: "標準モードです。声の自然さとノイズ抑制のバランスを取ります。",
+        autoGainControl: false,
+        highpass: 120,
+        lowpass: 12000,
+        compressorThreshold: -34,
+        compressorRatio: 2.4,
+        idleGain: 0.55,
+        floorGain: 0.16,
+        maxBitrate: 48000
+      },
+      voice: {
+        label: "声優先",
+        notice: "声優先モードです。イヤホン利用時に声を聞き取りやすくします。",
+        autoGainControl: false,
+        highpass: 90,
+        lowpass: 14000,
+        compressorThreshold: -38,
+        compressorRatio: 2,
+        idleGain: 0.72,
+        floorGain: 0.24,
+        maxBitrate: 56000
+      },
+      quiet: {
+        label: "静か",
+        notice: "静かモードです。スピーカー利用時のザー音を抑えます。",
+        autoGainControl: false,
+        highpass: 150,
+        lowpass: 9500,
+        compressorThreshold: -32,
+        compressorRatio: 3,
+        idleGain: 0.38,
+        floorGain: 0.08,
+        maxBitrate: 40000
+      }
+    };
+    const VOICE_MODE_ORDER = ["standard", "voice", "quiet"];
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
     const params = new URLSearchParams(location.search);
+    const isDemoMode = params.get("demo") === "1" || location.hash === "#demo";
+    const app = isDemoMode ? null : initializeApp(firebaseConfig);
+    const db = isDemoMode ? null : getFirestore(app);
     const userId = getOrCreateUserId();
     const sessionId = createSessionId();
     const callId = ensureCallId(params.get("call"));
@@ -625,6 +831,7 @@
       connectionPill: document.getElementById("connectionPill"),
       audioHealth: document.getElementById("audioHealth"),
       callTips: document.getElementById("callTips"),
+      tipsToggle: document.getElementById("tipsToggleBtn"),
       deviceTip: document.getElementById("deviceTip"),
       qualityTip: document.getElementById("qualityTip"),
       micState: document.getElementById("micState"),
@@ -637,6 +844,7 @@
       micTest: document.getElementById("micTestBtn"),
       share: document.getElementById("shareBtn"),
       reconnect: document.getElementById("reconnectBtn"),
+      qualityMode: document.getElementById("qualityModeBtn"),
       newCall: document.getElementById("newCallBtn"),
       notice: document.getElementById("notice"),
       avatarTooltip: document.getElementById("avatarTooltip")
@@ -648,6 +856,9 @@
     let localAnalyser = null;
     let localVoiceGain = null;
     let localVoiceAnalyser = null;
+    let localHighpass = null;
+    let localLowpass = null;
+    let localCompressor = null;
     let speakingTimer = null;
     let speakingState = false;
     let lastSpeakingWrite = 0;
@@ -661,50 +872,191 @@
     let unsubParticipants = null;
     let heartbeatTimer = null;
     let lastMuteReminderAt = 0;
+    let knownParticipantNames = new Map();
+    let hasParticipantSnapshot = false;
+    let voiceMode = getStoredVoiceMode();
 
     el.name.value = getStoredName();
     el.roomLabel.textContent = isDefaultCall ? "共通電話" : "通話ID: " + callId;
-    setStatus("参加できます", isDefaultCall
-      ? "このURLを開いた人は、同じ音声通話に入れます。"
-      : "参加するとマイク確認が開きます。URLを共有した人だけが同じ通話に入れます。");
+    setReadyStatus();
 
     init();
 
     async function init() {
-      watchParticipants();
-      watchSignals();
-
       el.join.addEventListener("click", function() {
+        if (isDemoMode) {
+          toggleDemoJoin();
+          return;
+        }
         if (joined) {
           leaveCall();
         } else {
           joinCall();
         }
       });
-      el.mute.addEventListener("click", toggleMute);
-      el.micTest.addEventListener("click", runMicTest);
-      el.share.addEventListener("click", copyShareUrl);
-      el.reconnect.addEventListener("click", reconnectCall);
-      el.newCall.addEventListener("click", openNewCall);
+      el.mute.addEventListener("click", function() {
+        if (isDemoMode) {
+          toggleDemoMute();
+          return;
+        }
+        toggleMute();
+      });
+      el.micTest.addEventListener("click", function() {
+        if (isDemoMode) {
+          runDemoMicTest();
+          return;
+        }
+        runMicTest();
+      });
+      el.share.addEventListener("click", function() {
+        if (isDemoMode) {
+          copyDemoShareUrl();
+          return;
+        }
+        copyShareUrl();
+      });
+      el.reconnect.addEventListener("click", function() {
+        if (isDemoMode) {
+          reconnectDemoCall();
+          return;
+        }
+        reconnectCall();
+      });
+      el.qualityMode.addEventListener("click", cycleVoiceMode);
+      el.newCall.addEventListener("click", function() {
+        if (isDemoMode) {
+          openDemoNewCall();
+          return;
+        }
+        openNewCall();
+      });
       el.name.addEventListener("input", enforceNameLimit);
       el.name.addEventListener("change", saveName);
       el.name.addEventListener("blur", saveName);
       el.participants.addEventListener("click", handleParticipantClick);
+      el.tipsToggle.addEventListener("click", toggleCallTips);
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
-        if (joined) markLeft();
+        if (!isDemoMode && joined) markLeft();
       });
       window.addEventListener("pagehide", function() {
-        if (joined) markLeft();
+        if (!isDemoMode && joined) markLeft();
       });
       document.addEventListener("visibilitychange", function() {
-        if (document.visibilityState === "hidden" && joined) updatePresence();
+        if (!isDemoMode && document.visibilityState === "hidden" && joined) updatePresence();
       });
       updateDeviceTip();
+      updateQualityModeButton(false);
+      if (isDemoMode) {
+        initDemoMode();
+        return;
+      }
+      renderParticipants([]);
+    }
+
+    function initDemoMode() {
+      document.body.classList.add("is-demo-mode");
+      joined = false;
+      muted = false;
+      participants = createDemoParticipants(false);
+      el.roomLabel.textContent = "デモ / Firestore未接続";
+      el.mute.disabled = true;
+      el.reconnect.disabled = false;
+      if (el.audioHealth) el.audioHealth.hidden = false;
+      setStatus("デモ表示中", "Firestore、マイク、WebRTCを使わずに画面だけ確認できます。");
+      setNotice("デモモードです。Firestoreの読み取り・書き込みは発生しません。");
+      updateConnectionPill("デモ");
+      updateAudioHealth(0.018, false, "デモ");
+      renderParticipants(participants);
+      updateDemoJoinButton();
+    }
+
+    function createDemoParticipants(active) {
+      const selfName = getDisplayName(getStoredName() || "Demo");
+      if (!active) return [];
+      return [
+        { userId, userName: selfName, muted, connected: true, speaking: !muted },
+        { userId: "demo-teacher", userName: "Teacher", muted: false, connected: true, speaking: true },
+        { userId: "demo-student", userName: "Student", muted: true, connected: false, speaking: false }
+      ];
+    }
+
+    function updateDemoJoinButton() {
+      if (joined) {
+        el.join.classList.remove("primary");
+        el.join.classList.add("danger", "is-leaving");
+        el.join.innerHTML = '<i class="fa-solid fa-phone-slash"></i><span>デモ退室</span>';
+      } else {
+        el.join.classList.add("primary");
+        el.join.classList.remove("danger", "is-leaving");
+        el.join.innerHTML = '<i class="fa-solid fa-phone"></i><span>デモ参加</span>';
+      }
+      el.join.disabled = false;
+      el.mute.disabled = !joined;
+    }
+
+    function toggleDemoJoin() {
+      joined = !joined;
+      if (!joined) muted = false;
+      participants = createDemoParticipants(joined);
+      renderParticipants(participants);
+      updateDemoJoinButton();
+      updateConnectionPill(joined ? "デモ通話" : "デモ");
+      updateAudioHealth(joined ? 0.036 : 0.012, joined, "デモ");
+      setStatus(joined ? "デモ通話中" : "デモ表示中", joined
+        ? "参加者表示、ボタン、状態表示をローカルだけで確認できます。"
+        : "Firestore、マイク、WebRTCを使わずに画面だけ確認できます。");
+      setNotice(joined
+        ? "デモ参加しました。Firestoreの読み取り・書き込みは発生していません。"
+        : "デモ退室しました。Firestoreの読み取り・書き込みは発生していません。");
+    }
+
+    function toggleDemoMute() {
+      if (!joined) return;
+      muted = !muted;
+      participants = createDemoParticipants(true);
+      renderParticipants(participants);
+      el.mute.innerHTML = muted
+        ? '<i class="fa-solid fa-microphone"></i><span>解除</span>'
+        : '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
+      updateAudioHealth(muted ? 0 : 0.032, !muted, muted ? "ミュート中" : "デモ音声");
+      setNotice(muted ? "デモ上でミュートにしました。" : "デモ上でミュートを解除しました。");
+    }
+
+    function runDemoMicTest() {
+      if (el.audioHealth) el.audioHealth.hidden = false;
+      updateAudioHealth(0.044, true, "デモテスト");
+      setNotice("デモのマイクテストです。ブラウザのマイク許可は求めません。");
+    }
+
+    function reconnectDemoCall() {
+      updateConnectionPill("デモ");
+      setStatus("デモ再接続", "再接続表示だけをローカルで確認しました。");
+      setNotice("デモ再接続です。FirestoreやWebRTCには触れていません。");
+    }
+
+    async function copyDemoShareUrl() {
+      const url = new URL(location.href);
+      url.searchParams.set("demo", "1");
+      try {
+        await navigator.clipboard.writeText(url.toString());
+        flashButton(el.share, '<i class="fa-solid fa-check"></i><span>済み</span>');
+        setNotice("デモURLをコピーしました。このURLではFirestoreに接続しません。");
+      } catch (error) {
+        setNotice("Demo URL: " + url.toString());
+      }
+    }
+
+    function openDemoNewCall() {
+      const url = new URL(location.origin + location.pathname);
+      url.searchParams.set("call", createCallId());
+      url.searchParams.set("demo", "1");
+      location.href = url.toString();
     }
 
     async function joinCall() {
       if (joined) return;
+      const typedName = getDisplayName(el.name.value);
       const userName = resolveUserName();
       saveName(userName);
 
@@ -733,12 +1085,17 @@
           updatedAt: serverTimestamp()
         }, { merge: true });
         startHeartbeat();
+        startLiveWatchers();
+        if (!typedName) {
+          setNotice("表示名が未入力なので匿名名で参加します。名前を入れると相手に分かりやすくなります。");
+        }
       } catch (error) {
         console.warn(error);
         joined = false;
         updateJoinButton();
         el.mute.disabled = true;
         stopHeartbeat();
+        stopLiveWatchers();
         setStatus("参加者登録できませんでした", "Firestore Rulesで参加者の保存が許可されているか確認してください。");
         setNotice("参加者を保存できませんでした。Firestore Rulesを確認してください。");
         return;
@@ -746,11 +1103,12 @@
 
       try {
         setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
+        const voiceSettings = getVoiceModeSettings();
         rawLocalStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: { ideal: true },
             noiseSuppression: { ideal: true },
-            autoGainControl: { ideal: false },
+            autoGainControl: { ideal: voiceSettings.autoGainControl },
             channelCount: { ideal: 1 },
             sampleRate: { ideal: 48000 },
             sampleSize: { ideal: 16 }
@@ -779,9 +1137,31 @@
           lastSeenAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         }, { merge: true }).catch(console.warn);
-        setStatus("参加中・マイク未接続", "マイク許可を確認してください。参加者欄には表示されています。");
-        setNotice("マイク接続はできませんでしたが、参加者としては表示されています。");
+        const help = getMicPermissionHelp(error);
+        setStatus("参加中・マイク未接続", help);
+        setNotice(help);
       }
+    }
+
+    function startLiveWatchers() {
+      stopLiveWatchers();
+      knownParticipantNames = new Map();
+      hasParticipantSnapshot = false;
+      watchParticipants();
+      watchSignals();
+    }
+
+    function stopLiveWatchers() {
+      if (unsubParticipants) {
+        unsubParticipants();
+        unsubParticipants = null;
+      }
+      if (unsubSignals) {
+        unsubSignals();
+        unsubSignals = null;
+      }
+      knownParticipantNames = new Map();
+      hasParticipantSnapshot = false;
     }
 
     function watchParticipants() {
@@ -799,6 +1179,7 @@
         activeParticipants.sort(function(a, b) {
           return getTimestampMillis(a.joinedAt || a.updatedAt) - getTimestampMillis(b.joinedAt || b.updatedAt);
         });
+        notifyParticipantChanges(activeParticipants);
         participants = activeParticipants;
         renderParticipants(participants);
         ensurePeersForParticipants();
@@ -807,6 +1188,22 @@
         console.warn(error);
         el.participants.innerHTML = '<div class="notice">参加者を読み込めませんでした。</div>';
       });
+    }
+
+    function notifyParticipantChanges(nextItems) {
+      const nextMap = new Map();
+      nextItems.forEach(function(item) {
+        if (item && item.userId) nextMap.set(item.userId, getDisplayName(item.userName || "匿名さん"));
+      });
+      if (hasParticipantSnapshot) {
+        knownParticipantNames.forEach(function(name, id) {
+          if (id !== userId && !nextMap.has(id)) {
+            setNotice(name + "さんが退出しました。");
+          }
+        });
+      }
+      knownParticipantNames = nextMap;
+      hasParticipantSnapshot = true;
     }
 
     function watchSignals() {
@@ -1065,8 +1462,13 @@
     }
 
     function renderParticipants(items) {
+      const participantsCard = el.participants.closest(".participants-card");
+      if (participantsCard) participantsCard.classList.toggle("is-empty", !items.length);
       if (!items.length) {
-        el.participants.innerHTML = '<div class="notice">まだ参加者はいません。</div>';
+        el.participants.innerHTML = '<div class="empty-participants">' +
+          '<strong>相手を待っています</strong>' +
+          '<span>同じURLを開いた人が参加すると、ここに表示されます。</span>' +
+          '</div>';
         return;
       }
       el.participants.innerHTML = items.map(function(item) {
@@ -1160,6 +1562,7 @@
     function stopLocalCall(updateStatus) {
       joined = false;
       stopHeartbeat();
+      stopLiveWatchers();
       stopSpeakingMonitor();
       Array.from(peers.keys()).forEach(closePeer);
       peers.clear();
@@ -1172,7 +1575,12 @@
       localAnalyser = null;
       localVoiceGain = null;
       localVoiceAnalyser = null;
+      localHighpass = null;
+      localLowpass = null;
+      localCompressor = null;
       muted = false;
+      participants = [];
+      renderParticipants([]);
       updateJoinButton();
       el.mute.disabled = true;
       el.reconnect.disabled = true;
@@ -1206,10 +1614,21 @@
       const url = getShareUrl();
       try {
         await navigator.clipboard.writeText(url);
+        flashButton(el.share, '<i class="fa-solid fa-check"></i><span>済み</span>');
         setNotice("通話URLをコピーしました。同じURLを開くとこの通話に入れます。");
       } catch (error) {
         setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。");
       }
+    }
+
+    function flashButton(button, html, ms) {
+      if (!button) return;
+      const original = button.innerHTML;
+      button.innerHTML = html;
+      window.clearTimeout(button.flashTimer);
+      button.flashTimer = window.setTimeout(function() {
+        button.innerHTML = original;
+      }, ms || 1400);
     }
 
     async function runMicTest() {
@@ -1218,12 +1637,14 @@
       let testTimer = null;
       try {
         el.micTest.disabled = true;
-        setNotice("マイクをテストしています。少し話してみてください。");
+        setStatus("マイクテスト中", "声を出すと下のバーが動きます。");
+        setNotice("3秒ほど声を出してください。声の大きさを確認します。");
+        const voiceSettings = getVoiceModeSettings();
         const stream = rawLocalStream || localStream || await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: { ideal: true },
             noiseSuppression: { ideal: true },
-            autoGainControl: { ideal: false },
+            autoGainControl: { ideal: voiceSettings.autoGainControl },
             channelCount: { ideal: 1 }
           },
           video: false
@@ -1253,21 +1674,30 @@
           if (Date.now() - startedAt < 2600) {
             testTimer = window.setTimeout(tick, 120);
           } else {
-            setNotice(rms > 0.012 ? "マイクは反応しています。" : "マイク音量が小さいようです。端末のマイク許可を確認してください。");
+            if (rms > 0.026) {
+              setNotice("声がしっかり届いています。");
+            } else if (rms > 0.012) {
+              setNotice("マイクは反応しています。少し声が小さめです。");
+            } else {
+              setNotice("マイク音量が小さいようです。端末のマイク許可や入力先を確認してください。");
+            }
           }
         };
         if (el.audioHealth) el.audioHealth.hidden = false;
         tick();
       } catch (error) {
         console.warn(error);
-        setNotice("マイクテストを開始できませんでした。マイク許可を確認してください。");
+        setNotice(getMicPermissionHelp(error));
       } finally {
         window.setTimeout(function() {
           if (testTimer) window.clearTimeout(testTimer);
           if (testStream) testStream.getTracks().forEach(function(track) { track.stop(); });
           if (testContext && typeof testContext.close === "function") testContext.close().catch(function() {});
           el.micTest.disabled = false;
-          if (!joined) updateAudioHealth(0, false, "停止中");
+          if (!joined) {
+            updateAudioHealth(0, false, "停止中");
+            setReadyStatus();
+          }
         }, 2900);
       }
     }
@@ -1293,6 +1723,7 @@
     }
 
     function updateJoinButton() {
+      document.body.classList.toggle("is-in-call", joined);
       if (joined) {
         el.join.classList.remove("primary");
         el.join.classList.add("danger", "is-leaving");
@@ -1318,8 +1749,8 @@
 
     function updateConnectionPill(text) {
       if (!el.connectionPill) return;
-      const icon = text === "通話中" ? "fa-phone-volume" : (text === "接続中" ? "fa-spinner" : (text === "不安定" ? "fa-triangle-exclamation" : "fa-signal"));
-      el.connectionPill.classList.toggle("is-active", text === "通話中");
+      const icon = text === "通話中" || text === "デモ通話" ? "fa-phone-volume" : (text === "接続中" ? "fa-spinner" : (text === "不安定" ? "fa-triangle-exclamation" : (text === "デモ" ? "fa-vial" : "fa-signal")));
+      el.connectionPill.classList.toggle("is-active", text === "通話中" || text === "デモ通話");
       el.connectionPill.classList.toggle("is-connecting", text === "接続中");
       el.connectionPill.classList.toggle("is-unstable", text === "不安定");
       el.connectionPill.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(text) + '</span>';
@@ -1329,28 +1760,99 @@
       }
     }
 
+    function getStoredVoiceMode() {
+      try {
+        const stored = localStorage.getItem("standaloneVoiceMode");
+        return VOICE_MODES[stored] ? stored : "standard";
+      } catch (error) {
+        return "standard";
+      }
+    }
+
+    function getVoiceModeSettings() {
+      return VOICE_MODES[voiceMode] || VOICE_MODES.standard;
+    }
+
+    function updateQualityModeButton(showNotice) {
+      if (!el.qualityMode) return;
+      const settings = getVoiceModeSettings();
+      el.qualityMode.innerHTML = '<i class="fa-solid fa-sliders"></i><span>' + escapeHtml(settings.label) + '</span>';
+      el.qualityMode.setAttribute("aria-label", "音質モード: " + settings.label);
+      if (el.qualityTip) {
+        el.qualityTip.innerHTML = '<i class="fa-solid fa-wave-square"></i><span>音質: ' + escapeHtml(settings.label) + '</span>';
+      }
+      if (showNotice) setNotice(settings.notice + (joined ? " 通話中の音にも反映します。" : ""));
+    }
+
+    function cycleVoiceMode() {
+      const index = VOICE_MODE_ORDER.indexOf(voiceMode);
+      voiceMode = VOICE_MODE_ORDER[(index + 1) % VOICE_MODE_ORDER.length];
+      try {
+        localStorage.setItem("standaloneVoiceMode", voiceMode);
+      } catch (error) {
+        // 保存できなくても、その場の設定は切り替えます。
+      }
+      applyVoiceModeToAudioGraph();
+      updateQualityModeButton(true);
+    }
+
+    function applyVoiceModeToAudioGraph() {
+      const settings = getVoiceModeSettings();
+      if (localHighpass) localHighpass.frequency.value = settings.highpass;
+      if (localLowpass) localLowpass.frequency.value = settings.lowpass;
+      if (localCompressor) {
+        localCompressor.threshold.value = settings.compressorThreshold;
+        localCompressor.ratio.value = settings.compressorRatio;
+      }
+      if (rawLocalStream) tuneLocalAudioTrack(rawLocalStream);
+      Array.from(peers.values()).forEach(function(state) {
+        if (!state || !state.peer) return;
+        state.peer.getSenders().forEach(tuneAudioSender);
+      });
+    }
+
+    function getMicPermissionHelp(error) {
+      const name = error && error.name ? error.name : "";
+      const ua = navigator.userAgent || "";
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isAndroid = /Android/.test(ua);
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        if (isIOS) return "マイクが許可されていません。Safariのアドレスバー左側の設定、または設定アプリのSafari > マイクを確認してください。";
+        if (isAndroid) return "マイクが許可されていません。ブラウザのサイト設定から、このURLのマイクを許可してください。";
+        return "マイクが許可されていません。ブラウザのアドレスバー付近から、このサイトのマイクを許可してください。";
+      }
+      if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        return "マイクが見つかりません。イヤホン、ヘッドセット、端末の入力設定を確認してください。";
+      }
+      return "マイクを開始できませんでした。端末のマイク許可、入力先、ブラウザ設定を確認してください。";
+    }
+
     function createCleanAudioStream(stream) {
       try {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return stream;
+        const settings = getVoiceModeSettings();
         localAudioContext = new AudioContextClass();
         const source = localAudioContext.createMediaStreamSource(stream);
         const highpass = localAudioContext.createBiquadFilter();
         highpass.type = "highpass";
-        highpass.frequency.value = 120;
+        highpass.frequency.value = settings.highpass;
         highpass.Q.value = 0.7;
 
         const lowpass = localAudioContext.createBiquadFilter();
         lowpass.type = "lowpass";
-        lowpass.frequency.value = 12000;
+        lowpass.frequency.value = settings.lowpass;
         lowpass.Q.value = 0.5;
 
         const compressor = localAudioContext.createDynamicsCompressor();
-        compressor.threshold.value = -34;
+        compressor.threshold.value = settings.compressorThreshold;
         compressor.knee.value = 18;
-        compressor.ratio.value = 2.4;
+        compressor.ratio.value = settings.compressorRatio;
         compressor.attack.value = 0.006;
         compressor.release.value = 0.18;
+        localHighpass = highpass;
+        localLowpass = lowpass;
+        localCompressor = compressor;
 
         localVoiceAnalyser = localAudioContext.createAnalyser();
         localVoiceAnalyser.fftSize = 1024;
@@ -1376,12 +1878,13 @@
     function tuneLocalAudioTrack(stream) {
       const track = stream && stream.getAudioTracks ? stream.getAudioTracks()[0] : null;
       if (!track) return;
+      const settings = getVoiceModeSettings();
       if ("contentHint" in track) track.contentHint = "speech";
       if (typeof track.applyConstraints !== "function") return;
       track.applyConstraints({
         echoCancellation: true,
         noiseSuppression: true,
-        autoGainControl: false,
+        autoGainControl: settings.autoGainControl,
         channelCount: 1
       }).catch(function(error) {
         console.warn(error);
@@ -1391,9 +1894,10 @@
     function tuneAudioSender(sender) {
       if (!sender || typeof sender.getParameters !== "function" || typeof sender.setParameters !== "function") return;
       try {
+        const settings = getVoiceModeSettings();
         const params = sender.getParameters() || {};
         params.encodings = params.encodings && params.encodings.length ? params.encodings : [{}];
-        params.encodings[0].maxBitrate = 48000;
+        params.encodings[0].maxBitrate = settings.maxBitrate;
         params.encodings[0].priority = "high";
         sender.setParameters(params).catch(function(error) {
           console.warn(error);
@@ -1464,7 +1968,7 @@
             lastMuteReminderAt = now;
             setNotice("話していない時はミュートにすると、相手にノイズが届きにくくなります。");
           }
-          if (nextSpeaking !== speakingState || now - lastSpeakingWrite > 1800) {
+          if (nextSpeaking !== speakingState || now - lastSpeakingWrite > SPEAKING_WRITE_MS) {
             speakingState = nextSpeaking;
             lastSpeakingWrite = now;
             setDoc(participantRef(userId), {
@@ -1482,7 +1986,8 @@
 
     function updateSoftNoiseGuard(rms, isSpeaking) {
       if (!localVoiceGain || !localAudioContext) return;
-      const targetGain = muted ? 0 : (isSpeaking ? 1 : (rms < 0.009 ? 0.16 : 0.55));
+      const settings = getVoiceModeSettings();
+      const targetGain = muted ? 0 : (isSpeaking ? 1 : (rms < 0.009 ? settings.floorGain : settings.idleGain));
       try {
         localVoiceGain.gain.setTargetAtTime(targetGain, localAudioContext.currentTime, isSpeaking ? 0.025 : 0.11);
       } catch (error) {
@@ -1517,6 +2022,7 @@
       const button = event.target.closest(".participant");
       if (!button) return;
       event.stopPropagation();
+      hideCallTips();
       showAvatarTooltip(button, button.dataset.name || "", button.dataset.status || "");
     }
 
@@ -1536,9 +2042,28 @@
       el.avatarTooltip.setAttribute("aria-hidden", "true");
     }
 
+    function toggleCallTips(event) {
+      event.stopPropagation();
+      if (!el.callTips || !el.tipsToggle) return;
+      const isOpen = el.callTips.classList.toggle("is-open");
+      el.callTips.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      el.tipsToggle.classList.toggle("is-open", isOpen);
+      el.tipsToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function hideCallTips() {
+      if (!el.callTips || !el.tipsToggle) return;
+      el.callTips.classList.remove("is-open");
+      el.callTips.setAttribute("aria-hidden", "true");
+      el.tipsToggle.classList.remove("is-open");
+      el.tipsToggle.setAttribute("aria-expanded", "false");
+    }
+
     function handleOutsideTooltipClick(event) {
+      if (event.target.closest("#tipsToggleBtn") || event.target.closest("#callTips")) return;
       if (event.target.closest(".participant")) return;
       hideAvatarTooltip();
+      hideCallTips();
     }
 
     function callRef() {
@@ -1674,11 +2199,19 @@
       return Date.now() - timeValue <= PARTICIPANT_STALE_MS;
     }
 
+    function setReadyStatus() {
+      setStatus("参加できます", isDefaultCall
+        ? "このURLを開いた人は、同じ音声通話に入れます。"
+        : "参加するとマイク確認が開きます。URLを共有した人だけが同じ通話に入れます。");
+    }
+
     function setStatus(title, text) {
       el.statusTitle.textContent = title;
       el.statusText.textContent = text || "";
       if (title.indexOf("通話中") !== -1) updateConnectionPill("通話中");
-      else if (title.indexOf("接続") !== -1) updateConnectionPill("接続中");
+      else if (title.indexOf("不安定") !== -1 || title.indexOf("できません") !== -1 || title.indexOf("未接続") !== -1) updateConnectionPill("不安定");
+      else if (title.indexOf("接続") !== -1 || title.indexOf("参加しています") !== -1 || title.indexOf("マイク") !== -1) updateConnectionPill("接続中");
+      else if (title.indexOf("デモ") !== -1) updateConnectionPill(joined ? "デモ通話" : "デモ");
       else updateConnectionPill("待機");
     }
 
