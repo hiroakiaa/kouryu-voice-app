@@ -22,7 +22,7 @@
       --accent-soft: #0d3447;
       --danger: #ff6d92;
       --danger-soft: #2b0d18;
-      --ok: #93e6ff;
+      --ok: #9df2cf;
       --warn: #c7f4ff;
       --control: #061521;
     }
@@ -451,6 +451,16 @@
       transition: border-color 160ms ease, background-color 160ms ease;
     }
 
+    .participant::before {
+      content: "";
+      position: absolute;
+      inset: -0.12rem;
+      border: 0.08rem solid transparent;
+      border-radius: 0.96rem;
+      pointer-events: none;
+      transition: border-color 160ms ease;
+    }
+
     .participant .avatar-mark {
       position: absolute;
       right: 0.2rem;
@@ -466,16 +476,11 @@
 
     .participant.is-speaking {
       border-color: var(--ok);
-      background: #0d3044;
+      background: #082938;
     }
 
-    .participant.is-speaking::after {
-      content: "";
-      position: absolute;
-      inset: -0.18rem;
-      border: 0.08rem solid rgba(139, 233, 255, 0.76);
-      border-radius: 1rem;
-      pointer-events: none;
+    .participant.is-speaking::before {
+      border-color: rgba(157, 242, 207, 0.8);
     }
 
     .participant.is-speaking .avatar-mark {
@@ -917,6 +922,19 @@
       color: var(--text);
     }
 
+    .primary-action.is-busy {
+      cursor: wait;
+      opacity: 0.88;
+    }
+
+    .primary-action.is-busy i {
+      animation: soft-spin 780ms linear infinite;
+    }
+
+    @keyframes soft-spin {
+      to { transform: rotate(360deg); }
+    }
+
     body.is-demo-mode main {
       border-color: var(--accent-deep);
     }
@@ -1210,8 +1228,8 @@
     const SPEAKING_MONITOR_MS = 260;
     const SPEAKING_ON_HOLD_MS = 220;
     const SPEAKING_OFF_HOLD_MS = 1400;
-    const SPEAKING_MIN_WRITE_MS = 2500;
-    const SPEAKING_REFRESH_MS = 60000;
+    const SPEAKING_MIN_WRITE_MS = 4500;
+    const SPEAKING_REFRESH_MS = 120000;
     const CONNECTION_REFRESH_MS = 60000;
     const DEFAULT_CALL_ID = "main-room";
     const VOICE_SETTINGS = {
@@ -1228,7 +1246,7 @@
     const EXCHANGE_RATE_REFRESH_MS = 6 * 60 * 60 * 1000;
 
     const params = new URLSearchParams(location.search);
-    const isDemoMode = params.get("demo") === "1" || location.hash === "#demo";
+    const isDemoMode = false;
     const metricsEnabled = params.get("metrics") === "1" || params.get("debug") === "1";
     const app = isDemoMode ? null : initializeApp(firebaseConfig);
     const db = isDemoMode ? null : getFirestore(app);
@@ -1296,6 +1314,7 @@
     let lastSpeakingWrite = 0;
     let muted = false;
     let joined = false;
+    let joinBusy = false;
     let participants = [];
     let currentStatusTitle = "準備中です";
     let currentStatusText = "通話URLを開いた人だけで話せます。";
@@ -1310,6 +1329,7 @@
     let lastMuteReminderAt = 0;
     let knownParticipantNames = new Map();
     let hasParticipantSnapshot = false;
+    let lastParticipantsRenderSignature = "";
     let metricTimers = [];
     let exchangeRateTimer = null;
     let exchangeRateInfo = {
@@ -1512,6 +1532,7 @@
       signalAcceptAfterMs = Date.now() - 5000;
       processedSignals = new Set();
       muted = true;
+      setJoinBusy(true, "接続中");
       updateJoinButton();
       el.mute.disabled = true;
       el.reconnect.disabled = true;
@@ -1535,12 +1556,15 @@
         }, { merge: true });
         startHeartbeat();
         startLiveWatchers();
+        setJoinBusy(false);
+        updateJoinButton();
         if (!typedName) {
           setNotice("表示名が未入力なので匿名名で参加します。名前を入れると相手に分かりやすくなります。");
         }
       } catch (error) {
         console.warn(error);
         joined = false;
+        setJoinBusy(false);
         updateJoinButton();
         el.mute.disabled = true;
         stopHeartbeat();
@@ -1575,6 +1599,8 @@
         ensurePeersForParticipants();
       } catch (error) {
         console.warn(error);
+        setJoinBusy(false);
+        updateJoinButton();
         el.mute.disabled = true;
         el.reconnect.disabled = true;
         recordWrite("participantMicFailed");
@@ -1613,6 +1639,7 @@
       }
       knownParticipantNames = new Map();
       hasParticipantSnapshot = false;
+      lastParticipantsRenderSignature = "";
     }
 
     function watchParticipants() {
@@ -1950,6 +1977,9 @@
     }
 
     function renderParticipants(items) {
+      const signature = getParticipantsRenderSignature(items);
+      if (signature === lastParticipantsRenderSignature) return;
+      lastParticipantsRenderSignature = signature;
       const participantsCard = el.participants.closest(".participants-card");
       if (participantsCard) participantsCard.classList.toggle("is-empty", !items.length);
       if (!items.length) {
@@ -1974,6 +2004,20 @@
           '<i class="fa-solid fa-user avatar-mark ' + statusClass + '"></i>' +
           '</button>';
       }).join("");
+    }
+
+    function getParticipantsRenderSignature(items) {
+      if (!items || !items.length) return "empty";
+      return items.map(function(item) {
+        return [
+          item.userId || "",
+          getDisplayName(item.userName || "匿名さん"),
+          item.sessionId || "",
+          item.muted ? "m" : "u",
+          item.connected ? "c" : "w",
+          item.speaking && !item.muted ? "s" : "q"
+        ].join(":");
+      }).join("|");
     }
 
     function isPeerConnected(peer) {
@@ -2099,6 +2143,7 @@
       localCompressor = null;
       muted = false;
       participants = [];
+      lastParticipantsRenderSignature = "";
       renderParticipants([]);
       updateJoinButton();
       el.mute.disabled = true;
@@ -2134,7 +2179,7 @@
       try {
         await navigator.clipboard.writeText(url);
         flashButton(el.share, '<i class="fa-solid fa-check"></i><span>済み</span>');
-        setNotice("通話URLをコピーしました。同じURLを開くとこの通話に入れます。");
+        setNotice("通話URLをコピーしました。同じURLを開くと、この通話に参加できます。");
       } catch (error) {
         setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。");
       }
@@ -2165,6 +2210,9 @@
     }
 
     function openNewCall() {
+      if (joined && !window.confirm("新しい通話URLを作ると、今の通話から移動します。よろしいですか？")) {
+        return;
+      }
       const url = new URL(location.origin + location.pathname);
       url.searchParams.set("call", createCallId());
       location.href = url.toString();
@@ -2172,6 +2220,14 @@
 
     function updateJoinButton() {
       document.body.classList.toggle("is-in-call", joined);
+      if (joinBusy) {
+        el.join.classList.add("primary", "is-busy");
+        el.join.classList.remove("danger", "is-leaving");
+        el.join.innerHTML = '<i class="fa-solid fa-spinner"></i><span>接続中</span>';
+        el.join.disabled = true;
+        return;
+      }
+      el.join.classList.remove("is-busy");
       if (joined) {
         el.join.classList.remove("primary");
         el.join.classList.add("danger", "is-leaving");
@@ -2182,6 +2238,11 @@
         el.join.innerHTML = '<i class="fa-solid fa-phone"></i><span>参加する</span>';
       }
       el.join.disabled = false;
+    }
+
+    function setJoinBusy(isBusy) {
+      joinBusy = !!isBusy;
+      updateJoinButton();
     }
 
     function updateDeviceTip() {
@@ -2688,7 +2749,7 @@
           url.searchParams.set("call", callId);
           changed = true;
         }
-        ["v", "ts", "cache", "cb"].forEach(function(key) {
+        ["v", "ts", "cache", "cb", "demo"].forEach(function(key) {
           if (url.searchParams.has(key)) {
             url.searchParams.delete(key);
             changed = true;
