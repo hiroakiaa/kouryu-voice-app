@@ -498,6 +498,7 @@
     let participants = [];
     let peers = new Map();
     let processedSignals = new Set();
+    let signalAcceptAfterMs = Date.now();
     let unsubCall = null;
     let unsubSignals = null;
     let unsubParticipants = null;
@@ -559,6 +560,8 @@
       saveName(userName);
 
       joined = true;
+      signalAcceptAfterMs = Date.now() - 5000;
+      processedSignals = new Set();
       muted = false;
       updateJoinButton();
       el.mute.disabled = true;
@@ -656,6 +659,7 @@
           const signal = change.doc.data() || {};
           if (signal.from === userId) continue;
           if (signal.to !== userId) continue;
+          if (isStaleSignal(signal)) continue;
           await handleSignal(signal);
         }
       }, function(error) {
@@ -709,7 +713,8 @@
         peer,
         candidates: [],
         audio: createRemoteAudio(remoteId),
-        offered: false
+        offered: false,
+        reconnectTimer: null
       };
       peers.set(remoteId, state);
 
@@ -734,6 +739,12 @@
       };
 
       peer.onconnectionstatechange = function() {
+        if (["connected", "completed"].indexOf(peer.connectionState) !== -1) {
+          clearReconnectTimer(state);
+        }
+        if (["failed", "disconnected"].indexOf(peer.connectionState) !== -1) {
+          scheduleReconnect(remoteId);
+        }
         updateParticipantConnection();
         updateLocalStatus();
       };
@@ -756,6 +767,7 @@
       const offer = await state.peer.createOffer();
       await state.peer.setLocalDescription(offer);
       await addSignal("offer", { type: offer.type, sdp: offer.sdp }, remoteId);
+      scheduleReconnect(remoteId);
     }
 
     async function handleSignal(signal) {
@@ -780,6 +792,7 @@
         if (peer.signalingState !== "stable") {
           await peer.setRemoteDescription(new RTCSessionDescription(signal.payload));
           await flushCandidates(state);
+          clearReconnectTimer(state);
         }
       } else if (signal.type === "candidate" && signal.payload) {
         if (peer.remoteDescription) {
@@ -813,6 +826,30 @@
         payload,
         createdAt: serverTimestamp()
       });
+    }
+
+    function isStaleSignal(signal) {
+      const timeValue = getTimestampMillis(signal && signal.createdAt);
+      return !!timeValue && timeValue < signalAcceptAfterMs;
+    }
+
+    function scheduleReconnect(remoteId) {
+      const state = peers.get(remoteId);
+      if (!state || !shouldCreateOffer(remoteId)) return;
+      clearReconnectTimer(state);
+      state.reconnectTimer = window.setTimeout(function() {
+        const current = peers.get(remoteId);
+        if (!current || !joined || !localStream) return;
+        if (["connected", "completed"].indexOf(current.peer.connectionState) !== -1) return;
+        if (current.peer.signalingState !== "stable") return;
+        createOffer(remoteId).catch(console.warn);
+      }, 8000);
+    }
+
+    function clearReconnectTimer(state) {
+      if (!state || !state.reconnectTimer) return;
+      window.clearTimeout(state.reconnectTimer);
+      state.reconnectTimer = null;
     }
 
     function renderParticipants(items) {
@@ -930,6 +967,7 @@
     function closePeer(remoteId) {
       const state = peers.get(remoteId);
       if (!state) return;
+      clearReconnectTimer(state);
       if (state.peer) state.peer.close();
       if (state.audio) state.audio.remove();
       peers.delete(remoteId);
