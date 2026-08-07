@@ -562,6 +562,34 @@
       overflow: hidden;
     }
 
+    .metrics-panel {
+      border: 0.0625rem solid var(--line);
+      border-radius: 0.9rem;
+      padding: 0.75rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      background: rgba(6, 21, 34, 0.92);
+    }
+
+    .metrics-panel summary {
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 800;
+      list-style: none;
+    }
+
+    .metrics-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .metrics-output {
+      margin: 0.55rem 0 0;
+      max-height: 10rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      line-height: 1.55;
+    }
+
     .secondary-controls button {
       min-height: 2.55rem;
       border-radius: 0.82rem;
@@ -735,6 +763,10 @@
     </div>
 
     <div id="notice" class="notice" role="status" aria-live="polite"></div>
+    <details id="metricsPanel" class="metrics-panel" hidden>
+      <summary><i class="fa-solid fa-chart-line"></i> Firestore計測</summary>
+      <pre id="metricsOutput" class="metrics-output"></pre>
+    </details>
   </main>
   <div id="avatarTooltip" class="avatar-tooltip" role="tooltip" aria-hidden="true"></div>
 
@@ -768,9 +800,9 @@
       ]
     };
 
-    const PARTICIPANT_STALE_MS = 90 * 1000;
-    const HEARTBEAT_MS = 30000;
-    const SPEAKING_WRITE_MS = 6500;
+    const PARTICIPANT_STALE_MS = 150 * 1000;
+    const HEARTBEAT_MS = 45000;
+    const SPEAKING_WRITE_MS = 12000;
     const DEFAULT_CALL_ID = "main-room";
     const VOICE_SETTINGS = {
       autoGainControl: false,
@@ -785,6 +817,7 @@
 
     const params = new URLSearchParams(location.search);
     const isDemoMode = params.get("demo") === "1" || location.hash === "#demo";
+    const metricsEnabled = params.get("metrics") === "1" || params.get("debug") === "1";
     const app = isDemoMode ? null : initializeApp(firebaseConfig);
     const db = isDemoMode ? null : getFirestore(app);
     const userId = getOrCreateUserId();
@@ -814,6 +847,8 @@
       reconnect: document.getElementById("reconnectBtn"),
       newCall: document.getElementById("newCallBtn"),
       notice: document.getElementById("notice"),
+      metricsPanel: document.getElementById("metricsPanel"),
+      metricsOutput: document.getElementById("metricsOutput"),
       avatarTooltip: document.getElementById("avatarTooltip")
     };
 
@@ -841,9 +876,16 @@
     let lastMuteReminderAt = 0;
     let knownParticipantNames = new Map();
     let hasParticipantSnapshot = false;
+    let metricTimers = [];
+    const metrics = createMetrics();
+    window.voiceFirestoreMetrics = metrics;
 
     el.name.value = getStoredName();
     el.roomLabel.textContent = isDefaultCall ? "共通電話" : "通話ID: " + callId;
+    if (el.metricsPanel) {
+      el.metricsPanel.hidden = !metricsEnabled;
+    }
+    renderMetrics();
     setReadyStatus();
 
     init();
@@ -1013,6 +1055,8 @@
 
     async function joinCall() {
       if (joined) return;
+      resetMetrics();
+      markMetricMilestone("before-call-start");
       const typedName = getDisplayName(el.name.value);
       const userName = resolveUserName();
       saveName(userName);
@@ -1028,6 +1072,7 @@
 
       try {
         setStatus("参加しています", "参加者として登録しています。");
+        recordWrite("participantJoin");
         await setDoc(participantRef(userId), {
           userId,
           sessionId,
@@ -1085,6 +1130,7 @@
         console.warn(error);
         el.mute.disabled = true;
         el.reconnect.disabled = true;
+        recordWrite("participantMicFailed");
         await setDoc(participantRef(userId), {
           sessionId,
           muted: true,
@@ -1110,10 +1156,12 @@
     function stopLiveWatchers() {
       if (unsubParticipants) {
         unsubParticipants();
+        recordListenerClosed("participants");
         unsubParticipants = null;
       }
       if (unsubSignals) {
         unsubSignals();
+        recordListenerClosed("signals");
         unsubSignals = null;
       }
       knownParticipantNames = new Map();
@@ -1121,7 +1169,9 @@
     }
 
     function watchParticipants() {
+      recordListenerOpened("participants");
       unsubParticipants = onSnapshot(query(collection(callRef(), "participants"), where("left", "==", false)), function(snapshot) {
+        recordSnapshot("participants", snapshot);
         const activeParticipants = [];
         snapshot.forEach(function(item) {
           const data = item.data() || {};
@@ -1163,7 +1213,9 @@
     }
 
     function watchSignals() {
+      recordListenerOpened("signals");
       unsubSignals = onSnapshot(query(collection(callRef(), "signals"), where("to", "==", userId)), async function(snapshot) {
+        recordSnapshot("signals", snapshot);
         const changes = snapshot.docChanges().sort(function(a, b) {
           return getTimestampMillis((a.doc.data() || {}).createdAt) - getTimestampMillis((b.doc.data() || {}).createdAt);
         });
@@ -1213,6 +1265,7 @@
 
     function updatePresence() {
       if (!joined) return;
+      recordWrite("participantHeartbeat");
       setDoc(participantRef(userId), {
         sessionId,
         userName: getUserName(),
@@ -1225,6 +1278,7 @@
 
     function markParticipantStale(participantDoc, data) {
       if (!participantDoc || !data || data.userId === userId || data.left === true) return;
+      recordWrite("participantStale");
       setDoc(participantDoc.ref, {
         left: true,
         connected: false,
@@ -1260,6 +1314,8 @@
         remoteSessionId,
         peer,
         candidates: [],
+        sentCandidateKeys: new Set(),
+        receivedCandidateKeys: new Set(),
         audio: createRemoteAudio(remoteId),
         offered: false,
         reconnectTimer: null
@@ -1281,6 +1337,13 @@
 
       peer.onicecandidate = function(event) {
         if (!event.candidate) return;
+        const candidateKey = getCandidateKey(event.candidate);
+        if (state.sentCandidateKeys.has(candidateKey)) {
+          recordIce("duplicateSendSkipped");
+          return;
+        }
+        state.sentCandidateKeys.add(candidateKey);
+        recordIce("sent");
         addSignal("candidate", {
           candidate: event.candidate.candidate,
           sdpMid: event.candidate.sdpMid,
@@ -1290,6 +1353,7 @@
 
       peer.onconnectionstatechange = function() {
         if (["connected", "completed"].indexOf(peer.connectionState) !== -1) {
+          markConnectedOnce();
           clearReconnectTimer(state);
         }
         if (["failed", "disconnected"].indexOf(peer.connectionState) !== -1) {
@@ -1351,6 +1415,13 @@
           clearReconnectTimer(state);
         }
       } else if (signal.type === "candidate" && signal.payload) {
+        const candidateKey = getCandidateKey(signal.payload);
+        if (state.receivedCandidateKeys.has(candidateKey)) {
+          recordIce("duplicateReceiveSkipped");
+          return;
+        }
+        state.receivedCandidateKeys.add(candidateKey);
+        recordIce("received");
         if (peer.remoteDescription) {
           await addCandidate(peer, signal.payload);
         } else {
@@ -1374,6 +1445,7 @@
     }
 
     function addSignal(type, payload, to, toSessionId) {
+      recordWrite("signal:" + type);
       return addDoc(collection(callRef(), "signals"), {
         from: userId,
         fromSessionId: sessionId,
@@ -1392,6 +1464,7 @@
     }
 
     function deleteSignalDoc(signalDoc) {
+      recordDelete("signal");
       return deleteDoc(signalDoc.ref);
     }
 
@@ -1468,6 +1541,7 @@
         return item.peer && ["failed", "disconnected"].indexOf(item.peer.connectionState) !== -1;
       });
       updateConnectionPill(unstable ? "不安定" : (connected ? "通話中" : (participants.length > 1 ? "接続中" : "待機")));
+      recordWrite("participantConnection");
       setDoc(participantRef(userId), {
         sessionId,
         connected,
@@ -1491,6 +1565,7 @@
       updateSoftNoiseGuard(0, false);
       updateAudioHealth(0, false, muted ? "ミュート中" : "ノイズ抑制中");
       if (!writePresence) return;
+      recordWrite("participantMute");
       setDoc(participantRef(userId), {
         sessionId,
         muted,
@@ -1506,6 +1581,7 @@
 
     function markLeft() {
       stopHeartbeat();
+      recordWrite("participantLeave");
       setDoc(participantRef(userId), {
         sessionId,
         left: true,
@@ -1516,7 +1592,12 @@
     }
 
     function stopLocalCall(updateStatus) {
+      if (joined) {
+        metrics.endedAt = Date.now();
+        markMetricMilestone("call-ended");
+      }
       joined = false;
+      clearMetricTimers();
       stopHeartbeat();
       stopLiveWatchers();
       stopSpeakingMonitor();
@@ -1809,6 +1890,7 @@
           if (nextSpeaking !== speakingState || now - lastSpeakingWrite > SPEAKING_WRITE_MS) {
             speakingState = nextSpeaking;
             lastSpeakingWrite = now;
+            recordWrite("participantSpeaking");
             setDoc(participantRef(userId), {
               sessionId,
               speaking: speakingState,
@@ -2051,6 +2133,152 @@
       else if (title.indexOf("接続") !== -1 || title.indexOf("参加しています") !== -1 || title.indexOf("マイク") !== -1) updateConnectionPill("接続中");
       else if (title.indexOf("デモ") !== -1) updateConnectionPill(joined ? "デモ通話" : "デモ");
       else updateConnectionPill("待機");
+    }
+
+    function createMetrics() {
+      return {
+        startedAt: 0,
+        connectedAt: 0,
+        endedAt: 0,
+        estimatedReads: 0,
+        snapshotCallbacks: { participants: 0, signals: 0 },
+        snapshotDocs: { participants: 0, signals: 0 },
+        snapshotChanges: { participants: 0, signals: 0 },
+        writes: {},
+        deletes: {},
+        listenersOpened: {},
+        listenersClosed: {},
+        ice: { sent: 0, received: 0, duplicateSendSkipped: 0, duplicateReceiveSkipped: 0 },
+        milestones: []
+      };
+    }
+
+    function resetMetrics() {
+      Object.assign(metrics, createMetrics());
+      metrics.startedAt = Date.now();
+      clearMetricTimers();
+      renderMetrics();
+    }
+
+    function incrementMetric(group, key, amount) {
+      if (!metrics[group]) metrics[group] = {};
+      metrics[group][key] = (metrics[group][key] || 0) + (amount || 1);
+      renderMetrics();
+    }
+
+    function recordWrite(key) {
+      incrementMetric("writes", key || "unknown", 1);
+    }
+
+    function recordDelete(key) {
+      incrementMetric("deletes", key || "unknown", 1);
+    }
+
+    function recordListenerOpened(key) {
+      incrementMetric("listenersOpened", key || "unknown", 1);
+    }
+
+    function recordListenerClosed(key) {
+      incrementMetric("listenersClosed", key || "unknown", 1);
+    }
+
+    function recordIce(key) {
+      metrics.ice[key] = (metrics.ice[key] || 0) + 1;
+      renderMetrics();
+    }
+
+    function recordSnapshot(key, snapshot) {
+      const changes = snapshot.docChanges();
+      const first = metrics.snapshotCallbacks[key] === 0;
+      metrics.snapshotCallbacks[key] += 1;
+      metrics.snapshotDocs[key] += snapshot.size || 0;
+      metrics.snapshotChanges[key] += changes.length;
+      metrics.estimatedReads += first ? (snapshot.size || 0) : changes.length;
+      renderMetrics();
+    }
+
+    function markConnectedOnce() {
+      if (metrics.connectedAt) return;
+      metrics.connectedAt = Date.now();
+      markMetricMilestone("connected");
+      scheduleMetricMilestones();
+    }
+
+    function markMetricMilestone(label) {
+      if (!metrics.startedAt) metrics.startedAt = Date.now();
+      const item = getMetricSnapshot(label);
+      metrics.milestones.push(item);
+      renderMetrics();
+      if (metricsEnabled && console && console.table) {
+        console.table(metrics.milestones);
+      }
+    }
+
+    function getMetricSnapshot(label) {
+      const now = Date.now();
+      return {
+        label,
+        seconds: Math.round((now - (metrics.startedAt || now)) / 1000),
+        estimatedReads: metrics.estimatedReads,
+        writes: sumMetric(metrics.writes),
+        deletes: sumMetric(metrics.deletes),
+        listenerOpen: sumMetric(metrics.listenersOpened),
+        listenerClose: sumMetric(metrics.listenersClosed),
+        signalCallbacks: metrics.snapshotCallbacks.signals,
+        signalChanges: metrics.snapshotChanges.signals,
+        participantCallbacks: metrics.snapshotCallbacks.participants,
+        participantChanges: metrics.snapshotChanges.participants,
+        iceSent: metrics.ice.sent,
+        iceReceived: metrics.ice.received
+      };
+    }
+
+    function scheduleMetricMilestones() {
+      clearMetricTimers();
+      [
+        ["connected+1min", 60 * 1000],
+        ["connected+5min", 5 * 60 * 1000],
+        ["connected+10min", 10 * 60 * 1000]
+      ].forEach(function(item) {
+        metricTimers.push(window.setTimeout(function() {
+          markMetricMilestone(item[0]);
+        }, item[1]));
+      });
+    }
+
+    function clearMetricTimers() {
+      metricTimers.forEach(function(timer) { window.clearTimeout(timer); });
+      metricTimers = [];
+    }
+
+    function sumMetric(item) {
+      return Object.keys(item || {}).reduce(function(total, key) {
+        return total + (Number(item[key]) || 0);
+      }, 0);
+    }
+
+    function renderMetrics() {
+      if (!metricsEnabled || !el.metricsOutput) return;
+      const latest = metrics.milestones.length ? metrics.milestones[metrics.milestones.length - 1] : getMetricSnapshot("current");
+      el.metricsOutput.textContent =
+        "latest: " + latest.label + "\n" +
+        "estimatedReads: " + metrics.estimatedReads + "\n" +
+        "writes: " + JSON.stringify(metrics.writes) + "\n" +
+        "deletes: " + JSON.stringify(metrics.deletes) + "\n" +
+        "listeners opened/closed: " + JSON.stringify(metrics.listenersOpened) + " / " + JSON.stringify(metrics.listenersClosed) + "\n" +
+        "snapshots callbacks: " + JSON.stringify(metrics.snapshotCallbacks) + "\n" +
+        "snapshots changes: " + JSON.stringify(metrics.snapshotChanges) + "\n" +
+        "ice: " + JSON.stringify(metrics.ice) + "\n" +
+        "milestones: " + JSON.stringify(metrics.milestones, null, 2);
+    }
+
+    function getCandidateKey(candidate) {
+      if (!candidate) return "";
+      return [
+        candidate.candidate || "",
+        candidate.sdpMid || "",
+        candidate.sdpMLineIndex == null ? "" : candidate.sdpMLineIndex
+      ].join("|");
     }
 
     function setNotice(text) {
