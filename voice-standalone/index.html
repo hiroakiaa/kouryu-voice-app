@@ -442,6 +442,17 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .diagnostic-advice {
+      grid-column: 2;
+      display: block;
+      padding: 0.28rem 0.42rem;
+      border: 0.06rem solid rgba(139, 233, 255, 0.24);
+      border-radius: 0.55rem;
+      background: rgba(139, 233, 255, 0.06);
+      color: var(--text);
+      font-weight: 780;
+    }
+
     .call-tips {
       position: absolute;
       top: 4.65rem;
@@ -1432,14 +1443,15 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-08-reliability-diagnostics";
+    const APP_VERSION = "2026-08-08-reliability-hardening";
+    const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
     const SPEAKING_MONITOR_MS = 260;
     const SPEAKING_ON_HOLD_MS = 220;
     const SPEAKING_OFF_HOLD_MS = 1400;
-    const SPEAKING_MIN_WRITE_MS = 15000;
-    const SPEAKING_REFRESH_MS = 300000;
+    const SPEAKING_MIN_WRITE_MS = 25000;
+    const SPEAKING_REFRESH_MS = 600000;
     const CONNECTION_REFRESH_MS = 60000;
     const DATA_CHANNEL_LABEL = "kouryu-voice-state";
     const DATA_CHANNEL_STALE_MS = 15000;
@@ -1609,6 +1621,8 @@
     let lastInboundStats = new Map();
     let autoReconnectTimers = new Map();
     let activeStats = { rttMs: null, jitterMs: null, lossPct: null, quality: "idle" };
+    let deniedByCapacity = false;
+    let lastCapacityWarnAt = 0;
     let exchangeRateInfo = {
       source: "手入力",
       fetchedAt: 0,
@@ -1812,6 +1826,7 @@
       const userName = resolveUserName();
       saveName(userName);
 
+      deniedByCapacity = false;
       joined = true;
       setCallPhase("connecting", "\u53c2\u52a0\u8005\u3068\u3057\u3066\u767b\u9332\u3057\u3066\u3044\u307e\u3059\u3002");
       pushDiagnostic("info", "\u53c2\u52a0\u51e6\u7406\u3092\u958b\u59cb", getShareUrl());
@@ -1956,7 +1971,37 @@
         activeParticipants.sort(function(a, b) {
           return getTimestampMillis(a.joinedAt || a.updatedAt) - getTimestampMillis(b.joinedAt || b.updatedAt);
         });
-        const renderedParticipants = activeParticipants.map(applyRealtimeParticipantState);
+        const allowedParticipants = activeParticipants.slice(0, MAX_CALL_PARTICIPANTS);
+        if (activeParticipants.length > MAX_CALL_PARTICIPANTS) {
+          const now = Date.now();
+          if (now - lastCapacityWarnAt > 30000) {
+            lastCapacityWarnAt = now;
+            pushDiagnostic("warn", "通話人数の上限を超えました", "この通話は1対1用です。先に入った2人だけを接続します。");
+          }
+        }
+        const allowedIds = new Set(allowedParticipants.map(function(item) { return item.userId; }));
+        const selfIsActive = activeParticipants.some(function(item) { return item.userId === userId; });
+        if (joined && selfIsActive && !allowedIds.has(userId)) {
+          if (!deniedByCapacity) {
+            deniedByCapacity = true;
+            recordWrite("participantLeave");
+            setDoc(participantRef(userId), {
+              sessionId,
+              left: true,
+              connected: false,
+              speaking: false,
+              updatedAt: serverTimestamp()
+            }, { merge: true }).catch(console.warn);
+            setCallPhase("failed", "この音声通話は2人までです。新しい通話URLを作ってください。");
+            pushDiagnostic("error", "通話が満員です", "3人目以降は接続しないようにしました。");
+            setNotice("この通話は2人までです。新しい通話URLを作ってください。");
+          }
+          stopLocalCall(false);
+          setCallPhase("failed", "この音声通話は2人までです。新しい通話URLを作ってください。");
+          setStatus("通話が満員です", "新しい通話URLを作って、1対1で参加してください。");
+          return;
+        }
+        const renderedParticipants = allowedParticipants.map(applyRealtimeParticipantState);
         notifyParticipantChanges(renderedParticipants);
         participants = renderedParticipants;
         renderParticipants(participants);
@@ -2466,6 +2511,8 @@
           const latest = peers.get(remoteId);
           if (!latest || !joined || isPeerConnected(latest.peer)) return;
           setCallPhase("failed", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3067\u623b\u308c\u307e\u305b\u3093\u3067\u3057\u305f\u3002URL\u3084\u901a\u4fe1\u74b0\u5883\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+          if (el.reconnect) el.reconnect.disabled = false;
+          setNotice("自動再接続で戻れませんでした。再接続ボタンを押すか、同じURLを開き直してください。");
           pushDiagnostic("error", "\u518d\u63a5\u7d9a\u304c\u6642\u9593\u5185\u306b\u5b8c\u4e86\u3057\u307e\u305b\u3093", remoteId);
         }, AUTO_RECONNECT_GIVEUP_MS);
       }, AUTO_RECONNECT_DELAY_MS);
@@ -2689,6 +2736,9 @@
       el.mute.innerHTML = '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
       updateConnectionPill("待機");
       setCallPhase("ended", "\u901a\u8a71\u306f\u7d42\u4e86\u3057\u307e\u3057\u305f\u3002Firestore listener: " + activeListeners);
+      window.setTimeout(function() {
+        verifyListenerCleanup();
+      }, 700);
       if (updateStatus) setStatus("退室しました", "もう一度参加できます。");
     }
 
@@ -2905,9 +2955,38 @@
     }
 
     function pushDiagnostic(level, message, detail) {
-      diagnostics.unshift({ level: level || "info", message: message || "", detail: detail || "", time: new Date() });
+      diagnostics.unshift({
+        level: level || "info",
+        message: message || "",
+        detail: detail || "",
+        advice: getDiagnosticAdvice(level, message, detail),
+        time: new Date()
+      });
       diagnostics = diagnostics.slice(0, 40);
       renderDiagnostics();
+    }
+
+    function getDiagnosticAdvice(level, message, detail) {
+      const text = [level, message, detail].join(" ").toLowerCase();
+      if (/満員|2人|capacity|limit/.test(text)) {
+        return "この音声通話は1対1用です。3人以上で使う場合は、新しい通話URLを作ってペアごとに分けてください。";
+      }
+      if (/マイク|microphone|notallowed|securityerror/.test(text)) {
+        return "ブラウザのマイク許可を確認してください。iPhone/iPadはSafariのサイト設定、PCはアドレスバー付近の権限を見ます。";
+      }
+      if (/firestore|rules|参加者監視|シグナル監視/.test(text)) {
+        return "Firestore Rules、通信制限、無料枠上限を確認してください。声はFirestoreに流していませんが、接続準備には必要です。";
+      }
+      if (/再接続|reconnect|failed|disconnected/.test(text)) {
+        return "一時的な通信揺れです。数秒待って戻らない場合は、再接続ボタン、ページ更新、別URL作成の順に試してください。";
+      }
+      if (/品質|rtt|jitter|loss|packet/.test(text)) {
+        return "イヤホン利用、端末同士を離す、Wi-Fiを近くする、スピーカー音量を下げると改善しやすいです。";
+      }
+      if (/listener/.test(text)) {
+        return "終了後に0なら正常です。0以外が続く場合は、ページを更新して監視を止めてください。";
+      }
+      return "";
     }
 
     function renderDiagnostics() {
@@ -2923,6 +3002,7 @@
           '<time>' + escapeHtml(time) + '</time>' +
           '<strong><i class="fa-solid ' + icon + '"></i> ' + escapeHtml(item.message) + '</strong>' +
           (item.detail ? '<span>' + escapeHtml(item.detail) + '</span>' : '') +
+          (item.advice ? '<span class="diagnostic-advice">' + escapeHtml(item.advice) + '</span>' : '') +
           '</div>';
       }).join("");
     }
@@ -3053,8 +3133,22 @@
       if (el.packetLossBadge) el.packetLossBadge.textContent = "loss " + formatStat(activeStats.lossPct, "%");
       if (activeStats.quality && activeStats.quality !== "idle" && activeStats.quality !== previousQuality) {
         const detail = "RTT " + formatStat(activeStats.rttMs, "ms") + " / jitter " + formatStat(activeStats.jitterMs, "ms") + " / loss " + formatStat(activeStats.lossPct, "%");
-        pushDiagnostic(activeStats.quality === "poor" ? "warn" : "info", "\u901a\u8a71\u54c1\u8cea: " + (labels[activeStats.quality] || labels.idle).replace("\u54c1\u8cea: ", ""), detail);
+        const advice = getQualityAdvice(activeStats);
+        pushDiagnostic(activeStats.quality === "poor" ? "warn" : "info", "\u901a\u8a71\u54c1\u8cea: " + (labels[activeStats.quality] || labels.idle).replace("\u54c1\u8cea: ", ""), detail + (advice ? " / " + advice : ""));
+        if ((activeStats.quality === "fair" || activeStats.quality === "poor") && callPhase === "connected") {
+          setCallPhase("connected", advice || "\u901a\u8a71\u306f\u7d9a\u3044\u3066\u3044\u307e\u3059\u304c\u3001\u901a\u4fe1\u304c\u5c11\u3057\u4e0d\u5b89\u5b9a\u3067\u3059\u3002");
+        }
       }
+    }
+
+    function getQualityAdvice(stats) {
+      if (!stats || !stats.quality || stats.quality === "idle" || stats.quality === "good") return "";
+      const tips = [];
+      if (stats.lossPct != null && stats.lossPct > 1) tips.push("音が途切れる場合はWi-Fiや電波を確認");
+      if (stats.jitterMs != null && stats.jitterMs > 30) tips.push("音が揺れる場合は他アプリを閉じる");
+      if (stats.rttMs != null && stats.rttMs > 150) tips.push("遅れが大きい場合は通信環境を変更");
+      if (!tips.length) tips.push("イヤホン利用と端末音量を控えめにする");
+      return tips.join(" / ");
     }
 
     function formatStat(value, unit) {
