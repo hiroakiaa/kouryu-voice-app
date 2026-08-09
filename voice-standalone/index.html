@@ -1702,7 +1702,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-voice-polish-all";
+    const APP_VERSION = "2026-08-09-voice-reliability-complete";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -1719,6 +1719,8 @@
     const STATS_MONITOR_MS = 5000;
     const AUTO_RECONNECT_DELAY_MS = 1800;
     const AUTO_RECONNECT_GIVEUP_MS = 18000;
+    const AUTO_RECONNECT_MAX_ATTEMPTS = 2;
+    const CLEANUP_AUDIT_DELAY_MS = 800;
     const CONNECTION_STUCK_MS = 15000;
     const PARTICIPANT_STALE_MARK_MIN_MS = 120000;
     const QUALITY_WARN_COOLDOWN_MS = 45000;
@@ -1889,6 +1891,7 @@
     let diagnostics = [];
     let lastInboundStats = new Map();
     let autoReconnectTimers = new Map();
+    let autoReconnectAttempts = new Map();
     let activeStats = { rttMs: null, jitterMs: null, lossPct: null, quality: "idle" };
     let deniedByCapacity = false;
     let lastCapacityWarnAt = 0;
@@ -1973,6 +1976,7 @@
       bindHorizontalWheel(el.participants);
       initExchangeRate();
       initAudioPreset();
+      recordEnvironmentDiagnostics();
       setCallPhase("waiting", "\u53c2\u52a0\u3059\u308b\u3068\u63a5\u7d9a\u72b6\u614b\u3092\u8868\u793a\u3057\u307e\u3059\u3002");
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
@@ -2431,10 +2435,13 @@
       recordWrite("participantStale");
       setDoc(participantDoc.ref, {
         left: true,
+        leftAt: serverTimestamp(),
+        stale: true,
         connected: false,
         speaking: false,
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(console.warn);
+      pushDiagnostic("info", "古い参加者を整理", getDisplayName(data.userName || "参加者") + " が残っていたため待機一覧から外しました。");
     }
 
     function ensurePeersForParticipants() {
@@ -2487,6 +2494,7 @@
         setRemoteAudioVolume(state.audio);
         state.audio.play().catch(function() {});
         clearAutoReconnectTimer(state);
+        autoReconnectAttempts.delete(remoteId);
         clearConnectionStuckTimer();
         setCallPhase("connected", "\u76f8\u624b\u306e\u97f3\u58f0\u3092\u53d7\u4fe1\u3057\u3066\u3044\u307e\u3059\u3002");
         pushDiagnostic("info", "\u97f3\u58f0\u30c8\u30e9\u30c3\u30af\u3092\u53d7\u4fe1", state.name || remoteId);
@@ -2519,6 +2527,7 @@
           markConnectedOnce();
           clearReconnectTimer(state);
           clearAutoReconnectTimer(state);
+          autoReconnectAttempts.delete(remoteId);
           clearConnectionStuckTimer();
           setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
           startStatsMonitor();
@@ -2537,6 +2546,7 @@
           markConnectedOnce();
           clearReconnectTimer(state);
           clearAutoReconnectTimer(state);
+          autoReconnectAttempts.delete(remoteId);
           clearConnectionStuckTimer();
           setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
           startStatsMonitor();
@@ -2828,8 +2838,18 @@
     function scheduleAutoReconnect(remoteId, reason) {
       const state = peers.get(remoteId);
       if (!state || !joined || !localStream || autoReconnectTimers.has(remoteId)) return;
+      const attempts = autoReconnectAttempts.get(remoteId) || 0;
+      if (attempts >= AUTO_RECONNECT_MAX_ATTEMPTS) {
+        const help = getConnectionFailureHelp(reason || remoteId);
+        setCallPhase("failed", help);
+        if (el.reconnect) el.reconnect.disabled = false;
+        setNotice(help + " 自動復帰を試しましたが戻りませんでした。再接続ボタン、同じURLの開き直し、新しいURL作成の順に試してください。", true);
+        pushDiagnostic("error", "自動再接続を停止", AUTO_RECONNECT_MAX_ATTEMPTS + "回試しても戻りませんでした。");
+        return;
+      }
+      autoReconnectAttempts.set(remoteId, attempts + 1);
       setCallPhase("reconnecting", "\u901a\u4fe1\u304c\u63fa\u308c\u305f\u305f\u3081\u81ea\u52d5\u3067\u623b\u3057\u3066\u3044\u307e\u3059\u3002");
-      pushDiagnostic("warn", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3092\u958b\u59cb", reason || "");
+      pushDiagnostic("warn", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3092\u958b\u59cb", (reason ? reason + " / " : "") + (attempts + 1) + "/" + AUTO_RECONNECT_MAX_ATTEMPTS + "回目");
       const timer = window.setTimeout(function() {
         autoReconnectTimers.delete(remoteId);
         const current = peers.get(remoteId);
@@ -3065,6 +3085,7 @@
       clearConnectionStuckTimer();
       autoReconnectTimers.forEach(function(timerId) { window.clearTimeout(timerId); });
       autoReconnectTimers.clear();
+      autoReconnectAttempts.clear();
       const activeListeners = verifyListenerCleanup();
       if (shouldMarkEnded) markMetricMilestone("call-ended");
       stopSpeakingMonitor();
@@ -3099,7 +3120,8 @@
       setCallPhase("ended", "\u901a\u8a71\u306f\u7d42\u4e86\u3057\u307e\u3057\u305f\u3002Firestore listener: " + activeListeners);
       window.setTimeout(function() {
         verifyListenerCleanup();
-      }, 700);
+        verifyFullCleanup("終話後");
+      }, CLEANUP_AUDIT_DELAY_MS);
       if (updateStatus) setStatus("退室しました", "もう一度参加できます。");
     }
 
@@ -3108,6 +3130,7 @@
       if (!state) return;
       clearReconnectTimer(state);
       clearAutoReconnectTimer(state);
+      autoReconnectAttempts.delete(remoteId);
       Array.from(lastInboundStats.keys()).forEach(function(key) {
         if (key.indexOf(remoteId + ":") === 0) lastInboundStats.delete(key);
       });
@@ -3412,11 +3435,44 @@
     }
 
     function recommendAudioPresetKey() {
-      const ua = navigator.userAgent || "";
-      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      const isMobile = /Android|Mobile|iPad|iPhone|iPod/.test(ua) || navigator.maxTouchPoints > 1;
-      if (isIOS || isMobile) return "speaker";
+      const profile = getDeviceProfile();
+      if (profile.isIOS || profile.isAndroid || profile.isMobile || profile.isTouch) return "speaker";
       return "earphones";
+    }
+
+    function getDeviceProfile() {
+      const ua = navigator.userAgent || "";
+      const platform = navigator.platform || "";
+      const touchPoints = navigator.maxTouchPoints || 0;
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || (platform === "MacIntel" && touchPoints > 1);
+      const isAndroid = /Android/.test(ua);
+      const isMobile = /Android|Mobile|iPad|iPhone|iPod/.test(ua) || touchPoints > 1;
+      const isTouch = touchPoints > 0 || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+      return {
+        isIOS,
+        isAndroid,
+        isMobile,
+        isTouch,
+        width: Math.round(window.innerWidth || 0),
+        height: Math.round(window.innerHeight || 0),
+        secure: window.isSecureContext === true,
+        mediaReady: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+      };
+    }
+
+    function recordEnvironmentDiagnostics() {
+      const profile = getDeviceProfile();
+      const presetKey = el.audioPreset && el.audioPreset.value ? el.audioPreset.value : recommendAudioPresetKey();
+      const presetLabel = (VOICE_PRESETS[presetKey] || VOICE_PRESETS.earphones).label;
+      const deviceLabel = profile.isIOS ? "iOS/iPadOS" : (profile.isAndroid ? "Android" : (profile.isTouch ? "タッチ端末" : "PC"));
+      const details = [
+        deviceLabel,
+        profile.width + "x" + profile.height,
+        "音声: " + presetLabel,
+        profile.secure ? "HTTPS OK" : "HTTPS未確認",
+        profile.mediaReady ? "マイクAPI OK" : "マイクAPI未対応"
+      ].join(" / ");
+      pushDiagnostic(profile.secure && profile.mediaReady ? "info" : "warn", "端末チェック", details);
     }
 
     function handleAudioPresetChange() {
@@ -3569,6 +3625,27 @@
         pushDiagnostic("warn", "Firestore listener: " + active, "\u7d42\u8a71\u5f8c\u3082\u76e3\u8996\u304c\u6b8b\u3063\u3066\u3044\u307e\u3059\u3002");
       }
       return active;
+    }
+
+    function verifyFullCleanup(context) {
+      const remaining = [];
+      if (unsubParticipants) remaining.push("participants listener");
+      if (unsubSignals) remaining.push("signals listener");
+      if (heartbeatTimer) remaining.push("heartbeat");
+      if (metricTimers.length) remaining.push("metrics timer " + metricTimers.length);
+      if (statsTimer) remaining.push("stats monitor");
+      if (speakingTimer) remaining.push("speaking monitor");
+      if (joinSlowTimer) remaining.push("join timer");
+      if (connectionStuckTimer) remaining.push("connection timer");
+      if (autoReconnectTimers.size) remaining.push("auto reconnect " + autoReconnectTimers.size);
+      if (peers.size) remaining.push("peer " + peers.size);
+      if (localStream || rawLocalStream) remaining.push("mic stream");
+      const title = (context || "終了後") + "クリーンアップ";
+      if (remaining.length) {
+        pushDiagnostic("warn", title, remaining.join(" / "));
+      } else {
+        pushDiagnostic("info", title, "listener・timer・peer・マイクをすべて停止済みです。");
+      }
     }
 
     function getVoiceModeSettings() {
