@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<!-- kouryu standalone voice app shared default room 2026-08-09-auto-care-polish -->
+<!-- kouryu standalone voice app shared default room 2026-08-09-hidden-care-cues -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -866,6 +866,62 @@
 
     .participant.is-self .avatar-initial {
       transform: translateY(-0.24rem);
+    }
+
+    .participant-state-badge {
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 0.16rem);
+      transform: translateX(-50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.14rem;
+      min-width: max-content;
+      max-width: 5.5rem;
+      padding: 0.08rem 0.32rem;
+      border: 0.06rem solid rgba(139, 233, 255, 0.32);
+      border-radius: 999rem;
+      background: rgba(3, 16, 26, 0.92);
+      color: var(--muted);
+      font-size: 0.52rem;
+      font-weight: 900;
+      line-height: 1.1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .participant:hover .participant-state-badge,
+    .participant:focus-visible .participant-state-badge,
+    .participant.is-speaking .participant-state-badge,
+    .participant.is-self .participant-state-badge {
+      opacity: 1;
+    }
+
+    .participant-state-badge.is-speaking {
+      border-color: rgba(157, 242, 207, 0.72);
+      color: var(--ok);
+    }
+
+    .participant-state-badge.is-muted {
+      border-color: rgba(131, 158, 170, 0.42);
+      color: #9fb4bf;
+    }
+
+    .participant-state-badge.is-connected {
+      border-color: rgba(157, 242, 207, 0.48);
+      color: #c9ffe8;
+    }
+
+    .participant-state-badge.is-waiting {
+      color: var(--accent);
+    }
+
+    .participant.is-self .participant-state-badge {
+      top: auto;
+      bottom: -0.58rem;
+      background: rgba(3, 16, 26, 0.96);
+      color: var(--accent);
     }
 
     .participant.is-speaking {
@@ -1777,15 +1833,15 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-auto-care-polish";
+    const APP_VERSION = "2026-08-09-hidden-care-cues";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
     const SPEAKING_MONITOR_MS = 260;
     const SPEAKING_ON_HOLD_MS = 220;
     const SPEAKING_OFF_HOLD_MS = 1400;
-    const SPEAKING_MIN_WRITE_MS = 60000;
-    const SPEAKING_REFRESH_MS = 900000;
+    const SPEAKING_MIN_WRITE_MS = 180000;
+    const SPEAKING_REFRESH_MS = 1800000;
     const CONNECTION_REFRESH_MS = 120000;
     const DATA_CHANNEL_LABEL = "kouryu-voice-state";
     const DATA_CHANNEL_STALE_MS = 15000;
@@ -1976,6 +2032,7 @@
     let preflightBusy = false;
     let preflightRestoreTimer = null;
     let earphoneReminderShown = false;
+    let speakerModeReminderShown = false;
     let exchangeRateInfo = {
       source: "手入力",
       fetchedAt: 0,
@@ -2359,6 +2416,8 @@
         localStream = createCleanAudioStream(rawLocalStream);
         applyMuteState(false);
         startSpeakingMonitor();
+        showEarphoneReminderOnce();
+        warnSpeakerModeIfNeeded("参加時");
         el.mute.disabled = false;
         el.reconnect.disabled = false;
         setCallPhase("waiting", "\u76f8\u624b\u306e\u53c2\u52a0\u3068\u97f3\u58f0\u63a5\u7d9a\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
@@ -3073,17 +3132,51 @@
         const isSelf = item.userId === userId;
         const name = getDisplayName(item.userName || "匿名さん");
         const initial = getInitial(name);
-        const status = item.muted ? "ミュート中" : (item.speaking ? "話しています" : (item.connected ? "接続済み" : "待機中"));
+        const statusMeta = getParticipantStatusMeta(item, isSelf);
         const statusClass = item.muted ? "is-muted" : (item.connected ? "is-connected" : "is-waiting");
         const classes = ["participant"];
         if (isSelf) classes.push("is-self");
         if (item.speaking && !item.muted) classes.push("is-speaking");
-        return '<button class="' + classes.join(" ") + '" type="button" data-name="' + escapeHtml(name + (isSelf ? "（自分）" : "")) + '" data-status="' + escapeHtml(status) + '" aria-label="' + escapeHtml(name + " " + status) + '">' +
+        return '<button class="' + classes.join(" ") + '" type="button" data-name="' + escapeHtml(name + (isSelf ? "（自分）" : "")) + '" data-status="' + escapeHtml(statusMeta.detail) + '" aria-label="' + escapeHtml(name + " " + statusMeta.detail) + '">' +
           '<span class="avatar-initial">' + escapeHtml(initial) + '</span>' +
           '<span class="speaking-bars" aria-hidden="true"><span></span><span></span><span></span></span>' +
           '<i class="fa-solid fa-user avatar-mark ' + statusClass + '"></i>' +
+          '<span class="participant-state-badge ' + escapeHtml(statusMeta.className) + '"><i class="fa-solid ' + escapeHtml(statusMeta.icon) + '"></i><span>' + escapeHtml(statusMeta.label) + '</span></span>' +
           '</button>';
       }).join("");
+    }
+
+    function getParticipantStatusMeta(item, isSelf) {
+      if (item.muted) {
+        return {
+          label: isSelf ? "自分 OFF" : "ミュート",
+          detail: isSelf ? "自分はミュート中です" : "ミュート中です",
+          className: "is-muted",
+          icon: "fa-microphone-slash"
+        };
+      }
+      if (item.speaking) {
+        return {
+          label: isSelf ? "自分 会話中" : "会話中",
+          detail: isSelf ? "自分が話しています" : "話しています",
+          className: "is-speaking",
+          icon: "fa-volume-high"
+        };
+      }
+      if (item.connected) {
+        return {
+          label: isSelf ? "自分 接続済" : "接続済",
+          detail: isSelf ? "自分は接続済みです" : "接続済みです",
+          className: "is-connected",
+          icon: "fa-phone-volume"
+        };
+      }
+      return {
+        label: isSelf ? "自分 待機" : "待機",
+        detail: isSelf ? "自分は待機中です" : "待機中です",
+        className: "is-waiting",
+        icon: "fa-user-clock"
+      };
     }
 
     function getParticipantsRenderSignature(items) {
@@ -3735,6 +3828,7 @@
         localStorage.setItem("kouryu-voice-audio-preset", value);
       } catch (error) {}
       applyVoicePreset(value, true);
+      warnSpeakerModeIfNeeded("音声設定");
     }
 
     function applyVoicePreset(name, announce) {
@@ -3852,6 +3946,9 @@
         if ((activeStats.quality === "fair" || activeStats.quality === "poor") && callPhase === "connected") {
           setCallPhase("connected", advice || "\u901a\u8a71\u306f\u7d9a\u3044\u3066\u3044\u307e\u3059\u304c\u3001\u901a\u4fe1\u304c\u5c11\u3057\u4e0d\u5b89\u5b9a\u3067\u3059\u3002");
         }
+        if (activeStats.quality === "poor") {
+          warnSpeakerModeIfNeeded("音質判定");
+        }
       }
     }
 
@@ -3934,13 +4031,13 @@
     function getConnectionFailureHelp(reason) {
       const text = String(reason || "").toLowerCase();
       if (/firestore|permission|rules|参加者|signal|シグナル/.test(text)) {
-        return "Firestoreの接続準備で止まっています。Rules、無料枠、通信制限を確認してください。";
+        return "通話準備の保存で止まっています。Firestore Rules、無料枠、同じURLを開いているかを確認してください。";
       }
       if (/ice|failed|disconnected|restart|reconnect/.test(text)) {
-        return "端末同士の音声経路を作れませんでした。Wi-Fi切替、VPN解除、同じURLの開き直しを試してください。";
+        return "端末同士の音声経路を作れませんでした。再接続、Wi-Fi切替、VPN解除、同じURLの開き直しを試してください。";
       }
       if (/timeout|長引|stuck|時間/.test(text)) {
-        return "接続に時間がかかっています。相手が同じURLを開いているか、端末の通信が安定しているか確認してください。";
+        return "接続に時間がかかっています。相手が同じURLで参加しているか、マイク許可が止まっていないか確認してください。";
       }
       if (/capacity|満員|2人|limit/.test(text)) {
         return "この通話は1対1用です。3人以上の場合は新しい通話URLを作ってペアを分けてください。";
@@ -3949,7 +4046,7 @@
     }
 
     function getFailureActionGuide() {
-      return "同じURL、マイク許可、イヤホン、再読み込みを順に確認してください。";
+      return "順番は、同じURL、マイク許可、イヤホン、再接続、ページ再読み込み、新しいURLです。";
     }
 
     function getTeacherFailureGuide(reason) {
@@ -3985,6 +4082,15 @@
       const message = "近い端末同士はイヤホンがおすすめです。スピーカー同士だとノイズが出やすくなります。";
       setNotice(message);
       pushDiagnostic("info", "イヤホン推奨", message);
+    }
+
+    function warnSpeakerModeIfNeeded(reason) {
+      const preset = el.audioPreset && el.audioPreset.value ? el.audioPreset.value : "";
+      if (speakerModeReminderShown || preset !== "speaker" || !isLikelyTouchPhoneOrTablet()) return;
+      speakerModeReminderShown = true;
+      const message = "スピーカー利用中です。ノイズや反響が大きい時は、イヤホンに切り替えるとかなり聞きやすくなります。";
+      setNotice(message, true);
+      pushDiagnostic("info", "スピーカー利用の注意", (reason ? reason + ": " : "") + message);
     }
 
     function createCleanAudioStream(stream) {
@@ -4177,7 +4283,6 @@
       }
       if (hasOpenDataChannels()) {
         if (previousSpeaking && !nextSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS) return true;
-        if (nextSpeaking && now - lastSpeakingWrite >= SPEAKING_REFRESH_MS) return true;
         return false;
       }
       if (nextSpeaking !== previousSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS) return true;
@@ -4723,6 +4828,13 @@
       if (!metrics.startedAt) metrics.startedAt = Date.now();
       const item = getMetricSnapshot(label);
       metrics.milestones.push(item);
+      if (label === "connected+5min" || label === "connected+10min") {
+        const connected = getConnectedMetricSnapshot();
+        const minutes = connected ? Math.max(0.1, (item.seconds - connected.seconds) / 60) : Math.max(0.1, item.seconds / 60);
+        const ongoingReads = connected ? Math.round(Math.max(0, item.estimatedReads - connected.estimatedReads) / minutes) : Math.round(item.estimatedReads / minutes);
+        const ongoingWrites = connected ? Math.round(Math.max(0, item.writes - connected.writes) / minutes) : Math.round(item.writes / minutes);
+        pushDiagnostic("info", formatMetricLabel(label) + "の使用量", "通話中の目安: reads " + ongoingReads + "/分、writes " + ongoingWrites + "/分。急増していなければ正常です。");
+      }
       renderMetrics();
       if (metricsEnabled && console && console.table) {
         console.table(metrics.milestones);
@@ -4912,6 +5024,8 @@
     function formatMetricLabel(label) {
       return String(label || "")
         .replace("before-call-start", "開始前")
+        .replace("connected+10min", "10分後")
+        .replace("connected+5min", "5分後")
         .replace("connected+1min", "1分後")
         .replace("connected", "接続時")
         .replace("call-ended", "終了時")
