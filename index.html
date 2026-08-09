@@ -2401,7 +2401,8 @@
       try {
         setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
         setCallPhase("connecting", "\u30de\u30a4\u30af\u8a31\u53ef\u3092\u78ba\u8a8d\u3057\u3066\u3044\u307e\u3059\u3002");
-        rawLocalStream = await navigator.mediaDevices.getUserMedia({
+        setJoinBusy(true, "マイク確認中");
+        rawLocalStream = await getUserMediaWithTimeout({
           audio: {
             echoCancellation: { ideal: true },
             noiseSuppression: { ideal: true },
@@ -2411,7 +2412,8 @@
             sampleSize: { ideal: 16 }
           },
           video: false
-        });
+        }, 12000);
+        setJoinBusy(false);
         tuneLocalAudioTrack(rawLocalStream);
         localStream = createCleanAudioStream(rawLocalStream);
         applyMuteState(false);
