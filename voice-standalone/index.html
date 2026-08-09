@@ -897,6 +897,10 @@
       display: inline-flex;
     }
 
+    .secondary-controls #preflightBtn {
+      min-width: 6.8rem;
+    }
+
     button {
       appearance: none;
       min-height: 2.45rem;
@@ -976,6 +980,10 @@
       align-self: end;
       padding: 0.18rem 0.5rem 0;
       border-top: 0.06rem solid rgba(139, 233, 255, 0.1);
+    }
+
+    .notice.is-important {
+      color: var(--text);
     }
 
     .metrics-modal {
@@ -1110,6 +1118,35 @@
       color: var(--text);
       font-size: 1.05rem;
       font-weight: 950;
+    }
+
+    .metrics-mode-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .metrics-mode-summary span {
+      min-width: 0;
+      padding: 0.56rem 0.64rem;
+      display: grid;
+      gap: 0.12rem;
+      border: 0.08rem solid var(--line);
+      border-radius: 0.82rem;
+      background: rgba(7, 24, 37, 0.72);
+    }
+
+    .metrics-mode-summary strong {
+      color: var(--accent);
+      font-size: 0.95rem;
+      line-height: 1.15;
+    }
+
+    .metrics-mode-summary small {
+      color: var(--muted);
+      font-size: 0.67rem;
+      font-weight: 780;
+      line-height: 1.35;
     }
 
     .metrics-note-popover {
@@ -1344,6 +1381,40 @@
       transform: translate(-50%, -100%);
     }
 
+    @media (max-width: 640px) {
+      body {
+        place-items: stretch;
+        overflow: hidden;
+      }
+
+      main {
+        width: 100%;
+        height: calc(100svh - 1.6rem);
+        max-height: none;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+      }
+
+      .participants-card {
+        min-height: 0;
+      }
+
+      .participants {
+        min-height: 2.9rem;
+      }
+
+      .participants-card.is-empty .participants {
+        min-height: 100%;
+      }
+
+      .controls {
+        align-self: stretch;
+      }
+
+      .primary-action {
+        min-height: 3.2rem;
+      }
+    }
+
     @media (max-width: 460px) {
       body {
         padding: max(0.62rem, env(safe-area-inset-top)) max(0.62rem, env(safe-area-inset-right)) max(0.72rem, env(safe-area-inset-bottom)) max(0.62rem, env(safe-area-inset-left));
@@ -1413,6 +1484,11 @@
         width: 6.6rem;
         min-height: 2.25rem;
         padding-inline: 0.3rem;
+      }
+
+      .secondary-controls #preflightBtn {
+        flex-basis: 6.9rem;
+        width: 6.9rem;
       }
 
       .secondary-controls .audio-preset-control {
@@ -1527,6 +1603,7 @@
 
     <div class="controls">
       <div class="secondary-controls">
+        <button id="preflightBtn" type="button"><i class="fa-solid fa-stethoscope"></i><span>チェック</span></button>
         <label class="audio-preset-control" for="audioPresetSelect"><i class="fa-solid fa-sliders"></i><span>&#38899;&#22768;</span>
           <select id="audioPresetSelect">
             <option value="earphones">&#12452;&#12516;&#12507;&#12531;</option>
@@ -1567,6 +1644,10 @@
           <div class="metrics-label">通話中の1分あたり</div>
           <div id="metricsMinuteCost" class="metrics-value">0.0000円/分</div>
         </div>
+      </div>
+      <div class="metrics-mode-summary" aria-label="Firestore計測の要約">
+        <span><strong id="metricsFixedReads">0</strong><small>接続時の固定reads</small></span>
+        <span><strong id="metricsOngoingReads">0/分</strong><small>通話中のreads目安</small></span>
       </div>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
@@ -1621,7 +1702,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-reliability-guard";
+    const APP_VERSION = "2026-08-09-voice-polish-all";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -1725,6 +1806,8 @@
       metricsRateInput: document.getElementById("metricsRateInput"),
       metricsCurrentCost: document.getElementById("metricsCurrentCost"),
       metricsMinuteCost: document.getElementById("metricsMinuteCost"),
+      metricsFixedReads: document.getElementById("metricsFixedReads"),
+      metricsOngoingReads: document.getElementById("metricsOngoingReads"),
       metricsReadsCount: document.getElementById("metricsReadsCount"),
       metricsWritesCount: document.getElementById("metricsWritesCount"),
       metricsDeletesCount: document.getElementById("metricsDeletesCount"),
@@ -1745,6 +1828,7 @@
       rttBadge: document.getElementById("rttBadge"),
       jitterBadge: document.getElementById("jitterBadge"),
       packetLossBadge: document.getElementById("packetLossBadge"),
+      preflight: document.getElementById("preflightBtn"),
       audioPreset: document.getElementById("audioPresetSelect"),
       diagnosticsToggle: document.getElementById("diagnosticsToggleBtn"),
       diagnosticsPanel: document.getElementById("diagnosticsPanel"),
@@ -1785,6 +1869,7 @@
     let peers = new Map();
     let realtimeParticipantState = new Map();
     let processedSignals = new Set();
+    let deletedSignalIds = new Set();
     let signalAcceptAfterMs = Date.now();
     let unsubSignals = null;
     let unsubParticipants = null;
@@ -1867,6 +1952,7 @@
         }
         openNewCall();
       });
+      if (el.preflight) el.preflight.addEventListener("click", runPreflightCheck);
       el.name.addEventListener("input", enforceNameLimit);
       el.name.addEventListener("change", saveName);
       el.name.addEventListener("blur", saveName);
@@ -2005,6 +2091,51 @@
       location.href = url.toString();
     }
 
+    async function runPreflightCheck() {
+      if (joined) {
+        setNotice("通話中です。音声が不安定なときは、ミュート解除・イヤホン・再接続を確認してください。", true);
+        return;
+      }
+      const problems = [];
+      if (!window.isSecureContext) problems.push("HTTPSではないため、マイクが使えない可能性があります。");
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        problems.push("このブラウザはマイク取得に対応していません。Safari / Chrome / Edge の最新版で開いてください。");
+      }
+      setCallPhase("connecting", "通話前チェック中です。マイク許可の表示が出たら許可してください。");
+      setNotice("通話前チェック中です。Firestoreは使いません。", true);
+      pushDiagnostic("info", "通話前チェックを開始", "マイク、HTTPS、ブラウザ対応を確認します。");
+      flashButton(el.preflight, '<i class="fa-solid fa-spinner fa-spin"></i><span>確認中</span>', 900);
+      if (problems.length) {
+        const message = problems.join(" ");
+        setCallPhase("failed", message);
+        setNotice(message, true);
+        pushDiagnostic("error", "通話前チェックで問題を検出", message, "端末のブラウザ設定とURLを確認してください。");
+        return;
+      }
+      try {
+        const testStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: { ideal: true },
+            noiseSuppression: { ideal: true },
+            autoGainControl: { ideal: VOICE_SETTINGS.autoGainControl },
+            channelCount: { ideal: 1 }
+          },
+          video: false
+        });
+        testStream.getTracks().forEach(function(track) { track.stop(); });
+        setCallPhase("waiting", "通話前チェックは完了しました。同じURLを開いた相手と参加できます。");
+        setNotice("チェック完了。マイクは使えます。近い端末同士はイヤホンがおすすめです。", true);
+        pushDiagnostic("info", "通話前チェックOK", "マイク許可とブラウザ対応を確認しました。");
+        flashButton(el.preflight, '<i class="fa-solid fa-check"></i><span>OK</span>', 1400);
+      } catch (error) {
+        const help = getMicPermissionHelp(error);
+        setCallPhase("failed", help);
+        setNotice(help, true);
+        pushDiagnostic("error", "通話前チェックでマイクを開始できません", error && error.message ? error.message : "", help);
+        flashButton(el.preflight, '<i class="fa-solid fa-triangle-exclamation"></i><span>確認</span>', 1600);
+      }
+    }
+
     async function joinCall() {
       if (joined) return;
       resetMetrics();
@@ -2019,6 +2150,7 @@
       pushDiagnostic("info", "\u53c2\u52a0\u51e6\u7406\u3092\u958b\u59cb", getShareUrl());
       signalAcceptAfterMs = Date.now() - 5000;
       processedSignals = new Set();
+      deletedSignalIds = new Set();
       muted = true;
       setJoinBusy(true, "接続中");
       startJoinSlowTimer();
@@ -2142,6 +2274,7 @@
       knownParticipantNames = new Map();
       hasParticipantSnapshot = false;
       staleParticipantMarks.clear();
+      deletedSignalIds.clear();
       lastParticipantsRenderSignature = "";
     }
 
@@ -2658,8 +2791,13 @@
     }
 
     function deleteSignalDoc(signalDoc) {
+      if (!signalDoc || !signalDoc.id || deletedSignalIds.has(signalDoc.id)) return Promise.resolve();
+      deletedSignalIds.add(signalDoc.id);
       recordDelete("signal");
-      return deleteDoc(signalDoc.ref);
+      return deleteDoc(signalDoc.ref).catch(function(error) {
+        deletedSignalIds.delete(signalDoc.id);
+        throw error;
+      });
     }
 
     function scheduleReconnect(remoteId) {
@@ -2724,10 +2862,11 @@
             startConnectionStuckTimer();
             return;
           }
-          setCallPhase("failed", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3067\u623b\u308c\u307e\u305b\u3093\u3067\u3057\u305f\u3002URL\u3084\u901a\u4fe1\u74b0\u5883\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+          const help = getConnectionFailureHelp(reason || remoteId);
+          setCallPhase("failed", help);
           if (el.reconnect) el.reconnect.disabled = false;
-          setNotice("自動再接続で戻れませんでした。再接続ボタンを押すか、同じURLを開き直してください。");
-          pushDiagnostic("error", "\u518d\u63a5\u7d9a\u304c\u6642\u9593\u5185\u306b\u5b8c\u4e86\u3057\u307e\u305b\u3093", remoteId);
+          setNotice(help + " 再接続ボタン、同じURLの開き直し、新しいURL作成の順に試してください。", true);
+          pushDiagnostic("error", "\u518d\u63a5\u7d9a\u304c\u6642\u9593\u5185\u306b\u5b8c\u4e86\u3057\u307e\u305b\u3093", remoteId + " / " + help);
         }, AUTO_RECONNECT_GIVEUP_MS);
       }, AUTO_RECONNECT_DELAY_MS);
       autoReconnectTimers.set(remoteId, timer);
@@ -3002,9 +3141,9 @@
       try {
         await navigator.clipboard.writeText(url);
         flashButton(el.share, '<i class="fa-solid fa-check"></i><span>済み</span>');
-        setNotice("通話URLをコピーしました。同じURLを開くと、この通話に参加できます。");
+        setNotice("通話URLをコピーしました。相手に送るだけで同じ通話に入れます。新規ボタンを押すまでは同じURLを使えます。", true);
       } catch (error) {
-        setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。");
+        setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。同じURLなら同じ通話です。", true);
       }
     }
 
@@ -3027,6 +3166,7 @@
       pushDiagnostic("info", "\u624b\u52d5\u518d\u63a5\u7d9a\u3092\u958b\u59cb", "\u65e2\u5b58\u306eWebRTC\u63a5\u7d9a\u3092\u9589\u3058\u3066\u4f5c\u308a\u76f4\u3057\u307e\u3059\u3002");
       Array.from(peers.keys()).forEach(closePeer);
       processedSignals = new Set();
+      deletedSignalIds = new Set();
       signalAcceptAfterMs = Date.now() - 1000;
       setNotice("音声をつなぎ直しています。");
       updateConnectionPill("接続中");
@@ -3257,15 +3397,26 @@
     }
 
     function initAudioPreset() {
-      let saved = "earphones";
+      let saved = "";
       try {
-        saved = localStorage.getItem("kouryu-voice-audio-preset") || "earphones";
+        saved = localStorage.getItem("kouryu-voice-audio-preset") || "";
       } catch (error) {
-        saved = "earphones";
+        saved = "";
       }
-      const presetName = VOICE_PRESETS[saved] ? saved : "earphones";
+      const presetName = VOICE_PRESETS[saved] ? saved : recommendAudioPresetKey();
       if (el.audioPreset) el.audioPreset.value = presetName;
       applyVoicePreset(presetName, false);
+      if (!saved) {
+        pushDiagnostic("info", "音声プリセットを自動選択", (VOICE_PRESETS[presetName] || VOICE_PRESETS.earphones).label);
+      }
+    }
+
+    function recommendAudioPresetKey() {
+      const ua = navigator.userAgent || "";
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isMobile = /Android|Mobile|iPad|iPhone|iPod/.test(ua) || navigator.maxTouchPoints > 1;
+      if (isIOS || isMobile) return "speaker";
+      return "earphones";
     }
 
     function handleAudioPresetChange() {
@@ -3438,6 +3589,23 @@
         return "マイクが見つかりません。イヤホン、ヘッドセット、端末の入力設定を確認してください。";
       }
       return "マイクを開始できませんでした。端末のマイク許可、入力先、ブラウザ設定を確認してください。";
+    }
+
+    function getConnectionFailureHelp(reason) {
+      const text = String(reason || "").toLowerCase();
+      if (/firestore|permission|rules|参加者|signal|シグナル/.test(text)) {
+        return "Firestoreの接続準備で止まっています。Rules、無料枠、通信制限を確認してください。";
+      }
+      if (/ice|failed|disconnected|restart|reconnect/.test(text)) {
+        return "端末同士の音声経路を作れませんでした。Wi-Fi切替、VPN解除、同じURLの開き直しを試してください。";
+      }
+      if (/timeout|長引|stuck|時間/.test(text)) {
+        return "接続に時間がかかっています。相手が同じURLを開いているか、端末の通信が安定しているか確認してください。";
+      }
+      if (/capacity|満員|2人|limit/.test(text)) {
+        return "この通話は1対1用です。3人以上の場合は新しい通話URLを作ってペアを分けてください。";
+      }
+      return "音声接続が戻りませんでした。同じURLを開き直すか、新しい通話URLを作ってください。";
     }
 
     function createCleanAudioStream(stream) {
@@ -4410,6 +4578,8 @@
 
       if (el.metricsCurrentCost) el.metricsCurrentCost.textContent = formatYen(totalYen);
       if (el.metricsMinuteCost) el.metricsMinuteCost.textContent = formatYen(minuteYen) + "/分";
+      if (el.metricsFixedReads) el.metricsFixedReads.textContent = String(connected ? connected.estimatedReads : reads);
+      if (el.metricsOngoingReads) el.metricsOngoingReads.textContent = String(readsPerMinute) + "/分";
       if (el.metricsReadsCount) el.metricsReadsCount.textContent = String(reads);
       if (el.metricsWritesCount) el.metricsWritesCount.textContent = String(writes);
       if (el.metricsDeletesCount) el.metricsDeletesCount.textContent = String(deletes);
@@ -4470,13 +4640,15 @@
       return value;
     }
 
-    function setNotice(text) {
+    function setNotice(text, important) {
       const friendly = getFriendlyNotice(text);
       el.notice.textContent = friendly || "";
+      el.notice.classList.toggle("is-important", !!important && !!friendly);
       if (!friendly) return;
       window.clearTimeout(el.notice.hideTimer);
       el.notice.hideTimer = window.setTimeout(function() {
         el.notice.textContent = "";
+        el.notice.classList.remove("is-important");
       }, 3500);
     }
 
