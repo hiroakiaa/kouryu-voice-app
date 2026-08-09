@@ -316,7 +316,7 @@
 
     .call-reliability-panel {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
       gap: 0.52rem;
       padding: 0.48rem 0.58rem;
@@ -360,6 +360,39 @@
     .app-info-version strong {
       color: var(--text);
       font-size: 0.82rem;
+    }
+
+    .app-info-actions {
+      display: flex;
+      align-items: stretch;
+      gap: 0.44rem;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 0.08rem;
+      scrollbar-width: thin;
+    }
+
+    .app-info-actions::-webkit-scrollbar {
+      height: 0.28rem;
+    }
+
+    .app-info-actions::-webkit-scrollbar-thumb {
+      border-radius: 999rem;
+      background: rgba(139, 233, 255, 0.24);
+    }
+
+    .app-info-action {
+      flex: 1 0 7.2rem;
+      min-height: 2.1rem;
+      justify-content: flex-start;
+      padding: 0.42rem 0.58rem;
+      border-radius: 0.7rem;
+      font-size: 0.72rem;
+    }
+
+    .app-info-action i {
+      color: var(--accent);
     }
 
     .app-info-tooltip .call-reliability-panel {
@@ -815,6 +848,11 @@
 
     .secondary-controls #reconnectBtn {
       display: none;
+    }
+
+    .secondary-controls #reconnectBtn:not(:disabled),
+    .secondary-controls #reconnectBtn.is-needed {
+      display: inline-flex;
     }
 
     button {
@@ -1386,9 +1424,6 @@
       </div>
     </div>
       <div class="header-actions">
-        <button id="metricsToggleBtn" class="header-icon-btn metrics-toggle" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="Firestore料金の目安">
-          <i class="fa-solid fa-yen-sign"></i>
-        </button>
         <button id="tipsToggleBtn" class="header-icon-btn tips-toggle" type="button" aria-controls="callTips" aria-expanded="false" aria-label="使い方のヒント">
           <i class="fa-solid fa-circle-question"></i>
         </button>
@@ -1404,13 +1439,18 @@
         <strong>アプリ情報</strong>
         <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
       </div>
+      <div class="app-info-actions" aria-label="詳しい情報">
+        <button id="metricsToggleBtn" class="app-info-action" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="Firestore料金の目安">
+          <i class="fa-solid fa-yen-sign"></i><span>料金目安</span>
+        </button>
+        <button id="diagnosticsToggleBtn" class="app-info-action" type="button" aria-controls="diagnosticsPanel" aria-expanded="false" aria-label="接続診断">
+          <i class="fa-solid fa-stethoscope"></i><span>接続診断</span>
+        </button>
+      </div>
       <section id="callReliabilityPanel" class="call-reliability-panel" aria-live="polite">
         <div class="call-reliability-main">
           <span id="connectionStateBadge" class="connection-state-badge is-waiting"><i class="fa-solid fa-signal"></i><span id="connectionStateLabel">&#30456;&#25163;&#24453;&#12385;</span></span>
           <span id="connectionStateDetail" class="call-state-detail">&#21442;&#21152;&#12377;&#12427;&#12392;&#12289;&#36890;&#35441;&#12398;&#25509;&#32154;&#29366;&#24907;&#12434;&#34920;&#31034;&#12375;&#12414;&#12377;&#12290;</span>
-        </div>
-        <div class="reliability-actions">
-          <button id="diagnosticsToggleBtn" class="diagnostics-toggle" type="button" aria-controls="diagnosticsPanel" aria-expanded="false" aria-label="&#25509;&#32154;&#35386;&#26029;"><i class="fa-solid fa-stethoscope"></i></button>
         </div>
         <div class="call-quality-row">
           <span id="qualityBadge" class="quality-chip"><i class="fa-solid fa-wave-square"></i><span>&#21697;&#36074;: --</span></span>
@@ -2985,13 +3025,14 @@
 
     function updateConnectionPill(text) {
       if (!el.connectionPill) return;
-      const icon = text === "通話中" || text === "デモ通話" ? "fa-phone-volume" : (text === "接続中" ? "fa-spinner" : (text === "不安定" ? "fa-triangle-exclamation" : (text === "デモ" ? "fa-vial" : "fa-signal")));
-      el.connectionPill.classList.toggle("is-active", text === "通話中" || text === "デモ通話");
-      el.connectionPill.classList.toggle("is-connecting", text === "接続中");
-      el.connectionPill.classList.toggle("is-unstable", text === "不安定");
-      el.connectionPill.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(text) + '</span>';
+      const normalized = text === "待機" ? "相手待ち" : (text === "不安定" ? "失敗" : (text === "デモ通話" ? "通話中" : (text === "デモ" ? "相手待ち" : text)));
+      const icon = normalized === "通話中" ? "fa-phone-volume" : (normalized === "接続中" ? "fa-spinner" : (normalized === "再接続中" ? "fa-rotate" : (normalized === "失敗" ? "fa-triangle-exclamation" : "fa-user-clock")));
+      el.connectionPill.classList.toggle("is-active", normalized === "通話中");
+      el.connectionPill.classList.toggle("is-connecting", normalized === "接続中" || normalized === "再接続中");
+      el.connectionPill.classList.toggle("is-unstable", normalized === "失敗");
+      el.connectionPill.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(normalized) + '</span>';
       if (el.qualityTip) {
-        const label = text === "通話中" ? "音声品質は良好です" : (text === "不安定" ? "通信が不安定です。再接続できます" : "音声接続を確認中");
+        const label = normalized === "通話中" ? "音声品質は良好です" : (normalized === "失敗" || normalized === "再接続中" ? "通信が不安定です。再接続できます" : "音声接続を確認中");
         el.qualityTip.innerHTML = '<i class="fa-solid fa-wave-square"></i><span>' + escapeHtml(label) + '</span>';
       }
     }
@@ -3938,11 +3979,12 @@
       currentStatusTitle = title || "";
       currentStatusText = text || "";
       title = currentStatusTitle;
-      if (title.indexOf("通話中") !== -1) updateConnectionPill("通話中");
-      else if (title.indexOf("不安定") !== -1 || title.indexOf("できません") !== -1 || title.indexOf("未接続") !== -1) updateConnectionPill("不安定");
-      else if (title.indexOf("接続") !== -1 || title.indexOf("参加しています") !== -1 || title.indexOf("マイク") !== -1) updateConnectionPill("接続中");
-      else if (title.indexOf("デモ") !== -1) updateConnectionPill(joined ? "デモ通話" : "デモ");
-      else updateConnectionPill("待機");
+      const detail = currentStatusText || currentStatusTitle;
+      if (title.indexOf("通話中") !== -1) setCallPhase("connected", detail);
+      else if (title.indexOf("不安定") !== -1 || title.indexOf("できません") !== -1 || title.indexOf("未接続") !== -1) setCallPhase("failed", detail);
+      else if (title.indexOf("再接続") !== -1) setCallPhase("reconnecting", detail);
+      else if (title.indexOf("接続") !== -1 || title.indexOf("参加しています") !== -1 || title.indexOf("マイク") !== -1) setCallPhase("connecting", detail);
+      else setCallPhase("waiting", detail);
     }
 
     function createMetrics() {
@@ -4299,9 +4341,26 @@
       ].join("|");
     }
 
+    function getFriendlyNotice(text) {
+      const value = String(text || "");
+      const lower = value.toLowerCase();
+      if (!value) return "";
+      if (/ice|candidate|sdp|offer|answer|webrtc|failed/.test(lower)) {
+        return "音声の接続を確認しています。戻らない場合は再接続を押してください。";
+      }
+      if (/firestore rules|permission|権限|rules/.test(lower)) {
+        return "接続準備を保存できませんでした。Firebaseの設定を確認してください。";
+      }
+      if (/notallowed|microphone|マイク/.test(lower)) {
+        return "マイクの許可を確認してください。許可後にもう一度参加できます。";
+      }
+      return value;
+    }
+
     function setNotice(text) {
-      el.notice.textContent = text || "";
-      if (!text) return;
+      const friendly = getFriendlyNotice(text);
+      el.notice.textContent = friendly || "";
+      if (!friendly) return;
       window.clearTimeout(el.notice.hideTimer);
       el.notice.hideTimer = window.setTimeout(function() {
         el.notice.textContent = "";
