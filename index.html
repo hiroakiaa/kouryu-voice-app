@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<!-- kouryu standalone voice app shared default room 2026-08-08-reliability-diagnostics -->
+<!-- kouryu standalone voice app shared default room 2026-08-09-auto-care-polish -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -1777,7 +1777,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-smart-reconnect-checks";
+    const APP_VERSION = "2026-08-09-auto-care-polish";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -3278,6 +3278,10 @@
       if (updateStatus) setStatus("退室しました", "もう一度参加できます。" + cleanupText);
     }
 
+    function getOpenListenerCount() {
+      return (unsubParticipants ? 1 : 0) + (unsubSignals ? 1 : 0);
+    }
+
     function closePeer(remoteId) {
       const state = peers.get(remoteId);
       if (!state) return;
@@ -3445,13 +3449,6 @@
         return;
       }
       el.join.classList.remove("is-busy");
-      if (joined && callPhase === "failed") {
-        el.join.classList.add("primary");
-        el.join.classList.remove("danger", "is-leaving");
-        el.join.innerHTML = '<i class="fa-solid fa-rotate-right"></i><span>再接続する</span>';
-        el.join.disabled = false;
-        return;
-      }
       if (joined) {
         el.join.classList.remove("primary");
         el.join.classList.add("danger", "is-leaving");
@@ -3875,7 +3872,7 @@
     }
 
     function verifyListenerCleanup() {
-      const active = (unsubParticipants ? 1 : 0) + (unsubSignals ? 1 : 0);
+      const active = getOpenListenerCount();
       if (active === 0) {
         pushDiagnostic("info", "Firestore listener: 0", "\u7d42\u8a71\u5f8c\u306e\u76e3\u8996\u89e3\u9664\u3092\u78ba\u8a8d\u3057\u307e\u3057\u305f\u3002");
       } else {
@@ -3897,6 +3894,15 @@
       if (autoReconnectTimers.size) remaining.push("auto reconnect " + autoReconnectTimers.size);
       if (peers.size) remaining.push("peer " + peers.size);
       if (localStream || rawLocalStream) remaining.push("mic stream");
+      const opened = Object.keys(metrics.listenersOpened || {}).reduce(function(total, key) {
+        return total + (Number(metrics.listenersOpened[key]) || 0);
+      }, 0);
+      const closed = Object.keys(metrics.listenersClosed || {}).reduce(function(total, key) {
+        return total + (Number(metrics.listenersClosed[key]) || 0);
+      }, 0);
+      if (opened !== closed && getOpenListenerCount() !== 0) {
+        remaining.push("listener count " + opened + "/" + closed);
+      }
       const title = (context || "終了後") + "クリーンアップ";
       if (remaining.length) {
         pushDiagnostic("warn", title, remaining.join(" / "));
@@ -3946,11 +3952,26 @@
       return "同じURL、マイク許可、イヤホン、再読み込みを順に確認してください。";
     }
 
+    function getTeacherFailureGuide(reason) {
+      const text = String(reason || "").toLowerCase();
+      if (/firestore|permission|rules|signal|参加者/.test(text)) {
+        return "先生向け: Firebaseの無料枠、Firestore Rules、同じ通話URLかを確認してください。";
+      }
+      if (/microphone|permission|denied|マイク/.test(text)) {
+        return "先生向け: 端末のマイク許可、ブラウザのマイク設定、イヤホン接続を確認してください。";
+      }
+      if (/ice|network|timeout|failed|disconnected/.test(text)) {
+        return "先生向け: 学校回線のWebRTC制限、別回線での再試行、再接続ボタンの表示を確認してください。";
+      }
+      return "先生向け: 診断ログの時刻、接続状態、相手が同じURLを開いているかを確認してください。";
+    }
+
     function showConnectionFailureGuide(reason) {
       const guide = getConnectionFailureHelp(reason) + " " + getFailureActionGuide();
       setCallPhase("failed", guide);
       setNotice(guide, true);
       pushDiagnostic("warn", "接続できない時の確認", guide);
+      pushDiagnostic("warn", "先生向けメモ", getTeacherFailureGuide(reason));
     }
 
     function isLikelyTouchPhoneOrTablet() {
@@ -4965,7 +4986,7 @@
         "writes: " + JSON.stringify(metrics.writes, null, 2) + "\n" +
         "deletes: " + JSON.stringify(metrics.deletes, null, 2) + "\n" +
         "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
-        "activeListenersNow: " + ((unsubParticipants ? 1 : 0) + (unsubSignals ? 1 : 0)) + "\n" +
+        "activeListenersNow: " + getOpenListenerCount() + "\n" +
         "listeners opened/closed: " + JSON.stringify(metrics.listenersOpened, null, 2) + " / " + JSON.stringify(metrics.listenersClosed, null, 2) + "\n" +
         "snapshots callbacks: " + JSON.stringify(metrics.snapshotCallbacks, null, 2) + "\n" +
         "snapshots changes: " + JSON.stringify(metrics.snapshotChanges, null, 2) + "\n" +
