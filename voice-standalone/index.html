@@ -382,6 +382,61 @@
       background: rgba(139, 233, 255, 0.24);
     }
 
+    .preflight-summary {
+      display: none;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.42rem;
+      padding: 0.5rem;
+      border: 0.06rem solid rgba(95, 219, 255, 0.32);
+      border-radius: 0.75rem;
+      background: rgba(7, 24, 38, 0.72);
+    }
+
+    .preflight-summary.is-visible {
+      display: grid;
+    }
+
+    .app-info-version-note {
+      grid-column: 1 / -1;
+      color: var(--quiet);
+      font-size: 0.68rem;
+      font-weight: 720;
+      line-height: 1.55;
+    }
+
+    .preflight-check-chip {
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.34rem;
+      padding: 0.38rem 0.42rem;
+      border: 0.06rem solid rgba(139, 233, 255, 0.28);
+      border-radius: 999rem;
+      color: var(--quiet);
+      font-size: 0.72rem;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .preflight-check-chip.is-ok {
+      border-color: rgba(112, 236, 196, 0.58);
+      color: #b8ffe9;
+      background: rgba(22, 121, 89, 0.18);
+    }
+
+    .preflight-check-chip.is-fail {
+      border-color: rgba(255, 111, 150, 0.68);
+      color: #ffd6e0;
+      background: rgba(147, 32, 63, 0.18);
+    }
+
+    .preflight-check-chip.is-pending {
+      border-color: rgba(139, 233, 255, 0.42);
+      color: #c8f6ff;
+      background: rgba(34, 158, 201, 0.14);
+    }
+
     .app-info-action {
       flex: 1 0 7.2rem;
       min-height: 2.1rem;
@@ -723,6 +778,24 @@
       font-size: 0.78rem;
       font-weight: 780;
       line-height: 1.45;
+    }
+
+    .empty-participants .empty-participants-tip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.2rem;
+      padding: 0.35rem 0.58rem;
+      border: 0.06rem solid rgba(95, 219, 255, 0.24);
+      border-radius: 999rem;
+      color: #c8f6ff;
+      background: rgba(8, 45, 62, 0.56);
+      font-size: 0.72rem;
+      font-weight: 850;
+    }
+
+    .empty-participants .empty-participants-tip i {
+      color: var(--accent);
     }
 
     .participant {
@@ -1556,6 +1629,7 @@
       <div class="app-info-version">
         <strong>アプリ情報</strong>
         <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
+        <small class="app-info-version-note">GitHub Pagesの反映後、この更新番号が変わっていれば最新版です。</small>
       </div>
       <div class="app-info-actions" aria-label="詳しい情報">
         <button id="metricsToggleBtn" class="app-info-action" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="Firestore料金の目安">
@@ -1565,6 +1639,7 @@
           <i class="fa-solid fa-stethoscope"></i><span>接続診断</span>
         </button>
       </div>
+      <div id="preflightSummary" class="preflight-summary" aria-live="polite" aria-label="通話前チェック結果"></div>
       <section id="callReliabilityPanel" class="call-reliability-panel" aria-live="polite">
         <div class="call-reliability-main">
           <span id="connectionStateBadge" class="connection-state-badge is-waiting"><i class="fa-solid fa-signal"></i><span id="connectionStateLabel">&#30456;&#25163;&#24453;&#12385;</span></span>
@@ -1702,7 +1777,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-voice-reliability-complete";
+    const APP_VERSION = "2026-08-09-call-guidance-polish";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -1830,6 +1905,7 @@
       rttBadge: document.getElementById("rttBadge"),
       jitterBadge: document.getElementById("jitterBadge"),
       packetLossBadge: document.getElementById("packetLossBadge"),
+      preflightSummary: document.getElementById("preflightSummary"),
       preflight: document.getElementById("preflightBtn"),
       audioPreset: document.getElementById("audioPresetSelect"),
       diagnosticsToggle: document.getElementById("diagnosticsToggleBtn"),
@@ -1899,6 +1975,7 @@
     let lastQualityDiagnosticAt = 0;
     let preflightBusy = false;
     let preflightRestoreTimer = null;
+    let earphoneReminderShown = false;
     let exchangeRateInfo = {
       source: "手入力",
       fetchedAt: 0,
@@ -1924,7 +2001,11 @@
           return;
         }
         if (joined) {
-          leaveCall();
+          if (callPhase === "failed") {
+            reconnectCall();
+          } else {
+            leaveCall();
+          }
         } else {
           joinCall();
         }
@@ -2109,12 +2190,22 @@
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         problems.push("このブラウザはマイク取得に対応していません。Safari / Chrome / Edge の最新版で開いてください。");
       }
+      renderPreflightSummary([
+        { key: "https", label: "HTTPS", ok: window.isSecureContext },
+        { key: "browser", label: "ブラウザ", ok: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) },
+        { key: "mic", label: "マイク", pending: true }
+      ]);
       setCallPhase("connecting", "通話前チェック中です。マイク許可の表示が出たら許可してください。");
       setNotice("通話前チェック中です。Firestoreは使いません。", true);
       pushDiagnostic("info", "通話前チェックを開始", "マイク、HTTPS、ブラウザ対応を確認します。");
       setPreflightButton('<i class="fa-solid fa-spinner fa-spin"></i><span>確認中</span>', { disabled: true, loading: true });
       if (problems.length) {
         const message = problems.join(" ");
+        renderPreflightSummary([
+          { key: "https", label: "HTTPS", ok: window.isSecureContext },
+          { key: "browser", label: "ブラウザ", ok: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) },
+          { key: "mic", label: "マイク", ok: false }
+        ]);
         setCallPhase("failed", message);
         setNotice(message, true);
         pushDiagnostic("error", "通話前チェックで問題を検出", message, "端末のブラウザ設定とURLを確認してください。");
@@ -2132,14 +2223,23 @@
           video: false
         }, 15000);
         testStream.getTracks().forEach(function(track) { track.stop(); });
+        renderPreflightSummary([
+          { key: "https", label: "HTTPS", ok: true },
+          { key: "browser", label: "ブラウザ", ok: true },
+          { key: "mic", label: "マイク", ok: true }
+        ]);
         setCallPhase("waiting", "通話前チェックは完了しました。同じURLを開いた相手と参加できます。");
         setNotice("チェック完了。マイクは使えます。近い端末同士はイヤホンがおすすめです。", true);
         pushDiagnostic("info", "通話前チェックOK", "マイク許可とブラウザ対応を確認しました。");
         setPreflightButton('<i class="fa-solid fa-check"></i><span>OK</span>', { restoreMs: 1400 });
       } catch (error) {
         const help = getMicPermissionHelp(error);
-        setCallPhase("failed", help);
-        setNotice(help, true);
+        renderPreflightSummary([
+          { key: "https", label: "HTTPS", ok: window.isSecureContext },
+          { key: "browser", label: "ブラウザ", ok: true },
+          { key: "mic", label: "マイク", ok: false }
+        ]);
+        showConnectionFailureGuide(error && error.name ? error.name : "microphone preflight");
         pushDiagnostic("error", "通話前チェックでマイクを開始できません", error && error.message ? error.message : "", help);
         setPreflightButton('<i class="fa-solid fa-triangle-exclamation"></i><span>確認</span>', { restoreMs: 1600 });
       }
@@ -2196,7 +2296,7 @@
       } catch (error) {
         console.warn(error);
         joined = false;
-        setCallPhase("failed", "\u53c2\u52a0\u8005\u60c5\u5831\u3092Firestore\u306b\u4fdd\u5b58\u3067\u304d\u307e\u305b\u3093\u3002");
+        showConnectionFailureGuide("Firestore participant permission");
         pushDiagnostic("error", "\u53c2\u52a0\u767b\u9332\u306b\u5931\u6557", error && error.message ? error.message : "");
         setJoinBusy(false);
         clearJoinSlowTimer();
@@ -2206,7 +2306,6 @@
         stopLiveWatchers();
         clearConnectionStuckTimer();
         setStatus("参加者登録できませんでした", "Firestore Rulesで参加者の保存が許可されているか確認してください。");
-        setNotice("参加者を保存できませんでした。Firestore Rulesを確認してください。");
         return;
       }
 
@@ -2253,7 +2352,7 @@
           updatedAt: serverTimestamp()
         }, { merge: true }).catch(console.warn);
         const help = getMicPermissionHelp(error);
-        setCallPhase("failed", help);
+        showConnectionFailureGuide(error && error.name ? error.name : "microphone start");
         pushDiagnostic("error", "\u30de\u30a4\u30af\u958b\u59cb\u306b\u5931\u6557", error && error.name ? error.name : "");
         setStatus("参加中・マイク未接続", help);
         setNotice(help);
@@ -2342,7 +2441,7 @@
         updateLocalStatus();
       }, function(error) {
         console.warn(error);
-        setCallPhase("failed", "\u53c2\u52a0\u8005\u4e00\u89a7\u3092\u8aad\u307f\u8fbc\u3081\u307e\u305b\u3093\u3002Firestore Rules\u3068\u901a\u4fe1\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+        showConnectionFailureGuide("Firestore participants listener");
         pushDiagnostic("error", "\u53c2\u52a0\u8005\u76e3\u8996\u306b\u5931\u6557", error && error.message ? error.message : "");
         el.participants.innerHTML = '<div class="notice">参加者を読み込めませんでした。</div>';
       });
@@ -2398,9 +2497,8 @@
         }
       }, function(error) {
         console.warn(error);
-        setCallPhase("failed", "\u63a5\u7d9a\u60c5\u5831\u3092\u8aad\u307f\u8fbc\u3081\u307e\u305b\u3093\u3002Firestore Rules\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+        showConnectionFailureGuide("Firestore signal listener");
         pushDiagnostic("error", "\u30b7\u30b0\u30ca\u30eb\u76e3\u8996\u306b\u5931\u6557", error && error.message ? error.message : "");
-        setNotice("接続情報を読み込めませんでした。");
       });
     }
 
@@ -2569,7 +2667,7 @@
         createPeerDataChannel(state);
         createOffer(remoteId).catch(function(error) {
           console.warn(error);
-          setCallPhase("failed", "\u63a5\u7d9a\u60c5\u5831\u306e\u4f5c\u6210\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002");
+          showConnectionFailureGuide("WebRTC offer failed");
           pushDiagnostic("error", "offer\u4f5c\u6210\u306b\u5931\u6557", error && error.message ? error.message : "");
         });
       }
@@ -2846,7 +2944,7 @@
       const attempts = autoReconnectAttempts.get(remoteId) || 0;
       if (attempts >= AUTO_RECONNECT_MAX_ATTEMPTS) {
         const help = getConnectionFailureHelp(reason || remoteId);
-        setCallPhase("failed", help);
+        showConnectionFailureGuide(reason || remoteId);
         if (el.reconnect) el.reconnect.disabled = false;
         setNotice(help + " 自動復帰を試しましたが戻りませんでした。再接続ボタン、同じURLの開き直し、新しいURL作成の順に試してください。", true);
         pushDiagnostic("error", "自動再接続を停止", AUTO_RECONNECT_MAX_ATTEMPTS + "回試しても戻りませんでした。");
@@ -2888,7 +2986,7 @@
             return;
           }
           const help = getConnectionFailureHelp(reason || remoteId);
-          setCallPhase("failed", help);
+          showConnectionFailureGuide(reason || remoteId);
           if (el.reconnect) el.reconnect.disabled = false;
           setNotice(help + " 再接続ボタン、同じURLの開き直し、新しいURL作成の順に試してください。", true);
           pushDiagnostic("error", "\u518d\u63a5\u7d9a\u304c\u6642\u9593\u5185\u306b\u5b8c\u4e86\u3057\u307e\u305b\u3093", remoteId + " / " + help);
@@ -2917,10 +3015,18 @@
       const participantsCard = el.participants.closest(".participants-card");
       if (participantsCard) participantsCard.classList.toggle("is-empty", !items.length);
       if (!items.length) {
+        const emptyTitle = joined ? "相手を待っています" : "まだ参加していません";
+        const emptyText = joined
+          ? "同じURLを相手に開いてもらうと、自動でここに表示されます。"
+          : "参加すると、自分と相手のアイコンがここに表示されます。";
+        const emptyTip = joined
+          ? '<span class="empty-participants-tip"><i class="fa-solid fa-link"></i>URLボタンで共有できます</span>'
+          : '<span class="empty-participants-tip"><i class="fa-solid fa-phone"></i>まずは参加するを押します</span>';
         el.participants.classList.remove("has-self");
         el.participants.innerHTML = '<div class="empty-participants">' +
-          '<strong>相手を待っています</strong>' +
-          '<span>同じURLを開いた人が参加すると、ここに表示されます。</span>' +
+          '<strong>' + escapeHtml(emptyTitle) + '</strong>' +
+          '<span>' + escapeHtml(emptyText) + '</span>' +
+          emptyTip +
           '</div>';
         return;
       }
@@ -2985,10 +3091,12 @@
         return;
       }
       if (connected) {
+        showEarphoneReminderOnce();
         clearConnectionStuckTimer();
         setCallPhase("connected", muted ? "\u30de\u30a4\u30afOFF\u3067\u901a\u8a71\u4e2d\u3067\u3059\u3002" : "\u901a\u8a71\u3067\u304d\u3066\u3044\u307e\u3059\u3002");
         setStatus("\u901a\u8a71\u4e2d\u3067\u3059", muted ? "\u30de\u30a4\u30afOFF\u3067\u3059\u3002\u8a71\u3059\u6642\u3060\u3051\u89e3\u9664\u3067\u304d\u307e\u3059\u3002" : "\u8a71\u3057\u3066\u3044\u306a\u3044\u6642\u306f\u30df\u30e5\u30fc\u30c8\u304c\u304a\u3059\u3059\u3081\u3067\u3059\u3002");
       } else if (others.length) {
+        showEarphoneReminderOnce();
         if (!connectionStuckTimer) startConnectionStuckTimer();
         setCallPhase("connecting", "\u76f8\u624b\u3068\u97f3\u58f0\u63a5\u7d9a\u3092\u4f5c\u3063\u3066\u3044\u307e\u3059\u3002");
         setStatus("\u63a5\u7d9a\u3057\u3066\u3044\u307e\u3059", "\u76f8\u624b\u3068\u97f3\u58f0\u3092\u3064\u306a\u3044\u3067\u3044\u307e\u3059\u3002\u5c11\u3057\u5f85\u3063\u3066\u304f\u3060\u3055\u3044\u3002");
@@ -3123,11 +3231,15 @@
       el.mute.innerHTML = '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
       updateConnectionPill("待機");
       setCallPhase("ended", "\u901a\u8a71\u306f\u7d42\u4e86\u3057\u307e\u3057\u305f\u3002Firestore listener: " + activeListeners);
+      const cleanupText = activeListeners === 0
+        ? "Firestore listenerは0です。通話データの監視は止まりました。"
+        : "Firestore listenerが" + activeListeners + "個残っています。診断を確認してください。";
       window.setTimeout(function() {
-        verifyListenerCleanup();
+        const delayedActiveListeners = verifyListenerCleanup();
         verifyFullCleanup("終話後");
+        setNotice(delayedActiveListeners === 0 ? "終了処理OK: listener 0" : "終了処理を確認してください: listener " + delayedActiveListeners, delayedActiveListeners !== 0);
       }, CLEANUP_AUDIT_DELAY_MS);
-      if (updateStatus) setStatus("退室しました", "もう一度参加できます。");
+      if (updateStatus) setStatus("退室しました", "もう一度参加できます。" + cleanupText);
     }
 
     function closePeer(remoteId) {
@@ -3216,6 +3328,22 @@
       }
     }
 
+    function renderPreflightSummary(items) {
+      if (!el.preflightSummary) return;
+      const rows = (items || []).map(function(item) {
+        const statusClass = item.pending ? "is-pending" : (item.ok ? "is-ok" : "is-fail");
+        const icon = item.pending ? "fa-spinner fa-spin" : (item.ok ? "fa-check" : "fa-triangle-exclamation");
+        const statusText = item.pending ? "確認中" : (item.ok ? "OK" : "確認");
+        return '<span class="preflight-check-chip ' + statusClass + '">' +
+          '<i class="fa-solid ' + icon + '"></i>' +
+          '<span>' + escapeHtml(item.label) + '</span>' +
+          '<small>' + escapeHtml(statusText) + '</small>' +
+          '</span>';
+      }).join("");
+      el.preflightSummary.innerHTML = rows;
+      el.preflightSummary.classList.toggle("is-visible", !!rows);
+    }
+
     function getUserMediaWithTimeout(constraints, timeoutMs) {
       return new Promise(function(resolve, reject) {
         let settled = false;
@@ -3280,6 +3408,13 @@
         return;
       }
       el.join.classList.remove("is-busy");
+      if (joined && callPhase === "failed") {
+        el.join.classList.add("primary");
+        el.join.classList.remove("danger", "is-leaving");
+        el.join.innerHTML = '<i class="fa-solid fa-rotate-right"></i><span>再接続する</span>';
+        el.join.disabled = false;
+        return;
+      }
       if (joined) {
         el.join.classList.remove("primary");
         el.join.classList.add("danger", "is-leaving");
@@ -3287,7 +3422,9 @@
       } else {
         el.join.classList.add("primary");
         el.join.classList.remove("danger", "is-leaving");
-        el.join.innerHTML = '<i class="fa-solid fa-phone"></i><span>参加する</span>';
+        const label = callPhase === "failed" ? "再参加する" : "参加する";
+        const icon = callPhase === "failed" ? "fa-rotate-right" : "fa-phone";
+        el.join.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + label + '</span>';
       }
       el.join.disabled = false;
     }
@@ -3399,6 +3536,7 @@
         el.connectionPill.classList.toggle("is-unstable", callPhase === "failed");
         el.connectionPill.innerHTML = '<i class="fa-solid ' + config.icon + '"></i><span>' + escapeHtml(config.label) + '</span>';
       }
+      if (el.join) updateJoinButton();
     }
 
     function getDefaultPhaseDetail(phase) {
@@ -3746,6 +3884,30 @@
         return "この通話は1対1用です。3人以上の場合は新しい通話URLを作ってペアを分けてください。";
       }
       return "音声接続が戻りませんでした。同じURLを開き直すか、新しい通話URLを作ってください。";
+    }
+
+    function getFailureActionGuide() {
+      return "同じURL、マイク許可、イヤホン、再読み込みを順に確認してください。";
+    }
+
+    function showConnectionFailureGuide(reason) {
+      const guide = getConnectionFailureHelp(reason) + " " + getFailureActionGuide();
+      setCallPhase("failed", guide);
+      setNotice(guide, true);
+      pushDiagnostic("warn", "接続できない時の確認", guide);
+    }
+
+    function isLikelyTouchPhoneOrTablet() {
+      const ua = navigator.userAgent || "";
+      return /iPad|iPhone|iPod|Android|Mobile/.test(ua) || navigator.maxTouchPoints > 1;
+    }
+
+    function showEarphoneReminderOnce() {
+      if (earphoneReminderShown || !isLikelyTouchPhoneOrTablet()) return;
+      earphoneReminderShown = true;
+      const message = "近い端末同士はイヤホンがおすすめです。スピーカー同士だとノイズが出やすくなります。";
+      setNotice(message);
+      pushDiagnostic("info", "イヤホン推奨", message);
     }
 
     function createCleanAudioStream(stream) {
