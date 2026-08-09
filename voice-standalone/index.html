@@ -1897,6 +1897,8 @@
     let lastCapacityWarnAt = 0;
     let staleParticipantMarks = new Map();
     let lastQualityDiagnosticAt = 0;
+    let preflightBusy = false;
+    let preflightRestoreTimer = null;
     let exchangeRateInfo = {
       source: "手入力",
       fetchedAt: 0,
@@ -2100,6 +2102,8 @@
         setNotice("通話中です。音声が不安定なときは、ミュート解除・イヤホン・再接続を確認してください。", true);
         return;
       }
+      if (preflightBusy) return;
+      preflightBusy = true;
       const problems = [];
       if (!window.isSecureContext) problems.push("HTTPSではないため、マイクが使えない可能性があります。");
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -2108,16 +2112,17 @@
       setCallPhase("connecting", "通話前チェック中です。マイク許可の表示が出たら許可してください。");
       setNotice("通話前チェック中です。Firestoreは使いません。", true);
       pushDiagnostic("info", "通話前チェックを開始", "マイク、HTTPS、ブラウザ対応を確認します。");
-      flashButton(el.preflight, '<i class="fa-solid fa-spinner fa-spin"></i><span>確認中</span>', 900);
+      setPreflightButton('<i class="fa-solid fa-spinner fa-spin"></i><span>確認中</span>', { disabled: true, loading: true });
       if (problems.length) {
         const message = problems.join(" ");
         setCallPhase("failed", message);
         setNotice(message, true);
         pushDiagnostic("error", "通話前チェックで問題を検出", message, "端末のブラウザ設定とURLを確認してください。");
+        setPreflightButton('<i class="fa-solid fa-triangle-exclamation"></i><span>確認</span>', { restoreMs: 1600 });
         return;
       }
       try {
-        const testStream = await navigator.mediaDevices.getUserMedia({
+        const testStream = await getUserMediaWithTimeout({
           audio: {
             echoCancellation: { ideal: true },
             noiseSuppression: { ideal: true },
@@ -2125,18 +2130,18 @@
             channelCount: { ideal: 1 }
           },
           video: false
-        });
+        }, 15000);
         testStream.getTracks().forEach(function(track) { track.stop(); });
         setCallPhase("waiting", "通話前チェックは完了しました。同じURLを開いた相手と参加できます。");
         setNotice("チェック完了。マイクは使えます。近い端末同士はイヤホンがおすすめです。", true);
         pushDiagnostic("info", "通話前チェックOK", "マイク許可とブラウザ対応を確認しました。");
-        flashButton(el.preflight, '<i class="fa-solid fa-check"></i><span>OK</span>', 1400);
+        setPreflightButton('<i class="fa-solid fa-check"></i><span>OK</span>', { restoreMs: 1400 });
       } catch (error) {
         const help = getMicPermissionHelp(error);
         setCallPhase("failed", help);
         setNotice(help, true);
         pushDiagnostic("error", "通話前チェックでマイクを開始できません", error && error.message ? error.message : "", help);
-        flashButton(el.preflight, '<i class="fa-solid fa-triangle-exclamation"></i><span>確認</span>', 1600);
+        setPreflightButton('<i class="fa-solid fa-triangle-exclamation"></i><span>確認</span>', { restoreMs: 1600 });
       }
     }
 
@@ -3178,6 +3183,64 @@
       button.flashTimer = window.setTimeout(function() {
         button.innerHTML = original;
       }, ms || 1400);
+    }
+
+    function restorePreflightButton() {
+      if (preflightRestoreTimer) {
+        window.clearTimeout(preflightRestoreTimer);
+        preflightRestoreTimer = null;
+      }
+      preflightBusy = false;
+      if (!el.preflight) return;
+      window.clearTimeout(el.preflight.flashTimer);
+      el.preflight.disabled = false;
+      el.preflight.classList.remove("is-loading");
+      el.preflight.innerHTML = '<i class="fa-solid fa-stethoscope"></i><span>チェック</span>';
+    }
+
+    function setPreflightButton(html, options) {
+      if (!el.preflight) {
+        preflightBusy = false;
+        return;
+      }
+      if (preflightRestoreTimer) {
+        window.clearTimeout(preflightRestoreTimer);
+        preflightRestoreTimer = null;
+      }
+      window.clearTimeout(el.preflight.flashTimer);
+      el.preflight.innerHTML = html;
+      el.preflight.disabled = !!(options && options.disabled);
+      el.preflight.classList.toggle("is-loading", !!(options && options.loading));
+      if (options && options.restoreMs) {
+        preflightRestoreTimer = window.setTimeout(restorePreflightButton, options.restoreMs);
+      }
+    }
+
+    function getUserMediaWithTimeout(constraints, timeoutMs) {
+      return new Promise(function(resolve, reject) {
+        let settled = false;
+        const timer = window.setTimeout(function() {
+          settled = true;
+          reject(new Error("マイク確認が時間内に完了しませんでした。ブラウザのマイク許可を確認してください。"));
+        }, timeoutMs || 15000);
+
+        navigator.mediaDevices.getUserMedia(constraints)
+          .then(function(stream) {
+            window.clearTimeout(timer);
+            if (settled) {
+              stream.getTracks().forEach(function(track) { track.stop(); });
+              return;
+            }
+            settled = true;
+            resolve(stream);
+          })
+          .catch(function(error) {
+            window.clearTimeout(timer);
+            if (settled) return;
+            settled = true;
+            reject(error);
+          });
+      });
     }
 
     function reconnectCall() {
