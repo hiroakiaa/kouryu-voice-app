@@ -1621,16 +1621,16 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-08-reliability-hardening";
+    const APP_VERSION = "2026-08-09-reliability-guard";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
     const SPEAKING_MONITOR_MS = 260;
     const SPEAKING_ON_HOLD_MS = 220;
     const SPEAKING_OFF_HOLD_MS = 1400;
-    const SPEAKING_MIN_WRITE_MS = 25000;
-    const SPEAKING_REFRESH_MS = 600000;
-    const CONNECTION_REFRESH_MS = 60000;
+    const SPEAKING_MIN_WRITE_MS = 60000;
+    const SPEAKING_REFRESH_MS = 900000;
+    const CONNECTION_REFRESH_MS = 120000;
     const DATA_CHANNEL_LABEL = "kouryu-voice-state";
     const DATA_CHANNEL_STALE_MS = 15000;
     const DATA_SPEAKING_MIN_SEND_MS = 700;
@@ -1638,6 +1638,9 @@
     const STATS_MONITOR_MS = 5000;
     const AUTO_RECONNECT_DELAY_MS = 1800;
     const AUTO_RECONNECT_GIVEUP_MS = 18000;
+    const CONNECTION_STUCK_MS = 15000;
+    const PARTICIPANT_STALE_MARK_MIN_MS = 120000;
+    const QUALITY_WARN_COOLDOWN_MS = 45000;
     const DEFAULT_CALL_ID = "main-room";
     const VOICE_PRESETS = {
       earphones: {
@@ -1794,6 +1797,7 @@
     let lastParticipantsRenderSignature = "";
     let metricTimers = [];
     let joinSlowTimer = null;
+    let connectionStuckTimer = null;
     let exchangeRateTimer = null;
     let statsTimer = null;
     let callPhase = "waiting";
@@ -1803,6 +1807,8 @@
     let activeStats = { rttMs: null, jitterMs: null, lossPct: null, quality: "idle" };
     let deniedByCapacity = false;
     let lastCapacityWarnAt = 0;
+    let staleParticipantMarks = new Map();
+    let lastQualityDiagnosticAt = 0;
     let exchangeRateInfo = {
       source: "手入力",
       fetchedAt: 0,
@@ -2016,6 +2022,7 @@
       muted = true;
       setJoinBusy(true, "接続中");
       startJoinSlowTimer();
+      startConnectionStuckTimer();
       updateJoinButton();
       el.mute.disabled = true;
       el.reconnect.disabled = true;
@@ -2056,6 +2063,7 @@
         el.mute.disabled = true;
         stopHeartbeat();
         stopLiveWatchers();
+        clearConnectionStuckTimer();
         setStatus("参加者登録できませんでした", "Firestore Rulesで参加者の保存が許可されているか確認してください。");
         setNotice("参加者を保存できませんでした。Firestore Rulesを確認してください。");
         return;
@@ -2115,6 +2123,7 @@
       stopLiveWatchers();
       knownParticipantNames = new Map();
       hasParticipantSnapshot = false;
+      staleParticipantMarks.clear();
       watchParticipants();
       watchSignals();
     }
@@ -2132,6 +2141,7 @@
       }
       knownParticipantNames = new Map();
       hasParticipantSnapshot = false;
+      staleParticipantMarks.clear();
       lastParticipantsRenderSignature = "";
     }
 
@@ -2280,6 +2290,11 @@
 
     function markParticipantStale(participantDoc, data) {
       if (!participantDoc || !data || data.userId === userId || data.left === true) return;
+      const staleKey = data.userId || participantDoc.id;
+      const now = Date.now();
+      const lastMarkedAt = staleParticipantMarks.get(staleKey) || 0;
+      if (now - lastMarkedAt < PARTICIPANT_STALE_MARK_MIN_MS) return;
+      staleParticipantMarks.set(staleKey, now);
       recordWrite("participantStale");
       setDoc(participantDoc.ref, {
         left: true,
@@ -2322,6 +2337,7 @@
         dataChannel: null,
         dataChannelReady: false,
         offered: false,
+        recreateAttempted: false,
         reconnectTimer: null,
         reconnectGiveupTimer: null
       };
@@ -2338,6 +2354,7 @@
         setRemoteAudioVolume(state.audio);
         state.audio.play().catch(function() {});
         clearAutoReconnectTimer(state);
+        clearConnectionStuckTimer();
         setCallPhase("connected", "\u76f8\u624b\u306e\u97f3\u58f0\u3092\u53d7\u4fe1\u3057\u3066\u3044\u307e\u3059\u3002");
         pushDiagnostic("info", "\u97f3\u58f0\u30c8\u30e9\u30c3\u30af\u3092\u53d7\u4fe1", state.name || remoteId);
         startStatsMonitor();
@@ -2369,6 +2386,7 @@
           markConnectedOnce();
           clearReconnectTimer(state);
           clearAutoReconnectTimer(state);
+          clearConnectionStuckTimer();
           setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
           startStatsMonitor();
           sendLocalRealtimeState(state);
@@ -2386,6 +2404,7 @@
           markConnectedOnce();
           clearReconnectTimer(state);
           clearAutoReconnectTimer(state);
+          clearConnectionStuckTimer();
           setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
           startStatsMonitor();
         }
@@ -2691,6 +2710,20 @@
         current.reconnectGiveupTimer = window.setTimeout(function() {
           const latest = peers.get(remoteId);
           if (!latest || !joined || isPeerConnected(latest.peer)) return;
+          if (!latest.recreateAttempted && localStream) {
+            latest.recreateAttempted = true;
+            pushDiagnostic("warn", "\u63a5\u7d9a\u3092\u4f5c\u308a\u76f4\u3057\u3066\u3044\u307e\u3059", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3067\u623b\u3089\u306a\u3044\u305f\u3081\u3001\u901a\u8a71\u7d4c\u8def\u3092\u4f5c\u308a\u76f4\u3057\u307e\u3059\u3002");
+            const name = latest.name || remoteId;
+            const session = latest.remoteSessionId || "";
+            closePeer(remoteId);
+            const rebuilt = ensurePeer(remoteId, name);
+            if (rebuilt) {
+              rebuilt.remoteSessionId = session;
+              rebuilt.recreateAttempted = true;
+            }
+            startConnectionStuckTimer();
+            return;
+          }
           setCallPhase("failed", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3067\u623b\u308c\u307e\u305b\u3093\u3067\u3057\u305f\u3002URL\u3084\u901a\u4fe1\u74b0\u5883\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
           if (el.reconnect) el.reconnect.disabled = false;
           setNotice("自動再接続で戻れませんでした。再接続ボタンを押すか、同じURLを開き直してください。");
@@ -2734,7 +2767,7 @@
         const isSelf = item.userId === userId;
         const name = getDisplayName(item.userName || "匿名さん");
         const initial = getInitial(name);
-        const status = item.muted ? "ミュート" : (item.connected ? "接続中" : "待機");
+        const status = item.muted ? "ミュート中" : (item.speaking ? "話しています" : (item.connected ? "接続済み" : "待機中"));
         const statusClass = item.muted ? "is-muted" : (item.connected ? "is-connected" : "is-waiting");
         const classes = ["participant"];
         if (isSelf) classes.push("is-self");
@@ -2788,12 +2821,15 @@
         return;
       }
       if (connected) {
+        clearConnectionStuckTimer();
         setCallPhase("connected", muted ? "\u30de\u30a4\u30afOFF\u3067\u901a\u8a71\u4e2d\u3067\u3059\u3002" : "\u901a\u8a71\u3067\u304d\u3066\u3044\u307e\u3059\u3002");
         setStatus("\u901a\u8a71\u4e2d\u3067\u3059", muted ? "\u30de\u30a4\u30afOFF\u3067\u3059\u3002\u8a71\u3059\u6642\u3060\u3051\u89e3\u9664\u3067\u304d\u307e\u3059\u3002" : "\u8a71\u3057\u3066\u3044\u306a\u3044\u6642\u306f\u30df\u30e5\u30fc\u30c8\u304c\u304a\u3059\u3059\u3081\u3067\u3059\u3002");
       } else if (others.length) {
+        if (!connectionStuckTimer) startConnectionStuckTimer();
         setCallPhase("connecting", "\u76f8\u624b\u3068\u97f3\u58f0\u63a5\u7d9a\u3092\u4f5c\u3063\u3066\u3044\u307e\u3059\u3002");
         setStatus("\u63a5\u7d9a\u3057\u3066\u3044\u307e\u3059", "\u76f8\u624b\u3068\u97f3\u58f0\u3092\u3064\u306a\u3044\u3067\u3044\u307e\u3059\u3002\u5c11\u3057\u5f85\u3063\u3066\u304f\u3060\u3055\u3044\u3002");
       } else {
+        clearConnectionStuckTimer();
         setCallPhase("waiting", "\u76f8\u624b\u304c\u53c2\u52a0\u3059\u308b\u3068\u81ea\u52d5\u3067\u63a5\u7d9a\u3057\u307e\u3059\u3002");
         setStatus("\u76f8\u624b\u3092\u5f85\u3063\u3066\u3044\u307e\u3059", "\u307b\u304b\u306e\u4eba\u304c\u540c\u3058URL\u304b\u3089\u53c2\u52a0\u3059\u308b\u3068\u3001\u81ea\u52d5\u3067\u3064\u306a\u304c\u308a\u307e\u3059\u3002");
       }
@@ -2887,6 +2923,7 @@
       stopStatsMonitor();
       stopHeartbeat();
       stopLiveWatchers();
+      clearConnectionStuckTimer();
       autoReconnectTimers.forEach(function(timerId) { window.clearTimeout(timerId); });
       autoReconnectTimers.clear();
       const activeListeners = verifyListenerCleanup();
@@ -2994,6 +3031,7 @@
       setNotice("音声をつなぎ直しています。");
       updateConnectionPill("接続中");
       ensurePeersForParticipants();
+      startConnectionStuckTimer();
       updateLocalStatus();
     }
 
@@ -3049,6 +3087,31 @@
       if (!joinSlowTimer) return;
       window.clearTimeout(joinSlowTimer);
       joinSlowTimer = null;
+    }
+
+    function startConnectionStuckTimer() {
+      clearConnectionStuckTimer();
+      connectionStuckTimer = window.setTimeout(function() {
+        connectionStuckTimer = null;
+        if (!joined) return;
+        const connected = Array.from(peers.values()).some(function(item) {
+          return isPeerConnected(item.peer);
+        });
+        const hasOther = participants.some(function(item) {
+          return item && item.userId && item.userId !== userId;
+        });
+        if (connected || !hasOther) return;
+        setCallPhase("reconnecting", "\u63a5\u7d9a\u304c\u9577\u5f15\u3044\u3066\u3044\u308b\u305f\u3081\u3001\u81ea\u52d5\u3067\u518d\u63a5\u7d9a\u3057\u3066\u3044\u307e\u3059\u3002");
+        setStatus("\u518d\u63a5\u7d9a\u4e2d\u3067\u3059", "\u753b\u9762\u306f\u9589\u3058\u305a\u306b\u3001\u6570\u79d2\u3060\u3051\u5f85\u3063\u3066\u304f\u3060\u3055\u3044\u3002");
+        pushDiagnostic("warn", "\u63a5\u7d9a\u304c\u9577\u5f15\u3044\u3066\u3044\u307e\u3059", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3092\u8a66\u307f\u307e\u3059\u3002");
+        reconnectCall();
+      }, CONNECTION_STUCK_MS);
+    }
+
+    function clearConnectionStuckTimer() {
+      if (!connectionStuckTimer) return;
+      window.clearTimeout(connectionStuckTimer);
+      connectionStuckTimer = null;
     }
 
     function setVersionLabel() {
@@ -3320,7 +3383,11 @@
       if (activeStats.quality && activeStats.quality !== "idle" && activeStats.quality !== previousQuality) {
         const detail = "RTT " + formatStat(activeStats.rttMs, "ms") + " / jitter " + formatStat(activeStats.jitterMs, "ms") + " / loss " + formatStat(activeStats.lossPct, "%");
         const advice = getQualityAdvice(activeStats);
-        pushDiagnostic(activeStats.quality === "poor" ? "warn" : "info", "\u901a\u8a71\u54c1\u8cea: " + (labels[activeStats.quality] || labels.idle).replace("\u54c1\u8cea: ", ""), detail + (advice ? " / " + advice : ""));
+        const now = Date.now();
+        if (activeStats.quality === "good" || now - lastQualityDiagnosticAt > QUALITY_WARN_COOLDOWN_MS) {
+          lastQualityDiagnosticAt = now;
+          pushDiagnostic(activeStats.quality === "poor" ? "warn" : "info", "\u901a\u8a71\u54c1\u8cea: " + (labels[activeStats.quality] || labels.idle).replace("\u54c1\u8cea: ", ""), detail + (advice ? " / " + advice : ""));
+        }
         if ((activeStats.quality === "fair" || activeStats.quality === "poor") && callPhase === "connected") {
           setCallPhase("connected", advice || "\u901a\u8a71\u306f\u7d9a\u3044\u3066\u3044\u307e\u3059\u304c\u3001\u901a\u4fe1\u304c\u5c11\u3057\u4e0d\u5b89\u5b9a\u3067\u3059\u3002");
         }
