@@ -966,12 +966,12 @@
       display: none;
     }
 
-    .secondary-controls #reconnectBtn:not(:disabled),
     .secondary-controls #reconnectBtn.is-needed {
       display: inline-flex;
     }
 
     .secondary-controls #preflightBtn {
+      display: none;
       min-width: 6.8rem;
     }
 
@@ -1679,7 +1679,6 @@
 
     <div class="controls">
       <div class="secondary-controls">
-        <button id="preflightBtn" type="button"><i class="fa-solid fa-stethoscope"></i><span>チェック</span></button>
         <label class="audio-preset-control" for="audioPresetSelect"><i class="fa-solid fa-sliders"></i><span>&#38899;&#22768;</span>
           <select id="audioPresetSelect">
             <option value="earphones">&#12452;&#12516;&#12507;&#12531;</option>
@@ -1778,7 +1777,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-call-guidance-polish";
+    const APP_VERSION = "2026-08-09-smart-reconnect-checks";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -2062,6 +2061,7 @@
       initAudioPreset();
       recordEnvironmentDiagnostics();
       setCallPhase("waiting", "\u53c2\u52a0\u3059\u308b\u3068\u63a5\u7d9a\u72b6\u614b\u3092\u8868\u793a\u3057\u307e\u3059\u3002");
+      runPassivePreflightCheck();
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
         if (!isDemoMode && joined) markLeft();
@@ -2246,8 +2246,39 @@
       }
     }
 
+    function runPassivePreflightCheck() {
+      const canUseMic = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+      const checks = [
+        { key: "https", label: "HTTPS", ok: window.isSecureContext },
+        { key: "browser", label: "ブラウザ", ok: canUseMic },
+        { key: "mic", label: "マイク", pending: window.isSecureContext && canUseMic }
+      ];
+      renderPreflightSummary(checks);
+
+      const problems = [];
+      if (!window.isSecureContext) problems.push("HTTPSのURLで開いてください。マイク許可が使えない可能性があります。");
+      if (!canUseMic) problems.push("このブラウザはマイクに対応していません。Safari / Chrome / Edge の最新版で開いてください。");
+
+      if (!problems.length) {
+        pushDiagnostic("info", "自動チェックOK", "HTTPSとブラウザ対応を確認しました。マイク許可は参加時に確認します。");
+        return true;
+      }
+
+      const message = problems.join(" ");
+      renderPreflightSummary([
+        { key: "https", label: "HTTPS", ok: window.isSecureContext },
+        { key: "browser", label: "ブラウザ", ok: canUseMic },
+        { key: "mic", label: "マイク", ok: false }
+      ]);
+      setCallPhase("failed", message);
+      setNotice(message, true);
+      pushDiagnostic("error", "自動チェックで問題を検出", message, "URL、ブラウザ、端末の権限設定を確認してください。");
+      return false;
+    }
+
     async function joinCall() {
       if (joined) return;
+      if (!runPassivePreflightCheck()) return;
       resetMetrics();
       markMetricMilestone("before-call-start");
       const typedName = getDisplayName(el.name.value);
@@ -3011,7 +3042,10 @@
 
     function renderParticipants(items) {
       const signature = getParticipantsRenderSignature(items);
-      if (signature === lastParticipantsRenderSignature) return;
+      if (signature === lastParticipantsRenderSignature) {
+        updateReconnectControl();
+        return;
+      }
       lastParticipantsRenderSignature = signature;
       const participantsCard = el.participants.closest(".participants-card");
       if (participantsCard) participantsCard.classList.toggle("is-empty", !items.length);
@@ -3029,6 +3063,7 @@
           '<span>' + escapeHtml(emptyText) + '</span>' +
           emptyTip +
           '</div>';
+        updateReconnectControl();
         return;
       }
       const selfItems = items.filter(function(item) { return item.userId === userId; });
@@ -3401,6 +3436,7 @@
 
     function updateJoinButton() {
       document.body.classList.toggle("is-in-call", joined);
+      updateReconnectControl();
       if (joinBusy) {
         el.join.classList.add("primary", "is-busy");
         el.join.classList.remove("danger", "is-leaving");
@@ -3428,6 +3464,23 @@
         el.join.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + label + '</span>';
       }
       el.join.disabled = false;
+    }
+
+    function updateReconnectControl() {
+      if (!el.reconnect) return;
+      const hasRemoteParticipant = participants.some(function(item) {
+        return item && item.userId && item.userId !== userId;
+      });
+      const hasConnectedPeer = Array.from(peers.values()).some(function(state) {
+        return state && isPeerConnected(state.peer);
+      });
+      const needsReconnect = !!(joined && (
+        callPhase === "failed" ||
+        callPhase === "reconnecting" ||
+        (hasRemoteParticipant && localStream && !hasConnectedPeer)
+      ));
+      el.reconnect.classList.toggle("is-needed", needsReconnect);
+      el.reconnect.disabled = !needsReconnect;
     }
 
     function setJoinBusy(isBusy) {
@@ -3538,6 +3591,7 @@
         el.connectionPill.innerHTML = '<i class="fa-solid ' + config.icon + '"></i><span>' + escapeHtml(config.label) + '</span>';
       }
       if (el.join) updateJoinButton();
+      updateReconnectControl();
     }
 
     function getDefaultPhaseDetail(phase) {
@@ -3619,6 +3673,7 @@
           (item.advice ? '<span class="diagnostic-advice">' + escapeHtml(item.advice) + '</span>' : '') +
           '</div>';
       }).join("");
+      updateReconnectControl();
     }
 
     function initAudioPreset() {
