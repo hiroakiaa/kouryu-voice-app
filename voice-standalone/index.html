@@ -678,15 +678,22 @@
     }
 
     .participants {
+      position: relative;
       display: flex;
       flex-wrap: nowrap;
       gap: 0.5rem;
-      align-items: center;
+      align-items: flex-start;
+      align-content: flex-start;
       min-height: 3.25rem;
       overflow-x: auto;
       overflow-y: hidden;
-      padding-right: 0.1rem;
+      padding: 0.08rem 0.1rem 0.08rem 0;
       scrollbar-width: thin;
+    }
+
+    .participants.has-self {
+      padding-right: 4.3rem;
+      padding-bottom: 3.95rem;
     }
 
     .participants-card.is-empty .participants {
@@ -754,13 +761,48 @@
     }
 
     .participant.is-self {
+      position: absolute;
+      right: 0.18rem;
+      bottom: 0.18rem;
+      width: 3.55rem;
+      height: 3.55rem;
       border-color: var(--accent);
-      background: var(--accent-soft);
+      background: var(--accent);
+      color: #02111a;
+    }
+
+    .participant.is-self::after {
+      content: "自分";
+      position: absolute;
+      left: 50%;
+      bottom: 0.2rem;
+      transform: translateX(-50%);
+      padding: 0.05rem 0.28rem;
+      border-radius: 999rem;
+      background: rgba(2, 17, 26, 0.14);
+      color: #02111a;
+      font-size: 0.52rem;
+      font-weight: 950;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .participant.is-self .avatar-mark {
+      display: none;
+    }
+
+    .participant.is-self .avatar-initial {
+      transform: translateY(-0.24rem);
     }
 
     .participant.is-speaking {
       border-color: var(--ok);
       background: #082938;
+    }
+
+    .participant.is-self.is-speaking {
+      background: var(--accent);
+      border-color: var(--ok);
     }
 
     .participant.is-speaking::before {
@@ -2678,13 +2720,17 @@
       const participantsCard = el.participants.closest(".participants-card");
       if (participantsCard) participantsCard.classList.toggle("is-empty", !items.length);
       if (!items.length) {
+        el.participants.classList.remove("has-self");
         el.participants.innerHTML = '<div class="empty-participants">' +
           '<strong>相手を待っています</strong>' +
           '<span>同じURLを開いた人が参加すると、ここに表示されます。</span>' +
           '</div>';
         return;
       }
-      el.participants.innerHTML = items.map(function(item) {
+      const selfItems = items.filter(function(item) { return item.userId === userId; });
+      const otherItems = items.filter(function(item) { return item.userId !== userId; });
+      el.participants.classList.toggle("has-self", !!selfItems.length);
+      el.participants.innerHTML = otherItems.concat(selfItems).map(function(item) {
         const isSelf = item.userId === userId;
         const name = getDisplayName(item.userName || "匿名さん");
         const initial = getInitial(name);
