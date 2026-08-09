@@ -1833,7 +1833,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-hidden-care-cues";
+    const APP_VERSION = "2026-08-09-quiet-reliability-guards";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -1853,8 +1853,14 @@
     const AUTO_RECONNECT_MAX_ATTEMPTS = 2;
     const CLEANUP_AUDIT_DELAY_MS = 800;
     const CONNECTION_STUCK_MS = 15000;
+    const MIC_PERMISSION_TIMEOUT_MS = 12000;
+    const NO_REMOTE_AUDIO_CHECK_MS = 12000;
     const PARTICIPANT_STALE_MARK_MIN_MS = 120000;
     const QUALITY_WARN_COOLDOWN_MS = 45000;
+    const FIRESTORE_GUARD_READS_PER_MIN = 120;
+    const FIRESTORE_GUARD_WRITES_PER_MIN = 45;
+    const FIRESTORE_GUARD_COOLDOWN_MS = 60000;
+    const FIRESTORE_GUARD_ACTIVE_MS = 120000;
     const DEFAULT_CALL_ID = "main-room";
     const VOICE_PRESETS = {
       earphones: {
@@ -2033,6 +2039,11 @@
     let preflightRestoreTimer = null;
     let earphoneReminderShown = false;
     let speakerModeReminderShown = false;
+    let noRemoteAudioTimer = null;
+    let noRemoteAudioWarned = false;
+    let lastRemoteTrackAt = 0;
+    let firestoreGuardActiveUntil = 0;
+    let firestoreGuardLastWarnAt = 0;
     let exchangeRateInfo = {
       source: "手入力",
       fetchedAt: 0,
@@ -2412,7 +2423,7 @@
             sampleSize: { ideal: 16 }
           },
           video: false
-        }, 12000);
+        }, MIC_PERMISSION_TIMEOUT_MS);
         setJoinBusy(false);
         tuneLocalAudioTrack(rawLocalStream);
         localStream = createCleanAudioStream(rawLocalStream);
@@ -2444,11 +2455,11 @@
           lastSeenAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         }, { merge: true }).catch(console.warn);
-        const help = getMicPermissionHelp(error);
-        showConnectionFailureGuide(error && error.name ? error.name : "microphone start");
-        pushDiagnostic("error", "\u30de\u30a4\u30af\u958b\u59cb\u306b\u5931\u6557", error && error.name ? error.name : "");
-        setStatus("参加中・マイク未接続", help);
-        setNotice(help);
+        const micMeta = getMicPermissionMeta(error);
+        showConnectionFailureGuide(micMeta.reason);
+        pushDiagnostic("error", micMeta.title, micMeta.detail);
+        setStatus(micMeta.title, micMeta.help);
+        setNotice(micMeta.help, true);
       }
     }
 
@@ -2531,6 +2542,7 @@
         participants = renderedParticipants;
         renderParticipants(participants);
         ensurePeersForParticipants();
+        scheduleNoRemoteAudioCheck("participants");
         updateLocalStatus();
       }, function(error) {
         console.warn(error);
@@ -2670,6 +2682,7 @@
         sentCandidateKeys: new Set(),
         receivedCandidateKeys: new Set(),
         audio: createRemoteAudio(remoteId),
+        remoteTrackReceived: false,
         dataChannel: null,
         dataChannelReady: false,
         offered: false,
@@ -2686,6 +2699,10 @@
       });
 
       peer.ontrack = function(event) {
+        state.remoteTrackReceived = true;
+        lastRemoteTrackAt = Date.now();
+        clearNoRemoteAudioTimer();
+        noRemoteAudioWarned = false;
         state.audio.srcObject = event.streams[0];
         setRemoteAudioVolume(state.audio);
         state.audio.play().catch(function() {});
@@ -2727,6 +2744,7 @@
           clearConnectionStuckTimer();
           setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
           startStatsMonitor();
+          scheduleNoRemoteAudioCheck("peer-connected");
           sendLocalRealtimeState(state);
         }
         if (isPeerUnstable(peer)) {
@@ -2746,6 +2764,7 @@
           clearConnectionStuckTimer();
           setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
           startStatsMonitor();
+          scheduleNoRemoteAudioCheck("ice-connected");
         }
         if (isPeerUnstable(peer)) {
           scheduleReconnect(remoteId);
@@ -3207,6 +3226,47 @@
         ["failed", "disconnected"].indexOf(peer.iceConnectionState) !== -1;
     }
 
+    function clearNoRemoteAudioTimer() {
+      if (noRemoteAudioTimer) {
+        window.clearTimeout(noRemoteAudioTimer);
+        noRemoteAudioTimer = null;
+      }
+    }
+
+    function scheduleNoRemoteAudioCheck(reason) {
+      if (!joined || noRemoteAudioWarned) return;
+      const others = participants.filter(function(item) { return item.userId && item.userId !== userId; });
+      if (!others.length) {
+        clearNoRemoteAudioTimer();
+        return;
+      }
+      const connectedPeer = Array.from(peers.values()).some(function(state) {
+        return state && isPeerConnected(state.peer);
+      });
+      if (!connectedPeer) return;
+      const hasRemoteTrack = Array.from(peers.values()).some(function(state) {
+        return state && state.remoteTrackReceived;
+      });
+      if (hasRemoteTrack || lastRemoteTrackAt) return;
+      clearNoRemoteAudioTimer();
+      noRemoteAudioTimer = window.setTimeout(function() {
+        noRemoteAudioTimer = null;
+        if (!joined || noRemoteAudioWarned) return;
+        const stillConnected = Array.from(peers.values()).some(function(state) {
+          return state && isPeerConnected(state.peer);
+        });
+        const trackArrived = Array.from(peers.values()).some(function(state) {
+          return state && state.remoteTrackReceived;
+        });
+        if (!stillConnected || trackArrived) return;
+        noRemoteAudioWarned = true;
+        const help = "相手は参加していますが、音声トラックが届いていません。相手のマイク許可、ミュート、ページの開き直しを確認してください。";
+        pushDiagnostic("warn", "相手の音声が届いていません", (reason || "audio-check") + " / " + help);
+        setNotice(help, true);
+        if (callPhase === "connected") setCallPhase("connected", "接続はありますが、相手の音声が届いていない可能性があります。");
+      }, NO_REMOTE_AUDIO_CHECK_MS);
+    }
+
     function updateLocalStatus() {
       if (!joined) return;
       const others = participants.filter(function(item) { return item.userId && item.userId !== userId; });
@@ -3327,6 +3387,7 @@
       stopHeartbeat();
       stopLiveWatchers();
       clearConnectionStuckTimer();
+      clearNoRemoteAudioTimer();
       autoReconnectTimers.forEach(function(timerId) { window.clearTimeout(timerId); });
       autoReconnectTimers.clear();
       autoReconnectAttempts.clear();
@@ -3340,6 +3401,9 @@
       lastConnectionWrite = 0;
       lastSpeakingDataSent = 0;
       lastSpeakingDataState = null;
+      noRemoteAudioWarned = false;
+      lastRemoteTrackAt = 0;
+      firestoreGuardActiveUntil = 0;
       if (localStream) localStream.getTracks().forEach(function(track) { track.stop(); });
       if (rawLocalStream) rawLocalStream.getTracks().forEach(function(track) { track.stop(); });
       if (localAudioContext && typeof localAudioContext.close === "function") localAudioContext.close().catch(function() {});
@@ -3484,7 +3548,9 @@
         let settled = false;
         const timer = window.setTimeout(function() {
           settled = true;
-          reject(new Error("マイク確認が時間内に完了しませんでした。ブラウザのマイク許可を確認してください。"));
+          const timeoutError = new Error("マイク確認が時間内に完了しませんでした。ブラウザのマイク許可を確認してください。");
+          timeoutError.name = "MicPermissionTimeoutError";
+          reject(timeoutError);
         }, timeoutMs || 15000);
 
         navigator.mediaDevices.getUserMedia(constraints)
@@ -4014,20 +4080,75 @@
       return VOICE_SETTINGS;
     }
 
-    function getMicPermissionHelp(error) {
+    function getMicPermissionMeta(error) {
       const name = error && error.name ? error.name : "";
+      const message = error && error.message ? error.message : "";
       const ua = navigator.userAgent || "";
       const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const isAndroid = /Android/.test(ua);
+      if (name === "MicPermissionTimeoutError") {
+        return {
+          title: "マイク許可の確認待ちです",
+          reason: "microphone permission timeout",
+          detail: message || "マイク許可の応答が時間内に返りませんでした。",
+          help: "マイク許可の表示が隠れている可能性があります。ブラウザのマイク許可を確認して、もう一度参加してください。"
+        };
+      }
       if (name === "NotAllowedError" || name === "SecurityError") {
-        if (isIOS) return "マイクが許可されていません。Safariのアドレスバー左側の設定、または設定アプリのSafari > マイクを確認してください。";
-        if (isAndroid) return "マイクが許可されていません。ブラウザのサイト設定から、このURLのマイクを許可してください。";
-        return "マイクが許可されていません。ブラウザのアドレスバー付近から、このサイトのマイクを許可してください。";
+        const help = isIOS
+          ? "マイクが許可されていません。Safariのアドレスバー左側の設定、または設定アプリのSafari > マイクを確認してください。"
+          : (isAndroid
+            ? "マイクが許可されていません。ブラウザのサイト設定から、このURLのマイクを許可してください。"
+            : "マイクが許可されていません。ブラウザのアドレスバー付近から、このサイトのマイクを許可してください。");
+        return {
+          title: "マイクが許可されていません",
+          reason: "microphone permission denied",
+          detail: (name || "permission") + (message ? " / " + message : ""),
+          help: help
+        };
       }
       if (name === "NotFoundError" || name === "DevicesNotFoundError") {
-        return "マイクが見つかりません。イヤホン、ヘッドセット、端末の入力設定を確認してください。";
+        return {
+          title: "マイクが見つかりません",
+          reason: "microphone not found",
+          detail: (name || "not found") + (message ? " / " + message : ""),
+          help: "マイクが見つかりません。イヤホン、ヘッドセット、端末の入力設定を確認してください。"
+        };
       }
-      return "マイクを開始できませんでした。端末のマイク許可、入力先、ブラウザ設定を確認してください。";
+      if (name === "NotReadableError" || name === "TrackStartError") {
+        return {
+          title: "マイクを使えません",
+          reason: "microphone busy",
+          detail: (name || "busy") + (message ? " / " + message : ""),
+          help: "別のアプリやブラウザタブがマイクを使用中の可能性があります。閉じてからもう一度参加してください。"
+        };
+      }
+      if (name === "OverconstrainedError" || name === "ConstraintNotSatisfiedError") {
+        return {
+          title: "マイク設定が合いません",
+          reason: "microphone constraint",
+          detail: (name || "constraint") + (message ? " / " + message : ""),
+          help: "この端末のマイク設定に合いません。音声プリセットをイヤホンに戻すか、ページを開き直してください。"
+        };
+      }
+      if (name === "AbortError") {
+        return {
+          title: "マイク開始が中断されました",
+          reason: "microphone aborted",
+          detail: (name || "aborted") + (message ? " / " + message : ""),
+          help: "端末側でマイク開始が中断されました。ページを開き直して、許可表示が出たら許可してください。"
+        };
+      }
+      return {
+        title: "マイクを開始できませんでした",
+        reason: "microphone start",
+        detail: (name || "unknown") + (message ? " / " + message : ""),
+        help: "マイクを開始できませんでした。端末のマイク許可、入力先、ブラウザ設定を確認してください。"
+      };
+    }
+
+    function getMicPermissionHelp(error) {
+      return getMicPermissionMeta(error).help;
     }
 
     function getConnectionFailureHelp(reason) {
@@ -4281,6 +4402,9 @@
     function shouldSyncSpeakingState(nextSpeaking, previousSpeaking, now) {
       if (!joined) return false;
       if (participants.length <= 1) {
+        return previousSpeaking && !nextSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS;
+      }
+      if (isFirestoreGuardActive()) {
         return previousSpeaking && !nextSpeaking && now - lastSpeakingWrite >= SPEAKING_MIN_WRITE_MS;
       }
       if (hasOpenDataChannels()) {
@@ -4787,6 +4911,7 @@
 
     function recordWrite(key) {
       incrementMetric("writes", key || "unknown", 1);
+      maybeGuardFirestoreUsage("write:" + (key || "unknown"));
     }
 
     function recordDelete(key) {
@@ -4814,6 +4939,28 @@
       metrics.snapshotChanges[key] += changes.length;
       metrics.estimatedReads += first ? (snapshot.size || 0) : changes.length;
       renderMetrics();
+      maybeGuardFirestoreUsage("snapshot:" + (key || "unknown"));
+    }
+
+    function isFirestoreGuardActive() {
+      return Date.now() < firestoreGuardActiveUntil;
+    }
+
+    function maybeGuardFirestoreUsage(trigger) {
+      if (!joined || !metrics.startedAt || !metrics.connectedAt) return;
+      const connected = getConnectedMetricSnapshot();
+      if (!connected) return;
+      const now = Date.now();
+      if (now - firestoreGuardLastWarnAt < FIRESTORE_GUARD_COOLDOWN_MS) return;
+      const elapsedMinutes = Math.max(0.5, (now - metrics.connectedAt) / 60000);
+      const readsPerMinute = Math.round(Math.max(0, metrics.estimatedReads - connected.estimatedReads) / elapsedMinutes);
+      const writesPerMinute = Math.round(Math.max(0, sumMetric(metrics.writes) - connected.writes) / elapsedMinutes);
+      if (readsPerMinute <= FIRESTORE_GUARD_READS_PER_MIN && writesPerMinute <= FIRESTORE_GUARD_WRITES_PER_MIN) return;
+      firestoreGuardLastWarnAt = now;
+      firestoreGuardActiveUntil = now + FIRESTORE_GUARD_ACTIVE_MS;
+      const detail = "trigger " + (trigger || "unknown") + " / reads " + readsPerMinute + "/分 / writes " + writesPerMinute + "/分。発話状態のFirestore同期を一時的に控えめにします。";
+      pushDiagnostic("warn", "Firestore使用量を自動ガード", detail);
+      setNotice("Firestore使用量が多めなので、音声通話を優先して状態更新を控えめにしています。", true);
     }
 
     function markConnectedOnce() {
