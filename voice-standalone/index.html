@@ -1279,6 +1279,37 @@
       line-height: 1.35;
     }
 
+    .metrics-compare-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.46rem;
+      padding: 0.1rem 0 0.16rem;
+    }
+
+    .metrics-compare-chip {
+      min-width: 0;
+      display: grid;
+      gap: 0.08rem;
+      padding: 0.5rem 0.58rem;
+      border: 0.07rem solid rgba(72, 202, 228, 0.42);
+      border-radius: 0.78rem;
+      background: rgba(72, 202, 228, 0.08);
+      color: var(--quiet);
+      line-height: 1.28;
+    }
+
+    .metrics-compare-chip strong {
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 920;
+    }
+
+    .metrics-compare-chip small {
+      color: var(--muted);
+      font-size: 0.63rem;
+      font-weight: 720;
+    }
+
     .metrics-note-popover {
       position: absolute;
       z-index: 55;
@@ -1649,6 +1680,10 @@
         padding: 0.52rem;
       }
 
+      .metrics-compare-summary {
+        grid-template-columns: 1fr;
+      }
+
       .metrics-value {
         font-size: 0.9rem;
       }
@@ -1780,6 +1815,7 @@
         <span><strong id="metricsFixedReads">0</strong><small>接続時の固定reads</small></span>
         <span><strong id="metricsOngoingReads">0/分</strong><small>通話中のreads目安</small></span>
       </div>
+      <div id="metricsCompareSummary" class="metrics-compare-summary" aria-label="前回計測区間との比較"></div>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
         <div id="metricsDetailReads" class="metrics-detail" aria-hidden="true"></div>
@@ -1833,7 +1869,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-quiet-reliability-guards";
+    const APP_VERSION = "2026-08-09-reliability-assistant";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -1856,6 +1892,7 @@
     const MIC_PERMISSION_TIMEOUT_MS = 12000;
     const NO_REMOTE_AUDIO_CHECK_MS = 12000;
     const PARTICIPANT_STALE_MARK_MIN_MS = 120000;
+    const PARTICIPANT_SWEEP_MS = 30000;
     const QUALITY_WARN_COOLDOWN_MS = 45000;
     const FIRESTORE_GUARD_READS_PER_MIN = 120;
     const FIRESTORE_GUARD_WRITES_PER_MIN = 45;
@@ -1947,6 +1984,7 @@
       metricsMinuteCost: document.getElementById("metricsMinuteCost"),
       metricsFixedReads: document.getElementById("metricsFixedReads"),
       metricsOngoingReads: document.getElementById("metricsOngoingReads"),
+      metricsCompareSummary: document.getElementById("metricsCompareSummary"),
       metricsReadsCount: document.getElementById("metricsReadsCount"),
       metricsWritesCount: document.getElementById("metricsWritesCount"),
       metricsDeletesCount: document.getElementById("metricsDeletesCount"),
@@ -2014,6 +2052,7 @@
     let unsubSignals = null;
     let unsubParticipants = null;
     let heartbeatTimer = null;
+    let participantSweepTimer = null;
     let lastConnectedState = null;
     let lastConnectionWrite = 0;
     let lastMuteReminderAt = 0;
@@ -2035,6 +2074,7 @@
     let lastCapacityWarnAt = 0;
     let staleParticipantMarks = new Map();
     let lastQualityDiagnosticAt = 0;
+    let lastCleanupSummary = "";
     let preflightBusy = false;
     let preflightRestoreTimer = null;
     let earphoneReminderShown = false;
@@ -2386,6 +2426,7 @@
           updatedAt: serverTimestamp()
         }, { merge: true });
         startHeartbeat();
+        startParticipantSweep();
         startLiveWatchers();
         setJoinBusy(false);
         clearJoinSlowTimer();
@@ -2403,6 +2444,7 @@
         updateJoinButton();
         el.mute.disabled = true;
         stopHeartbeat();
+        stopParticipantSweep();
         stopLiveWatchers();
         clearConnectionStuckTimer();
         setStatus("参加者登録できませんでした", "Firestore Rulesで参加者の保存が許可されているか確認してください。");
@@ -2629,6 +2671,48 @@
         left: false,
         muted,
         lastSeenAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(console.warn);
+    }
+
+    function startParticipantSweep() {
+      stopParticipantSweep();
+      participantSweepTimer = window.setInterval(sweepKnownParticipants, PARTICIPANT_SWEEP_MS);
+    }
+
+    function stopParticipantSweep() {
+      if (!participantSweepTimer) return;
+      window.clearInterval(participantSweepTimer);
+      participantSweepTimer = null;
+    }
+
+    function sweepKnownParticipants() {
+      if (!joined || !participants.length) return;
+      let cleaned = 0;
+      participants.forEach(function(person) {
+        if (!person || person.userId === userId || isParticipantActive(person)) return;
+        markParticipantStaleById(person);
+        cleaned += 1;
+      });
+      if (cleaned) {
+        pushDiagnostic("info", "参加者の残り表示を整理", "手元の参加者一覧から古い端末を" + cleaned + "件確認し、退室扱いにしました。追加の読み取りは行っていません。");
+      }
+    }
+
+    function markParticipantStaleById(person) {
+      if (!person || !person.userId || person.userId === userId || person.left === true) return;
+      const staleKey = person.userId;
+      const now = Date.now();
+      const lastMarkedAt = staleParticipantMarks.get(staleKey) || 0;
+      if (now - lastMarkedAt < PARTICIPANT_STALE_MARK_MIN_MS) return;
+      staleParticipantMarks.set(staleKey, now);
+      recordWrite("participantStale");
+      setDoc(participantRef(person.userId), {
+        left: true,
+        leftAt: serverTimestamp(),
+        stale: true,
+        connected: false,
+        speaking: false,
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(console.warn);
     }
@@ -3385,6 +3469,7 @@
       clearMetricTimers();
       stopStatsMonitor();
       stopHeartbeat();
+      stopParticipantSweep();
       stopLiveWatchers();
       clearConnectionStuckTimer();
       clearNoRemoteAudioTimer();
@@ -3431,8 +3516,11 @@
         : "Firestore listenerが" + activeListeners + "個残っています。診断を確認してください。";
       window.setTimeout(function() {
         const delayedActiveListeners = verifyListenerCleanup();
-        verifyFullCleanup("終話後");
-        setNotice(delayedActiveListeners === 0 ? "終了処理OK: listener 0" : "終了処理を確認してください: listener " + delayedActiveListeners, delayedActiveListeners !== 0);
+        const cleanupResult = verifyFullCleanup("終話後");
+        lastCleanupSummary = cleanupResult.ok
+          ? "終了処理OK: listener 0 / timer 0 / peer 0"
+          : "終了処理を確認してください: " + cleanupResult.detail;
+        setNotice(lastCleanupSummary, delayedActiveListeners !== 0 || !cleanupResult.ok);
       }, CLEANUP_AUDIT_DELAY_MS);
       if (updateStatus) setStatus("退室しました", "もう一度参加できます。" + cleanupText);
     }
@@ -3701,10 +3789,13 @@
       const ua = navigator.userAgent || "";
       const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const isMobile = /Android|Mobile|iPad|iPhone|iPod/.test(ua) || navigator.maxTouchPoints > 1;
-      const text = isIOS
-        ? "iPhone/iPadはイヤホンだと安定しやすいです"
-        : (isMobile ? "スマホはスピーカー音量を小さめに" : "PCはイヤホンかヘッドセット推奨");
-      el.deviceTip.innerHTML = '<i class="fa-solid fa-mobile-screen-button"></i><span>' + escapeHtml(text) + '</span>';
+      const title = isIOS
+        ? "iPhone/iPadはイヤホン推奨"
+        : (isMobile ? "スマホは音量を控えめに" : "PCはヘッドセット推奨");
+      const detail = isIOS
+        ? "スピーカー利用時はハウリングしやすいので、近くの端末では音量を下げてください。"
+        : (isMobile ? "端末同士が近い場合は音量を下げるとノイズを抑えやすいです。" : "マイクとスピーカーが近いと反響しやすいので、イヤホンが安定します。");
+      el.deviceTip.innerHTML = '<i class="fa-solid fa-mobile-screen-button"></i><span><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(detail) + '</span></span>';
     }
 
     function updateConnectionPill(text) {
@@ -3747,6 +3838,9 @@
         el.connectionPill.classList.toggle("is-connecting", callPhase === "connecting" || callPhase === "reconnecting");
         el.connectionPill.classList.toggle("is-unstable", callPhase === "failed");
         el.connectionPill.innerHTML = '<i class="fa-solid ' + config.icon + '"></i><span>' + escapeHtml(config.label) + '</span>';
+      }
+      if (callPhase === "failed" && joined) {
+        setNotice("音声接続に失敗しました。再接続ボタンで1回だけ作り直せます。", true);
       }
       if (el.join) updateJoinButton();
       updateReconnectControl();
@@ -4051,6 +4145,7 @@
       if (unsubParticipants) remaining.push("participants listener");
       if (unsubSignals) remaining.push("signals listener");
       if (heartbeatTimer) remaining.push("heartbeat");
+      if (participantSweepTimer) remaining.push("participant sweep");
       if (metricTimers.length) remaining.push("metrics timer " + metricTimers.length);
       if (statsTimer) remaining.push("stats monitor");
       if (speakingTimer) remaining.push("speaking monitor");
@@ -4071,8 +4166,10 @@
       const title = (context || "終了後") + "クリーンアップ";
       if (remaining.length) {
         pushDiagnostic("warn", title, remaining.join(" / "));
+        return { ok: false, detail: remaining.join(" / ") };
       } else {
         pushDiagnostic("info", title, "listener・timer・peer・マイクをすべて停止済みです。");
+        return { ok: true, detail: "listener・timer・peer・マイクをすべて停止済みです。" };
       }
     }
 
@@ -4899,6 +4996,7 @@
     function resetMetrics() {
       Object.assign(metrics, createMetrics());
       metrics.startedAt = Date.now();
+      lastCleanupSummary = "";
       clearMetricTimers();
       renderMetrics();
     }
@@ -5222,6 +5320,9 @@
       if (el.metricsMinuteCost) el.metricsMinuteCost.textContent = formatYen(minuteYen) + "/分";
       if (el.metricsFixedReads) el.metricsFixedReads.textContent = String(connected ? connected.estimatedReads : reads);
       if (el.metricsOngoingReads) el.metricsOngoingReads.textContent = String(readsPerMinute) + "/分";
+      if (el.metricsCompareSummary) {
+        el.metricsCompareSummary.innerHTML = renderMetricsCompareSummary(latest);
+      }
       if (el.metricsReadsCount) el.metricsReadsCount.textContent = String(reads);
       if (el.metricsWritesCount) el.metricsWritesCount.textContent = String(writes);
       if (el.metricsDeletesCount) el.metricsDeletesCount.textContent = String(deletes);
@@ -5249,12 +5350,31 @@
         "writes: " + JSON.stringify(metrics.writes, null, 2) + "\n" +
         "deletes: " + JSON.stringify(metrics.deletes, null, 2) + "\n" +
         "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
+        "cleanup: " + (lastCleanupSummary || "not ended") + "\n" +
         "activeListenersNow: " + getOpenListenerCount() + "\n" +
         "listeners opened/closed: " + JSON.stringify(metrics.listenersOpened, null, 2) + " / " + JSON.stringify(metrics.listenersClosed, null, 2) + "\n" +
         "snapshots callbacks: " + JSON.stringify(metrics.snapshotCallbacks, null, 2) + "\n" +
         "snapshots changes: " + JSON.stringify(metrics.snapshotChanges, null, 2) + "\n" +
         "ice: " + JSON.stringify(metrics.ice, null, 2) + "\n" +
         "milestones: " + JSON.stringify(metrics.milestones, null, 2);
+    }
+
+    function renderMetricsCompareSummary(latest) {
+      const list = metrics.milestones || [];
+      const previous = list.length >= 2 ? list[list.length - 2] : null;
+      if (!previous || !latest) {
+        return '<span class="metrics-compare-chip"><strong>比較待ち</strong><small>接続後に区間差分を表示します</small></span>' +
+          '<span class="metrics-compare-chip"><strong>reads --</strong><small>前回との差分</small></span>' +
+          '<span class="metrics-compare-chip"><strong>listener ' + getOpenListenerCount() + '</strong><small>現在開いている監視</small></span>';
+      }
+      const seconds = Math.max(1, latest.seconds - previous.seconds);
+      const readDelta = Math.max(0, latest.estimatedReads - previous.estimatedReads);
+      const writeDelta = Math.max(0, latest.writes - previous.writes);
+      const deleteDelta = Math.max(0, latest.deletes - previous.deletes);
+      const perMinute = Math.round((readDelta / seconds) * 60);
+      return '<span class="metrics-compare-chip"><strong>' + escapeHtml(formatMetricLabel(previous.label)) + ' → ' + escapeHtml(formatMetricLabel(latest.label)) + '</strong><small>' + seconds + '秒間の増え方</small></span>' +
+        '<span class="metrics-compare-chip"><strong>reads +' + readDelta + ' / ' + perMinute + '/分</strong><small>通話中に増え続ける量の目安</small></span>' +
+        '<span class="metrics-compare-chip"><strong>writes +' + writeDelta + ' / deletes +' + deleteDelta + '</strong><small>状態更新と整理処理</small></span>';
     }
 
     function getCandidateKey(candidate) {
