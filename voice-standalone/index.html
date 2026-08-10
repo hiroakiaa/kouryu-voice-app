@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <!-- kouryu standalone voice app shared default room 2026-08-09-hidden-care-cues -->
 <html lang="ja">
 <head>
@@ -2108,15 +2108,15 @@
 <body>
   <main>
     <header>
-    <button id="appInfoToggleBtn" class="app-icon" type="button" aria-controls="appInfoTooltip" aria-expanded="false" aria-label="アプリ情報">
-      <i class="fa-solid fa-headphones-simple"></i>
-    </button>
-    <div class="brand">
-      <h1>共通電話</h1>
-      <div class="brand-subline">
-        <button id="connectionPill" class="connection-pill" type="button" aria-expanded="false" aria-label="接続状態の詳細"><i class="fa-solid fa-signal"></i><span>待機</span></button>
+      <button id="appInfoToggleBtn" class="app-icon" type="button" aria-controls="appInfoTooltip" aria-expanded="false" aria-label="アプリ情報">
+        <i class="fa-solid fa-headphones-simple"></i>
+      </button>
+      <div class="brand">
+        <h1>共通電話</h1>
+        <div class="brand-subline">
+          <button id="connectionPill" class="connection-pill" type="button" aria-expanded="false" aria-label="接続状態の詳細"><i class="fa-solid fa-signal"></i><span>相手待ち</span></button>
+        </div>
       </div>
-    </div>
       <div class="header-actions">
         <button id="tipsToggleBtn" class="header-icon-btn tips-toggle" type="button" aria-controls="callTips" aria-expanded="false" aria-label="使い方のヒント">
           <i class="fa-solid fa-circle-question"></i>
@@ -2144,11 +2144,11 @@
       </div>
       <section id="callReliabilityPanel" class="call-reliability-panel" aria-live="polite">
         <div class="call-reliability-main">
-          <span id="connectionStateBadge" class="connection-state-badge is-waiting"><i class="fa-solid fa-signal"></i><span id="connectionStateLabel">&#30456;&#25163;&#24453;&#12385;</span></span>
-          <span id="connectionStateDetail" class="call-state-detail">&#21442;&#21152;&#12377;&#12427;&#12392;&#12289;&#36890;&#35441;&#12398;&#25509;&#32154;&#29366;&#24907;&#12434;&#34920;&#31034;&#12375;&#12414;&#12377;&#12290;</span>
+          <span id="connectionStateBadge" class="connection-state-badge is-waiting"><i class="fa-solid fa-signal"></i><span id="connectionStateLabel">相手待ち</span></span>
+          <span id="connectionStateDetail" class="call-state-detail">参加すると、通話の接続状態を表示します。</span>
         </div>
         <div class="call-quality-row">
-          <span id="qualityBadge" class="quality-chip"><i class="fa-solid fa-wave-square"></i><span>&#21697;&#36074;: --</span></span>
+          <span id="qualityBadge" class="quality-chip"><i class="fa-solid fa-wave-square"></i><span>品質: --</span></span>
           <span id="rttBadge" class="stat-chip">遅れ --</span>
           <span id="jitterBadge" class="stat-chip">音の揺れ --</span>
           <span id="packetLossBadge" class="stat-chip">途切れ --</span>
@@ -2163,12 +2163,12 @@
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>料金目安を確認</strong><span>アプリ左上のヘッドホンアイコンの中にある、￥料金目安を押すと、料金を見ることができますが、ユーザーの支払いはありません。僕の分析のために表示してあります。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、10分通話で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>料金目安を確認</strong><span>アプリ左上のヘッドホンアイコン内の「料金目安」で確認できます。ユーザーの支払いはありません。分析用の表示です。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、10分通話で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>新たなURLを作ると、そこで別の新しい電話を始められます。</span></span></span>
     </section>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
-      <span id="micState"><i class="fa-solid fa-microphone-lines"></i> マイク待機</span>
+      <span id="micState"><i class="fa-solid fa-microphone-lines"></i> マイク待ち</span>
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
       <span id="noiseGuardState" class="noise-guard">ノイズ抑制中</span>
     </section>
@@ -2182,11 +2182,11 @@
 
     <div class="controls">
       <div class="secondary-controls">
-        <label class="audio-preset-control" for="audioPresetSelect"><i class="fa-solid fa-sliders"></i><span>&#38899;&#22768;</span>
+        <label class="audio-preset-control" for="audioPresetSelect"><i class="fa-solid fa-sliders"></i><span>音声</span>
           <select id="audioPresetSelect">
-            <option value="earphones">&#12452;&#12516;&#12507;&#12531;</option>
-            <option value="speaker">&#12473;&#12500;&#12540;&#12459;&#12540;</option>
-            <option value="nearby">&#36817;&#36317;&#38626;&#12486;&#12473;&#12488;</option>
+            <option value="earphones">イヤホン</option>
+            <option value="speaker">スピーカー</option>
+            <option value="nearby">近距離テスト</option>
           </select>
         </label>
         <button id="muteBtn" type="button" disabled><i class="fa-solid fa-microphone-slash"></i><span>ミュート</span></button>
@@ -2216,7 +2216,7 @@
       <div class="metrics-cost-grid">
         <div class="metrics-cost-card">
           <div class="metrics-label">
-            <span>現在この1回の通話金額</span>
+            <span>現在この1回の通話料金</span>
             <button id="metricsNoteBtn" class="metrics-help-btn" type="button" aria-label="料金計算の説明" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
           </div>
           <div id="metricsCurrentCost" class="metrics-value">0.0000円</div>
@@ -2247,7 +2247,7 @@
       </div>
       <pre id="metricsOutput" class="metrics-output"></pre>
       <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
-        現在の通話金額は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
+        現在の通話料金は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
       </div>
       <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
     </div>
@@ -2260,12 +2260,12 @@
       </div>
       <div class="metrics-history-note">
         <i class="fa-solid fa-database"></i>
-        <span>履歴はこの端末だけに保存します。データが増えすぎないように、直近120回分と日別60日分だけを残します。</span>
+        <span>履歴はこの端末だけに保存します。データが増えすぎないように、直近20回分と日別60日分だけを残します。</span>
       </div>
       <div id="metricsHistorySummary" class="metrics-history-grid" aria-label="料金履歴の要約"></div>
       <div class="metrics-history-chart-wrap">
         <div class="metrics-history-chart-title">
-          <span>10分通話の概算金額の推移</span>
+          <span>10分通話の概算料金の推移</span>
           <small>直近20回</small>
         </div>
         <div id="metricsHistoryChart" class="metrics-history-chart" aria-label="10分通話料金の折れ線グラフ"></div>
@@ -2527,6 +2527,7 @@
     let knownParticipantNames = new Map();
     let hasParticipantSnapshot = false;
     let lastParticipantsRenderSignature = "";
+    let lastPassiveParticipantPresenceSignature = "";
     let callEventNoticeTimer = null;
     let metricTimers = [];
     let joinSlowTimer = null;
@@ -2666,6 +2667,7 @@
         return;
       }
       renderParticipants([]);
+      ensureParticipantWatcher();
     }
 
     function initDemoMode() {
@@ -2746,7 +2748,7 @@
     function reconnectDemoCall() {
       updateConnectionPill("デモ");
       setStatus("デモ再接続", "再接続表示だけをローカルで確認しました。");
-      setNotice("デモ再接続です。FirestoreやWebRTCには触れていません。");
+      setNotice("デモ再接続です。FirestoreとWebRTCには触れていません。");
     }
 
     async function copyDemoShareUrl() {
@@ -2770,7 +2772,7 @@
 
     async function runPreflightCheck() {
       if (joined) {
-        setNotice("通話中です。音声が不安定なときは、ミュート解除・イヤホン・再接続を確認してください。", true);
+        setNotice("通話中です。音声が不安定なときは、ミュート解除、イヤホン、再接続を確認してください。", true);
         return;
       }
       if (preflightBusy) return;
@@ -2938,7 +2940,7 @@
       }
 
       try {
-        setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
+        setStatus("マイクを確認中", "ブラウザのマイク許可で、許可を選んでください。");
         setCallPhase("connecting", "\u30de\u30a4\u30af\u8a31\u53ef\u3092\u78ba\u8a8d\u3057\u3066\u3044\u307e\u3059\u3002");
         setJoinBusy(true, "マイク確認中");
         recordConnectionStep("マイク確認開始", "ブラウザにマイクを要求しました。", "mic-start");
@@ -2966,7 +2968,7 @@
         setCallPhase("waiting", "\u76f8\u624b\u306e\u53c2\u52a0\u3068\u97f3\u58f0\u63a5\u7d9a\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
         pushDiagnostic("info", "\u30de\u30a4\u30af\u8a31\u53ef\u3092\u78ba\u8a8d", "\u76f8\u624b\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
         updateAudioHealth(0, false, "ノイズ抑制中");
-        setStatus("相手を待っています", "最初はマイクOFFです。話す時だけミュートを解除してください。");
+        setStatus("相手を待っています", "最初はマイクOFFです。話すときだけミュートを解除してください。");
         updatePresence();
         startParticipantSweep();
         startLiveWatchers();
@@ -2998,30 +3000,52 @@
     }
 
     function startLiveWatchers() {
-      stopLiveWatchers();
-      knownParticipantNames = new Map();
-      hasParticipantSnapshot = false;
-      staleParticipantMarks.clear();
-      watchParticipants();
+      ensureParticipantWatcher();
+      stopSignalWatcher();
+      deletedSignalIds.clear();
       watchSignals();
     }
 
     function stopLiveWatchers() {
-      if (unsubParticipants) {
-        unsubParticipants();
-        recordListenerClosed("participants");
-        unsubParticipants = null;
-      }
-      if (unsubSignals) {
-        unsubSignals();
-        recordListenerClosed("signals");
-        unsubSignals = null;
-      }
+      stopParticipantWatcher();
+      stopSignalWatcher();
       knownParticipantNames = new Map();
       hasParticipantSnapshot = false;
       staleParticipantMarks.clear();
       deletedSignalIds.clear();
       lastParticipantsRenderSignature = "";
+      lastPassiveParticipantPresenceSignature = "";
+    }
+
+    function ensureParticipantWatcher() {
+      if (isDemoMode || unsubParticipants) return;
+      knownParticipantNames = new Map();
+      hasParticipantSnapshot = false;
+      staleParticipantMarks.clear();
+      lastParticipantsRenderSignature = "";
+      lastPassiveParticipantPresenceSignature = "";
+      watchParticipants();
+    }
+
+    function resumePassiveParticipantWatcher() {
+      if (isDemoMode || joined) return;
+      ensureParticipantWatcher();
+    }
+
+    function stopParticipantWatcher() {
+      if (unsubParticipants) {
+        unsubParticipants();
+        recordListenerClosed("participants");
+        unsubParticipants = null;
+      }
+    }
+
+    function stopSignalWatcher() {
+      if (unsubSignals) {
+        unsubSignals();
+        recordListenerClosed("signals");
+        unsubSignals = null;
+      }
     }
 
     function watchParticipants() {
@@ -3033,7 +3057,7 @@
           const data = item.data() || {};
           const person = Object.assign({ id: item.id }, data);
           if (!isParticipantActive(person)) {
-            markParticipantStale(item, data);
+            if (joined) markParticipantStale(item, data);
             return;
           }
           activeParticipants.push(person);
@@ -3046,7 +3070,7 @@
           const now = Date.now();
           if (now - lastCapacityWarnAt > 30000) {
             lastCapacityWarnAt = now;
-            pushDiagnostic("warn", "通話人数の上限を超えました", "この通話は1対1用です。先に入った2人だけを接続します。");
+            pushDiagnostic("warn", "通話人数の上限を超えました", "この通話は1対1用です。先に入った人だけを接続します。");
           }
         }
         const allowedIds = new Set(allowedParticipants.map(function(item) { return item.userId; }));
@@ -3080,14 +3104,24 @@
         notifyParticipantChanges(renderedParticipants);
         participants = renderedParticipants;
         renderParticipants(participants);
-        ensurePeersForParticipants();
-        scheduleNoRemoteAudioCheck("participants");
-        updateLocalStatus();
+        if (!joined) {
+          updatePassiveParticipantPresence(participants);
+        }
+        if (joined) {
+          ensurePeersForParticipants();
+          scheduleNoRemoteAudioCheck("participants");
+          updateLocalStatus();
+        }
       }, function(error) {
         console.warn(error);
         showConnectionFailureGuide("Firestore participants listener");
         pushDiagnostic("error", "\u53c2\u52a0\u8005\u76e3\u8996\u306b\u5931\u6557", error && error.message ? error.message : "");
         el.participants.innerHTML = '<div class="notice">参加者を読み込めませんでした。</div>';
+        recordListenerClosed("participants");
+        unsubParticipants = null;
+        if (!joined) {
+          window.setTimeout(resumePassiveParticipantWatcher, 3000);
+        }
       });
     }
 
@@ -3104,7 +3138,7 @@
         });
         knownParticipantNames.forEach(function(name, id) {
           if (id !== userId && !nextMap.has(id)) {
-            showCallEventNotice(name + "さんが退出しました。");
+            showCallEventNotice(name + "さんが退室しました。");
           }
         });
       }
@@ -3197,7 +3231,7 @@
         cleaned += 1;
       });
       if (cleaned) {
-        pushDiagnostic("info", "参加者の残り表示を整理", "手元の参加者一覧から古い端末を" + cleaned + "件確認し、退室扱いにしました。追加の読み取りは行っていません。");
+        pushDiagnostic("info", "参加者の古い表示を整理", "手元の参加者一覧から古い端末を" + cleaned + "件確認し、退室扱いにしました。追加の読み取りは行っていません。");
       }
     }
 
@@ -3670,13 +3704,13 @@
         const help = getConnectionFailureHelp(reason || remoteId);
         showConnectionFailureGuide(reason || remoteId);
         if (el.reconnect) el.reconnect.disabled = false;
-        setNotice(help + " 自動復帰を試しましたが戻りませんでした。再接続ボタン、同じURLの開き直し、新しいURL作成の順に試してください。", true);
+        setNotice(help + " 自動再接続を試しましたが戻りませんでした。再接続ボタン、同じURLの開き直し、新しいURL作成の順に試してください。", true);
         pushDiagnostic("error", "自動再接続を停止", AUTO_RECONNECT_MAX_ATTEMPTS + "回試しても戻りませんでした。");
         return;
       }
       autoReconnectAttempts.set(remoteId, attempts + 1);
       setCallPhase("reconnecting", "\u901a\u4fe1\u304c\u63fa\u308c\u305f\u305f\u3081\u81ea\u52d5\u3067\u623b\u3057\u3066\u3044\u307e\u3059\u3002");
-      pushDiagnostic("warn", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3092\u958b\u59cb", (reason ? reason + " / " : "") + (attempts + 1) + "/" + AUTO_RECONNECT_MAX_ATTEMPTS + "回目");
+      pushDiagnostic("warn", "\u81ea\u52d5\u518d\u63a5\u7d9a\u3092\u958b\u59cb", (reason ? reason + " / " : "") + (attempts + 1) + "/" + AUTO_RECONNECT_MAX_ATTEMPTS + "蝗樒岼");
       const timer = window.setTimeout(function() {
         autoReconnectTimers.delete(remoteId);
         const current = peers.get(remoteId);
@@ -3712,7 +3746,7 @@
           const help = getConnectionFailureHelp(reason || remoteId);
           showConnectionFailureGuide(reason || remoteId);
           if (el.reconnect) el.reconnect.disabled = false;
-          setNotice(help + " 再接続ボタン、同じURLの開き直し、新しいURL作成の順に試してください。", true);
+          setNotice(help + " 自動再接続を試しましたが戻りませんでした。再接続ボタン、同じURLの開き直し、新しいURL作成の順に試してください。", true);
           pushDiagnostic("error", "\u518d\u63a5\u7d9a\u304c\u6642\u9593\u5185\u306b\u5b8c\u4e86\u3057\u307e\u305b\u3093", remoteId + " / " + help);
         }, AUTO_RECONNECT_GIVEUP_MS);
       }, AUTO_RECONNECT_DELAY_MS);
@@ -3781,6 +3815,35 @@
       }).join("") + micHint;
     }
 
+    function updatePassiveParticipantPresence(items) {
+      if (joined) return;
+      const activeItems = Array.isArray(items) ? items : [];
+      const otherItems = activeItems.filter(function(item) {
+        return item && item.userId && item.userId !== userId;
+      });
+      if (!otherItems.length) {
+        lastPassiveParticipantPresenceSignature = "";
+        setReadyStatus();
+        updateConnectionPill("相手待ち");
+        return;
+      }
+      const presenceSignature = otherItems
+        .map(function(item) { return item.userId; })
+        .sort()
+        .join("|");
+      const names = otherItems.slice(0, 2).map(function(item) {
+        return getDisplayName(item.userName || "匿名さん");
+      });
+      const moreCount = Math.max(0, otherItems.length - names.length);
+      const label = names.join("、") + (moreCount ? " ほか" + moreCount + "人" : "");
+      setStatus("参加者がいます", label + " が待っています。参加すると通話できます。");
+      updateConnectionPill("参加者あり");
+      if (presenceSignature !== lastPassiveParticipantPresenceSignature) {
+        lastPassiveParticipantPresenceSignature = presenceSignature;
+        showCallEventNotice(label + " が参加しています。");
+      }
+    }
+
     function shouldShowMicUnlockHint() {
       return joined && muted && !micUnlockHintDismissed;
     }
@@ -3800,7 +3863,7 @@
       }
       if (item.speaking) {
         return {
-          label: isSelf ? "自分 会話中" : "会話中",
+          label: isSelf ? "自分が会話中" : "会話中",
           detail: isSelf ? "自分が話しています" : "話しています",
           className: "is-speaking",
           icon: "fa-volume-high"
@@ -3812,7 +3875,7 @@
       }
       if (item.connected) {
         return {
-          label: isSelf ? "自分 接続済" : "接続済",
+          label: isSelf ? "自分 接続済み" : "接続済み",
           detail: isSelf ? "自分は接続済みです" : "接続済みです",
           className: "is-connected",
           icon: "fa-phone-volume"
@@ -3919,7 +3982,7 @@
         });
         if (!stillConnected || trackArrived) return;
         noRemoteAudioWarned = true;
-        const help = "相手は参加していますが、音声トラックが届いていません。相手のマイク許可、ミュート、ページの開き直しを確認してください。";
+        const help = "相手は参加していますが、音声が届いていません。相手のマイク許可、ミュート、ページの開き直しを確認してください。";
         pushDiagnostic("warn", "相手の音声が届いていません", (reason || "audio-check") + " / " + help);
         setNotice(help, true);
         if (callPhase === "connected") setCallPhase("connected", "接続はありますが、相手の音声が届いていない可能性があります。");
@@ -4101,7 +4164,10 @@
         renderCallReport(buildCallEndReport(delayedActiveListeners, cleanupResult), delayedActiveListeners !== 0 || !cleanupResult.ok);
         setNotice(lastCleanupSummary, delayedActiveListeners !== 0 || !cleanupResult.ok);
       }, CLEANUP_AUDIT_DELAY_MS);
-      if (updateStatus) setStatus("退室しました", "もう一度参加できます。" + cleanupText);
+      if (updateStatus) {
+        setStatus("退室しました", "もう一度参加できます。" + cleanupText);
+        ensureParticipantWatcher();
+      }
     }
 
     function getOpenListenerCount() {
@@ -4146,11 +4212,11 @@
       const url = getShareUrl();
       try {
         await navigator.clipboard.writeText(url);
-        flashButton(el.share, '<i class="fa-solid fa-check"></i><span>済み</span>');
-        setNotice("通話URLをコピーしました。通話ID: " + callId + "。新規ボタンを押すまでは同じURLを使えます。", true);
+        flashButton(el.share, '<i class="fa-solid fa-check"></i><span>コピー済み</span>');
+        setNotice("通話URLをコピーしました。通話ID: " + callId + "。新規URLボタンを押すまでは同じURLを使えます。", true);
         pushDiagnostic("info", "通話URLをコピー", "通話ID: " + callId);
       } catch (error) {
-        setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。同じURLなら同じ通話です。", true);
+        setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。同じURLなら同じ通話に入れます。", true);
       }
     }
 
@@ -4200,7 +4266,7 @@
       const rows = (items || []).map(function(item) {
         const statusClass = item.pending ? "is-pending" : (item.ok ? "is-ok" : "is-fail");
         const icon = item.pending ? "fa-spinner fa-spin" : (item.ok ? "fa-check" : "fa-triangle-exclamation");
-        const statusText = item.pending ? "確認中" : (item.ok ? "OK" : "確認");
+        const statusText = item.pending ? "確認中" : (item.ok ? "OK" : "確認が必要");
         return '<span class="preflight-check-chip ' + statusClass + '">' +
           '<i class="fa-solid ' + icon + '"></i>' +
           '<span>' + escapeHtml(item.label) + '</span>' +
@@ -4319,9 +4385,9 @@
       clearJoinSlowTimer();
       joinSlowTimer = window.setTimeout(function() {
         if (!joinBusy && !joined) return;
-        setNotice("接続準備に時間がかかっています。表示が止まる場合は再接続してください。");
+        setNotice("接続準備に時間がかかっています。表示が止まる場合は、ページを開き直してください。");
         if (joinBusy) {
-          setStatus("接続を確認中", "マイク許可や通信状態を確認しています。時間がかかる場合は再読み込みしてください。");
+          setStatus("接続を確認中", "マイク許可と通信状態を確認しています。時間がかかる場合はページを開き直してください。");
         }
       }, 12000);
     }
@@ -4421,20 +4487,40 @@
         : (isMobile ? "スマホは音量を控えめに" : "PCはヘッドセット推奨");
       const detail = isIOS
         ? "スピーカー利用時はハウリングしやすいので、近くの端末では音量を下げてください。"
-        : (isMobile ? "端末同士が近い場合は音量を下げるとノイズを抑えやすいです。" : "マイクとスピーカーが近いと反響しやすいので、イヤホンが安定します。");
+        : (isMobile ? "端末同士が近い場合は、音量を下げるとノイズを抑えやすいです。" : "マイクとスピーカーが近いと反響しやすいので、イヤホンやヘッドセットが安定します。");
       el.deviceTip.innerHTML = '<i class="fa-solid fa-mobile-screen-button"></i><span><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(detail) + '</span></span>';
     }
 
     function updateConnectionPill(text) {
       if (!el.connectionPill) return;
-      const normalized = text === "待機" ? "相手待ち" : (text === "不安定" ? "失敗" : (text === "デモ通話" ? "通話中" : (text === "デモ" ? "相手待ち" : text)));
-      const icon = normalized === "通話中" ? "fa-phone-volume" : (normalized === "接続中" ? "fa-spinner" : (normalized === "再接続中" ? "fa-rotate" : (normalized === "失敗" ? "fa-triangle-exclamation" : "fa-user-clock")));
+      const map = {
+        "待機": "相手待ち",
+        "相手待ち": "相手待ち",
+        "参加者あり": "参加者あり",
+        "接続中": "接続中",
+        "再接続中": "再接続中",
+        "通話中": "通話中",
+        "失敗": "失敗",
+        "不安定": "失敗",
+        "デモ通話": "通話中",
+        "デモ": "相手待ち"
+      };
+      const normalized = map[text] || text || "相手待ち";
+      const icon = normalized === "通話中" ? "fa-phone-volume"
+        : (normalized === "接続中" ? "fa-spinner"
+        : (normalized === "再接続中" ? "fa-rotate"
+        : (normalized === "失敗" ? "fa-triangle-exclamation"
+        : (normalized === "参加者あり" ? "fa-user-check" : "fa-user-clock"))));
       el.connectionPill.classList.toggle("is-active", normalized === "通話中");
       el.connectionPill.classList.toggle("is-connecting", normalized === "接続中" || normalized === "再接続中");
       el.connectionPill.classList.toggle("is-unstable", normalized === "失敗");
       el.connectionPill.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(normalized) + '</span>';
       if (el.qualityTip) {
-        const label = normalized === "通話中" ? "音声品質は良好です" : (normalized === "失敗" || normalized === "再接続中" ? "通信が不安定です。再接続できます" : "音声接続を確認中");
+        const label = normalized === "通話中"
+          ? "音声品質は良好です"
+          : (normalized === "失敗" || normalized === "再接続中"
+            ? "通信が不安定です。再接続を試しています"
+            : "音声接続を確認中です");
         el.qualityTip.innerHTML = '<i class="fa-solid fa-wave-square"></i><span>' + escapeHtml(label) + '</span>';
       }
     }
@@ -4602,16 +4688,16 @@
     function getDiagnosticAdvice(level, message, detail) {
       const text = [level, message, detail].join(" ").toLowerCase();
       if (/満員|2人|capacity|limit/.test(text)) {
-        return "この音声通話は1対1用です。3人以上で使う場合は、新しい通話URLを作ってペアごとに分けてください。";
+        return "この音声通話は1対1用です。2人以上で使う場合は、新規URLを作ってペアごとに分けてください。";
       }
       if (/マイク|microphone|notallowed|securityerror/.test(text)) {
         return "ブラウザのマイク許可を確認してください。iPhone/iPadはSafariのサイト設定、PCはアドレスバー付近の権限を見ます。";
       }
-      if (/firestore|rules|参加者監視|シグナル監視/.test(text)) {
+      if (/firestore|rules|参加者|監視|シグナル/.test(text)) {
         return "Firestore Rules、通信制限、無料枠上限を確認してください。声はFirestoreに流していませんが、接続準備には必要です。";
       }
       if (/再接続|reconnect|failed|disconnected/.test(text)) {
-        return "一時的な通信揺れです。数秒待って戻らない場合は、再接続ボタン、ページ更新、別URL作成の順に試してください。";
+        return "一時的な通信揺れです。数秒待って戻らない場合は、再接続、ページ更新、別URL作成の順に試してください。";
       }
       if (/品質|rtt|jitter|loss|packet/.test(text)) {
         return "イヤホン利用、端末同士を離す、Wi-Fiを近くする、スピーカー音量を下げると改善しやすいです。";
@@ -4866,7 +4952,7 @@
       if (!stats || !stats.quality || stats.quality === "idle" || stats.quality === "good") return "";
       const tips = [];
       if (stats.lossPct != null && stats.lossPct > 1) tips.push("音が途切れる場合はWi-Fiや電波を確認");
-      if (stats.jitterMs != null && stats.jitterMs > 30) tips.push("音が揺れる場合は他アプリを閉じる");
+      if (stats.jitterMs != null && stats.jitterMs > 30) tips.push("音が揺れる場合は他のアプリを閉じる");
       if (stats.rttMs != null && stats.rttMs > 150) tips.push("遅れが大きい場合は通信環境を変更");
       if (!tips.length) tips.push("イヤホン利用と端末音量を控えめにする");
       return tips.join(" / ");
@@ -4916,8 +5002,8 @@
         pushDiagnostic("warn", title, remaining.join(" / "));
         return { ok: false, detail: remaining.join(" / ") };
       } else {
-        pushDiagnostic("info", title, "listener・timer・peer・マイクをすべて停止済みです。");
-        return { ok: true, detail: "listener・timer・peer・マイクをすべて停止済みです。" };
+        pushDiagnostic("info", title, "listener・timer・peer・マイクはすべて停止済みです。");
+        return { ok: true, detail: "listener・timer・peer・マイクはすべて停止済みです。" };
       }
     }
 
@@ -4998,17 +5084,17 @@
 
     function getConnectionFailureHelp(reason) {
       const text = String(reason || "").toLowerCase();
-      if (/firestore|permission|rules|参加者|signal|シグナル/.test(text)) {
+      if (/firestore|permission|rules|participant|signal|シグナル/.test(text)) {
         return "通話準備の保存で止まっています。Firestore Rules、無料枠、同じURLを開いているかを確認してください。";
       }
       if (/ice|failed|disconnected|restart|reconnect/.test(text)) {
         return "端末同士の音声経路を作れませんでした。再接続、Wi-Fi切替、VPN解除、同じURLの開き直しを試してください。";
       }
-      if (/timeout|長引|stuck|時間/.test(text)) {
-        return "接続に時間がかかっています。相手が同じURLで参加しているか、マイク許可が止まっていないか確認してください。";
+      if (/timeout|stuck|時間/.test(text)) {
+        return "接続に時間がかかっています。相手が同じURLで参加しているか、マイク許可で止まっていないか確認してください。";
       }
       if (/capacity|満員|2人|limit/.test(text)) {
-        return "この通話は1対1用です。3人以上の場合は新しい通話URLを作ってペアを分けてください。";
+        return "この通話は1対1用です。2人以上の場合は新しい通話URLを作って分かれてください。";
       }
       return "音声接続が戻りませんでした。同じURLを開き直すか、新しい通話URLを作ってください。";
     }
@@ -5019,7 +5105,7 @@
 
     function getTeacherFailureGuide(reason) {
       const text = String(reason || "").toLowerCase();
-      if (/firestore|permission|rules|signal|参加者/.test(text)) {
+      if (/firestore|permission|rules|signal|participant/.test(text)) {
         return "先生向け: Firebaseの無料枠、Firestore Rules、同じ通話URLかを確認してください。";
       }
       if (/microphone|permission|denied|マイク/.test(text)) {
@@ -5207,7 +5293,7 @@
           const now = Date.now();
           if (!muted && !nextSpeaking && participants.length > 1 && now - lastMuteReminderAt > 45000) {
             lastMuteReminderAt = now;
-            setNotice("話していない時はミュートにすると、相手にノイズが届きにくくなります。");
+        setNotice("話していない時はミュートにすると、相手にノイズが届きにくくなります。");
           }
           const previousSpeaking = speakingState;
           if (nextSpeaking !== speakingState) {
@@ -5295,7 +5381,7 @@
       speakingCandidateState = false;
       speakingCandidateSince = 0;
       lastSpeakingWrite = 0;
-      updateAudioHealth(0, false, "停止中");
+      updateAudioHealth(0, false, "蛛懈ｭ｢荳ｭ");
     }
 
     function handleParticipantClick(event) {
@@ -5458,7 +5544,7 @@
       if (isOpen) {
         const title = currentStatusTitle || "";
         const text = currentStatusText || "";
-        el.connectionTooltip.innerHTML = "<strong>" + escapeHtml(title || "接続状態") + "</strong><span>" + escapeHtml(text || "現在の接続状態です。") + "</span>";
+      el.connectionTooltip.innerHTML = "<strong>" + escapeHtml(title || "接続状態") + "</strong><span>" + escapeHtml(text || "現在の接続状態です。") + "</span>";
         positionPopoverAbove(el.connectionPill, el.connectionTooltip);
       }
       el.connectionTooltip.classList.toggle("is-showing", isOpen);
@@ -5554,7 +5640,7 @@
       const text = el.metricsOutput.textContent || "";
       try {
         await navigator.clipboard.writeText(text);
-        setNotice("計測結果をコピーしました。");
+      setNotice("計測結果をコピーしました。");
       } catch (error) {
         const textarea = document.createElement("textarea");
         textarea.value = text;
@@ -5567,9 +5653,9 @@
         textarea.select();
         try {
           document.execCommand("copy");
-          setNotice("計測結果をコピーしました。");
+      setNotice("計測結果をコピーしました。");
         } catch (copyError) {
-          setNotice("コピーできませんでした。");
+        setNotice("コピーできませんでした。");
         }
         textarea.remove();
       }
@@ -5626,7 +5712,7 @@
           history.replaceState(null, "", url.toString());
         }
       } catch (error) {
-        // URLを整えられない環境でも、内部の通話IDは固定して続けます。
+        // URLを読めない環境でも、既定の通話IDで続けます。
       }
     }
 
@@ -5682,7 +5768,7 @@
           localStorage.removeItem("standaloneVoiceUserName");
         }
       } catch (error) {
-        // 保存できない環境でも通話は続けます。
+        // 菫晏ｭ倥〒縺阪↑縺・腸蠅・〒繧る夊ｩｱ縺ｯ邯壹￠縺ｾ縺吶・
       }
       if (joined) updatePresence();
     }
@@ -5709,7 +5795,7 @@
 
     function getInitial(name) {
       const value = getDisplayName(name);
-      return value ? value.slice(0, 1).toUpperCase() : "匿";
+      return value ? value.slice(0, 1).toUpperCase() : "蛹ｿ";
     }
 
     function getTimestampMillis(value) {
@@ -5739,8 +5825,8 @@
       currentStatusText = text || "";
       title = currentStatusTitle;
       const detail = currentStatusText || currentStatusTitle;
-      if (title.indexOf("通話中") !== -1) setCallPhase("connected", detail);
-      else if (title.indexOf("不安定") !== -1 || title.indexOf("できません") !== -1 || title.indexOf("未接続") !== -1) setCallPhase("failed", detail);
+      if (title.indexOf("通話中") !== -1 || title.indexOf("接続済み") !== -1) setCallPhase("connected", detail);
+      else if (title.indexOf("不安定") !== -1 || title.indexOf("できません") !== -1 || title.indexOf("未接続") !== -1 || title.indexOf("失敗") !== -1) setCallPhase("failed", detail);
       else if (title.indexOf("再接続") !== -1) setCallPhase("reconnecting", detail);
       else if (title.indexOf("接続") !== -1 || title.indexOf("参加しています") !== -1 || title.indexOf("マイク") !== -1) setCallPhase("connecting", detail);
       else setCallPhase("waiting", detail);
@@ -5843,7 +5929,7 @@
         }
       }
       if (connected) {
-        return "接続まで約" + connected + "秒。待ちが長い区間: " + (phases.length ? phases.join(" / ") : "目立つ遅延なし");
+        return "接続まで約" + connected + "秒。待ち時間の内訳: " + (phases.length ? phases.join(" / ") : "目立つ遅れはありません");
       }
       return "未接続。現在までの長い待ち: " + (phases.length ? phases.join(" / ") : "記録中");
     }
@@ -5864,7 +5950,7 @@
       if (readsPerMinute <= FIRESTORE_GUARD_READS_PER_MIN && writesPerMinute <= FIRESTORE_GUARD_WRITES_PER_MIN) return;
       firestoreGuardLastWarnAt = now;
       firestoreGuardActiveUntil = now + FIRESTORE_GUARD_ACTIVE_MS;
-      const detail = "trigger " + (trigger || "unknown") + " / reads " + readsPerMinute + "/分 / writes " + writesPerMinute + "/分。発話状態のFirestore同期を一時的に控えめにします。";
+      const detail = "trigger " + (trigger || "unknown") + " / reads " + readsPerMinute + "/分 / writes " + writesPerMinute + "/分。通話中はFirestore同期を控えめにします。";
       pushDiagnostic("warn", "Firestore使用量を自動ガード", detail);
       setNotice("Firestore使用量が多めなので、音声通話を優先して状態更新を控えめにしています。", true);
     }
@@ -5889,7 +5975,7 @@
         const minutes = connected ? Math.max(0.1, (item.seconds - connected.seconds) / 60) : Math.max(0.1, item.seconds / 60);
         const ongoingReads = connected ? Math.round(Math.max(0, item.estimatedReads - connected.estimatedReads) / minutes) : Math.round(item.estimatedReads / minutes);
         const ongoingWrites = connected ? Math.round(Math.max(0, item.writes - connected.writes) / minutes) : Math.round(item.writes / minutes);
-        pushDiagnostic("info", formatMetricLabel(label) + "の使用量", "通話中の目安: reads " + ongoingReads + "/分、writes " + ongoingWrites + "/分。急増していなければ正常です。");
+        pushDiagnostic("info", formatMetricLabel(label) + "の使用量", "通話中の目安: reads " + ongoingReads + "/分 / writes " + ongoingWrites + "/分。急増していなければ正常です。");
       }
       if (label === "call-ended") {
         recordCallCostHistory(item);
@@ -6323,7 +6409,7 @@
           renderHistoryStat("直近10回 平均", formatYen(stats.recentAverage), "最近の傾向") +
           renderHistoryStat("今週", weekRecords.length + "回", "合計 " + formatYen(sumBy(weekRecords, "totalCostYen"))) +
           renderHistoryStat("今月", monthRecords.length + "回", "合計 " + formatYen(sumBy(monthRecords, "totalCostYen"))) +
-          renderHistoryStat("保存方針", "軽量", "Firestoreには保存しません");
+          renderHistoryStat("保存方法", "軽量", "Firestoreには保存しません");
       }
 
       if (el.metricsHistoryChart) {
@@ -6525,10 +6611,10 @@
         el.metricsListenersCount.textContent = sumMetric(metrics.listenersOpened) + " / " + sumMetric(metrics.listenersClosed);
       }
       if (el.metricsDetailReads) {
-        el.metricsDetailReads.innerHTML = renderMetricDetail("reads", reads, "Firestoreから読んだ可能性があるdocument数の目安です。通話中に増えにくいほど軽くなります。");
+        el.metricsDetailReads.innerHTML = renderMetricDetail("reads", reads, "Firestoreから読み込んだ可能性があるdocument数の目安です。通話中に増えにくいほど軽くなります。");
       }
       if (el.metricsDetailWrites) {
-        el.metricsDetailWrites.innerHTML = renderMetricDetail("writes", writes, "参加、接続状態、ミュート、発話状態などを書いた回数です。発話状態の書き込みは抑制済みです。");
+        el.metricsDetailWrites.innerHTML = renderMetricDetail("writes", writes, "参加、接続状態、ミュート、発話状態などを書き込んだ回数です。発話状態の書き込みは抑制済みです。");
       }
       if (el.metricsDetailDeletes) {
         el.metricsDetailDeletes.innerHTML = renderMetricDetail("deletes", deletes, "古いsignalなど、不要になった通信用データの削除回数です。");
@@ -6561,7 +6647,7 @@
       const list = metrics.milestones || [];
       const previous = list.length >= 2 ? list[list.length - 2] : null;
       if (!previous || !latest) {
-        return '<span class="metrics-compare-chip"><strong>比較待ち</strong><small>接続後に区間差分を表示します</small></span>' +
+        return '<span class="metrics-compare-chip"><strong>比較まち</strong><small>接続後に区間差を表示します</small></span>' +
           '<span class="metrics-compare-chip"><strong>reads --</strong><small>前回との差分</small></span>' +
           '<span class="metrics-compare-chip"><strong>listener ' + getOpenListenerCount() + '</strong><small>現在開いている監視</small></span>';
       }
@@ -6589,7 +6675,7 @@
       const lower = value.toLowerCase();
       if (!value) return "";
       if (/ice|candidate|sdp|offer|answer|webrtc|failed/.test(lower)) {
-        return "音声の接続を確認しています。戻らない場合は再接続を押してください。";
+        return "音声の接続を確認しています。終わらない場合は再接続を押してください。";
       }
       if (/firestore rules|permission|権限|rules/.test(lower)) {
         return "接続準備を保存できませんでした。Firebaseの設定を確認してください。";
