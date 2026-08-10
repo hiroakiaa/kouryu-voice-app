@@ -6307,11 +6307,11 @@
       const weekRecords = records.filter(function(item) { return item.weekKey === weekKey; });
       const monthRecords = records.filter(function(item) { return item.monthKey === monthKey; });
       const stats = {
-        average: average(tenMinuteCosts),
-        median: median(tenMinuteCosts),
-        mode: mode(tenMinuteCosts),
-        recentAverage: average(recent10.map(function(item) { return Number(item.tenMinuteCostYen) || 0; })),
-        freeAverage: average(freeCalls)
+        average: costAverage(tenMinuteCosts),
+        median: costMedian(tenMinuteCosts),
+        mode: costMode(tenMinuteCosts),
+        recentAverage: costAverage(recent10.map(function(item) { return Number(item.tenMinuteCostYen) || 0; })),
+        freeAverage: costAverage(freeCalls)
       };
 
       if (el.metricsHistorySummary) {
@@ -6351,7 +6351,7 @@
 
     function renderPeriodRow(label, records) {
       const count = records.length;
-      const avgCost = average(records.map(function(item) { return Number(item.tenMinuteCostYen) || 0; }));
+      const avgCost = costAverage(records.map(function(item) { return Number(item.tenMinuteCostYen) || 0; }));
       return '<div class="metrics-history-row"><span><strong>' + escapeHtml(label) + '</strong><br><small>' + count + '回の記録</small></span><span><strong>' + escapeHtml(formatYen(avgCost)) + '</strong><br><small>10分平均</small></span></div>';
     }
 
@@ -6387,20 +6387,20 @@
       return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="10分通話料金の推移"><polyline class="chart-line" points="' + polyline + '"></polyline>' + dots + '</svg>';
     }
 
-    function average(values) {
+    function costAverage(values) {
       const list = values.filter(function(value) { return Number.isFinite(value); });
       if (!list.length) return 0;
       return list.reduce(function(total, value) { return total + value; }, 0) / list.length;
     }
 
-    function median(values) {
+    function costMedian(values) {
       const list = values.filter(function(value) { return Number.isFinite(value); }).sort(function(a, b) { return a - b; });
       if (!list.length) return 0;
       const middle = Math.floor(list.length / 2);
       return list.length % 2 ? list[middle] : (list[middle - 1] + list[middle]) / 2;
     }
 
-    function mode(values) {
+    function costMode(values) {
       const counts = {};
       let bestValue = 0;
       let bestCount = 0;
