@@ -917,6 +917,16 @@
       color: var(--accent);
     }
 
+    .participant-state-badge.is-receiving {
+      border-color: rgba(109, 223, 255, 0.56);
+      color: #d9f9ff;
+    }
+
+    .participant-state-badge.is-no-audio {
+      border-color: rgba(255, 196, 87, 0.5);
+      color: #ffe4a3;
+    }
+
     .participant.is-self .participant-state-badge {
       top: auto;
       bottom: -0.58rem;
@@ -1099,6 +1109,51 @@
       border-color: var(--danger);
       background: transparent;
       color: #ffe3eb;
+    }
+
+    .call-event-notice,
+    .call-report {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.36rem;
+      min-height: 1.8rem;
+      margin-top: 0.16rem;
+      padding: 0.34rem 0.7rem;
+      border: 0.06rem solid rgba(139, 233, 255, 0.22);
+      border-radius: 999rem;
+      background: rgba(3, 23, 36, 0.76);
+      color: var(--text);
+      font-size: 0.72rem;
+      font-weight: 850;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .call-event-notice.is-showing,
+    .call-report.is-showing {
+      display: inline-flex;
+      justify-self: center;
+    }
+
+    .call-event-notice.is-warning,
+    .call-report.is-warning {
+      border-color: rgba(255, 196, 87, 0.55);
+      color: #ffe9ad;
+    }
+
+    .call-report {
+      border-radius: 0.85rem;
+      background: rgba(7, 31, 45, 0.88);
+      color: var(--muted);
+      font-size: 0.68rem;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+
+    .call-report strong {
+      color: var(--text);
+      font-weight: 950;
     }
 
     .notice {
@@ -1765,6 +1820,8 @@
     <section class="card participants-card">
       <h2><i class="fa-solid fa-user-group"></i> 参加者</h2>
       <div id="participants" class="participants"></div>
+      <div id="callEventNotice" class="call-event-notice" role="status" aria-live="polite"></div>
+      <div id="callReport" class="call-report" role="status" aria-live="polite"></div>
       <div id="notice" class="notice" role="status" aria-live="polite"></div>
     </section>
 
@@ -1869,7 +1926,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-09-reliability-assistant";
+    const APP_VERSION = "2026-08-10-voice-assurance";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -2011,6 +2068,8 @@
       diagnosticsToggle: document.getElementById("diagnosticsToggleBtn"),
       diagnosticsPanel: document.getElementById("diagnosticsPanel"),
       participants: document.getElementById("participants"),
+      callEventNotice: document.getElementById("callEventNotice"),
+      callReport: document.getElementById("callReport"),
       name: document.getElementById("nameInput"),
       join: document.getElementById("joinBtn"),
       mute: document.getElementById("muteBtn"),
@@ -2059,6 +2118,7 @@
     let knownParticipantNames = new Map();
     let hasParticipantSnapshot = false;
     let lastParticipantsRenderSignature = "";
+    let callEventNoticeTimer = null;
     let metricTimers = [];
     let joinSlowTimer = null;
     let connectionStuckTimer = null;
@@ -2389,6 +2449,8 @@
       if (!runPassivePreflightCheck()) return;
       resetMetrics();
       markMetricMilestone("before-call-start");
+      hideCallReport();
+      hideCallEventNotice();
       const typedName = getDisplayName(el.name.value);
       const userName = resolveUserName();
       saveName(userName);
@@ -2600,9 +2662,14 @@
         if (item && item.userId) nextMap.set(item.userId, getDisplayName(item.userName || "匿名さん"));
       });
       if (hasParticipantSnapshot) {
+        nextMap.forEach(function(name, id) {
+          if (id !== userId && !knownParticipantNames.has(id)) {
+            showCallEventNotice(name + "さんが参加しました。");
+          }
+        });
         knownParticipantNames.forEach(function(name, id) {
           if (id !== userId && !nextMap.has(id)) {
-            setNotice(name + "さんが退出しました。");
+            showCallEventNotice(name + "さんが退出しました。");
           }
         });
       }
@@ -2767,6 +2834,8 @@
         receivedCandidateKeys: new Set(),
         audio: createRemoteAudio(remoteId),
         remoteTrackReceived: false,
+        remoteAudioLastPacketAt: 0,
+        remoteAudioPackets: 0,
         dataChannel: null,
         dataChannelReady: false,
         offered: false,
@@ -2784,6 +2853,7 @@
 
       peer.ontrack = function(event) {
         state.remoteTrackReceived = true;
+        state.remoteAudioLastPacketAt = Date.now();
         lastRemoteTrackAt = Date.now();
         clearNoRemoteAudioTimer();
         noRemoteAudioWarned = false;
@@ -2797,6 +2867,8 @@
         pushDiagnostic("info", "\u97f3\u58f0\u30c8\u30e9\u30c3\u30af\u3092\u53d7\u4fe1", state.name || remoteId);
         startStatsMonitor();
         setStatus("通話中です", "このページを開いたまま話してください。");
+        lastParticipantsRenderSignature = "";
+        renderParticipants(participants);
       };
 
       peer.ondatachannel = function(event) {
@@ -3268,6 +3340,10 @@
           icon: "fa-volume-high"
         };
       }
+      if (!isSelf) {
+        const audioMeta = getRemoteAudioStatusMeta(item);
+        if (audioMeta) return audioMeta;
+      }
       if (item.connected) {
         return {
           label: isSelf ? "自分 接続済" : "接続済",
@@ -3284,6 +3360,26 @@
       };
     }
 
+    function getRemoteAudioStatusMeta(item) {
+      const state = peers.get(item && item.userId);
+      if (!state || !item || !item.connected) return null;
+      if (!state.remoteTrackReceived) {
+        return {
+          label: "音声待ち",
+          detail: "接続済みですが、相手の音声トラックを待っています",
+          className: "is-no-audio",
+          icon: "fa-ear-listen"
+        };
+      }
+      const recentAudio = state.remoteAudioLastPacketAt && Date.now() - state.remoteAudioLastPacketAt < 20000;
+      return {
+        label: recentAudio ? "受信中" : "音声待ち",
+        detail: recentAudio ? "相手の音声を受信しています" : "音声データを待っています",
+        className: recentAudio ? "is-receiving" : "is-no-audio",
+        icon: recentAudio ? "fa-headphones-simple" : "fa-ear-listen"
+      };
+    }
+
     function getParticipantsRenderSignature(items) {
       if (!items || !items.length) return "empty";
       return items.map(function(item) {
@@ -3293,9 +3389,21 @@
           item.sessionId || "",
           item.muted ? "m" : "u",
           item.connected ? "c" : "w",
-          item.speaking && !item.muted ? "s" : "q"
+          item.speaking && !item.muted ? "s" : "q",
+          getParticipantAudioSignature(item)
         ].join(":");
       }).join("|");
+    }
+
+    function getParticipantAudioSignature(item) {
+      if (!item || item.userId === userId) return "self";
+      const state = peers.get(item.userId);
+      if (!state) return "none";
+      return [
+        state.remoteTrackReceived ? "track" : "wait",
+        state.remoteAudioLastPacketAt && Date.now() - state.remoteAudioLastPacketAt < 20000 ? "recent" : "silent",
+        state.remoteAudioPackets || 0
+      ].join("-");
     }
 
     function isPeerConnected(peer) {
@@ -3520,6 +3628,7 @@
         lastCleanupSummary = cleanupResult.ok
           ? "終了処理OK: listener 0 / timer 0 / peer 0"
           : "終了処理を確認してください: " + cleanupResult.detail;
+        renderCallReport(buildCallEndReport(delayedActiveListeners, cleanupResult), delayedActiveListeners !== 0 || !cleanupResult.ok);
         setNotice(lastCleanupSummary, delayedActiveListeners !== 0 || !cleanupResult.ok);
       }, CLEANUP_AUDIT_DELAY_MS);
       if (updateStatus) setStatus("退室しました", "もう一度参加できます。" + cleanupText);
@@ -3568,7 +3677,8 @@
       try {
         await navigator.clipboard.writeText(url);
         flashButton(el.share, '<i class="fa-solid fa-check"></i><span>済み</span>');
-        setNotice("通話URLをコピーしました。相手に送るだけで同じ通話に入れます。新規ボタンを押すまでは同じURLを使えます。", true);
+        setNotice("通話URLをコピーしました。通話ID: " + callId + "。新規ボタンを押すまでは同じURLを使えます。", true);
+        pushDiagnostic("info", "通話URLをコピー", "通話ID: " + callId);
       } catch (error) {
         setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。同じURLなら同じ通話です。", true);
       }
@@ -4035,6 +4145,7 @@
     async function collectWebRtcStats() {
       if (!joined || !peers.size) return;
       const values = { rtt: [], jitter: [], lost: 0, packets: 0 };
+      let remoteAudioChanged = false;
       for (const state of peers.values()) {
         if (!state || !state.peer || !isPeerConnected(state.peer)) continue;
         try {
@@ -4050,8 +4161,19 @@
               const currentLost = Number(item.packetsLost || 0);
               const currentReceived = Number(item.packetsReceived || 0);
               if (previous) {
-                values.lost += Math.max(0, currentLost - previous.lost);
-                values.packets += Math.max(0, currentReceived - previous.received);
+                const lostDelta = Math.max(0, currentLost - previous.lost);
+                const receivedDelta = Math.max(0, currentReceived - previous.received);
+                values.lost += lostDelta;
+                values.packets += receivedDelta;
+                if (receivedDelta > 0) {
+                  state.remoteAudioPackets = currentReceived;
+                  state.remoteAudioLastPacketAt = Date.now();
+                  remoteAudioChanged = true;
+                }
+              } else if (currentReceived > 0) {
+                state.remoteAudioPackets = currentReceived;
+                state.remoteAudioLastPacketAt = Date.now();
+                remoteAudioChanged = true;
               }
               lastInboundStats.set(key, { lost: currentLost, received: currentReceived });
             }
@@ -4066,6 +4188,10 @@
         lossPct: values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null,
         quality: classifyQuality(average(values.rtt), average(values.jitter), values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null)
       });
+      if (remoteAudioChanged || participants.length) {
+        lastParticipantsRenderSignature = "";
+        renderParticipants(participants);
+      }
     }
 
     function average(values) {
@@ -5246,6 +5372,10 @@
       return dollars * yenPerDollar;
     }
 
+    function getYenPerDollar() {
+      return normalizeNumberInput(el.metricsRateInput && el.metricsRateInput.value, 158);
+    }
+
     function formatYen(value) {
       if (!Number.isFinite(value) || value <= 0) return "0.0000円";
       if (value < 0.0001) return value.toFixed(6) + "円";
@@ -5277,6 +5407,23 @@
         .replace("connected", "接続時")
         .replace("call-ended", "終了時")
         .replace("current", "現在");
+    }
+
+    function getTeacherDiagnosticSummary() {
+      const quality = activeStats && activeStats.quality ? activeStats.quality : "idle";
+      const peerList = Array.from(peers.values());
+      const connectedPeers = peerList.filter(function(item) {
+        return item && isPeerConnected(item.peer);
+      }).length;
+      const parts = [
+        "phase=" + callPhase,
+        "quality=" + quality,
+        "peers=" + connectedPeers + "/" + peerList.length,
+        "listeners=" + getOpenListenerCount(),
+        "callId=" + callId
+      ];
+      if (lastCleanupSummary) parts.push("cleanup=" + lastCleanupSummary);
+      return parts.join(" / ");
     }
 
     function renderMetricDetail(key, total, note) {
@@ -5350,6 +5497,7 @@
         "writes: " + JSON.stringify(metrics.writes, null, 2) + "\n" +
         "deletes: " + JSON.stringify(metrics.deletes, null, 2) + "\n" +
         "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
+        "teacherDiagnostic: " + getTeacherDiagnosticSummary() + "\n" +
         "cleanup: " + (lastCleanupSummary || "not ended") + "\n" +
         "activeListenersNow: " + getOpenListenerCount() + "\n" +
         "listeners opened/closed: " + JSON.stringify(metrics.listenersOpened, null, 2) + " / " + JSON.stringify(metrics.listenersClosed, null, 2) + "\n" +
@@ -5412,6 +5560,67 @@
         el.notice.textContent = "";
         el.notice.classList.remove("is-important");
       }, 3500);
+    }
+
+    function showCallEventNotice(text, important) {
+      if (!el.callEventNotice) return;
+      const friendly = getFriendlyNotice(text);
+      el.callEventNotice.innerHTML = friendly
+        ? '<i class="fa-solid ' + (important ? "fa-triangle-exclamation" : "fa-circle-info") + '"></i><span>' + escapeHtml(friendly) + '</span>'
+        : "";
+      el.callEventNotice.classList.toggle("is-showing", !!friendly);
+      el.callEventNotice.classList.toggle("is-warning", !!important && !!friendly);
+      if (!friendly) return;
+      window.clearTimeout(callEventNoticeTimer);
+      callEventNoticeTimer = window.setTimeout(hideCallEventNotice, 4200);
+    }
+
+    function hideCallEventNotice() {
+      if (!el.callEventNotice) return;
+      window.clearTimeout(callEventNoticeTimer);
+      callEventNoticeTimer = null;
+      el.callEventNotice.textContent = "";
+      el.callEventNotice.classList.remove("is-showing", "is-warning");
+    }
+
+    function renderCallReport(text, important) {
+      if (!el.callReport) return;
+      if (!text) {
+        hideCallReport();
+        return;
+      }
+      el.callReport.innerHTML = text;
+      el.callReport.classList.add("is-showing");
+      el.callReport.classList.toggle("is-warning", !!important);
+    }
+
+    function hideCallReport() {
+      if (!el.callReport) return;
+      el.callReport.textContent = "";
+      el.callReport.classList.remove("is-showing", "is-warning");
+    }
+
+    function buildCallEndReport(activeListeners, cleanupResult) {
+      const seconds = metrics.startedAt ? Math.max(0, Math.round(((metrics.endedAt || Date.now()) - metrics.startedAt) / 1000)) : 0;
+      const reads = metrics.estimatedReads || 0;
+      const writes = sumMetric(metrics.writes);
+      const deletes = sumMetric(metrics.deletes);
+      const totalYen = firestoreCostYen(reads, writes, deletes, getYenPerDollar());
+      const cleanupOk = activeListeners === 0 && cleanupResult && cleanupResult.ok;
+      return '<i class="fa-solid ' + (cleanupOk ? "fa-circle-check" : "fa-triangle-exclamation") + '"></i>' +
+        '<strong>終了レポート</strong>' +
+        '<span>' + escapeHtml(formatCallDuration(seconds)) + '</span>' +
+        '<span>reads ' + reads + '</span>' +
+        '<span>writes ' + writes + '</span>' +
+        '<span>' + escapeHtml(formatYen(totalYen)) + '</span>' +
+        '<span>listener ' + activeListeners + '</span>';
+    }
+
+    function formatCallDuration(seconds) {
+      const value = Math.max(0, Number(seconds) || 0);
+      const minutes = Math.floor(value / 60);
+      const rest = value % 60;
+      return minutes ? minutes + "分" + rest + "秒" : rest + "秒";
     }
 
     function cssEscape(value) {
