@@ -1345,6 +1345,13 @@
       gap: 0.75rem;
     }
 
+    .modal-head-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.45rem;
+    }
+
     .modal-head h2 {
       color: var(--text);
       font-size: 1rem;
@@ -1357,6 +1364,22 @@
       min-height: 2.2rem;
       padding: 0;
       border-radius: 0.7rem;
+    }
+
+    .metrics-history-open-btn {
+      min-height: 2.2rem;
+      padding: 0 0.72rem;
+      border-radius: 0.7rem;
+      color: var(--text);
+      background: rgba(139, 233, 255, 0.06);
+      font-size: 0.76rem;
+      gap: 0.35rem;
+    }
+
+    .metrics-history-open-btn:not(:disabled):hover,
+    .metrics-history-open-btn:not(:disabled):focus-visible {
+      border-color: var(--accent);
+      background: rgba(139, 233, 255, 0.12);
     }
 
     .metrics-rate-row {
@@ -1636,6 +1659,214 @@
       border-radius: 0.78rem;
       padding: 0.62rem;
       background: #04111c;
+    }
+
+    .metrics-history-card {
+      width: min(100%, 44rem);
+      max-height: min(90svh, 42rem);
+    }
+
+    .metrics-history-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      padding: 0.58rem 0.66rem;
+      border: 0.07rem solid rgba(139, 233, 255, 0.22);
+      border-radius: 0.76rem;
+      color: var(--quiet);
+      background: rgba(139, 233, 255, 0.055);
+      font-size: 0.69rem;
+      font-weight: 740;
+      line-height: 1.48;
+    }
+
+    .metrics-history-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .metrics-history-stat {
+      min-width: 0;
+      display: grid;
+      gap: 0.18rem;
+      padding: 0.62rem;
+      border: 0.08rem solid var(--line);
+      border-radius: 0.82rem;
+      background: rgba(8, 28, 42, 0.82);
+    }
+
+    .metrics-history-stat small {
+      color: var(--muted);
+      font-size: 0.66rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .metrics-history-stat strong {
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 950;
+      line-height: 1.2;
+    }
+
+    .metrics-history-chart-wrap {
+      display: grid;
+      gap: 0.45rem;
+      padding: 0.66rem;
+      border: 0.08rem solid var(--line);
+      border-radius: 0.86rem;
+      background: rgba(3, 15, 25, 0.55);
+    }
+
+    .metrics-history-chart-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.55rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 850;
+    }
+
+    .metrics-history-chart {
+      min-height: 8rem;
+      overflow: hidden;
+      border-radius: 0.7rem;
+      background:
+        linear-gradient(rgba(139, 233, 255, 0.06) 0.06rem, transparent 0.06rem),
+        linear-gradient(90deg, rgba(139, 233, 255, 0.06) 0.06rem, transparent 0.06rem),
+        rgba(0, 0, 0, 0.1);
+      background-size: 100% 25%, 12.5% 100%, auto;
+    }
+
+    .metrics-history-chart svg {
+      display: block;
+      width: 100%;
+      height: 8rem;
+    }
+
+    .metrics-history-chart .chart-line {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 0.16rem;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .metrics-history-chart .chart-dot {
+      fill: #061522;
+      stroke: var(--accent);
+      stroke-width: 0.12rem;
+    }
+
+    .metrics-history-chart .chart-empty {
+      display: grid;
+      min-height: 8rem;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .metrics-history-sections {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0.58rem;
+    }
+
+    .metrics-history-panel {
+      min-width: 0;
+      display: grid;
+      align-content: start;
+      gap: 0.45rem;
+      padding: 0.62rem;
+      border: 0.08rem solid var(--line);
+      border-radius: 0.86rem;
+      background: rgba(8, 28, 42, 0.66);
+    }
+
+    .metrics-history-panel h3 {
+      margin: 0;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 920;
+    }
+
+    .metrics-history-list {
+      display: grid;
+      gap: 0.38rem;
+      max-height: 12rem;
+      overflow-y: auto;
+      padding-right: 0.1rem;
+    }
+
+    .metrics-history-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.45rem;
+      align-items: center;
+      padding: 0.46rem 0.5rem;
+      border: 0.06rem solid rgba(139, 233, 255, 0.16);
+      border-radius: 0.64rem;
+      color: var(--quiet);
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 0.69rem;
+      line-height: 1.35;
+    }
+
+    .metrics-history-row strong {
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .metrics-history-row small {
+      color: var(--muted);
+      font-weight: 760;
+    }
+
+    .metrics-history-empty {
+      display: grid;
+      min-height: 7rem;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 820;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .metrics-history-card {
+        max-height: min(92svh, 44rem);
+      }
+
+      .metrics-history-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .metrics-history-sections {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 420px) {
+      .metrics-history-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .metrics-rate-row {
+        grid-template-columns: minmax(0, 1fr) 5.6rem auto;
+      }
+
+      .metrics-history-open-btn span {
+        display: none;
+      }
+
+      .metrics-history-open-btn {
+        width: 2.2rem;
+        padding: 0;
+      }
     }
 
     .secondary-controls button {
@@ -1972,7 +2203,10 @@
     <div class="metrics-modal-card" role="dialog" aria-modal="true" aria-labelledby="metricsModalTitle">
       <div class="modal-head">
         <h2 id="metricsModalTitle"><i class="fa-solid fa-yen-sign"></i> Firestore料金の目安</h2>
-        <button id="metricsCloseBtn" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-head-actions">
+          <button id="metricsHistoryOpenBtn" class="metrics-history-open-btn" type="button" aria-controls="metricsHistoryModal"><i class="fa-solid fa-chart-line"></i><span>履歴</span></button>
+          <button id="metricsCloseBtn" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
+        </div>
       </div>
       <label class="metrics-rate-row">
         <span>1ドルあたりの円換算</span>
@@ -2018,6 +2252,36 @@
       <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
     </div>
   </div>
+  <div id="metricsHistoryModal" class="metrics-modal metrics-history-modal" aria-hidden="true">
+    <div class="metrics-modal-card metrics-history-card" role="dialog" aria-modal="true" aria-labelledby="metricsHistoryTitle">
+      <div class="modal-head">
+        <h2 id="metricsHistoryTitle"><i class="fa-solid fa-chart-line"></i> 料金履歴</h2>
+        <button id="metricsHistoryCloseBtn" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="metrics-history-note">
+        <i class="fa-solid fa-database"></i>
+        <span>履歴はこの端末だけに保存します。データが増えすぎないように、直近120回分と日別60日分だけを残します。</span>
+      </div>
+      <div id="metricsHistorySummary" class="metrics-history-grid" aria-label="料金履歴の要約"></div>
+      <div class="metrics-history-chart-wrap">
+        <div class="metrics-history-chart-title">
+          <span>10分通話の概算金額の推移</span>
+          <small>直近20回</small>
+        </div>
+        <div id="metricsHistoryChart" class="metrics-history-chart" aria-label="10分通話料金の折れ線グラフ"></div>
+      </div>
+      <div class="metrics-history-sections">
+        <section class="metrics-history-panel" aria-label="直近10回">
+          <h3><i class="fa-solid fa-clock-rotate-left"></i> 直近10回</h3>
+          <div id="metricsHistoryRecent" class="metrics-history-list"></div>
+        </section>
+        <section class="metrics-history-panel" aria-label="期間別">
+          <h3><i class="fa-solid fa-calendar-days"></i> 期間別</h3>
+          <div id="metricsHistoryPeriods" class="metrics-history-list"></div>
+        </section>
+      </div>
+    </div>
+  </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
@@ -2051,7 +2315,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-10-dynamic-cost-tips";
+    const APP_VERSION = "2026-08-10-cost-history";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -2135,6 +2399,12 @@
     };
     const EXCHANGE_RATE_CACHE_KEY = "kouryu-voice-usd-jpy-rate";
     const EXCHANGE_RATE_REFRESH_MS = 6 * 60 * 60 * 1000;
+    const COST_HISTORY_KEY = "kouryu-voice-cost-history-v1";
+    const COST_HISTORY_MAX_RECORDS = 120;
+    const COST_HISTORY_MAX_DAYS = 60;
+    const FIRESTORE_FREE_READS_PER_DAY = 50000;
+    const FIRESTORE_FREE_WRITES_PER_DAY = 20000;
+    const FIRESTORE_FREE_DELETES_PER_DAY = 20000;
 
     const params = new URLSearchParams(location.search);
     const isDemoMode = false;
@@ -2161,6 +2431,13 @@
       metricsModal: document.getElementById("metricsModal"),
       metricsClose: document.getElementById("metricsCloseBtn"),
       metricsCopy: document.getElementById("metricsCopyBtn"),
+      metricsHistoryOpen: document.getElementById("metricsHistoryOpenBtn"),
+      metricsHistoryModal: document.getElementById("metricsHistoryModal"),
+      metricsHistoryClose: document.getElementById("metricsHistoryCloseBtn"),
+      metricsHistorySummary: document.getElementById("metricsHistorySummary"),
+      metricsHistoryChart: document.getElementById("metricsHistoryChart"),
+      metricsHistoryRecent: document.getElementById("metricsHistoryRecent"),
+      metricsHistoryPeriods: document.getElementById("metricsHistoryPeriods"),
       metricsNote: document.getElementById("metricsNoteBtn"),
       metricsNotePopover: document.getElementById("metricsNotePopover"),
       metricsRateHelp: document.getElementById("metricsRateHelpBtn"),
@@ -2355,12 +2632,15 @@
       if (el.metricsToggle) el.metricsToggle.addEventListener("click", toggleMetricsModal);
       if (el.metricsClose) el.metricsClose.addEventListener("click", closeMetricsModal);
       if (el.metricsCopy) el.metricsCopy.addEventListener("click", copyMetricsOutput);
+      if (el.metricsHistoryOpen) el.metricsHistoryOpen.addEventListener("click", openMetricsHistoryModal);
+      if (el.metricsHistoryClose) el.metricsHistoryClose.addEventListener("click", closeMetricsHistoryModal);
       if (el.metricsNote) el.metricsNote.addEventListener("click", toggleMetricsNote);
       if (el.metricsRateHelp) el.metricsRateHelp.addEventListener("click", toggleMetricsRateTooltip);
       if (el.connectionPill) el.connectionPill.addEventListener("click", toggleConnectionTooltip);
       if (el.audioPreset) el.audioPreset.addEventListener("change", handleAudioPresetChange);
       if (el.diagnosticsToggle) el.diagnosticsToggle.addEventListener("click", toggleDiagnosticsPanel);
       if (el.metricsModal) el.metricsModal.addEventListener("click", handleMetricsDetailClick);
+      if (el.metricsHistoryModal) el.metricsHistoryModal.addEventListener("click", handleMetricsHistoryModalClick);
       if (el.metricsRateInput) el.metricsRateInput.addEventListener("input", renderMetrics);
       bindHorizontalWheel(document.querySelector(".secondary-controls"));
       bindHorizontalWheel(el.participants);
@@ -5111,6 +5391,27 @@
       hideMetricsRateTooltip();
     }
 
+    function openMetricsHistoryModal(event) {
+      if (event) event.stopPropagation();
+      if (!el.metricsHistoryModal) return;
+      closeMetricsModal();
+      renderMetricsHistory();
+      el.metricsHistoryModal.classList.add("is-open");
+      el.metricsHistoryModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeMetricsHistoryModal() {
+      if (!el.metricsHistoryModal) return;
+      el.metricsHistoryModal.classList.remove("is-open");
+      el.metricsHistoryModal.setAttribute("aria-hidden", "true");
+    }
+
+    function handleMetricsHistoryModalClick(event) {
+      if (event.target === el.metricsHistoryModal) {
+        closeMetricsHistoryModal();
+      }
+    }
+
     function toggleMetricsNote(event) {
       event.stopPropagation();
       if (!el.metricsNote || !el.metricsNotePopover) return;
@@ -5291,6 +5592,7 @@
       hideAvatarTooltip();
       hideCallTips();
       closeMetricsModal();
+      closeMetricsHistoryModal();
     }
 
     function callRef() {
@@ -5459,7 +5761,8 @@
         listenersClosed: {},
         ice: { sent: 0, received: 0, duplicateSendSkipped: 0, duplicateReceiveSkipped: 0 },
         connectionTimeline: [],
-        milestones: []
+        milestones: [],
+        historySaved: false
       };
     }
 
@@ -5587,6 +5890,9 @@
         const ongoingReads = connected ? Math.round(Math.max(0, item.estimatedReads - connected.estimatedReads) / minutes) : Math.round(item.estimatedReads / minutes);
         const ongoingWrites = connected ? Math.round(Math.max(0, item.writes - connected.writes) / minutes) : Math.round(item.writes / minutes);
         pushDiagnostic("info", formatMetricLabel(label) + "の使用量", "通話中の目安: reads " + ongoingReads + "/分、writes " + ongoingWrites + "/分。急増していなければ正常です。");
+      }
+      if (label === "call-ended") {
+        recordCallCostHistory(item);
       }
       renderMetrics();
       if (metricsEnabled && console && console.table) {
@@ -5797,6 +6103,322 @@
 
       if (el.tipsTenMinuteCost) el.tipsTenMinuteCost.textContent = formatYen(tenMinuteYen);
       if (el.tipsDailyFreeCalls) el.tipsDailyFreeCalls.textContent = formatCallCountRange(freeCalls);
+    }
+
+    function getMetricsCostEstimate(latest) {
+      const target = latest || (metrics.milestones.length ? metrics.milestones[metrics.milestones.length - 1] : getMetricSnapshot("current"));
+      const connected = getConnectedMetricSnapshot();
+      const yenPerDollar = getYenPerDollar();
+      const reads = metrics.estimatedReads;
+      const writes = sumMetric(metrics.writes);
+      const deletes = sumMetric(metrics.deletes);
+      const durationSeconds = Math.max(0, target ? target.seconds || 0 : 0);
+      const minutes = connected ? Math.max(0.1, ((target ? target.seconds : durationSeconds) - connected.seconds) / 60) : Math.max(0.1, durationSeconds / 60);
+      const fixedReads = connected ? connected.estimatedReads : reads;
+      const fixedWrites = connected ? connected.writes : writes;
+      const fixedDeletes = connected ? connected.deletes : deletes;
+      const deltaReads = connected ? Math.max(0, reads - connected.estimatedReads) : reads;
+      const deltaWrites = connected ? Math.max(0, writes - connected.writes) : writes;
+      const deltaDeletes = connected ? Math.max(0, deletes - connected.deletes) : deletes;
+      const readsPerMinute = Math.round(deltaReads / minutes);
+      const writesPerMinute = Math.round(deltaWrites / minutes);
+      const deletesPerMinute = Math.round(deltaDeletes / minutes);
+      const tenMinuteReads = fixedReads + readsPerMinute * 10;
+      const tenMinuteWrites = fixedWrites + writesPerMinute * 10;
+      const tenMinuteDeletes = fixedDeletes + deletesPerMinute * 10;
+      const freeCandidates = [];
+      if (tenMinuteReads > 0) freeCandidates.push(FIRESTORE_FREE_READS_PER_DAY / tenMinuteReads);
+      if (tenMinuteWrites > 0) freeCandidates.push(FIRESTORE_FREE_WRITES_PER_DAY / tenMinuteWrites);
+      if (tenMinuteDeletes > 0) freeCandidates.push(FIRESTORE_FREE_DELETES_PER_DAY / tenMinuteDeletes);
+      return {
+        yenPerDollar,
+        durationSeconds,
+        reads,
+        writes,
+        deletes,
+        fixedReads,
+        fixedWrites,
+        fixedDeletes,
+        readsPerMinute,
+        writesPerMinute,
+        deletesPerMinute,
+        totalCostYen: firestoreCostYen(reads, writes, deletes, yenPerDollar),
+        minuteCostYen: firestoreCostYen(deltaReads / minutes, deltaWrites / minutes, deltaDeletes / minutes, yenPerDollar),
+        tenMinuteCostYen: firestoreCostYen(tenMinuteReads, tenMinuteWrites, tenMinuteDeletes, yenPerDollar),
+        freeTenMinuteCalls: freeCandidates.length ? Math.floor(Math.min.apply(null, freeCandidates)) : 0
+      };
+    }
+
+    function recordCallCostHistory(snapshot) {
+      if (metrics.historySaved) return;
+      const data = getMetricsCostEstimate(snapshot);
+      if (!data.durationSeconds && !data.reads && !data.writes && !data.deletes) return;
+      metrics.historySaved = true;
+      const endedAt = Date.now();
+      const date = new Date(endedAt);
+      const record = {
+        id: String(endedAt) + "-" + sessionId,
+        version: APP_VERSION,
+        endedAt,
+        dateKey: getDateKey(date),
+        weekKey: getWeekKey(date),
+        monthKey: getMonthKey(date),
+        durationSeconds: data.durationSeconds,
+        tenMinuteCostYen: roundCostValue(data.tenMinuteCostYen),
+        freeTenMinuteCalls: data.freeTenMinuteCalls,
+        totalCostYen: roundCostValue(data.totalCostYen),
+        minuteCostYen: roundCostValue(data.minuteCostYen),
+        reads: data.reads,
+        writes: data.writes,
+        deletes: data.deletes,
+        connectedFixedReads: data.fixedReads,
+        readsPerMinute: data.readsPerMinute,
+        writesPerMinute: data.writesPerMinute,
+        deletesPerMinute: data.deletesPerMinute,
+        yenPerDollar: data.yenPerDollar
+      };
+      const history = loadCostHistory();
+      history.records.unshift(record);
+      history.records = history.records.slice(0, COST_HISTORY_MAX_RECORDS);
+      history.days = buildCostDaySummaries(history.records);
+      saveCostHistory(history);
+      renderMetricsHistory();
+    }
+
+    function loadCostHistory() {
+      try {
+        const raw = localStorage.getItem(COST_HISTORY_KEY);
+        if (!raw) return { records: [], days: {} };
+        const parsed = JSON.parse(raw);
+        const records = Array.isArray(parsed.records) ? parsed.records.filter(isValidCostRecord) : [];
+        return {
+          records: records.slice(0, COST_HISTORY_MAX_RECORDS),
+          days: parsed.days && typeof parsed.days === "object" ? parsed.days : buildCostDaySummaries(records)
+        };
+      } catch (error) {
+        console.warn(error);
+        return { records: [], days: {} };
+      }
+    }
+
+    function saveCostHistory(history) {
+      try {
+        localStorage.setItem(COST_HISTORY_KEY, JSON.stringify(pruneCostHistory(history)));
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    function pruneCostHistory(history) {
+      const records = (history.records || []).filter(isValidCostRecord).slice(0, COST_HISTORY_MAX_RECORDS);
+      return {
+        records,
+        days: buildCostDaySummaries(records)
+      };
+    }
+
+    function isValidCostRecord(item) {
+      return !!item && Number.isFinite(Number(item.endedAt)) && Number.isFinite(Number(item.tenMinuteCostYen));
+    }
+
+    function buildCostDaySummaries(records) {
+      const days = {};
+      records.forEach(function(record) {
+        const key = record.dateKey || getDateKey(new Date(record.endedAt));
+        if (!days[key]) {
+          days[key] = {
+            dateKey: key,
+            count: 0,
+            tenMinuteCostSum: 0,
+            freeCallsSum: 0,
+            totalCostSum: 0,
+            readsSum: 0,
+            writesSum: 0,
+            durationSecondsSum: 0
+          };
+        }
+        days[key].count += 1;
+        days[key].tenMinuteCostSum += Number(record.tenMinuteCostYen) || 0;
+        days[key].freeCallsSum += Number(record.freeTenMinuteCalls) || 0;
+        days[key].totalCostSum += Number(record.totalCostYen) || 0;
+        days[key].readsSum += Number(record.reads) || 0;
+        days[key].writesSum += Number(record.writes) || 0;
+        days[key].durationSecondsSum += Number(record.durationSeconds) || 0;
+      });
+      return Object.keys(days)
+        .sort()
+        .slice(-COST_HISTORY_MAX_DAYS)
+        .reduce(function(result, key) {
+          result[key] = days[key];
+          return result;
+        }, {});
+    }
+
+    function roundCostValue(value) {
+      return Math.round((Number(value) || 0) * 1000000) / 1000000;
+    }
+
+    function getDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
+    function getMonthKey(date) {
+      return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    }
+
+    function getWeekKey(date) {
+      const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const day = copy.getDay() || 7;
+      copy.setDate(copy.getDate() + 4 - day);
+      const yearStart = new Date(copy.getFullYear(), 0, 1);
+      const week = Math.ceil((((copy - yearStart) / 86400000) + 1) / 7);
+      return copy.getFullYear() + "-W" + String(week).padStart(2, "0");
+    }
+
+    function renderMetricsHistory() {
+      if (!el.metricsHistorySummary && !el.metricsHistoryChart) return;
+      const history = loadCostHistory();
+      const records = history.records || [];
+      if (!records.length) {
+        if (el.metricsHistorySummary) {
+          el.metricsHistorySummary.innerHTML = '<div class="metrics-history-stat"><small>履歴</small><strong>まだありません</strong></div>';
+        }
+        if (el.metricsHistoryChart) {
+          el.metricsHistoryChart.innerHTML = '<div class="chart-empty">通話を終了すると、ここに料金の推移が表示されます。</div>';
+        }
+        if (el.metricsHistoryRecent) {
+          el.metricsHistoryRecent.innerHTML = '<div class="metrics-history-empty">直近の通話履歴はまだありません。</div>';
+        }
+        if (el.metricsHistoryPeriods) {
+          el.metricsHistoryPeriods.innerHTML = '<div class="metrics-history-empty">期間別の集計はまだありません。</div>';
+        }
+        return;
+      }
+
+      const today = new Date();
+      const weekKey = getWeekKey(today);
+      const monthKey = getMonthKey(today);
+      const tenMinuteCosts = records.map(function(item) { return Number(item.tenMinuteCostYen) || 0; });
+      const freeCalls = records.map(function(item) { return Number(item.freeTenMinuteCalls) || 0; }).filter(function(value) { return value > 0; });
+      const recent10 = records.slice(0, 10);
+      const weekRecords = records.filter(function(item) { return item.weekKey === weekKey; });
+      const monthRecords = records.filter(function(item) { return item.monthKey === monthKey; });
+      const stats = {
+        average: average(tenMinuteCosts),
+        median: median(tenMinuteCosts),
+        mode: mode(tenMinuteCosts),
+        recentAverage: average(recent10.map(function(item) { return Number(item.tenMinuteCostYen) || 0; })),
+        freeAverage: average(freeCalls)
+      };
+
+      if (el.metricsHistorySummary) {
+        el.metricsHistorySummary.innerHTML =
+          renderHistoryStat("記録", records.length + "回", "直近" + COST_HISTORY_MAX_RECORDS + "回まで保存") +
+          renderHistoryStat("10分通話 平均", formatYen(stats.average), "中央値 " + formatYen(stats.median)) +
+          renderHistoryStat("最頻値", formatYen(stats.mode), "近い金額をまとめて計算") +
+          renderHistoryStat("無料枠の目安", formatCallCountRange(stats.freeAverage), "10分通話 / 日") +
+          renderHistoryStat("直近10回 平均", formatYen(stats.recentAverage), "最近の傾向") +
+          renderHistoryStat("今週", weekRecords.length + "回", "合計 " + formatYen(sumBy(weekRecords, "totalCostYen"))) +
+          renderHistoryStat("今月", monthRecords.length + "回", "合計 " + formatYen(sumBy(monthRecords, "totalCostYen"))) +
+          renderHistoryStat("保存方針", "軽量", "Firestoreには保存しません");
+      }
+
+      if (el.metricsHistoryChart) {
+        el.metricsHistoryChart.innerHTML = renderCostHistoryChart(records.slice(0, 20).reverse());
+      }
+      if (el.metricsHistoryRecent) {
+        el.metricsHistoryRecent.innerHTML = recent10.map(renderCostHistoryRow).join("");
+      }
+      if (el.metricsHistoryPeriods) {
+        el.metricsHistoryPeriods.innerHTML =
+          renderPeriodRow("今週", weekRecords) +
+          renderPeriodRow("今月", monthRecords) +
+          renderDaySummaryRows(history.days);
+      }
+    }
+
+    function renderHistoryStat(label, value, note) {
+      return '<div class="metrics-history-stat"><small>' + escapeHtml(label) + '</small><strong>' + escapeHtml(value) + '</strong><small>' + escapeHtml(note) + '</small></div>';
+    }
+
+    function renderCostHistoryRow(record) {
+      const date = formatLocalDateTime(record.endedAt);
+      return '<div class="metrics-history-row"><span><strong>' + escapeHtml(formatYen(record.tenMinuteCostYen)) + '</strong><br><small>' + escapeHtml(date) + ' / ' + Math.max(0, Math.round((record.durationSeconds || 0) / 60)) + '分</small></span><span><strong>' + escapeHtml(formatCallCountRange(record.freeTenMinuteCalls)) + '</strong><br><small>無料枠</small></span></div>';
+    }
+
+    function renderPeriodRow(label, records) {
+      const count = records.length;
+      const avgCost = average(records.map(function(item) { return Number(item.tenMinuteCostYen) || 0; }));
+      return '<div class="metrics-history-row"><span><strong>' + escapeHtml(label) + '</strong><br><small>' + count + '回の記録</small></span><span><strong>' + escapeHtml(formatYen(avgCost)) + '</strong><br><small>10分平均</small></span></div>';
+    }
+
+    function renderDaySummaryRows(days) {
+      const rows = Object.keys(days || {}).sort().slice(-5).reverse();
+      if (!rows.length) return "";
+      return rows.map(function(key) {
+        const day = days[key];
+        const avgCost = day.count ? day.tenMinuteCostSum / day.count : 0;
+        return '<div class="metrics-history-row"><span><strong>' + escapeHtml(key) + '</strong><br><small>' + day.count + '回 / ' + Math.round((day.durationSecondsSum || 0) / 60) + '分</small></span><span><strong>' + escapeHtml(formatYen(avgCost)) + '</strong><br><small>10分平均</small></span></div>';
+      }).join("");
+    }
+
+    function renderCostHistoryChart(records) {
+      if (!records.length) return '<div class="chart-empty">通話を終了すると、ここに料金の推移が表示されます。</div>';
+      if (records.length === 1) return '<div class="chart-empty">もう1回記録すると、推移を線で確認できます。<br>最新: ' + escapeHtml(formatYen(records[0].tenMinuteCostYen)) + '</div>';
+      const width = 320;
+      const height = 120;
+      const pad = 14;
+      const values = records.map(function(item) { return Number(item.tenMinuteCostYen) || 0; });
+      const min = Math.min.apply(null, values);
+      const max = Math.max.apply(null, values);
+      const range = Math.max(0.000001, max - min);
+      const points = values.map(function(value, index) {
+        const x = pad + (index / Math.max(1, values.length - 1)) * (width - pad * 2);
+        const y = height - pad - ((value - min) / range) * (height - pad * 2);
+        return { x, y, value };
+      });
+      const polyline = points.map(function(point) { return point.x.toFixed(1) + "," + point.y.toFixed(1); }).join(" ");
+      const dots = points.map(function(point) {
+        return '<circle class="chart-dot" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="2.8"><title>' + escapeHtml(formatYen(point.value)) + '</title></circle>';
+      }).join("");
+      return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="10分通話料金の推移"><polyline class="chart-line" points="' + polyline + '"></polyline>' + dots + '</svg>';
+    }
+
+    function average(values) {
+      const list = values.filter(function(value) { return Number.isFinite(value); });
+      if (!list.length) return 0;
+      return list.reduce(function(total, value) { return total + value; }, 0) / list.length;
+    }
+
+    function median(values) {
+      const list = values.filter(function(value) { return Number.isFinite(value); }).sort(function(a, b) { return a - b; });
+      if (!list.length) return 0;
+      const middle = Math.floor(list.length / 2);
+      return list.length % 2 ? list[middle] : (list[middle - 1] + list[middle]) / 2;
+    }
+
+    function mode(values) {
+      const counts = {};
+      let bestValue = 0;
+      let bestCount = 0;
+      values.filter(function(value) { return Number.isFinite(value); }).forEach(function(value) {
+        const rounded = String(roundCostValue(Math.round(value * 10000) / 10000));
+        counts[rounded] = (counts[rounded] || 0) + 1;
+        if (counts[rounded] > bestCount) {
+          bestCount = counts[rounded];
+          bestValue = Number(rounded);
+        }
+      });
+      return bestValue;
+    }
+
+    function sumBy(records, key) {
+      return (records || []).reduce(function(total, item) {
+        return total + (Number(item[key]) || 0);
+      }, 0);
     }
 
     function getConnectedMetricSnapshot() {
