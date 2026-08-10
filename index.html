@@ -899,6 +899,30 @@
       color: var(--accent);
     }
 
+    .tip-cost-estimate {
+      display: grid;
+      gap: 0.38rem;
+      margin-top: 0.22rem;
+    }
+
+    .tip-cost-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.28rem;
+      color: var(--quiet);
+      font-size: 0.78rem;
+      font-weight: 760;
+      line-height: 1.45;
+    }
+
+    .tip-cost-number {
+      color: var(--accent-soft);
+      font-size: 1.02rem;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
     .participant {
       position: relative;
       width: 3rem;
@@ -1908,7 +1932,7 @@
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>料金目安を確認</strong><span>円マークから現在の読み書き量と概算金額を見られます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>料金目安を確認</strong><span>アプリ左上のヘッドホンアイコンの中にある、￥料金目安を押すと、料金を見ることができますが、ユーザーの支払いはありません。僕の分析のために表示してあります。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、10分通話で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>新たなURLを作ると、そこで別の新しい電話を始められます。</span></span></span>
     </section>
 
@@ -2027,7 +2051,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-10-connection-timeline";
+    const APP_VERSION = "2026-08-10-dynamic-cost-tips";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -2144,6 +2168,8 @@
       metricsRateInput: document.getElementById("metricsRateInput"),
       metricsCurrentCost: document.getElementById("metricsCurrentCost"),
       metricsMinuteCost: document.getElementById("metricsMinuteCost"),
+      tipsTenMinuteCost: document.getElementById("tipsTenMinuteCost"),
+      tipsDailyFreeCalls: document.getElementById("tipsDailyFreeCalls"),
       metricsFixedReads: document.getElementById("metricsFixedReads"),
       metricsOngoingReads: document.getElementById("metricsOngoingReads"),
       metricsCompareSummary: document.getElementById("metricsCompareSummary"),
@@ -3437,7 +3463,7 @@
       if (participantsCard) participantsCard.classList.toggle("is-empty", !items.length);
       const micHint = shouldShowMicUnlockHint() ? getMicUnlockHintHtml() : "";
       if (!items.length) {
-        const emptyTitle = joined ? "相手を待っています" : "参加者";
+        const emptyTitle = joined ? "相手を待っています" : "";
         const emptyText = joined
           ? "同じURLの相手が参加すると、ここに表示されます。"
           : "まだ参加者はいません。";
@@ -3446,7 +3472,7 @@
           : "";
         el.participants.classList.remove("has-self");
         el.participants.innerHTML = '<div class="empty-participants">' +
-          '<strong>' + escapeHtml(emptyTitle) + '</strong>' +
+          (emptyTitle ? '<strong>' + escapeHtml(emptyTitle) + '</strong>' : '') +
           '<span>' + escapeHtml(emptyText) + '</span>' +
           emptyTip +
           '</div>' +
@@ -5737,6 +5763,42 @@
       return value.toFixed(3) + "円";
     }
 
+    function formatCallCountRange(value) {
+      if (!Number.isFinite(value) || value <= 0) return "300〜400回";
+      if (value < 10) return "約" + Math.max(1, Math.floor(value)) + "回";
+      const bucket = value >= 100 ? 100 : 10;
+      const lower = Math.max(bucket, Math.floor(value / bucket) * bucket);
+      const upper = lower + bucket;
+      return lower.toLocaleString("ja-JP") + "〜" + upper.toLocaleString("ja-JP") + "回";
+    }
+
+    function updateTipsCostEstimate(data) {
+      if (!el.tipsTenMinuteCost && !el.tipsDailyFreeCalls) return;
+      const fallbackTenMinuteCost = 0.017;
+      const fixedReads = data && Number.isFinite(data.fixedReads) ? data.fixedReads : 0;
+      const fixedWrites = data && Number.isFinite(data.fixedWrites) ? data.fixedWrites : 0;
+      const fixedDeletes = data && Number.isFinite(data.fixedDeletes) ? data.fixedDeletes : 0;
+      const readsPerMinute = data && Number.isFinite(data.readsPerMinute) ? data.readsPerMinute : 0;
+      const writesPerMinute = data && Number.isFinite(data.writesPerMinute) ? data.writesPerMinute : 0;
+      const deletesPerMinute = data && Number.isFinite(data.deletesPerMinute) ? data.deletesPerMinute : 0;
+      const hasLiveEstimate = fixedReads || fixedWrites || fixedDeletes || readsPerMinute || writesPerMinute || deletesPerMinute;
+      const yenPerDollar = data && Number.isFinite(data.yenPerDollar) ? data.yenPerDollar : getYenPerDollar();
+      const tenMinuteReads = fixedReads + readsPerMinute * 10;
+      const tenMinuteWrites = fixedWrites + writesPerMinute * 10;
+      const tenMinuteDeletes = fixedDeletes + deletesPerMinute * 10;
+      const tenMinuteYen = hasLiveEstimate
+        ? firestoreCostYen(tenMinuteReads, tenMinuteWrites, tenMinuteDeletes, yenPerDollar)
+        : fallbackTenMinuteCost;
+      const freeCandidates = [];
+      if (tenMinuteReads > 0) freeCandidates.push(50000 / tenMinuteReads);
+      if (tenMinuteWrites > 0) freeCandidates.push(20000 / tenMinuteWrites);
+      if (tenMinuteDeletes > 0) freeCandidates.push(20000 / tenMinuteDeletes);
+      const freeCalls = freeCandidates.length ? Math.min.apply(null, freeCandidates) : 350;
+
+      if (el.tipsTenMinuteCost) el.tipsTenMinuteCost.textContent = formatYen(tenMinuteYen);
+      if (el.tipsDailyFreeCalls) el.tipsDailyFreeCalls.textContent = formatCallCountRange(freeCalls);
+    }
+
     function getConnectedMetricSnapshot() {
       return metrics.milestones.find(function(item) {
         return item.label === "connected";
@@ -5816,6 +5878,16 @@
       const readsPerMinute = Math.round(deltaReads / minutes);
       const writesPerMinute = Math.round(deltaWrites / minutes);
       const deletesPerMinute = Math.round(deltaDeletes / minutes);
+
+      updateTipsCostEstimate({
+        yenPerDollar,
+        fixedReads: connected ? connected.estimatedReads : reads,
+        fixedWrites: connected ? connected.writes : writes,
+        fixedDeletes: connected ? connected.deletes : deletes,
+        readsPerMinute,
+        writesPerMinute,
+        deletesPerMinute
+      });
 
       if (el.metricsCurrentCost) el.metricsCurrentCost.textContent = formatYen(totalYen);
       if (el.metricsMinuteCost) el.metricsMinuteCost.textContent = formatYen(minuteYen) + "/分";
