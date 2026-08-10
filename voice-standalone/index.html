@@ -404,6 +404,43 @@
       line-height: 1.55;
     }
 
+    .app-freshness-status {
+      grid-column: 1 / -1;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
+      width: fit-content;
+      max-width: 100%;
+      padding: 0.34rem 0.5rem;
+      border: 0.06rem solid rgba(139, 233, 255, 0.26);
+      border-radius: 999rem;
+      color: var(--quiet);
+      background: rgba(5, 18, 30, 0.64);
+      font-size: 0.68rem;
+      font-weight: 820;
+      line-height: 1.35;
+    }
+
+    .app-freshness-status i {
+      color: var(--accent);
+    }
+
+    .app-freshness-status.is-ok {
+      border-color: rgba(112, 236, 196, 0.46);
+      color: #c9fff0;
+      background: rgba(16, 98, 77, 0.2);
+    }
+
+    .app-freshness-status.is-warn {
+      border-color: rgba(255, 199, 92, 0.54);
+      color: #ffe8ab;
+      background: rgba(132, 84, 16, 0.2);
+    }
+
+    .app-freshness-status.is-checking i {
+      animation: spin 0.9s linear infinite;
+    }
+
     .preflight-check-chip {
       min-width: 0;
       display: inline-flex;
@@ -1777,6 +1814,7 @@
         <strong>アプリ情報</strong>
         <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
         <small class="app-info-version-note">GitHub Pagesの反映後、この更新番号が変わっていれば最新版です。</small>
+        <span id="freshnessStatus" class="app-freshness-status is-checking" aria-live="polite"><i class="fa-solid fa-spinner"></i><span>最新版を確認中</span></span>
       </div>
       <div class="app-info-actions" aria-label="詳しい情報">
         <button id="metricsToggleBtn" class="app-info-action" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="Firestore料金の目安">
@@ -1926,7 +1964,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-10-voice-assurance";
+    const APP_VERSION = "2026-08-10-quiet-assurance";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -1955,6 +1993,9 @@
     const FIRESTORE_GUARD_WRITES_PER_MIN = 45;
     const FIRESTORE_GUARD_COOLDOWN_MS = 60000;
     const FIRESTORE_GUARD_ACTIVE_MS = 120000;
+    const FRESHNESS_CHECK_REFRESH_MS = 10 * 60 * 1000;
+    const STABILITY_AUDIT_MS = 30000;
+    const WAITING_HELP_DELAY_MS = 16000;
     const DEFAULT_CALL_ID = "main-room";
     const VOICE_PRESETS = {
       earphones: {
@@ -2024,6 +2065,7 @@
       appInfoTooltip: document.getElementById("appInfoTooltip"),
       connectionPill: document.getElementById("connectionPill"),
       versionPill: document.getElementById("versionPill"),
+      freshnessStatus: document.getElementById("freshnessStatus"),
       connectionTooltip: document.getElementById("connectionTooltip"),
       audioHealth: document.getElementById("audioHealth"),
       callTips: document.getElementById("callTips"),
@@ -2124,6 +2166,12 @@
     let connectionStuckTimer = null;
     let exchangeRateTimer = null;
     let statsTimer = null;
+    let stabilityAuditTimer = null;
+    let waitingHelpTimer = null;
+    let freshnessCheckedAt = 0;
+    let freshnessCheckPromise = null;
+    let lastStabilityNoticeAt = 0;
+    let lastAutoPresetCareAt = 0;
     let callPhase = "waiting";
     let diagnostics = [];
     let lastInboundStats = new Map();
@@ -2227,6 +2275,7 @@
       bindHorizontalWheel(el.participants);
       initExchangeRate();
       initAudioPreset();
+      scheduleFreshnessCheck(false);
       recordEnvironmentDiagnostics();
       setCallPhase("waiting", "\u53c2\u52a0\u3059\u308b\u3068\u63a5\u7d9a\u72b6\u614b\u3092\u8868\u793a\u3057\u307e\u3059\u3002");
       runPassivePreflightCheck();
@@ -2490,6 +2539,7 @@
         startHeartbeat();
         startParticipantSweep();
         startLiveWatchers();
+        startStabilityAudit();
         setJoinBusy(false);
         clearJoinSlowTimer();
         updateJoinButton();
@@ -2508,6 +2558,7 @@
         stopHeartbeat();
         stopParticipantSweep();
         stopLiveWatchers();
+        stopStabilityAudit();
         clearConnectionStuckTimer();
         setStatus("参加者登録できませんでした", "Firestore Rulesで参加者の保存が許可されているか確認してください。");
         return;
@@ -3579,6 +3630,7 @@
       stopHeartbeat();
       stopParticipantSweep();
       stopLiveWatchers();
+      stopStabilityAudit();
       clearConnectionStuckTimer();
       clearNoRemoteAudioTimer();
       autoReconnectTimers.forEach(function(timerId) { window.clearTimeout(timerId); });
@@ -3894,6 +3946,53 @@
       el.versionPill.title = "更新番号: " + APP_VERSION;
     }
 
+    function scheduleFreshnessCheck(force) {
+      if (!el.freshnessStatus || !/^https?:$/.test(location.protocol)) return;
+      const now = Date.now();
+      if (!force && freshnessCheckedAt && now - freshnessCheckedAt < FRESHNESS_CHECK_REFRESH_MS) return;
+      if (freshnessCheckPromise) return;
+      renderFreshnessStatus("checking", "最新版を確認中");
+      const target = new URL(location.href);
+      target.hash = "";
+      target.searchParams.set("version-check", String(now));
+      freshnessCheckPromise = fetch(target.toString(), { cache: "no-store" })
+        .then(function(response) {
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          return response.text();
+        })
+        .then(function(html) {
+          const match = html.match(/const\s+APP_VERSION\s*=\s*"([^"]+)"/);
+          const remoteVersion = match ? match[1] : "";
+          freshnessCheckedAt = Date.now();
+          if (!remoteVersion) {
+            renderFreshnessStatus("warn", "最新版を確認できませんでした");
+            return;
+          }
+          if (remoteVersion === APP_VERSION) {
+            renderFreshnessStatus("ok", "最新版です");
+          } else {
+            renderFreshnessStatus("warn", "新しい版があります。再読み込みしてください");
+          }
+        })
+        .catch(function(error) {
+          freshnessCheckedAt = Date.now();
+          renderFreshnessStatus("warn", "最新版確認はあとで再試行します");
+          pushDiagnostic("warn", "最新版確認に失敗", error && error.message ? error.message : "");
+        })
+        .finally(function() {
+          freshnessCheckPromise = null;
+        });
+    }
+
+    function renderFreshnessStatus(state, text) {
+      if (!el.freshnessStatus) return;
+      const normalized = state || "checking";
+      const icon = normalized === "ok" ? "fa-circle-check" : (normalized === "warn" ? "fa-triangle-exclamation" : "fa-spinner");
+      el.freshnessStatus.classList.remove("is-ok", "is-warn", "is-checking");
+      el.freshnessStatus.classList.add("is-" + normalized);
+      el.freshnessStatus.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(text || "") + '</span>';
+    }
+
     function updateDeviceTip() {
       if (!el.deviceTip) return;
       const ua = navigator.userAgent || "";
@@ -3952,8 +4051,94 @@
       if (callPhase === "failed" && joined) {
         setNotice("音声接続に失敗しました。再接続ボタンで1回だけ作り直せます。", true);
       }
+      updateContextualHelpTimers();
       if (el.join) updateJoinButton();
       updateReconnectControl();
+    }
+
+    function updateContextualHelpTimers() {
+      if (waitingHelpTimer) {
+        window.clearTimeout(waitingHelpTimer);
+        waitingHelpTimer = null;
+      }
+      if (callPhase === "waiting" && joined) {
+        waitingHelpTimer = window.setTimeout(function() {
+          if (callPhase !== "waiting" || !joined) return;
+          showCallEventNotice("相手が同じURLで参加すると始まります。URLボタンで共有できます。");
+          pushDiagnostic("info", "相手待ちが続いています", "相手が同じURLを開いて参加ボタンを押しているか確認してください。");
+        }, WAITING_HELP_DELAY_MS);
+      }
+      if (callPhase === "reconnecting") {
+        showCallEventNotice("通信が少し揺れています。自動で戻しています。", true);
+      }
+    }
+
+    function startStabilityAudit() {
+      stopStabilityAudit();
+      runStabilityAudit("start");
+      stabilityAuditTimer = window.setInterval(function() {
+        runStabilityAudit("interval");
+      }, STABILITY_AUDIT_MS);
+    }
+
+    function stopStabilityAudit() {
+      if (stabilityAuditTimer) {
+        window.clearInterval(stabilityAuditTimer);
+        stabilityAuditTimer = null;
+      }
+      if (waitingHelpTimer) {
+        window.clearTimeout(waitingHelpTimer);
+        waitingHelpTimer = null;
+      }
+    }
+
+    function runStabilityAudit(reason) {
+      if (!joined) return;
+      const now = Date.now();
+      const openListeners = getOpenListenerCount();
+      const remotePeople = participants.filter(function(item) { return item && item.userId !== userId; });
+      const connectedPeers = Array.from(peers.values()).filter(function(state) {
+        return state && state.peer && isPeerConnected(state.peer);
+      });
+      const readsPerMin = estimateOngoingPerMinute("reads");
+      const writesPerMin = estimateOngoingPerMinute("writes");
+
+      if (openListeners > 2 && now - lastStabilityNoticeAt > FIRESTORE_GUARD_COOLDOWN_MS) {
+        lastStabilityNoticeAt = now;
+        showCallEventNotice("通話監視が多くなっています。不要な監視を確認します。", true);
+        pushDiagnostic("warn", "監視数が多いです", "Firestore listener " + openListeners + " / " + reason);
+      }
+
+      if (callPhase === "connected" && remotePeople.length && !connectedPeers.length && now - lastStabilityNoticeAt > 12000) {
+        lastStabilityNoticeAt = now;
+        setCallPhase("reconnecting", "相手との音声経路が不安定です。自動で戻しています。");
+        remotePeople.forEach(function(person) {
+          if (person && person.userId) scheduleAutoReconnect(person.userId, "stability audit");
+        });
+      }
+
+      if ((readsPerMin > FIRESTORE_GUARD_READS_PER_MIN || writesPerMin > FIRESTORE_GUARD_WRITES_PER_MIN) && now - firestoreGuardLastWarnAt > FIRESTORE_GUARD_COOLDOWN_MS) {
+        firestoreGuardLastWarnAt = now;
+        firestoreGuardActiveUntil = now + FIRESTORE_GUARD_ACTIVE_MS;
+        pushDiagnostic("warn", "Firestore負荷を抑制", "reads " + readsPerMin + "/分 / writes " + writesPerMin + "/分");
+        showCallEventNotice("通信量が増えたため、通話中の同期を少し控えます。", true);
+      }
+    }
+
+    function estimateOngoingPerMinute(kind) {
+      const connectedMark = (metrics.milestones || []).find(function(item) { return item.label === "connected"; });
+      const started = connectedMark && connectedMark.seconds != null ? connectedMark.seconds : 0;
+      const elapsed = metrics.startedAt ? Math.max(1, Math.round((Date.now() - metrics.startedAt) / 1000) - started) : 1;
+      if (kind === "reads") {
+        const fixedReads = connectedMark ? (connectedMark.estimatedReads || 0) : 0;
+        return Math.max(0, Math.round(((metrics.estimatedReads || 0) - fixedReads) / elapsed * 60));
+      }
+      if (kind === "writes") {
+        const current = sumMetric(metrics.writes);
+        const fixed = connectedMark ? (connectedMark.writes || 0) : 0;
+        return Math.max(0, Math.round((current - fixed) / elapsed * 60));
+      }
+      return 0;
     }
 
     function getDefaultPhaseDetail(phase) {
@@ -4237,6 +4422,25 @@
         if (activeStats.quality === "poor") {
           warnSpeakerModeIfNeeded("音質判定");
         }
+        maybeSuggestAudioPreset(activeStats);
+      }
+    }
+
+    function maybeSuggestAudioPreset(stats) {
+      if (!stats || !joined || !el.audioPreset) return;
+      const now = Date.now();
+      if (now - lastAutoPresetCareAt < QUALITY_WARN_COOLDOWN_MS) return;
+      const current = el.audioPreset.value || "earphones";
+      if (stats.quality === "poor" && current === "speaker") {
+        lastAutoPresetCareAt = now;
+        showCallEventNotice("音が不安定です。近い端末ではイヤホンか近距離テストがおすすめです。", true);
+        pushDiagnostic("warn", "音声設定の見直し候補", "現在: スピーカー / " + getQualityAdvice(stats));
+        return;
+      }
+      if (stats.quality === "poor" && (stats.jitterMs > 60 || stats.lossPct > 5)) {
+        lastAutoPresetCareAt = now;
+        showCallEventNotice("通信が不安定です。Wi-Fiや電波を確認してください。", true);
+        pushDiagnostic("warn", "通信環境の確認候補", getQualityAdvice(stats));
       }
     }
 
@@ -4707,6 +4911,7 @@
       if (isOpen) {
         hideCallTips();
         closeMetricsModal();
+        scheduleFreshnessCheck(false);
       }
       el.appInfoTooltip.classList.toggle("is-open", isOpen);
       el.appInfoTooltip.setAttribute("aria-hidden", isOpen ? "false" : "true");
