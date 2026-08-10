@@ -8,23 +8,23 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
-      --bg: #03101a;
-      --panel: #061522;
-      --panel-soft: #091b2a;
-      --panel-raised: #0c2234;
-      --line: #1b5570;
-      --line-strong: #86e9ff;
-      --text: #f2fbff;
-      --muted: #bdd8e4;
-      --quiet: #89a9b8;
-      --accent: #8be9ff;
-      --accent-deep: #38c6e8;
-      --accent-soft: #0d3447;
-      --danger: #ff6d92;
-      --danger-soft: #2b0d18;
-      --ok: #9df2cf;
-      --warn: #c7f4ff;
-      --control: #061521;
+      --bg: #edf7ff;
+      --panel: #ffffff;
+      --panel-soft: #f8fcff;
+      --panel-raised: #ffffff;
+      --line: #c8e7f4;
+      --line-strong: #67c7ef;
+      --text: #23233f;
+      --muted: #63738c;
+      --quiet: #8996ac;
+      --accent: #74d2f4;
+      --accent-deep: #30a8d3;
+      --accent-soft: #e7f8ff;
+      --danger: #ff83a7;
+      --danger-soft: #fff0f6;
+      --ok: #62deb3;
+      --warn: #ffc96b;
+      --control: #ffffff;
     }
 
     * {
@@ -2103,6 +2103,357 @@
         grid-template-columns: 4.8rem minmax(0, 1fr) 2.6rem;
       }
     }
+
+    /* Pastel call UI refresh */
+    body {
+      background:
+        radial-gradient(circle at 22% 12%, rgba(189, 183, 255, 0.46), transparent 17rem),
+        radial-gradient(circle at 86% 18%, rgba(255, 220, 234, 0.38), transparent 14rem),
+        radial-gradient(circle at 17% 88%, rgba(161, 224, 255, 0.42), transparent 18rem),
+        linear-gradient(180deg, #f0f4ff 0%, #edf9ff 48%, #f9f2ff 100%);
+      color: var(--text);
+    }
+
+    main {
+      border: 0.1rem solid rgba(116, 210, 244, 0.7);
+      background:
+        radial-gradient(circle at 48% 2.5rem, rgba(184, 179, 255, 0.22), transparent 12rem),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 252, 255, 0.92));
+      box-shadow: 0 1.1rem 3.2rem rgba(87, 119, 172, 0.16);
+    }
+
+    main::before,
+    main::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    main::before {
+      top: -3.5rem;
+      left: 50%;
+      width: 17rem;
+      height: 11rem;
+      border-radius: 42% 58% 51% 49% / 55% 42% 58% 45%;
+      background:
+        radial-gradient(circle at 36% 26%, rgba(255, 255, 255, 0.9) 0 1.15rem, transparent 1.2rem),
+        radial-gradient(circle at 65% 28%, rgba(255, 204, 224, 0.7) 0 1.55rem, transparent 1.6rem),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(138, 144, 244, 0.34));
+      transform: translateX(-50%) rotate(-2deg);
+      opacity: 0.95;
+    }
+
+    main::after {
+      inset: 0;
+      background:
+        radial-gradient(circle at 9% 15%, rgba(255, 255, 255, 0.94) 0 0.22rem, transparent 0.24rem),
+        radial-gradient(circle at 92% 19%, rgba(255, 215, 111, 0.72) 0 0.18rem, transparent 0.2rem),
+        radial-gradient(circle at 83% 72%, rgba(130, 218, 255, 0.66) 0 0.26rem, transparent 0.28rem),
+        radial-gradient(circle at 12% 78%, rgba(255, 174, 207, 0.5) 0 0.24rem, transparent 0.26rem);
+      opacity: 0.75;
+    }
+
+    main > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      padding: 0.24rem 0.18rem;
+    }
+
+    .app-icon,
+    .header-icon-btn {
+      border-color: rgba(94, 184, 230, 0.58);
+      background: linear-gradient(180deg, #ffffff, #edfaff);
+      color: #258bb9;
+      box-shadow: 0 0.6rem 1.4rem rgba(76, 154, 203, 0.12);
+    }
+
+    .app-icon {
+      border-radius: 1rem;
+      background: linear-gradient(145deg, #dff8ff, #f3f0ff 68%, #ffffff);
+      color: #3a72df;
+    }
+
+    .app-icon.is-open,
+    .app-icon:not(:disabled):hover,
+    .app-icon:not(:disabled):focus-visible,
+    .header-icon-btn.is-open,
+    .header-icon-btn:not(:disabled):hover,
+    .header-icon-btn:not(:disabled):focus-visible {
+      border-color: #57bfe9;
+      background: #e7f8ff;
+      color: #1a7fab;
+    }
+
+    h1 {
+      color: #252447;
+      font-weight: 950;
+    }
+
+    .connection-pill {
+      color: #3f69dd;
+      background: rgba(234, 241, 255, 0.95);
+      box-shadow: inset 0 0 0 0.06rem rgba(121, 149, 242, 0.18);
+    }
+
+    .connection-pill.is-active {
+      color: #1d926e;
+      background: #e8fff6;
+    }
+
+    .connection-pill.is-connecting {
+      color: #ad7b13;
+      background: #fff7df;
+    }
+
+    .connection-pill.is-unstable {
+      color: #ca4569;
+      background: #fff0f6;
+    }
+
+    .name-box input,
+    input,
+    select,
+    textarea {
+      border-color: rgba(122, 203, 236, 0.62);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--text);
+      box-shadow: inset 0 0 0 0.06rem rgba(255, 255, 255, 0.82);
+    }
+
+    .name-box i,
+    .header-icon-btn i,
+    .app-info-action i,
+    .tip-item > i,
+    h2 i {
+      color: #2594bf;
+    }
+
+    .card,
+    .participants-card,
+    .audio-health,
+    .app-info-tooltip,
+    .call-tips,
+    .metrics-modal-card,
+    .metrics-history-panel,
+    .metrics-cost-card {
+      border-color: rgba(126, 211, 244, 0.68);
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 0.9rem 2.4rem rgba(77, 123, 171, 0.1);
+      backdrop-filter: blur(0.6rem);
+    }
+
+    .participants-card {
+      background:
+        radial-gradient(circle at 50% 12%, rgba(206, 203, 255, 0.2), transparent 12rem),
+        rgba(255, 255, 255, 0.78);
+    }
+
+    .participants-card h2 {
+      color: #2d3453;
+      font-weight: 950;
+    }
+
+    .empty-participants {
+      color: var(--muted);
+    }
+
+    .empty-participants strong {
+      color: #282947;
+    }
+
+    .empty-participants .empty-participants-tip,
+    .participant-mic-hint,
+    .call-event-notice,
+    .call-report,
+    .notice {
+      border-color: rgba(122, 203, 236, 0.42);
+      background: rgba(241, 250, 255, 0.84);
+      color: #526681;
+    }
+
+    .participant {
+      border-color: rgba(128, 203, 238, 0.76);
+      background: #ffffff;
+      color: #30304f;
+      box-shadow: 0 0.45rem 1.2rem rgba(73, 118, 162, 0.12);
+    }
+
+    .participant.is-self {
+      border-color: #7b7df3;
+      background: linear-gradient(145deg, #807dff, #55c8ef);
+      color: #ffffff;
+    }
+
+    .participant.is-self::after {
+      background: rgba(255, 255, 255, 0.9);
+      color: #3f50bf;
+    }
+
+    .participant-state-badge,
+    .stat-chip,
+    .quality-chip,
+    .connection-state-badge {
+      border-color: rgba(128, 203, 238, 0.48);
+      background: rgba(255, 255, 255, 0.82);
+      color: #607188;
+    }
+
+    .participant.is-speaking {
+      border-color: #65dfb4;
+      background: #ebfff7;
+    }
+
+    button,
+    .secondary-controls .audio-preset-control {
+      border-color: rgba(114, 199, 235, 0.72);
+      background: rgba(255, 255, 255, 0.9);
+      color: #27314d;
+      box-shadow: 0 0.45rem 1.2rem rgba(75, 134, 181, 0.1);
+    }
+
+    button:not(:disabled):hover,
+    button:not(:disabled):focus-visible {
+      border-color: #46b9e5;
+      background: #eafbff;
+      color: #1d5874;
+    }
+
+    button.primary,
+    .primary-action {
+      border-color: #6cccf2;
+      background: linear-gradient(135deg, #7edcff, #8d8af8 58%, #ffc7df);
+      color: #ffffff;
+      box-shadow: 0 0.9rem 1.8rem rgba(93, 139, 213, 0.22);
+    }
+
+    button.primary:not(:disabled):hover,
+    button.primary:not(:disabled):focus-visible {
+      border-color: #4fbfe9;
+      background: linear-gradient(135deg, #66d4ff, #7778f0 58%, #ffb8d5);
+      color: #ffffff;
+    }
+
+    .primary-action i {
+      background: rgba(255, 255, 255, 0.24);
+      color: #ffffff;
+    }
+
+    .primary-action.is-leaving,
+    button.danger {
+      border-color: #ff92b2;
+      background: #fff2f7;
+      color: #c23d65;
+      box-shadow: none;
+    }
+
+    .secondary-controls button {
+      color: #55657e;
+    }
+
+    .secondary-controls button:not(:disabled):hover,
+    .secondary-controls button:not(:disabled):focus-visible {
+      color: #1e7094;
+    }
+
+    .secondary-controls::-webkit-scrollbar-thumb,
+    .participants::-webkit-scrollbar-thumb,
+    .app-info-actions::-webkit-scrollbar-thumb {
+      background: rgba(116, 210, 244, 0.65);
+    }
+
+    .app-info-tooltip,
+    .call-tips {
+      background: rgba(255, 255, 255, 0.94);
+    }
+
+    .tip-item {
+      background: rgba(248, 252, 255, 0.86);
+      border-color: rgba(126, 211, 244, 0.42);
+    }
+
+    .tip-cost-number {
+      color: #5360e8;
+    }
+
+    .connection-tooltip,
+    .avatar-tooltip,
+    .metrics-note-popover,
+    .metrics-rate-popover {
+      border-color: rgba(103, 199, 239, 0.78);
+      background: rgba(35, 35, 63, 0.96);
+      color: #ffffff;
+      box-shadow: 0 0.9rem 2rem rgba(55, 73, 118, 0.2);
+    }
+
+    .connection-tooltip span,
+    .metrics-note-popover,
+    .metrics-rate-popover {
+      color: #dceeff;
+    }
+
+    .metrics-modal {
+      background:
+        radial-gradient(circle at 28% 12%, rgba(196, 193, 255, 0.46), transparent 18rem),
+        rgba(236, 248, 255, 0.78);
+      backdrop-filter: blur(0.4rem);
+    }
+
+    .metrics-line,
+    .metrics-history-open-btn,
+    .metrics-copy-btn,
+    .modal-close,
+    .metrics-help-btn,
+    .metrics-rate-help-btn {
+      box-shadow: none;
+    }
+
+    .metrics-output,
+    .diagnostics-panel {
+      border-color: rgba(126, 211, 244, 0.55);
+      background: #f8fcff;
+      color: #29314d;
+    }
+
+    .metrics-value {
+      color: #4046d8;
+    }
+
+    .mic-level {
+      border-color: rgba(126, 211, 244, 0.6);
+      background: #e6f6ff;
+    }
+
+    .mic-level-bar {
+      background: linear-gradient(90deg, #70dcf9, #827ef3);
+    }
+
+    .audio-health.is-speaking .mic-level-bar {
+      background: linear-gradient(90deg, #6ee7b7, #70dcf9);
+    }
+
+    body.is-demo-mode main {
+      border-color: rgba(116, 210, 244, 0.7);
+    }
+
+    @media (max-width: 640px) {
+      main {
+        box-shadow: 0 0.65rem 1.8rem rgba(77, 123, 171, 0.14);
+      }
+
+      main::before {
+        width: 12rem;
+        height: 8rem;
+        top: -2.9rem;
+      }
+
+      .primary-action {
+        min-height: 3.3rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2315,7 +2666,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-10-cost-history";
+    const APP_VERSION = "2026-08-10-pastel-call-ui";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
