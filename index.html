@@ -302,6 +302,43 @@
       display: none;
     }
 
+    .mic-state-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.34rem;
+      min-width: 5.2rem;
+      padding: 0.18rem 0.34rem;
+      border: 0.07rem solid transparent;
+      border-radius: 0.68rem;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: 900;
+      line-height: 1.2;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+    }
+
+    .mic-state-toggle i {
+      width: 1rem;
+      text-align: center;
+      font-size: 0.88rem;
+    }
+
+    .mic-state-toggle:not(:disabled):hover,
+    .mic-state-toggle:not(:disabled):focus-visible {
+      border-color: var(--accent);
+      background: rgba(20, 184, 218, 0.12);
+      color: var(--text);
+      outline: none;
+    }
+
+    .mic-state-toggle:disabled {
+      cursor: default;
+      opacity: 0.72;
+    }
+
     .mic-level {
       height: 0.48rem;
       overflow: hidden;
@@ -2168,7 +2205,7 @@
     </section>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
-      <span id="micState"><i class="fa-solid fa-microphone-lines"></i> マイク待ち</span>
+      <button id="micState" class="mic-state-toggle" type="button" disabled aria-label="マイクを解除" aria-pressed="true"><i class="fa-solid fa-microphone-lines"></i><span>マイク待ち</span></button>
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
       <span id="noiseGuardState" class="noise-guard">ノイズ抑制中</span>
     </section>
@@ -2602,6 +2639,17 @@
         }
         toggleMute();
       });
+      if (el.micState) {
+        el.micState.addEventListener("click", function(event) {
+          event.stopPropagation();
+          if (isDemoMode) {
+            toggleDemoMute();
+            return;
+          }
+          if (!joined) return;
+          toggleMute();
+        });
+      }
       el.share.addEventListener("click", function() {
         if (isDemoMode) {
           copyDemoShareUrl();
@@ -5288,8 +5336,9 @@
           const rms = Math.sqrt(sum / data.length);
           const rawSpeaking = !muted && rms > 0.026;
           const nextSpeaking = getStableSpeakingState(rawSpeaking, Date.now());
-          updateSoftNoiseGuard(rms, nextSpeaking);
-          updateAudioHealth(rms, nextSpeaking, muted ? "ミュート中" : (nextSpeaking ? "会話中" : "ノイズ抑制中"));
+          const visibleRms = muted ? 0 : rms;
+          updateSoftNoiseGuard(visibleRms, nextSpeaking);
+          updateAudioHealth(visibleRms, nextSpeaking, muted ? "ミュート中" : (nextSpeaking ? "会話中" : "ノイズ抑制中"));
           const now = Date.now();
           if (!muted && !nextSpeaking && participants.length > 1 && now - lastMuteReminderAt > 45000) {
             lastMuteReminderAt = now;
@@ -5361,13 +5410,19 @@
     function updateAudioHealth(rms, isSpeaking, label) {
       if (!el.audioHealth) return;
       el.audioHealth.hidden = !joined && label !== "テスト中";
-      const level = Math.max(0, Math.min(100, Math.round(rms * 520)));
+      const meterMuted = muted || (!joined && label !== "テスト中");
+      const visibleRms = meterMuted ? 0 : rms;
+      const safeSpeaking = !meterMuted && !!isSpeaking;
+      const level = Math.max(0, Math.min(100, Math.round(visibleRms * 520)));
       if (el.micLevelBar) el.micLevelBar.style.width = level + "%";
-      el.audioHealth.classList.toggle("is-speaking", !!isSpeaking);
+      el.audioHealth.classList.toggle("is-speaking", safeSpeaking);
       if (el.micState) {
-        const icon = muted ? "fa-microphone-slash" : (isSpeaking ? "fa-microphone-lines" : "fa-microphone");
-        const text = muted ? "マイクOFF" : (isSpeaking ? "話しています" : "待機中");
-        el.micState.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + text;
+        const icon = muted ? "fa-microphone-slash" : (safeSpeaking ? "fa-microphone-lines" : "fa-microphone");
+        const text = muted ? "マイクOFF" : (safeSpeaking ? "話しています" : "待機中");
+        el.micState.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + text + '</span>';
+        el.micState.disabled = !joined && label !== "テスト中";
+        el.micState.setAttribute("aria-label", muted ? "マイクを解除" : "マイクをミュート");
+        el.micState.setAttribute("aria-pressed", muted ? "true" : "false");
       }
       if (el.noiseGuardState) el.noiseGuardState.textContent = label || "ノイズ抑制中";
     }
@@ -5381,7 +5436,7 @@
       speakingCandidateState = false;
       speakingCandidateSince = 0;
       lastSpeakingWrite = 0;
-      updateAudioHealth(0, false, "蛛懈ｭ｢荳ｭ");
+      updateAudioHealth(0, false, "停止中");
     }
 
     function handleParticipantClick(event) {
@@ -5768,7 +5823,7 @@
           localStorage.removeItem("standaloneVoiceUserName");
         }
       } catch (error) {
-        // 菫晏ｭ倥〒縺阪↑縺・腸蠅・〒繧る夊ｩｱ縺ｯ邯壹￠縺ｾ縺吶・
+        // 保存できない環境でも通話は続けます。
       }
       if (joined) updatePresence();
     }
