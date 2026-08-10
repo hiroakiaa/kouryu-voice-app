@@ -34,6 +34,7 @@
     html,
     body {
       min-height: 100%;
+      font-size: 17px;
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
       touch-action: manipulation;
@@ -78,6 +79,7 @@
 
     .app-icon {
       appearance: none;
+      position: relative;
       display: inline-grid;
       place-items: center;
       width: 2.8rem;
@@ -100,6 +102,17 @@
       border-color: var(--accent);
       background: var(--accent-soft);
       color: var(--text);
+    }
+
+    .app-icon.has-call-report::after {
+      content: "";
+      position: absolute;
+      right: 0.32rem;
+      top: 0.32rem;
+      width: 0.46rem;
+      height: 0.46rem;
+      border-radius: 999rem;
+      background: var(--ok);
     }
 
     .brand {
@@ -362,6 +375,34 @@
       font-size: 0.82rem;
     }
 
+    .app-info-call-report {
+      display: none;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.38rem;
+      padding: 0.52rem;
+      border: 0.06rem solid rgba(139, 233, 255, 0.28);
+      border-radius: 0.75rem;
+      color: var(--muted);
+      background: rgba(6, 24, 36, 0.72);
+      font-size: 0.72rem;
+      font-weight: 820;
+      line-height: 1.5;
+    }
+
+    .app-info-call-report.is-showing {
+      display: flex;
+    }
+
+    .app-info-call-report.is-warning {
+      border-color: rgba(255, 109, 146, 0.7);
+      color: #ffd6e2;
+    }
+
+    .app-info-call-report strong {
+      color: var(--text);
+    }
+
     .app-info-actions {
       display: flex;
       align-items: stretch;
@@ -566,7 +607,7 @@
     }
 
     .audio-preset-control {
-      display: inline-flex;
+      display: none;
       align-items: center;
       gap: 0.34rem;
       min-height: 2rem;
@@ -829,6 +870,29 @@
       background: rgba(8, 45, 62, 0.56);
       font-size: 0.72rem;
       font-weight: 850;
+    }
+
+    .participant-mic-hint {
+      flex: 1 0 100%;
+      align-self: flex-end;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      width: fit-content;
+      max-width: 100%;
+      margin-top: auto;
+      padding: 0.45rem 0.7rem;
+      border: 0.06rem solid rgba(139, 233, 255, 0.34);
+      border-radius: 999rem;
+      color: var(--text);
+      background: rgba(3, 27, 42, 0.86);
+      font-size: 0.78rem;
+      font-weight: 850;
+      line-height: 1.35;
+    }
+
+    .participants-card.is-empty .participant-mic-hint {
+      margin-top: 0;
     }
 
     .empty-participants .empty-participants-tip i {
@@ -1811,11 +1875,10 @@
 
     <div id="appInfoTooltip" class="app-info-tooltip" aria-hidden="true">
       <div class="app-info-version">
-        <strong>アプリ情報</strong>
+        <strong>情報</strong>
         <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
-        <small class="app-info-version-note">GitHub Pagesの反映後、この更新番号が変わっていれば最新版です。</small>
-        <span id="freshnessStatus" class="app-freshness-status is-checking" aria-live="polite"><i class="fa-solid fa-spinner"></i><span>最新版を確認中</span></span>
       </div>
+      <div id="appInfoCallReport" class="app-info-call-report" role="status" aria-live="polite"></div>
       <div class="app-info-actions" aria-label="詳しい情報">
         <button id="metricsToggleBtn" class="app-info-action" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="Firestore料金の目安">
           <i class="fa-solid fa-yen-sign"></i><span>料金目安</span>
@@ -1824,7 +1887,6 @@
           <i class="fa-solid fa-stethoscope"></i><span>接続診断</span>
         </button>
       </div>
-      <div id="preflightSummary" class="preflight-summary" aria-live="polite" aria-label="通話前チェック結果"></div>
       <section id="callReliabilityPanel" class="call-reliability-panel" aria-live="polite">
         <div class="call-reliability-main">
           <span id="connectionStateBadge" class="connection-state-badge is-waiting"><i class="fa-solid fa-signal"></i><span id="connectionStateLabel">&#30456;&#25163;&#24453;&#12385;</span></span>
@@ -1832,9 +1894,9 @@
         </div>
         <div class="call-quality-row">
           <span id="qualityBadge" class="quality-chip"><i class="fa-solid fa-wave-square"></i><span>&#21697;&#36074;: --</span></span>
-          <span id="rttBadge" class="stat-chip">RTT --</span>
-          <span id="jitterBadge" class="stat-chip">jitter --</span>
-          <span id="packetLossBadge" class="stat-chip">loss --</span>
+          <span id="rttBadge" class="stat-chip">遅れ --</span>
+          <span id="jitterBadge" class="stat-chip">音の揺れ --</span>
+          <span id="packetLossBadge" class="stat-chip">途切れ --</span>
         </div>
         <div id="diagnosticsPanel" class="diagnostics-panel" aria-hidden="true"></div>
       </section>
@@ -1847,6 +1909,7 @@
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>料金目安を確認</strong><span>円マークから現在の読み書き量と概算金額を見られます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>新たなURLを作ると、そこで別の新しい電話を始められます。</span></span></span>
     </section>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
@@ -1859,7 +1922,6 @@
       <h2><i class="fa-solid fa-user-group"></i> 参加者</h2>
       <div id="participants" class="participants"></div>
       <div id="callEventNotice" class="call-event-notice" role="status" aria-live="polite"></div>
-      <div id="callReport" class="call-report" role="status" aria-live="polite"></div>
       <div id="notice" class="notice" role="status" aria-live="polite"></div>
     </section>
 
@@ -1875,7 +1937,7 @@
         <button id="muteBtn" type="button" disabled><i class="fa-solid fa-microphone-slash"></i><span>ミュート</span></button>
         <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
-        <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規</span></button>
+        <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規URL</span></button>
       </div>
       <button id="joinBtn" class="primary primary-action" type="button"><i class="fa-solid fa-phone"></i><span>参加する</span></button>
     </div>
@@ -1964,7 +2026,7 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-10-quiet-assurance";
+    const APP_VERSION = "2026-08-10-clear-guidance";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -2104,6 +2166,7 @@
       rttBadge: document.getElementById("rttBadge"),
       jitterBadge: document.getElementById("jitterBadge"),
       packetLossBadge: document.getElementById("packetLossBadge"),
+      appInfoCallReport: document.getElementById("appInfoCallReport"),
       preflightSummary: document.getElementById("preflightSummary"),
       preflight: document.getElementById("preflightBtn"),
       audioPreset: document.getElementById("audioPresetSelect"),
@@ -2111,7 +2174,6 @@
       diagnosticsPanel: document.getElementById("diagnosticsPanel"),
       participants: document.getElementById("participants"),
       callEventNotice: document.getElementById("callEventNotice"),
-      callReport: document.getElementById("callReport"),
       name: document.getElementById("nameInput"),
       join: document.getElementById("joinBtn"),
       mute: document.getElementById("muteBtn"),
@@ -2141,6 +2203,7 @@
     let lastSpeakingDataState = null;
     let muted = false;
     let joined = false;
+    let micUnlockHintDismissed = false;
     let joinBusy = false;
     let participants = [];
     let currentStatusTitle = "準備中です";
@@ -2340,6 +2403,7 @@
     function toggleDemoJoin() {
       joined = !joined;
       if (!joined) muted = false;
+      micUnlockHintDismissed = !joined;
       participants = createDemoParticipants(joined);
       renderParticipants(participants);
       updateDemoJoinButton();
@@ -2512,6 +2576,7 @@
       processedSignals = new Set();
       deletedSignalIds = new Set();
       muted = true;
+      micUnlockHintDismissed = false;
       setJoinBusy(true, "接続中");
       startJoinSlowTimer();
       startConnectionStuckTimer();
@@ -3336,20 +3401,22 @@
       lastParticipantsRenderSignature = signature;
       const participantsCard = el.participants.closest(".participants-card");
       if (participantsCard) participantsCard.classList.toggle("is-empty", !items.length);
+      const micHint = shouldShowMicUnlockHint() ? getMicUnlockHintHtml() : "";
       if (!items.length) {
-        const emptyTitle = joined ? "相手を待っています" : "まだ参加していません";
+        const emptyTitle = joined ? "相手を待っています" : "参加者";
         const emptyText = joined
-          ? "同じURLを相手に開いてもらうと、自動でここに表示されます。"
-          : "参加すると、自分と相手のアイコンがここに表示されます。";
+          ? "同じURLの相手が参加すると、ここに表示されます。"
+          : "まだ参加者はいません。";
         const emptyTip = joined
           ? '<span class="empty-participants-tip"><i class="fa-solid fa-link"></i>URLボタンで共有できます</span>'
-          : '<span class="empty-participants-tip"><i class="fa-solid fa-phone"></i>まずは参加するを押します</span>';
+          : "";
         el.participants.classList.remove("has-self");
         el.participants.innerHTML = '<div class="empty-participants">' +
           '<strong>' + escapeHtml(emptyTitle) + '</strong>' +
           '<span>' + escapeHtml(emptyText) + '</span>' +
           emptyTip +
-          '</div>';
+          '</div>' +
+          micHint;
         updateReconnectControl();
         return;
       }
@@ -3371,7 +3438,15 @@
           '<i class="fa-solid fa-user avatar-mark ' + statusClass + '"></i>' +
           '<span class="participant-state-badge ' + escapeHtml(statusMeta.className) + '"><i class="fa-solid ' + escapeHtml(statusMeta.icon) + '"></i><span>' + escapeHtml(statusMeta.label) + '</span></span>' +
           '</button>';
-      }).join("");
+      }).join("") + micHint;
+    }
+
+    function shouldShowMicUnlockHint() {
+      return joined && muted && !micUnlockHintDismissed;
+    }
+
+    function getMicUnlockHintHtml() {
+      return '<div class="participant-mic-hint"><i class="fa-solid fa-microphone"></i><span>話すときはマイク解除ボタンを押してください。</span></div>';
     }
 
     function getParticipantStatusMeta(item, isSelf) {
@@ -3432,8 +3507,9 @@
     }
 
     function getParticipantsRenderSignature(items) {
-      if (!items || !items.length) return "empty";
-      return items.map(function(item) {
+      const hintKey = shouldShowMicUnlockHint() ? "hint-on" : "hint-off";
+      if (!items || !items.length) return "empty:" + hintKey;
+      return hintKey + "|" + items.map(function(item) {
         return [
           item.userId || "",
           getDisplayName(item.userName || "匿名さん"),
@@ -3580,11 +3656,13 @@
       if (localStream) {
         localStream.getAudioTracks().forEach(function(track) { track.enabled = !muted; });
       }
+      if (!muted) micUnlockHintDismissed = true;
       el.mute.innerHTML = muted
         ? '<i class="fa-solid fa-microphone"></i><span>解除</span>'
         : '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
       updateSoftNoiseGuard(0, false);
       updateAudioHealth(0, false, muted ? "ミュート中" : "ノイズ抑制中");
+      renderParticipants(participants);
       if (muted) {
         speakingState = false;
         speakingCandidateState = false;
@@ -4405,9 +4483,9 @@
         if (activeStats.quality && activeStats.quality !== "idle") el.qualityBadge.classList.add("is-" + activeStats.quality);
         el.qualityBadge.innerHTML = '<i class="fa-solid fa-wave-square"></i><span>' + escapeHtml(labels[activeStats.quality] || labels.idle) + '</span>';
       }
-      if (el.rttBadge) el.rttBadge.textContent = "RTT " + formatStat(activeStats.rttMs, "ms");
-      if (el.jitterBadge) el.jitterBadge.textContent = "jitter " + formatStat(activeStats.jitterMs, "ms");
-      if (el.packetLossBadge) el.packetLossBadge.textContent = "loss " + formatStat(activeStats.lossPct, "%");
+      if (el.rttBadge) el.rttBadge.textContent = "遅れ " + formatStat(activeStats.rttMs, "ms");
+      if (el.jitterBadge) el.jitterBadge.textContent = "音の揺れ " + formatStat(activeStats.jitterMs, "ms");
+      if (el.packetLossBadge) el.packetLossBadge.textContent = "途切れ " + formatStat(activeStats.lossPct, "%");
       if (activeStats.quality && activeStats.quality !== "idle" && activeStats.quality !== previousQuality) {
         const detail = "RTT " + formatStat(activeStats.rttMs, "ms") + " / jitter " + formatStat(activeStats.jitterMs, "ms") + " / loss " + formatStat(activeStats.lossPct, "%");
         const advice = getQualityAdvice(activeStats);
@@ -5789,20 +5867,22 @@
     }
 
     function renderCallReport(text, important) {
-      if (!el.callReport) return;
+      if (!el.appInfoCallReport) return;
       if (!text) {
         hideCallReport();
         return;
       }
-      el.callReport.innerHTML = text;
-      el.callReport.classList.add("is-showing");
-      el.callReport.classList.toggle("is-warning", !!important);
+      el.appInfoCallReport.innerHTML = text;
+      el.appInfoCallReport.classList.add("is-showing");
+      el.appInfoCallReport.classList.toggle("is-warning", !!important);
+      if (el.appInfoToggle) el.appInfoToggle.classList.add("has-call-report");
     }
 
     function hideCallReport() {
-      if (!el.callReport) return;
-      el.callReport.textContent = "";
-      el.callReport.classList.remove("is-showing", "is-warning");
+      if (!el.appInfoCallReport) return;
+      el.appInfoCallReport.textContent = "";
+      el.appInfoCallReport.classList.remove("is-showing", "is-warning");
+      if (el.appInfoToggle) el.appInfoToggle.classList.remove("has-call-report");
     }
 
     function buildCallEndReport(activeListeners, cleanupResult) {
