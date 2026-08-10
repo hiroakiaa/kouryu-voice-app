@@ -2021,12 +2021,13 @@
     };
 
     const rtcConfig = {
+      iceCandidatePoolSize: 2,
       iceServers: [
         { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }
       ]
     };
 
-    const APP_VERSION = "2026-08-10-clear-guidance";
+    const APP_VERSION = "2026-08-10-connection-timeline";
     const MAX_CALL_PARTICIPANTS = 2;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
@@ -2244,6 +2245,7 @@
     let deniedByCapacity = false;
     let lastCapacityWarnAt = 0;
     let staleParticipantMarks = new Map();
+    let connectionRemoteSeenIds = new Set();
     let lastQualityDiagnosticAt = 0;
     let lastCleanupSummary = "";
     let preflightBusy = false;
@@ -2562,6 +2564,7 @@
       if (!runPassivePreflightCheck()) return;
       resetMetrics();
       markMetricMilestone("before-call-start");
+      recordConnectionStep("参加開始", "参加ボタンを押しました。", "join-start");
       hideCallReport();
       hideCallEventNotice();
       const typedName = getDisplayName(el.name.value);
@@ -2588,6 +2591,7 @@
       try {
         setStatus("参加しています", "参加者として登録しています。");
         recordWrite("participantJoin");
+        recordConnectionStep("参加情報保存開始", "Firestoreに自分の参加状態を保存します。", "participant-write-start");
         await setDoc(participantRef(userId), {
           userId,
           sessionId,
@@ -2601,10 +2605,8 @@
           lastSeenAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         }, { merge: true });
+        recordConnectionStep("参加情報保存OK", "相手の端末から見える参加者になりました。", "participant-write-done");
         startHeartbeat();
-        startParticipantSweep();
-        startLiveWatchers();
-        startStabilityAudit();
         setJoinBusy(false);
         clearJoinSlowTimer();
         updateJoinButton();
@@ -2633,6 +2635,7 @@
         setStatus("マイクを確認中", "ブラウザのマイク許可で「許可」を選んでください。");
         setCallPhase("connecting", "\u30de\u30a4\u30af\u8a31\u53ef\u3092\u78ba\u8a8d\u3057\u3066\u3044\u307e\u3059\u3002");
         setJoinBusy(true, "マイク確認中");
+        recordConnectionStep("マイク確認開始", "ブラウザにマイクを要求しました。", "mic-start");
         rawLocalStream = await getUserMediaWithTimeout({
           audio: {
             echoCancellation: { ideal: true },
@@ -2644,6 +2647,7 @@
           },
           video: false
         }, MIC_PERMISSION_TIMEOUT_MS);
+        recordConnectionStep("マイク確認OK", "音声トラックを取得しました。", "mic-done");
         setJoinBusy(false);
         tuneLocalAudioTrack(rawLocalStream);
         localStream = createCleanAudioStream(rawLocalStream);
@@ -2658,6 +2662,10 @@
         updateAudioHealth(0, false, "ノイズ抑制中");
         setStatus("相手を待っています", "最初はマイクOFFです。話す時だけミュートを解除してください。");
         updatePresence();
+        startParticipantSweep();
+        startLiveWatchers();
+        recordConnectionStep("待受開始", "参加者と自分宛ての接続情報を監視しています。", "watchers-started");
+        startStabilityAudit();
         ensurePeersForParticipants();
       } catch (error) {
         console.warn(error);
@@ -2758,6 +2766,11 @@
           return;
         }
         const renderedParticipants = allowedParticipants.map(applyRealtimeParticipantState);
+        renderedParticipants.forEach(function(person) {
+          if (!person || !person.userId || person.userId === userId || connectionRemoteSeenIds.has(person.userId)) return;
+          connectionRemoteSeenIds.add(person.userId);
+          recordConnectionStep("相手を検出", getDisplayName(person.userName || "相手") + " が参加者一覧に入りました。", "remote-seen:" + person.userId);
+        });
         notifyParticipantChanges(renderedParticipants);
         participants = renderedParticipants;
         renderParticipants(participants);
@@ -2940,6 +2953,7 @@
         closePeer(remoteId);
       }
       const peer = new RTCPeerConnection(rtcConfig);
+      recordConnectionStep("Peer作成", getDisplayName(remoteName || "相手") + " とのWebRTC接続を準備しました。", "peer-created:" + remoteId + ":" + remoteSessionId);
       const state = {
         id: remoteId,
         name: remoteName,
@@ -2955,6 +2969,8 @@
         dataChannel: null,
         dataChannelReady: false,
         offered: false,
+        firstLocalCandidateSent: false,
+        firstRemoteCandidateReceived: false,
         recreateAttempted: false,
         reconnectTimer: null,
         reconnectGiveupTimer: null
@@ -2968,6 +2984,7 @@
       });
 
       peer.ontrack = function(event) {
+        recordConnectionStep("音声到着", state.name + " の音声トラックを受信しました。", "remote-track:" + remoteId + ":" + remoteSessionId);
         state.remoteTrackReceived = true;
         state.remoteAudioLastPacketAt = Date.now();
         lastRemoteTrackAt = Date.now();
@@ -3000,6 +3017,10 @@
         }
         state.sentCandidateKeys.add(candidateKey);
         recordIce("sent");
+        if (!state.firstLocalCandidateSent) {
+          state.firstLocalCandidateSent = true;
+          recordConnectionStep("ICE送信開始", "接続経路候補を相手へ送り始めました。", "first-ice-sent:" + remoteId + ":" + remoteSessionId);
+        }
         addSignal("candidate", {
           candidate: event.candidate.candidate,
           sdpMid: event.candidate.sdpMid,
@@ -3009,6 +3030,7 @@
 
       peer.onconnectionstatechange = function() {
         if (isPeerConnected(peer)) {
+          recordConnectionStep("Peer接続完了", "端末同士の直接接続が成立しました。", "peer-connected:" + remoteId + ":" + remoteSessionId);
           markConnectedOnce();
           clearReconnectTimer(state);
           clearAutoReconnectTimer(state);
@@ -3029,6 +3051,7 @@
 
       peer.oniceconnectionstatechange = function() {
         if (isPeerConnected(peer)) {
+          recordConnectionStep("ICE接続完了", "音声の通信経路が決まりました。", "ice-connected:" + remoteId + ":" + remoteSessionId);
           markConnectedOnce();
           clearReconnectTimer(state);
           clearAutoReconnectTimer(state);
@@ -3202,13 +3225,16 @@
     async function createOffer(remoteId, restartIce) {
       const state = peers.get(remoteId);
       if (!state || state.peer.signalingState !== "stable") return;
+      recordConnectionStep(restartIce ? "再接続offer作成" : "offer作成開始", state.name + " へ接続開始情報を作ります。", (restartIce ? "offer-restart-start:" : "offer-start:") + remoteId + ":" + state.remoteSessionId);
       if (restartIce && typeof state.peer.restartIce === "function") {
         state.peer.restartIce();
       }
       const offer = await state.peer.createOffer(restartIce ? { iceRestart: true } : undefined);
       offer.sdp = enhanceVoiceSdp(offer.sdp);
       await state.peer.setLocalDescription(offer);
+      recordConnectionStep(restartIce ? "再接続offer準備OK" : "offer準備OK", "自分側の接続情報を準備しました。", (restartIce ? "offer-restart-local:" : "offer-local:") + remoteId + ":" + state.remoteSessionId);
       await addSignal("offer", { type: offer.type, sdp: offer.sdp }, remoteId, state.remoteSessionId);
+      recordConnectionStep(restartIce ? "再接続offer送信" : "offer送信", "相手へ接続開始情報を送りました。", (restartIce ? "offer-restart-sent:" : "offer-sent:") + remoteId + ":" + state.remoteSessionId);
       scheduleReconnect(remoteId);
     }
 
@@ -3219,6 +3245,7 @@
       const peer = state.peer;
 
       if (signal.type === "offer" && signal.payload) {
+        recordConnectionStep("offer受信", "相手から接続開始情報を受け取りました。", "offer-received:" + signal.from + ":" + (signal.fromSessionId || state.remoteSessionId));
         if (peer.signalingState !== "stable") {
           await Promise.all([
             peer.setLocalDescription({ type: "rollback" }).catch(function() {}),
@@ -3230,10 +3257,13 @@
         const answer = await peer.createAnswer();
         answer.sdp = enhanceVoiceSdp(answer.sdp);
         await peer.setLocalDescription(answer);
+        recordConnectionStep("answer準備OK", "返答用の接続情報を準備しました。", "answer-local:" + signal.from + ":" + (signal.fromSessionId || state.remoteSessionId));
         await addSignal("answer", { type: answer.type, sdp: answer.sdp }, signal.from, signal.fromSessionId || state.remoteSessionId);
+        recordConnectionStep("answer送信", "相手へ接続返答を送りました。", "answer-sent:" + signal.from + ":" + (signal.fromSessionId || state.remoteSessionId));
         await flushCandidates(state);
       } else if (signal.type === "answer" && signal.payload) {
         if (peer.signalingState !== "stable") {
+          recordConnectionStep("answer受信", "相手から接続返答を受け取りました。", "answer-received:" + signal.from + ":" + (signal.fromSessionId || state.remoteSessionId));
           await peer.setRemoteDescription(new RTCSessionDescription(signal.payload));
           await flushCandidates(state);
           clearReconnectTimer(state);
@@ -3246,6 +3276,10 @@
         }
         state.receivedCandidateKeys.add(candidateKey);
         recordIce("received");
+        if (!state.firstRemoteCandidateReceived) {
+          state.firstRemoteCandidateReceived = true;
+          recordConnectionStep("ICE受信開始", "相手から接続経路候補を受け取りました。", "first-ice-received:" + signal.from + ":" + (signal.fromSessionId || state.remoteSessionId));
+        }
         if (peer.remoteDescription) {
           await addCandidate(peer, signal.payload);
         } else {
@@ -5398,6 +5432,7 @@
         listenersOpened: {},
         listenersClosed: {},
         ice: { sent: 0, received: 0, duplicateSendSkipped: 0, duplicateReceiveSkipped: 0 },
+        connectionTimeline: [],
         milestones: []
       };
     }
@@ -5406,6 +5441,7 @@
       Object.assign(metrics, createMetrics());
       metrics.startedAt = Date.now();
       lastCleanupSummary = "";
+      connectionRemoteSeenIds = new Set();
       clearMetricTimers();
       renderMetrics();
     }
@@ -5449,6 +5485,40 @@
       maybeGuardFirestoreUsage("snapshot:" + (key || "unknown"));
     }
 
+    function recordConnectionStep(label, detail, key) {
+      if (!metrics.startedAt) metrics.startedAt = Date.now();
+      const itemKey = key || label;
+      const existing = (metrics.connectionTimeline || []).some(function(item) {
+        return item.key === itemKey;
+      });
+      if (existing) return;
+      metrics.connectionTimeline.push({
+        key: itemKey,
+        label,
+        seconds: Math.round(((Date.now() - metrics.startedAt) / 1000) * 10) / 10,
+        detail: detail || ""
+      });
+      if (metrics.connectionTimeline.length > 80) metrics.connectionTimeline.shift();
+      renderMetrics();
+    }
+
+    function getConnectionDelaySummary() {
+      const list = metrics.connectionTimeline || [];
+      if (!list.length) return "まだ接続タイムラインはありません。";
+      const connected = metrics.connectedAt ? Math.round(((metrics.connectedAt - metrics.startedAt) / 1000) * 10) / 10 : 0;
+      const phases = [];
+      for (let i = 1; i < list.length; i += 1) {
+        const delta = Math.round((list[i].seconds - list[i - 1].seconds) * 10) / 10;
+        if (delta >= 2) {
+          phases.push(list[i - 1].label + "→" + list[i].label + " " + delta + "秒");
+        }
+      }
+      if (connected) {
+        return "接続まで約" + connected + "秒。待ちが長い区間: " + (phases.length ? phases.join(" / ") : "目立つ遅延なし");
+      }
+      return "未接続。現在までの長い待ち: " + (phases.length ? phases.join(" / ") : "記録中");
+    }
+
     function isFirestoreGuardActive() {
       return Date.now() < firestoreGuardActiveUntil;
     }
@@ -5473,6 +5543,7 @@
     function markConnectedOnce() {
       if (metrics.connectedAt) return;
       metrics.connectedAt = Date.now();
+      recordConnectionStep("接続完了", "ここから音声はWebRTCで直接通信します。", "connected");
       setCallPhase("connected", "\u901a\u8a71\u304c\u5b89\u5b9a\u3057\u3066\u3064\u306a\u304c\u308a\u307e\u3057\u305f\u3002");
       pushDiagnostic("info", "\u63a5\u7d9a\u5b8c\u4e86", "\u3053\u3053\u304b\u3089\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u901a\u4fe1\u3057\u307e\u3059\u3002");
       startStatsMonitor();
@@ -5780,6 +5851,8 @@
         "writes: " + JSON.stringify(metrics.writes, null, 2) + "\n" +
         "deletes: " + JSON.stringify(metrics.deletes, null, 2) + "\n" +
         "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
+        "connectionDelay: " + getConnectionDelaySummary() + "\n" +
+        "connectionTimeline: " + JSON.stringify(metrics.connectionTimeline, null, 2) + "\n" +
         "teacherDiagnostic: " + getTeacherDiagnosticSummary() + "\n" +
         "cleanup: " + (lastCleanupSummary || "not ended") + "\n" +
         "activeListenersNow: " + getOpenListenerCount() + "\n" +
