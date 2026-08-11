@@ -4769,7 +4769,6 @@
         firestoreGuardLastWarnAt = now;
         firestoreGuardActiveUntil = now + FIRESTORE_GUARD_ACTIVE_MS;
         pushDiagnostic("warn", "Firestore負荷を抑制", "reads " + readsPerMin + "/分 / writes " + writesPerMin + "/分");
-        showCallEventNotice("通信量が増えたため、通話中の同期を少し控えます。", true);
       }
     }
 
@@ -6106,7 +6105,6 @@
       firestoreGuardActiveUntil = now + FIRESTORE_GUARD_ACTIVE_MS;
       const detail = "trigger " + (trigger || "unknown") + " / reads " + readsPerMinute + "/分 / writes " + writesPerMinute + "/分。通話中はFirestore同期を控えめにします。";
       pushDiagnostic("warn", "Firestore使用量を自動ガード", detail);
-      setNotice("Firestore使用量が多めなので、音声通話を優先して状態更新を控えめにしています。", true);
     }
 
     function markConnectedOnce() {
