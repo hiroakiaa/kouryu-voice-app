@@ -5,6 +5,7 @@ import test from "node:test";
 const rootHtml = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const standaloneHtml = await readFile(new URL("../voice-standalone/index.html", import.meta.url), "utf8");
 const firestoreRules = await readFile(new URL("../firestore.rules", import.meta.url), "utf8");
+const turnWorker = await readFile(new URL("../cloudflare-turn-worker/src/index.js", import.meta.url), "utf8");
 
 test("アプリのJavaScript構文が有効", () => {
   const scripts = [...rootHtml.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)];
@@ -101,4 +102,13 @@ test("匿名Firebase Authentication完了後だけFirestoreを使う", () => {
   assert.match(rootHtml, /authUid: authUser\.uid/);
   assert.match(firestoreRules, /request\.auth != null/);
   assert.match(firestoreRules, /request\.resource\.data\.authUid == request\.auth\.uid/);
+});
+
+test("Cloudflare TURN uses short-lived credentials with a STUN fallback", () => {
+  assert.match(rootHtml, /stun:stun\.cloudflare\.com:3478/);
+  assert.match(rootHtml, /function ensureTurnConfiguration/);
+  assert.match(rootHtml, /await ensureTurnConfiguration\(\)/);
+  assert.match(turnWorker, /TURN_KEY_API_TOKEN/);
+  assert.match(turnWorker, /ttl: 7200/);
+  assert.match(turnWorker, /https:\/\/hiroakiaa\.github\.io/);
 });

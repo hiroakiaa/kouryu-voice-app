@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="turn-credentials-endpoint" content="https://kouryu-turn-credentials.allinone-hiroakiaa.workers.dev/">
   <title>共通電話</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
@@ -2359,12 +2360,15 @@
       measurementId: "G-PPM2DBQXQ1"
     };
 
-    const rtcConfig = {
+    const FALLBACK_ICE_SERVERS = [
+      { urls: ["stun:stun.cloudflare.com:3478"] }
+    ];
+    const TURN_CREDENTIALS_ENDPOINT = (document.querySelector('meta[name="turn-credentials-endpoint"]')?.content || "").trim();
+    let rtcConfig = {
       iceCandidatePoolSize: 2,
-      iceServers: [
-        { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }
-      ]
+      iceServers: FALLBACK_ICE_SERVERS
     };
+    let turnConfigurationPromise = null;
 
     const APP_VERSION = "2026-08-11-capacity-slots";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
@@ -2769,6 +2773,7 @@
       renderParticipants([]);
       try {
         await ensureAnonymousAuth();
+        await ensureTurnConfiguration();
       } catch (error) {
         setCallPhase("failed", "安全な接続を準備できませんでした。ページを再読み込みしてください。");
         setStatus("接続準備に失敗しました", "ページを再読み込みして、もう一度お試しください。");
@@ -2796,6 +2801,48 @@
         });
       }
       return authReadyPromise;
+    }
+
+    function ensureTurnConfiguration() {
+      if (!TURN_CREDENTIALS_ENDPOINT) return Promise.resolve(rtcConfig);
+      if (turnConfigurationPromise) return turnConfigurationPromise;
+      turnConfigurationPromise = fetch(TURN_CREDENTIALS_ENDPOINT, {
+        method: "POST",
+        mode: "cors",
+        cache: "no-store",
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId: callId })
+      }).then(function(response) {
+        if (!response.ok) throw new Error("TURN_CREDENTIALS_" + response.status);
+        return response.json();
+      }).then(function(payload) {
+        if (!payload || !Array.isArray(payload.iceServers) || !payload.iceServers.length) {
+          throw new Error("TURN_CREDENTIALS_INVALID");
+        }
+        const iceServers = payload.iceServers.map(function(server) {
+          const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+          return Object.assign({}, server, {
+            urls: urls.filter(function(url) {
+              return typeof url === "string" && !/:53(?:\?|$)/.test(url);
+            })
+          });
+        }).filter(function(server) {
+          return server.urls.length > 0;
+        });
+        if (!iceServers.some(function(server) {
+          return server.urls.some(function(url) { return /^turns?:/.test(url); });
+        })) throw new Error("TURN_SERVER_MISSING");
+        rtcConfig = { iceCandidatePoolSize: 2, iceServers: iceServers };
+        pushDiagnostic("info", "TURN準備完了", "Cloudflare TURNを接続候補として利用します。");
+        return rtcConfig;
+      }).catch(function(error) {
+        rtcConfig = { iceCandidatePoolSize: 2, iceServers: FALLBACK_ICE_SERVERS };
+        turnConfigurationPromise = null;
+        pushDiagnostic("info", "TURN未使用", "直接接続とSTUNで通話を続けます。", error && error.message ? error.message : "");
+        return rtcConfig;
+      });
+      return turnConfigurationPromise;
     }
 
     function initDemoMode() {
