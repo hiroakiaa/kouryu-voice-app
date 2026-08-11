@@ -10,7 +10,7 @@ service cloud.firestore {
 
     function validParticipant(data) {
       return data.keys().hasOnly([
-          'userId', 'sessionId', 'userName', 'joined', 'left', 'muted',
+          'userId', 'sessionId', 'slot', 'userName', 'joined', 'left', 'muted',
           'connected', 'speaking', 'stale', 'joinedAt', 'leftAt',
           'lastSeenAt', 'updatedAt'
         ])
@@ -20,6 +20,7 @@ service cloud.firestore {
         && data.sessionId is string
         && data.sessionId.size() >= 1
         && data.sessionId.size() <= 160
+        && (!('slot' in data) || data.slot in ['A', 'B', 'C', 'D'])
         && data.userName is string
         && data.userName.size() <= 20
         && (!('joined' in data) || data.joined is bool)
@@ -51,6 +52,24 @@ service cloud.firestore {
         && data.payload is map;
     }
 
+    function validSlot(data) {
+      return data.keys().hasOnly([
+          'slot', 'userId', 'deviceId', 'sessionId', 'active',
+          'claimedAt', 'releasedAt', 'updatedAt'
+        ])
+        && data.slot in ['A', 'B', 'C', 'D']
+        && data.userId is string
+        && data.userId.size() >= 1
+        && data.userId.size() <= 128
+        && data.deviceId is string
+        && data.deviceId.size() >= 1
+        && data.deviceId.size() <= 128
+        && data.sessionId is string
+        && data.sessionId.size() >= 1
+        && data.sessionId.size() <= 160
+        && data.active is bool;
+    }
+
     match /standaloneVoiceCalls/{callId} {
       allow read, write: if false;
 
@@ -67,6 +86,14 @@ service cloud.firestore {
         allow create: if validCallId(callId) && validSignal(request.resource.data);
         allow update: if false;
         allow delete: if validCallId(callId);
+      }
+
+      match /slots/{slotId} {
+        allow read: if validCallId(callId);
+        allow create, update: if validCallId(callId)
+          && slotId == request.resource.data.slot
+          && validSlot(request.resource.data);
+        allow delete: if false;
       }
     }
 

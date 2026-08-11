@@ -2343,6 +2343,7 @@
       doc,
       onSnapshot,
       query,
+      runTransaction,
       serverTimestamp,
       setDoc,
       where
@@ -2364,9 +2365,11 @@
       ]
     };
 
-    const APP_VERSION = "2026-08-10-cost-history";
+    const APP_VERSION = "2026-08-11-capacity-slots";
+    const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
-    const PARTICIPANT_STALE_MS = 300 * 1000;
+    const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
+    const PARTICIPANT_STALE_MS = 240 * 1000;
     const HEARTBEAT_MS = 120000;
     const SPEAKING_MONITOR_MS = 260;
     const SPEAKING_ON_HOLD_MS = 220;
@@ -2560,6 +2563,7 @@
     let muted = false;
     let joined = false;
     let activeUserName = "";
+    let callSlot = "";
     let micUnlockHintDismissed = false;
     let joinBusy = false;
     let participants = [];
@@ -2992,6 +2996,22 @@
         saveName("");
       }
 
+      try {
+        callSlot = await claimCallSlot();
+        recordWrite("callSlotClaim");
+      } catch (error) {
+        callSlot = "";
+        if (error && error.message === "CALL_FULL") {
+          deniedByCapacity = true;
+          setCallPhase("failed", "この音声通話は4人までです。新しい通話URLを作ってください。");
+          setStatus("通話が満員です", "別の通話URLを作って参加してください。");
+          setNotice("この通話は4人までです。「新規URL」ボタンから新しい通話を始められます。");
+          updateJoinButton();
+          return;
+        }
+        pushDiagnostic("info", "固定参加枠は準備中", "従来の4人判定で参加を続けます。");
+      }
+
       deniedByCapacity = false;
       joined = true;
       setCallPhase("connecting", "\u53c2\u52a0\u8005\u3068\u3057\u3066\u767b\u9332\u3057\u3066\u3044\u307e\u3059\u3002");
@@ -3026,6 +3046,7 @@
           lastSeenAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
+        if (callSlot) participantData.slot = callSlot;
         await setDoc(participantRef(userId), participantData, { merge: true });
         ensureParticipantWatcher();
         recordConnectionStep("参加情報保存OK", "相手の端末から見える参加者になりました。", "participant-write-done");
@@ -3040,6 +3061,8 @@
       } catch (error) {
         console.warn(error);
         joined = false;
+        await releaseCallSlot(callSlot);
+        callSlot = "";
         showConnectionFailureGuide("Firestore participant permission");
         pushDiagnostic("error", "\u53c2\u52a0\u767b\u9332\u306b\u5931\u6557", error && error.message ? error.message : "");
         setJoinBusy(false);
@@ -3202,14 +3225,7 @@
         if (joined && selfIsActive && !allowedIds.has(userId)) {
           if (!deniedByCapacity) {
             deniedByCapacity = true;
-            recordWrite("participantLeave");
-            setDoc(participantRef(userId), {
-              sessionId,
-              left: true,
-              connected: false,
-              speaking: false,
-              updatedAt: serverTimestamp()
-            }, { merge: true }).catch(console.warn);
+            markLeft();
             setCallPhase("failed", "この音声通話は4人までです。新しい通話URLを作ってください。");
             pushDiagnostic("error", "通話が満員です", "5人目以降は接続しないようにしました。");
             setNotice("この通話は4人までです。新しい通話URLを作ってください。");
@@ -3439,6 +3455,11 @@
         lastSeenAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(console.warn);
+      if (callSlot) {
+        refreshCallSlot(callSlot).then(function(kept) {
+          if (!kept && joined) autoLeaveCall("参加枠の有効期限が切れたため、自動退室しました。");
+        }).catch(console.warn);
+      }
     }
 
     function startParticipantSweep() {
@@ -4319,13 +4340,16 @@
     function markLeft() {
       stopHeartbeat();
       recordWrite("participantLeave");
-      return setDoc(participantRef(userId), {
+      const slotToRelease = callSlot;
+      callSlot = "";
+      const participantLeave = setDoc(participantRef(userId), {
         sessionId,
         left: true,
         connected: false,
         speaking: false,
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(console.warn);
+      return Promise.all([participantLeave, releaseCallSlot(slotToRelease)]);
     }
 
     function stopLocalCall(updateStatus) {
@@ -4666,6 +4690,32 @@
       const shortVersion = APP_VERSION.replace(/^20/, "").replace(/-reliability-polish$/, "");
       el.versionPill.textContent = "v" + shortVersion.replace(/-/g, ".");
       el.versionPill.title = "更新番号: " + APP_VERSION;
+      let cached = null;
+      try {
+        cached = JSON.parse(localStorage.getItem(DEPLOY_VERSION_CACHE_KEY) || "null");
+      } catch (error) {}
+      if (cached && cached.sha) applyDeployVersion(cached.sha);
+      if (cached && Date.now() - Number(cached.checkedAt || 0) < FRESHNESS_CHECK_REFRESH_MS) return;
+      fetch("https://api.github.com/repos/hiroakiaa/kouryu-voice-app/commits/main", {
+        headers: { Accept: "application/vnd.github+json" },
+        cache: "no-store"
+      }).then(function(response) {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.json();
+      }).then(function(data) {
+        const sha = String(data && data.sha || "").slice(0, 7);
+        if (!sha) return;
+        applyDeployVersion(sha);
+        try {
+          localStorage.setItem(DEPLOY_VERSION_CACHE_KEY, JSON.stringify({ sha, checkedAt: Date.now() }));
+        } catch (error) {}
+      }).catch(function() {});
+    }
+
+    function applyDeployVersion(sha) {
+      if (!el.versionPill || !sha) return;
+      el.versionPill.textContent = "v" + sha;
+      el.versionPill.title = "GitHub main: " + sha + " / アプリ版: " + APP_VERSION;
     }
 
     function scheduleFreshnessCheck(force) {
@@ -5946,6 +5996,71 @@
 
     function participantRef(id) {
       return doc(db, "standaloneVoiceCalls", callId, "participants", id);
+    }
+
+    function slotRef(slot) {
+      return doc(db, "standaloneVoiceCalls", callId, "slots", slot);
+    }
+
+    async function claimCallSlot() {
+      return runTransaction(db, async function(transaction) {
+        const snapshots = [];
+        for (const slot of CALL_SLOT_NAMES) snapshots.push(await transaction.get(slotRef(slot)));
+        const now = Date.now();
+        let selected = "";
+        for (let index = 0; index < snapshots.length; index += 1) {
+          const data = snapshots[index].exists() ? snapshots[index].data() : null;
+          const updatedAt = data ? getTimestampMillis(data.updatedAt || data.claimedAt) : 0;
+          if (!data || data.active !== true || !updatedAt || now - updatedAt > PARTICIPANT_STALE_MS || data.deviceId === deviceId) {
+            selected = CALL_SLOT_NAMES[index];
+            break;
+          }
+        }
+        if (!selected) throw new Error("CALL_FULL");
+        transaction.set(slotRef(selected), {
+          slot: selected,
+          userId,
+          deviceId,
+          sessionId,
+          active: true,
+          claimedAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        return selected;
+      });
+    }
+
+    async function refreshCallSlot(slot) {
+      if (!slot) return false;
+      return runTransaction(db, async function(transaction) {
+        const reference = slotRef(slot);
+        const snapshot = await transaction.get(reference);
+        const data = snapshot.exists() ? snapshot.data() : null;
+        if (!data || data.userId !== userId || data.sessionId !== sessionId || data.active !== true) return false;
+        transaction.set(reference, { updatedAt: serverTimestamp() }, { merge: true });
+        recordWrite("callSlotHeartbeat");
+        return true;
+      });
+    }
+
+    async function releaseCallSlot(slot) {
+      if (!slot || !db) return;
+      try {
+        await runTransaction(db, async function(transaction) {
+          const reference = slotRef(slot);
+          const snapshot = await transaction.get(reference);
+          const data = snapshot.exists() ? snapshot.data() : null;
+          if (!data || data.userId !== userId || data.sessionId !== sessionId) return;
+          transaction.set(reference, {
+            active: false,
+            releasedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          recordWrite("callSlotRelease");
+        });
+      } catch (error) {
+        console.warn(error);
+      }
     }
 
     function ensureCallId(value) {

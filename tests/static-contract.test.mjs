@@ -5,6 +5,13 @@ import test from "node:test";
 const rootHtml = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const standaloneHtml = await readFile(new URL("../voice-standalone/index.html", import.meta.url), "utf8");
 
+test("アプリのJavaScript構文が有効", () => {
+  const scripts = [...rootHtml.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)];
+  let source = scripts.at(-1)[1];
+  source = source.replace(/^\s*import[\s\S]*?;\s*/, "").replace(/^\s*import[\s\S]*?;\s*/, "");
+  assert.doesNotThrow(() => new Function(source));
+});
+
 test("配布用HTMLは同一", () => {
   assert.equal(standaloneHtml, rootHtml);
 });
@@ -71,4 +78,18 @@ test("無記名参加者を参加順の匿名A・B表示にする", () => {
   assert.match(rootHtml, /activeUserName = userName/);
   assert.match(rootHtml, /return '匿<span class="anonymous-letter">'/);
   assert.match(rootHtml, /\.anonymous-letter[\s\S]*font-size: 0\.62em/);
+});
+
+test("固定4枠をTransactionで取得・更新・解放する", () => {
+  assert.match(rootHtml, /const CALL_SLOT_NAMES = \["A", "B", "C", "D"\]/);
+  assert.match(rootHtml, /runTransaction\(db, async function\(transaction\)/);
+  assert.match(rootHtml, /async function claimCallSlot/);
+  assert.match(rootHtml, /async function refreshCallSlot/);
+  assert.match(rootHtml, /async function releaseCallSlot/);
+});
+
+test("異常終了整理とバージョン自動表示がある", () => {
+  assert.match(rootHtml, /const PARTICIPANT_STALE_MS = 240 \* 1000/);
+  assert.match(rootHtml, /api\.github\.com\/repos\/hiroakiaa\/kouryu-voice-app\/commits\/main/);
+  assert.match(rootHtml, /applyDeployVersion\(sha\)/);
 });
