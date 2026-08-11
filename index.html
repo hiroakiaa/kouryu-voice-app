@@ -2218,7 +2218,8 @@
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>料金目安を確認</strong><span>アプリ左上のヘッドホンアイコン内の「料金目安」で確認できます。ユーザーの支払いはありません。分析用の表示です。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、10分通話で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>新たなURLを作ると、そこで別の新しい電話を始められます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
     </section>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
@@ -2388,6 +2389,9 @@
     const AUTO_RECONNECT_GIVEUP_MS = 18000;
     const AUTO_RECONNECT_MAX_ATTEMPTS = 2;
     const CLEANUP_AUDIT_DELAY_MS = 800;
+    const HIDDEN_AUTO_LEAVE_MS = 2 * 60 * 1000;
+    const MAX_CALL_DURATION_MS = 60 * 60 * 1000;
+    const PASSIVE_WATCHER_IDLE_MS = 10 * 60 * 1000;
     const CONNECTION_STUCK_MS = 15000;
     const MIC_PERMISSION_TIMEOUT_MS = 12000;
     const NO_REMOTE_AUDIO_CHECK_MS = 12000;
@@ -2574,6 +2578,10 @@
     let unsubSignals = null;
     let unsubParticipants = null;
     let heartbeatTimer = null;
+    let hiddenAutoLeaveTimer = null;
+    let maxCallDurationTimer = null;
+    let passiveWatcherIdleTimer = null;
+    let hiddenSince = 0;
     let participantSweepTimer = null;
     let lastConnectedState = null;
     let lastConnectionWrite = 0;
@@ -2723,7 +2731,15 @@
         if (!isDemoMode && joined) markLeft();
       });
       document.addEventListener("visibilitychange", function() {
-        if (!isDemoMode && document.visibilityState === "hidden" && joined) updatePresence();
+        if (isDemoMode) return;
+        if (document.visibilityState === "hidden") {
+          if (joined) {
+            updatePresence();
+            scheduleHiddenAutoLeave();
+          }
+          return;
+        }
+        handleVisibleReturn();
       });
       updateDeviceTip();
       if (isDemoMode) {
@@ -2980,6 +2996,7 @@
         }, { merge: true });
         recordConnectionStep("参加情報保存OK", "相手の端末から見える参加者になりました。", "participant-write-done");
         startHeartbeat();
+        startCallSafetyTimers();
         setJoinBusy(false);
         clearJoinSlowTimer();
         updateJoinButton();
@@ -3065,6 +3082,7 @@
     }
 
     function startLiveWatchers() {
+      stopPassiveWatcherIdleTimer();
       ensureParticipantWatcher();
       stopSignalWatcher();
       deletedSignalIds.clear();
@@ -3090,6 +3108,7 @@
       lastParticipantsRenderSignature = "";
       lastPassiveParticipantPresenceSignature = "";
       watchParticipants();
+      if (!joined) startPassiveWatcherIdleTimer();
     }
 
     function resumePassiveParticipantWatcher() {
@@ -3098,6 +3117,7 @@
     }
 
     function stopParticipantWatcher() {
+      stopPassiveWatcherIdleTimer();
       if (unsubParticipants) {
         unsubParticipants();
         recordListenerClosed("participants");
@@ -3261,6 +3281,74 @@
         window.clearInterval(heartbeatTimer);
         heartbeatTimer = null;
       }
+    }
+
+    function startCallSafetyTimers() {
+      stopCallSafetyTimers();
+      maxCallDurationTimer = window.setTimeout(function() {
+        autoLeaveCall("通話が1時間続いたため、安全のため自動退室しました。");
+      }, MAX_CALL_DURATION_MS);
+      if (document.visibilityState === "hidden") scheduleHiddenAutoLeave();
+    }
+
+    function scheduleHiddenAutoLeave() {
+      if (!joined) return;
+      hiddenSince = hiddenSince || Date.now();
+      if (hiddenAutoLeaveTimer) window.clearTimeout(hiddenAutoLeaveTimer);
+      hiddenAutoLeaveTimer = window.setTimeout(function() {
+        autoLeaveCall("画面を閉じた状態が2分続いたため、自動退室しました。");
+      }, HIDDEN_AUTO_LEAVE_MS);
+    }
+
+    function handleVisibleReturn() {
+      if (!joined || !hiddenSince) {
+        hiddenSince = 0;
+        return;
+      }
+      const hiddenDuration = Date.now() - hiddenSince;
+      if (hiddenAutoLeaveTimer) {
+        window.clearTimeout(hiddenAutoLeaveTimer);
+        hiddenAutoLeaveTimer = null;
+      }
+      hiddenSince = 0;
+      if (hiddenDuration >= HIDDEN_AUTO_LEAVE_MS) {
+        autoLeaveCall("画面を閉じた状態が2分以上続いたため、自動退室しました。");
+      }
+    }
+
+    function autoLeaveCall(message) {
+      if (!joined) return;
+      markLeft();
+      stopLocalCall(true);
+      setStatus("自動退室しました", message + " もう一度参加できます。");
+      setNotice(message);
+    }
+
+    function stopCallSafetyTimers() {
+      if (hiddenAutoLeaveTimer) window.clearTimeout(hiddenAutoLeaveTimer);
+      if (maxCallDurationTimer) window.clearTimeout(maxCallDurationTimer);
+      hiddenAutoLeaveTimer = null;
+      maxCallDurationTimer = null;
+      hiddenSince = 0;
+    }
+
+    function startPassiveWatcherIdleTimer() {
+      stopPassiveWatcherIdleTimer();
+      passiveWatcherIdleTimer = window.setTimeout(function() {
+        if (joined) return;
+        stopParticipantWatcher();
+        participants = [];
+        lastParticipantsRenderSignature = "";
+        renderParticipants([]);
+        setStatus("待機を停止しました", "参加していない状態が10分続いたため、参加者の自動更新を停止しました。");
+        setNotice("参加する時は、参加ボタンを押してください。");
+      }, PASSIVE_WATCHER_IDLE_MS);
+    }
+
+    function stopPassiveWatcherIdleTimer() {
+      if (!passiveWatcherIdleTimer) return;
+      window.clearTimeout(passiveWatcherIdleTimer);
+      passiveWatcherIdleTimer = null;
     }
 
     function updatePresence() {
@@ -3844,8 +3932,8 @@
       if (!items.length) {
         const emptyTitle = joined ? "相手を待っています" : "";
         const emptyText = joined
-          ? "同じURLの相手が参加すると、ここに表示されます。"
-          : "まだ参加者はいません。";
+          ? "同じURLの相手が参加すると、ここに表示されます。4人まで同時通話できます。5人目以降は、「新規URL」ボタンから新しい通話を始められます。"
+          : "まだ参加者はいません。4人まで同時通話できます。5人目以降は、「新規URL」ボタンから新しい通話を始められます。";
         const emptyTip = joined
           ? '<span class="empty-participants-tip"><i class="fa-solid fa-link"></i>URLボタンで共有できます</span>'
           : "";
@@ -4155,7 +4243,7 @@
     function markLeft() {
       stopHeartbeat();
       recordWrite("participantLeave");
-      setDoc(participantRef(userId), {
+      return setDoc(participantRef(userId), {
         sessionId,
         left: true,
         connected: false,
@@ -4171,6 +4259,7 @@
       }
       clearJoinSlowTimer();
       joined = false;
+      stopCallSafetyTimers();
       clearMetricTimers();
       stopStatsMonitor();
       stopHeartbeat();
@@ -4231,7 +4320,6 @@
       }, CLEANUP_AUDIT_DELAY_MS);
       if (updateStatus) {
         setStatus("退室しました", "もう一度参加できます。" + cleanupText);
-        ensureParticipantWatcher();
       }
     }
 
@@ -4389,13 +4477,20 @@
       updateLocalStatus();
     }
 
-    function openNewCall() {
-      if (joined && !window.confirm("新しい通話URLを作ると、今の通話から移動します。よろしいですか？")) {
-        return;
-      }
+    async function openNewCall() {
       const url = new URL(location.origin + location.pathname);
       url.searchParams.set("call", createCallId());
-      location.href = url.toString();
+      if (joined) {
+        setNotice("現在の通話を終了して、新しい通話へ移動します。");
+        await Promise.race([
+          markLeft().catch(function() {}),
+          new Promise(function(resolve) { window.setTimeout(resolve, 1200); })
+        ]);
+        stopLocalCall(false);
+      } else {
+        stopParticipantWatcher();
+      }
+      location.assign(url.toString());
     }
 
     function updateJoinButton() {
@@ -5044,6 +5139,9 @@
       if (unsubParticipants) remaining.push("participants listener");
       if (unsubSignals) remaining.push("signals listener");
       if (heartbeatTimer) remaining.push("heartbeat");
+      if (hiddenAutoLeaveTimer) remaining.push("hidden auto leave");
+      if (maxCallDurationTimer) remaining.push("max call duration");
+      if (passiveWatcherIdleTimer) remaining.push("passive watcher idle");
       if (participantSweepTimer) remaining.push("participant sweep");
       if (metricTimers.length) remaining.push("metrics timer " + metricTimers.length);
       if (statsTimer) remaining.push("stats monitor");
