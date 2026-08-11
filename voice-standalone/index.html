@@ -3234,12 +3234,12 @@
       if (hasParticipantSnapshot) {
         nextMap.forEach(function(name, id) {
           if (id !== userId && !knownParticipantNames.has(id)) {
-            showCallEventNotice(name + "さんが参加しました。");
+            setNotice(name + "さんが参加しました。");
           }
         });
         knownParticipantNames.forEach(function(name, id) {
           if (id !== userId && !nextMap.has(id)) {
-            showCallEventNotice(name + "さんが退室しました。");
+            setNotice(name + "さんが退室しました。");
           }
         });
       }

@@ -45,3 +45,9 @@ test("表示名を正規化し、改行と制御文字を除去する", () => {
   assert.match(rootHtml, /\.replace\(\/\[\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029\]\/g, " "\)/);
   assert.match(rootHtml, /Array\.from\(normalized\)\.slice\(0, 8\)\.join\(""\)/);
 });
+
+test("参加・退室メッセージはnoticeに表示する", () => {
+  assert.match(rootHtml, /setNotice\(name \+ "さんが参加しました。"\)/);
+  assert.match(rootHtml, /setNotice\(name \+ "さんが退室しました。"\)/);
+  assert.doesNotMatch(rootHtml, /showCallEventNotice\(name \+ "さんが(?:参加|退室)しました。"\)/);
+});
