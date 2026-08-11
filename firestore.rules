@@ -2,6 +2,181 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /publicRooms/{roomId} {
+      allow read: if true;
+      allow create, update: if isValidPublicRoom();
+      allow delete: if false;
+    }
+
+    match /chatRooms/{roomId} {
+      allow read: if true;
+      allow create, update: if false;
+      allow delete: if false;
+    }
+
+    match /chatRooms/{roomId}/voiceCalls/{callId} {
+      allow read: if true;
+      allow create, update: if isValidVoiceCall(roomId);
+      allow delete: if false;
+    }
+
+    match /chatRooms/{roomId}/voiceCalls/{callId}/participants/{participantId} {
+      allow read: if true;
+      allow create, update: if isValidVoiceParticipant(participantId);
+      allow delete: if false;
+    }
+
+    match /chatRooms/{roomId}/voiceCalls/{callId}/signals/{signalId} {
+      allow read: if true;
+      allow create: if isValidVoiceSignal();
+      allow update: if false;
+      allow delete: if canDeleteVoiceSignal();
+    }
+
+    match /standaloneVoiceCalls/{callId} {
+      allow read, write: if false;
+
+      match /participants/{participantId} {
+        allow read: if validCallId(callId) && request.auth != null;
+        allow create: if validCallId(callId)
+          && request.auth != null
+          && participantId == request.resource.data.userId
+          && request.resource.data.authUid == request.auth.uid
+          && validParticipant(request.resource.data);
+        allow update: if validCallId(callId)
+          && request.auth != null
+          && participantId == request.resource.data.userId
+          && request.resource.data.authUid == resource.data.authUid
+          && resource.data.authUid == request.auth.uid
+          && validParticipant(request.resource.data);
+        allow delete: if false;
+      }
+
+      match /signals/{signalId} {
+        allow read: if validCallId(callId) && request.auth != null;
+        allow create: if validCallId(callId)
+          && request.auth != null
+          && request.resource.data.fromAuthUid == request.auth.uid
+          && validSignal(request.resource.data);
+        allow update: if false;
+        allow delete: if validCallId(callId) && request.auth != null;
+      }
+
+      match /slots/{slotId} {
+        allow read: if validCallId(callId) && request.auth != null;
+        allow create, update: if validCallId(callId)
+          && request.auth != null
+          && slotId == request.resource.data.slot
+          && request.resource.data.authUid == request.auth.uid
+          && validSlot(request.resource.data);
+        allow delete: if false;
+      }
+    }
+
+
+    match /chatRooms/{roomId}/messages/{messageId} {
+      allow read: if true;
+      allow create: if isValidNewMessage();
+      allow update: if isValidMessageUpdate();
+      allow delete: if false;
+    }
+
+    match /chatRooms/{roomId}/messages/{messageId}/strokes/{strokeId} {
+      allow read: if true;
+      allow create: if isValidLiveDrawingStroke();
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'isDeleted',
+          'label',
+          'purpose',
+          'resolved',
+          'resolvedBy',
+          'replies',
+          'updatedAt'
+        ])
+        && (!('isDeleted' in request.resource.data) || request.resource.data.isDeleted is bool)
+        && (!('label' in request.resource.data) || (request.resource.data.label is string && request.resource.data.label.size() > 0 && request.resource.data.label.size() <= 80))
+        && (!('purpose' in request.resource.data) || isValidBookmarkPurpose())
+        && (!('resolved' in request.resource.data) || request.resource.data.resolved is bool)
+        && (!('resolvedBy' in request.resource.data) || (request.resource.data.resolvedBy is string && request.resource.data.resolvedBy.size() <= 40))
+        && (!('replies' in request.resource.data) || isValidBookmarkReplies());
+      allow delete: if false;
+    }
+
+    match /chatRooms/{roomId}/messages/{messageId}/pages/{pageId} {
+      allow read: if true;
+      allow create: if isValidLiveDrawingPage();
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'isDeleted',
+          'resolved',
+          'resolvedBy',
+          'teacherNote',
+          'deletedAt',
+          'updatedAt'
+        ])
+        && (!('isDeleted' in request.resource.data) || request.resource.data.isDeleted is bool)
+        && (!('resolved' in request.resource.data) || request.resource.data.resolved is bool)
+        && (!('resolvedBy' in request.resource.data) || (request.resource.data.resolvedBy is string && request.resource.data.resolvedBy.size() <= 40))
+        && (!('teacherNote' in request.resource.data) || (request.resource.data.teacherNote is string && request.resource.data.teacherNote.size() <= 120));
+      allow delete: if false;
+    }
+
+    match /chatRooms/{roomId}/messages/{messageId}/pages/{pageId}/strokes/{strokeId} {
+      allow read: if true;
+      allow create: if isValidLiveDrawingStroke();
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'isDeleted',
+          'label',
+          'purpose',
+          'resolved',
+          'resolvedBy',
+          'replies',
+          'updatedAt'
+        ])
+        && (!('isDeleted' in request.resource.data) || request.resource.data.isDeleted is bool)
+        && (!('label' in request.resource.data) || (request.resource.data.label is string && request.resource.data.label.size() > 0 && request.resource.data.label.size() <= 80))
+        && (!('purpose' in request.resource.data) || isValidBookmarkPurpose())
+        && (!('resolved' in request.resource.data) || request.resource.data.resolved is bool)
+        && (!('resolvedBy' in request.resource.data) || (request.resource.data.resolvedBy is string && request.resource.data.resolvedBy.size() <= 40))
+        && (!('replies' in request.resource.data) || isValidBookmarkReplies());
+      allow delete: if false;
+    }
+
+    match /chatRooms/{roomId}/messages/{messageId}/liveComments/{commentId} {
+      allow read: if true;
+      allow create: if isValidLiveDrawingComment();
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'isDeleted',
+          'resolved',
+          'resolvedBy',
+          'teacherNote',
+          'deletedAt',
+          'updatedAt'
+        ])
+        && request.resource.data.isDeleted is bool
+        && (!('resolved' in request.resource.data) || request.resource.data.resolved is bool)
+        && (!('resolvedBy' in request.resource.data) || (request.resource.data.resolvedBy is string && request.resource.data.resolvedBy.size() <= 40))
+        && (!('teacherNote' in request.resource.data) || (request.resource.data.teacherNote is string && request.resource.data.teacherNote.size() <= 120));
+      allow delete: if false;
+    }
+
+    match /{path=**}/messages/{messageId} {
+      allow read: if true;
+    }
+
+    match /deletedRooms/{roomId} {
+      allow read: if true;
+      allow create, update: if isValidDeletedRoom(roomId);
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function allowedMessageTypes() {
+      return ['normal', 'notice', 'deadline', 'attendance', 'todo', 'drawing', 'liveDrawing'];
+    }
+
     function validCallId(callId) {
       return callId.size() >= 1
         && callId.size() <= 48
@@ -10,13 +185,16 @@ service cloud.firestore {
 
     function validParticipant(data) {
       return data.keys().hasOnly([
-          'userId', 'sessionId', 'slot', 'userName', 'joined', 'left', 'muted',
+          'userId', 'authUid', 'sessionId', 'slot', 'userName', 'joined', 'left', 'muted',
           'connected', 'speaking', 'stale', 'joinedAt', 'leftAt',
           'lastSeenAt', 'updatedAt'
         ])
         && data.userId is string
         && data.userId.size() >= 1
         && data.userId.size() <= 128
+        && data.authUid is string
+        && data.authUid.size() >= 1
+        && data.authUid.size() <= 128
         && data.sessionId is string
         && data.sessionId.size() >= 1
         && data.sessionId.size() <= 160
@@ -33,12 +211,15 @@ service cloud.firestore {
 
     function validSignal(data) {
       return data.keys().hasOnly([
-          'from', 'fromSessionId', 'fromName', 'to', 'toSessionId',
+          'from', 'fromAuthUid', 'fromSessionId', 'fromName', 'to', 'toSessionId',
           'type', 'payload', 'createdAt'
         ])
         && data.from is string
         && data.from.size() >= 1
         && data.from.size() <= 128
+        && data.fromAuthUid is string
+        && data.fromAuthUid.size() >= 1
+        && data.fromAuthUid.size() <= 128
         && data.fromSessionId is string
         && data.fromSessionId.size() <= 160
         && data.fromName is string
@@ -54,13 +235,16 @@ service cloud.firestore {
 
     function validSlot(data) {
       return data.keys().hasOnly([
-          'slot', 'userId', 'deviceId', 'sessionId', 'active',
+          'slot', 'userId', 'authUid', 'deviceId', 'sessionId', 'active',
           'claimedAt', 'releasedAt', 'updatedAt'
         ])
         && data.slot in ['A', 'B', 'C', 'D']
         && data.userId is string
         && data.userId.size() >= 1
         && data.userId.size() <= 128
+        && data.authUid is string
+        && data.authUid.size() >= 1
+        && data.authUid.size() <= 128
         && data.deviceId is string
         && data.deviceId.size() >= 1
         && data.deviceId.size() <= 128
@@ -70,35 +254,691 @@ service cloud.firestore {
         && data.active is bool;
     }
 
-    match /standaloneVoiceCalls/{callId} {
-      allow read, write: if false;
-
-      match /participants/{participantId} {
-        allow read: if validCallId(callId);
-        allow create, update: if validCallId(callId)
-          && participantId == request.resource.data.userId
-          && validParticipant(request.resource.data);
-        allow delete: if false;
-      }
-
-      match /signals/{signalId} {
-        allow read: if validCallId(callId);
-        allow create: if validCallId(callId) && validSignal(request.resource.data);
-        allow update: if false;
-        allow delete: if validCallId(callId);
-      }
-
-      match /slots/{slotId} {
-        allow read: if validCallId(callId);
-        allow create, update: if validCallId(callId)
-          && slotId == request.resource.data.slot
-          && validSlot(request.resource.data);
-        allow delete: if false;
-      }
+    function isValidVoiceCall(roomId) {
+      return request.resource.data.keys().hasOnly([
+          'roomId',
+          'messageId',
+          'pageId',
+          'status',
+          'createdBy',
+          'createdByName',
+          'targetUserId',
+          'targetUserName',
+          'participantCount',
+          'startedAt',
+          'endedAt',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.roomId == roomId
+        && request.resource.data.messageId is string
+        && request.resource.data.messageId.size() > 0
+        && request.resource.data.messageId.size() <= 120
+        && request.resource.data.status in ['waiting', 'active', 'ended']
+        && request.resource.data.createdBy is string
+        && request.resource.data.createdBy.size() > 0
+        && request.resource.data.createdBy.size() <= 80
+        && request.resource.data.createdByName is string
+        && request.resource.data.createdByName.size() > 0
+        && request.resource.data.createdByName.size() <= 40
+        && (!('pageId' in request.resource.data)
+          || (request.resource.data.pageId is string && request.resource.data.pageId.size() <= 120))
+        && (!('targetUserId' in request.resource.data)
+          || (request.resource.data.targetUserId is string && request.resource.data.targetUserId.size() <= 80))
+        && (!('targetUserName' in request.resource.data)
+          || (request.resource.data.targetUserName is string && request.resource.data.targetUserName.size() <= 40))
+        && (!('participantCount' in request.resource.data)
+          || (request.resource.data.participantCount is number
+            && request.resource.data.participantCount >= 0
+            && request.resource.data.participantCount <= 4))
+        && (!('startedAt' in request.resource.data) || request.resource.data.startedAt is timestamp)
+        && (!('endedAt' in request.resource.data) || request.resource.data.endedAt is timestamp)
+        && request.resource.data.updatedAt is timestamp
+        && (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp);
     }
 
-    match /{document=**} {
-      allow read, write: if false;
+    function isValidStandaloneVoiceCall(callId) {
+      return request.resource.data.keys().hasOnly([
+          'callId',
+          'status',
+          'participantCount',
+          'startedAt',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.callId == callId
+        && request.resource.data.callId is string
+        && request.resource.data.callId.size() > 0
+        && request.resource.data.callId.size() <= 48
+        && request.resource.data.status in ['waiting', 'active', 'ended']
+        && (!('participantCount' in request.resource.data)
+          || (request.resource.data.participantCount is number
+            && request.resource.data.participantCount >= 0
+            && request.resource.data.participantCount <= 12))
+        && (!('startedAt' in request.resource.data) || request.resource.data.startedAt is timestamp)
+        && (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp)
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function isValidVoiceParticipant(participantId) {
+      return request.resource.data.keys().hasOnly([
+          'userId',
+          'sessionId',
+          'userName',
+          'role',
+          'joined',
+          'left',
+          'muted',
+          'connected',
+          'speaking',
+          'joinedAt',
+          'lastSeenAt',
+          'updatedAt'
+        ])
+        && request.resource.data.userId == participantId
+        && request.resource.data.userId is string
+        && request.resource.data.userId.size() > 0
+        && request.resource.data.userId.size() <= 80
+        && (!('sessionId' in request.resource.data)
+          || (request.resource.data.sessionId is string
+            && request.resource.data.sessionId.size() > 0
+            && request.resource.data.sessionId.size() <= 80))
+        && request.resource.data.userName is string
+        && request.resource.data.userName.size() > 0
+        && request.resource.data.userName.size() <= 40
+        && (!('role' in request.resource.data)
+          || request.resource.data.role in ['caller', 'participant'])
+        && (!('joined' in request.resource.data) || request.resource.data.joined is bool)
+        && (!('left' in request.resource.data) || request.resource.data.left is bool)
+        && (!('muted' in request.resource.data) || request.resource.data.muted is bool)
+        && (!('connected' in request.resource.data) || request.resource.data.connected is bool)
+        && (!('speaking' in request.resource.data) || request.resource.data.speaking is bool)
+        && (!('joinedAt' in request.resource.data) || request.resource.data.joinedAt is timestamp)
+        && (!('lastSeenAt' in request.resource.data) || request.resource.data.lastSeenAt is timestamp)
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function isValidVoiceSignal() {
+      return request.resource.data.keys().hasOnly([
+          'from',
+          'fromSessionId',
+          'fromName',
+          'to',
+          'toSessionId',
+          'type',
+          'payload',
+          'createdAt'
+        ])
+        && request.resource.data.from is string
+        && request.resource.data.from.size() > 0
+        && request.resource.data.from.size() <= 80
+        && (!('fromSessionId' in request.resource.data)
+          || (request.resource.data.fromSessionId is string
+            && request.resource.data.fromSessionId.size() > 0
+            && request.resource.data.fromSessionId.size() <= 80))
+        && request.resource.data.fromName is string
+        && request.resource.data.fromName.size() > 0
+        && request.resource.data.fromName.size() <= 40
+        && request.resource.data.to is string
+        && request.resource.data.to.size() > 0
+        && request.resource.data.to.size() <= 80
+        && (!('toSessionId' in request.resource.data)
+          || (request.resource.data.toSessionId is string
+            && request.resource.data.toSessionId.size() <= 80))
+        && request.resource.data.type in ['offer', 'answer', 'candidate']
+        && request.resource.data.payload is map
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function canDeleteVoiceSignal() {
+      return resource.data.from is string
+        && resource.data.to is string
+        && (
+          resource.data.from.size() > 0
+          || resource.data.to.size() > 0
+        );
+    }
+
+    function isValidDrawingData() {
+      return !('drawingData' in request.resource.data)
+        || (
+          request.resource.data.type == 'drawing'
+          && request.resource.data.drawingData is map
+          && request.resource.data.drawingData.keys().hasOnly([
+            'imageData',
+            'width',
+            'height',
+            'compressed',
+            'mimeType',
+            'bytes'
+          ])
+          && request.resource.data.drawingData.imageData is string
+          && request.resource.data.drawingData.imageData.size() > 0
+          && request.resource.data.drawingData.imageData.size() <= 850000
+          && request.resource.data.drawingData.width is number
+          && request.resource.data.drawingData.width > 0
+          && request.resource.data.drawingData.height is number
+          && request.resource.data.drawingData.height > 0
+          && (!('compressed' in request.resource.data.drawingData)
+            || request.resource.data.drawingData.compressed is bool)
+          && (!('mimeType' in request.resource.data.drawingData)
+            || (request.resource.data.drawingData.mimeType is string
+              && request.resource.data.drawingData.mimeType.size() <= 40))
+          && (!('bytes' in request.resource.data.drawingData)
+            || (request.resource.data.drawingData.bytes is number
+              && request.resource.data.drawingData.bytes >= 0
+              && request.resource.data.drawingData.bytes <= 850000))
+        );
+    }
+
+    function isValidLiveDrawingFields() {
+      return !('liveDrawingStatus' in request.resource.data)
+        || (
+          request.resource.data.type == 'liveDrawing'
+          && request.resource.data.liveDrawingStatus in ['open', 'closed']
+          && request.resource.data.liveDrawingCreatedAt is timestamp
+          && request.resource.data.liveDrawingExpiresAt is timestamp
+          && request.resource.data.liveDrawingSummary is map
+          && request.resource.data.liveDrawingSummary.keys().hasOnly([
+            'thumbnailData',
+            'latestCommentText',
+            'latestCommentUserName',
+            'commentCount',
+            'pageCount',
+            'updatedAt'
+          ])
+          && request.resource.data.liveDrawingSummary.thumbnailData is string
+          && request.resource.data.liveDrawingSummary.thumbnailData.size() <= 850000
+          && request.resource.data.liveDrawingSummary.latestCommentText is string
+          && request.resource.data.liveDrawingSummary.latestCommentText.size() <= 160
+          && request.resource.data.liveDrawingSummary.latestCommentUserName is string
+          && request.resource.data.liveDrawingSummary.latestCommentUserName.size() <= 40
+          && request.resource.data.liveDrawingSummary.commentCount is number
+          && request.resource.data.liveDrawingSummary.commentCount >= 0
+          && (!('pageCount' in request.resource.data.liveDrawingSummary)
+            || (request.resource.data.liveDrawingSummary.pageCount is number
+              && request.resource.data.liveDrawingSummary.pageCount >= 0
+              && request.resource.data.liveDrawingSummary.pageCount <= 40))
+        );
+    }
+
+    function isValidLiveDrawingPage() {
+      return request.resource.data.keys().hasOnly([
+          'pageNo',
+          'pageType',
+          'ownerUserId',
+          'ownerUserName',
+          'title',
+          'backgroundImageData',
+          'sourceFileName',
+          'isDeleted',
+          'deletedAt',
+          'updatedAt',
+          'createdAt'
+        ])
+        && request.resource.data.pageNo is number
+        && request.resource.data.pageNo >= 1
+        && request.resource.data.pageNo <= 40
+        && request.resource.data.pageType in ['blank', 'image']
+        && request.resource.data.ownerUserId is string
+        && request.resource.data.ownerUserId.size() > 0
+        && request.resource.data.ownerUserId.size() <= 80
+        && request.resource.data.ownerUserName is string
+        && request.resource.data.ownerUserName.size() > 0
+        && request.resource.data.ownerUserName.size() <= 40
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 80
+        && request.resource.data.backgroundImageData is string
+        && request.resource.data.backgroundImageData.size() <= 850000
+        && (!('isDeleted' in request.resource.data)
+          || request.resource.data.isDeleted is bool)
+        && (!('sourceFileName' in request.resource.data)
+          || (request.resource.data.sourceFileName is string
+            && request.resource.data.sourceFileName.size() <= 120))
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidLiveDrawingStroke() {
+      return request.resource.data.keys().hasOnly([
+          'type',
+          'userId',
+          'userName',
+          'color',
+          'width',
+          'points',
+          'imageData',
+          'label',
+          'purpose',
+          'resolved',
+          'resolvedBy',
+          'replies',
+          'x',
+          'y',
+          'w',
+          'h',
+          'isDeleted',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.userId is string
+        && request.resource.data.userId.size() > 0
+        && request.resource.data.userId.size() <= 80
+        && request.resource.data.userName is string
+        && request.resource.data.userName.size() > 0
+        && request.resource.data.userName.size() <= 40
+        && (!('type' in request.resource.data)
+          || request.resource.data.type in ['clear', 'image', 'bookmark'])
+        && (
+          (
+            !('type' in request.resource.data)
+            && request.resource.data.color is string
+            && request.resource.data.color.size() <= 20
+            && request.resource.data.width is number
+            && request.resource.data.width > 0
+            && request.resource.data.width <= 40
+            && request.resource.data.points is list
+            && request.resource.data.points.size() > 0
+            && request.resource.data.points.size() <= 1000
+            && request.resource.data.isDeleted == false
+          )
+          || request.resource.data.type == 'clear'
+          || (
+            ('type' in request.resource.data)
+            && request.resource.data.type == 'bookmark'
+            && request.resource.data.label is string
+            && request.resource.data.label.size() > 0
+            && request.resource.data.label.size() <= 80
+            && isValidBookmarkPurpose()
+            && request.resource.data.x is number
+            && request.resource.data.x >= -2
+            && request.resource.data.x <= 3
+            && request.resource.data.y is number
+            && request.resource.data.y >= -2
+            && request.resource.data.y <= 3
+            && request.resource.data.color is string
+            && request.resource.data.color.size() <= 20
+            && request.resource.data.resolved is bool
+            && (!('resolvedBy' in request.resource.data) || (request.resource.data.resolvedBy is string && request.resource.data.resolvedBy.size() <= 40))
+            && request.resource.data.replies is list
+            && request.resource.data.replies.size() <= 10
+            && request.resource.data.isDeleted == false
+          )
+          || (
+            ('type' in request.resource.data)
+            && request.resource.data.type == 'image'
+            && request.resource.data.imageData is string
+            && request.resource.data.imageData.size() > 0
+            && request.resource.data.imageData.size() <= 850000
+            && request.resource.data.x is number
+            && request.resource.data.x >= -2
+            && request.resource.data.x <= 3
+            && request.resource.data.y is number
+            && request.resource.data.y >= -2
+            && request.resource.data.y <= 3
+            && request.resource.data.w is number
+            && request.resource.data.w > 0
+            && request.resource.data.w <= 5
+            && request.resource.data.h is number
+            && request.resource.data.h > 0
+            && request.resource.data.h <= 5
+            && request.resource.data.isDeleted == false
+          ));
+    }
+
+    function isValidLiveDrawingComment() {
+      return request.resource.data.keys().hasOnly([
+          'userId',
+          'userName',
+          'text',
+          'pageId',
+          'pageTitle',
+          'pageOwnerUserId',
+          'pageOwnerUserName',
+          'pinId',
+          'pinLabel',
+          'commentKind',
+          'resolved',
+          'resolvedBy',
+          'teacherNote',
+          'replyTo',
+          'isDeleted',
+          'createdAt'
+        ])
+        && request.resource.data.userId is string
+        && request.resource.data.userId.size() > 0
+        && request.resource.data.userId.size() <= 80
+        && request.resource.data.userName is string
+        && request.resource.data.userName.size() > 0
+        && request.resource.data.userName.size() <= 40
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 160
+        && (!('pageId' in request.resource.data)
+          || (request.resource.data.pageId is string
+            && request.resource.data.pageId.size() <= 120))
+        && (!('pageTitle' in request.resource.data)
+          || (request.resource.data.pageTitle is string
+            && request.resource.data.pageTitle.size() <= 80))
+        && (!('pageOwnerUserId' in request.resource.data)
+          || (request.resource.data.pageOwnerUserId is string
+            && request.resource.data.pageOwnerUserId.size() <= 80))
+        && (!('pageOwnerUserName' in request.resource.data)
+          || (request.resource.data.pageOwnerUserName is string
+            && request.resource.data.pageOwnerUserName.size() <= 40))
+        && (!('pinId' in request.resource.data)
+          || (request.resource.data.pinId is string
+            && request.resource.data.pinId.size() <= 120))
+        && (!('pinLabel' in request.resource.data)
+          || (request.resource.data.pinLabel is string
+            && request.resource.data.pinLabel.size() <= 80))
+        && (!('commentKind' in request.resource.data)
+          || request.resource.data.commentKind in ['comment', 'question', 'complete'])
+        && (!('resolved' in request.resource.data)
+          || request.resource.data.resolved is bool)
+        && (!('resolvedBy' in request.resource.data)
+          || (request.resource.data.resolvedBy is string
+            && request.resource.data.resolvedBy.size() <= 40))
+        && (!('teacherNote' in request.resource.data)
+          || (request.resource.data.teacherNote is string
+            && request.resource.data.teacherNote.size() <= 120))
+        && request.resource.data.isDeleted == false
+        && isValidLiveDrawingReplyTo();
+    }
+
+    function isValidBookmarkReplies() {
+      return request.resource.data.replies is list
+        && request.resource.data.replies.size() <= 10;
+    }
+
+    function isValidBookmarkPurpose() {
+      return request.resource.data.purpose is string
+        && request.resource.data.purpose in ['question', 'attention', 'idea'];
+    }
+
+    function isValidLiveDrawingReplyTo() {
+      return !('replyTo' in request.resource.data)
+        || request.resource.data.replyTo == null
+        || (
+          request.resource.data.replyTo is map
+          && request.resource.data.replyTo.keys().hasOnly([
+            'id',
+            'userName',
+            'text'
+          ])
+          && request.resource.data.replyTo.id is string
+          && request.resource.data.replyTo.id.size() <= 120
+          && request.resource.data.replyTo.userName is string
+          && request.resource.data.replyTo.userName.size() <= 40
+          && request.resource.data.replyTo.text is string
+          && request.resource.data.replyTo.text.size() <= 80
+        );
+    }
+
+    function isValidNewMessage() {
+      return request.resource.data.keys().hasOnly([
+          'text',
+          'userName',
+          'userId',
+          'type',
+          'drawingData',
+          'liveDrawingStatus',
+          'liveDrawingCreatedAt',
+          'liveDrawingExpiresAt',
+          'liveDrawingSummary',
+          'liveDrawingViewState',
+          'liveDrawingLaserState',
+          'liveDrawingRestorePoints',
+          'liveDrawingPageLocks',
+          'liveDrawingCompletions',
+          'liveDrawingOperationLog',
+          'replyTo',
+          'poll',
+          'pollVotes',
+          'reactions',
+          'isPinned',
+          'isDeleted',
+          'clientMessageId',
+          'isEdited',
+          'editedAt',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 300
+        && request.resource.data.userName is string
+        && request.resource.data.userName.size() > 0
+        && request.resource.data.userName.size() <= 40
+        && request.resource.data.userId is string
+        && request.resource.data.userId.size() > 0
+        && request.resource.data.userId.size() <= 80
+        && (!('clientMessageId' in request.resource.data)
+          || (request.resource.data.clientMessageId is string
+            && request.resource.data.clientMessageId.size() > 0
+            && request.resource.data.clientMessageId.size() <= 120))
+        && (!('type' in request.resource.data)
+          || request.resource.data.type in allowedMessageTypes())
+        && isValidDrawingData()
+        && isValidLiveDrawingFields()
+        && isValidLiveDrawingViewState()
+        && isValidLiveDrawingLaserState()
+        && isValidLiveDrawingRestorePoints()
+        && isValidLiveDrawingOperationLog()
+        && isValidLiveDrawingSharedMaps()
+        && (!('poll' in request.resource.data)
+          || request.resource.data.poll is map)
+        && (!('pollVotes' in request.resource.data)
+          || request.resource.data.pollVotes is map)
+        && request.resource.data.isPinned == false
+        && request.resource.data.isDeleted == false
+        && (!('isEdited' in request.resource.data)
+          || request.resource.data.isEdited == false);
+    }
+
+    function isValidPublicRoom() {
+      return request.resource.data.keys().hasOnly([
+          'roomId',
+          'roomName',
+          'lastText',
+          'messageCount',
+          'ownerId',
+          'ownerName',
+          'isDeleted',
+          'deletedAt',
+          'updatedAt'
+        ])
+        && request.resource.data.roomId is string
+        && request.resource.data.roomId.size() > 0
+        && request.resource.data.roomId.size() <= 120
+        && request.resource.data.roomName is string
+        && request.resource.data.roomName.size() > 0
+        && request.resource.data.roomName.size() <= 20
+        && (!('lastText' in request.resource.data)
+          || (request.resource.data.lastText is string
+            && request.resource.data.lastText.size() <= 300))
+        && (!('messageCount' in request.resource.data)
+          || (request.resource.data.messageCount is number
+            && request.resource.data.messageCount >= 0))
+        && (!('ownerId' in request.resource.data)
+          || (request.resource.data.ownerId is string
+            && request.resource.data.ownerId.size() <= 80))
+        && (!('ownerName' in request.resource.data)
+          || (request.resource.data.ownerName is string
+            && request.resource.data.ownerName.size() <= 40))
+        && (!('isDeleted' in request.resource.data)
+          || request.resource.data.isDeleted is bool);
+    }
+
+    function isValidMessageUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'reactions',
+          'isPinned',
+          'isDeleted',
+          'text',
+          'replyTo',
+          'poll',
+          'pollVotes',
+          'userName',
+          'userId',
+          'type',
+          'drawingData',
+          'liveDrawingStatus',
+          'liveDrawingCreatedAt',
+          'liveDrawingExpiresAt',
+          'liveDrawingSummary',
+          'liveDrawingViewState',
+          'liveDrawingLaserState',
+          'liveDrawingRestorePoints',
+          'liveDrawingPageLocks',
+          'liveDrawingCompletions',
+          'liveDrawingOperationLog',
+          'createdAt',
+          'clientMessageId',
+          'isEdited',
+          'editedAt',
+          'deletedAt',
+          'updatedAt'
+        ])
+        && (!('text' in request.resource.data)
+          || (request.resource.data.text is string
+            && request.resource.data.text.size() <= 300))
+        && (!('type' in request.resource.data)
+          || request.resource.data.type in allowedMessageTypes())
+        && isValidDrawingData()
+        && isValidLiveDrawingFields()
+        && isValidLiveDrawingViewState()
+        && isValidLiveDrawingLaserState()
+        && isValidLiveDrawingRestorePoints()
+        && isValidLiveDrawingOperationLog()
+        && isValidLiveDrawingSharedMaps()
+        && (!('isDeleted' in request.resource.data)
+          || request.resource.data.isDeleted is bool)
+        && (!('isPinned' in request.resource.data)
+          || request.resource.data.isPinned is bool)
+        && (!('isEdited' in request.resource.data)
+          || request.resource.data.isEdited is bool)
+        && (!('clientMessageId' in request.resource.data)
+          || (request.resource.data.clientMessageId is string
+            && request.resource.data.clientMessageId.size() <= 120))
+        && (!('poll' in request.resource.data)
+          || request.resource.data.poll is map)
+        && (!('pollVotes' in request.resource.data)
+          || request.resource.data.pollVotes is map);
+    }
+
+    function isValidLiveDrawingViewState() {
+      return !('liveDrawingViewState' in request.resource.data)
+        || request.resource.data.liveDrawingViewState == null
+        || (
+          request.resource.data.type == 'liveDrawing'
+          && request.resource.data.liveDrawingViewState is map
+          && request.resource.data.liveDrawingViewState.keys().hasOnly([
+            'pageId',
+            'scale',
+            'x',
+            'y',
+            'userId',
+            'userName',
+            'updatedAt'
+          ])
+          && request.resource.data.liveDrawingViewState.pageId is string
+          && request.resource.data.liveDrawingViewState.pageId.size() <= 120
+          && request.resource.data.liveDrawingViewState.scale is number
+          && request.resource.data.liveDrawingViewState.scale >= 0.2
+          && request.resource.data.liveDrawingViewState.scale <= 8
+          && request.resource.data.liveDrawingViewState.x is number
+          && request.resource.data.liveDrawingViewState.x >= -20
+          && request.resource.data.liveDrawingViewState.x <= 20
+          && request.resource.data.liveDrawingViewState.y is number
+          && request.resource.data.liveDrawingViewState.y >= -20
+          && request.resource.data.liveDrawingViewState.y <= 20
+          && request.resource.data.liveDrawingViewState.userId is string
+          && request.resource.data.liveDrawingViewState.userId.size() <= 80
+          && request.resource.data.liveDrawingViewState.userName is string
+          && request.resource.data.liveDrawingViewState.userName.size() <= 40
+          && request.resource.data.liveDrawingViewState.updatedAt is timestamp
+        );
+    }
+
+    function isValidLiveDrawingRestorePoints() {
+      return !('liveDrawingRestorePoints' in request.resource.data)
+        || request.resource.data.liveDrawingRestorePoints is map;
+    }
+
+    function isValidLiveDrawingOperationLog() {
+      return !('liveDrawingOperationLog' in request.resource.data)
+        || (
+          request.resource.data.type == 'liveDrawing'
+          && request.resource.data.liveDrawingOperationLog is list
+          && request.resource.data.liveDrawingOperationLog.size() <= 300
+        );
+    }
+
+    function isValidLiveDrawingSharedMaps() {
+      return (!('liveDrawingPageLocks' in request.resource.data)
+          || request.resource.data.liveDrawingPageLocks is map)
+        && (!('liveDrawingCompletions' in request.resource.data)
+          || request.resource.data.liveDrawingCompletions is map);
+    }
+
+    function isValidLiveDrawingLaserState() {
+      return !('liveDrawingLaserState' in request.resource.data)
+        || request.resource.data.liveDrawingLaserState == null
+        || (
+          request.resource.data.type == 'liveDrawing'
+          && request.resource.data.liveDrawingLaserState is map
+          && request.resource.data.liveDrawingLaserState.keys().hasOnly([
+            'active',
+            'pageId',
+            'x',
+            'y',
+            'userId',
+            'userName',
+            'updatedAt'
+          ])
+          && request.resource.data.liveDrawingLaserState.active is bool
+          && request.resource.data.liveDrawingLaserState.pageId is string
+          && request.resource.data.liveDrawingLaserState.pageId.size() <= 120
+          && request.resource.data.liveDrawingLaserState.x is number
+          && request.resource.data.liveDrawingLaserState.x >= -2.5
+          && request.resource.data.liveDrawingLaserState.x <= 3.5
+          && request.resource.data.liveDrawingLaserState.y is number
+          && request.resource.data.liveDrawingLaserState.y >= -2.5
+          && request.resource.data.liveDrawingLaserState.y <= 3.5
+          && request.resource.data.liveDrawingLaserState.userId is string
+          && request.resource.data.liveDrawingLaserState.userId.size() <= 80
+          && request.resource.data.liveDrawingLaserState.userName is string
+          && request.resource.data.liveDrawingLaserState.userName.size() <= 40
+          && request.resource.data.liveDrawingLaserState.updatedAt is timestamp
+        );
+    }
+
+    function isValidDeletedRoom(roomId) {
+      return request.resource.data.keys().hasOnly([
+          'roomId',
+          'roomName',
+          'roomType',
+          'deletedBy',
+          'deletedByName',
+          'deletedAt',
+          'updatedAt'
+        ])
+        && request.resource.data.roomId == roomId
+        && request.resource.data.roomId is string
+        && request.resource.data.roomId.size() > 0
+        && request.resource.data.roomId.size() <= 140
+        && (!('roomName' in request.resource.data)
+          || (request.resource.data.roomName is string
+            && request.resource.data.roomName.size() <= 20))
+        && (!('roomType' in request.resource.data)
+          || request.resource.data.roomType in ['public', 'private'])
+        && (!('deletedBy' in request.resource.data)
+          || (request.resource.data.deletedBy is string
+            && request.resource.data.deletedBy.size() <= 80))
+        && (!('deletedByName' in request.resource.data)
+          || (request.resource.data.deletedByName is string
+            && request.resource.data.deletedByName.size() <= 40));
     }
   }
 }

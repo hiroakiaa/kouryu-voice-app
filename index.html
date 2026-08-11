@@ -2335,6 +2335,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import {
       getFirestore,
       addDoc,
@@ -2465,6 +2466,7 @@
     const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "1";
     const metricsEnabled = params.get("metrics") === "1" || params.get("debug") === "1";
     const app = isDemoMode ? null : initializeApp(firebaseConfig);
+    const auth = isDemoMode ? null : getAuth(app);
     const db = isDemoMode ? null : getFirestore(app);
     const sessionId = createSessionId();
     const deviceId = getOrCreateUserId();
@@ -2564,6 +2566,8 @@
     let joined = false;
     let activeUserName = "";
     let callSlot = "";
+    let authUser = null;
+    let authReadyPromise = null;
     let micUnlockHintDismissed = false;
     let joinBusy = false;
     let participants = [];
@@ -2763,7 +2767,35 @@
         return;
       }
       renderParticipants([]);
+      try {
+        await ensureAnonymousAuth();
+      } catch (error) {
+        setCallPhase("failed", "安全な接続を準備できませんでした。ページを再読み込みしてください。");
+        setStatus("接続準備に失敗しました", "ページを再読み込みして、もう一度お試しください。");
+        setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
+        pushDiagnostic("error", "匿名認証に失敗", error && error.message ? error.message : "");
+        return;
+      }
       ensureParticipantWatcher();
+    }
+
+    function ensureAnonymousAuth() {
+      if (isDemoMode) return Promise.resolve(null);
+      if (authUser) return Promise.resolve(authUser);
+      if (auth && auth.currentUser) {
+        authUser = auth.currentUser;
+        return Promise.resolve(authUser);
+      }
+      if (!authReadyPromise) {
+        authReadyPromise = signInAnonymously(auth).then(function(result) {
+          authUser = result.user;
+          return authUser;
+        }).catch(function(error) {
+          authReadyPromise = null;
+          throw error;
+        });
+      }
+      return authReadyPromise;
     }
 
     function initDemoMode() {
@@ -2967,6 +2999,12 @@
     async function joinCall() {
       if (joined) return;
       if (!runPassivePreflightCheck()) return;
+      try {
+        await ensureAnonymousAuth();
+      } catch (error) {
+        setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
+        return;
+      }
       const activeOtherParticipants = participants.filter(function(person) {
         return person && person.userId && person.userId !== userId && !isSameDeviceParticipant(person) && person.left !== true && isParticipantActive(person);
       });
@@ -3035,6 +3073,7 @@
         recordConnectionStep("参加情報保存開始", "Firestoreに自分の参加状態を保存します。", "participant-write-start");
         const participantData = {
           userId,
+          authUid: authUser.uid,
           sessionId,
           userName,
           joined: true,
@@ -3897,6 +3936,7 @@
       recordWrite("signal:" + type);
       return addDoc(collection(callRef(), "signals"), {
         from: userId,
+        fromAuthUid: authUser.uid,
         fromSessionId: sessionId,
         fromName: getUserName(),
         to,
@@ -6020,6 +6060,7 @@
         transaction.set(slotRef(selected), {
           slot: selected,
           userId,
+          authUid: authUser.uid,
           deviceId,
           sessionId,
           active: true,
