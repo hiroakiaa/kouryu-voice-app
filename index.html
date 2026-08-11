@@ -2464,7 +2464,7 @@
     const FIRESTORE_FREE_DELETES_PER_DAY = 20000;
 
     const params = new URLSearchParams(location.search);
-    const isDemoMode = false;
+    const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "1";
     const metricsEnabled = params.get("metrics") === "1" || params.get("debug") === "1";
     const app = isDemoMode ? null : initializeApp(firebaseConfig);
     const db = isDemoMode ? null : getFirestore(app);
