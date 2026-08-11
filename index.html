@@ -85,6 +85,7 @@
       width: 2.8rem;
       height: 2.8rem;
       min-height: 2.8rem;
+      aspect-ratio: 1;
       padding: 0;
       flex: 0 0 auto;
       border: 0.08rem solid var(--accent-deep);
@@ -962,8 +963,11 @@
 
     .participant {
       position: relative;
+      flex: 0 0 3rem;
       width: 3rem;
       height: 3rem;
+      aspect-ratio: 1;
+      box-sizing: border-box;
       display: inline-grid;
       place-items: center;
       border: 0.1rem solid var(--line);
@@ -2040,6 +2044,7 @@
       .app-icon {
         width: 2.4rem;
         height: 2.4rem;
+        min-height: 2.4rem;
       }
 
       .name-box {
@@ -2070,12 +2075,27 @@
       }
 
       .audio-health {
-        grid-template-columns: 1fr;
+        grid-template-columns: auto minmax(0, 1fr);
         gap: 0.38rem;
       }
 
+      .audio-health .noise-guard {
+        grid-column: 1 / -1;
+      }
+
       .participants {
-        max-height: 4rem;
+        height: 100%;
+        max-height: none;
+      }
+
+      .participants.has-self {
+        padding-right: 4.35rem;
+        padding-bottom: 4.65rem;
+      }
+
+      .participant.is-self {
+        right: 0.18rem;
+        bottom: 0.82rem;
       }
 
       .secondary-controls {
