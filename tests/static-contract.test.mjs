@@ -60,3 +60,10 @@ test("参加者表示はセッション競合と監視切断から復帰する",
   assert.match(rootHtml, /const retryDelay = Math\.min\(30000/);
   assert.match(rootHtml, /await markLeft\(\);\s+stopLocalCall\(false\);/);
 });
+
+test("無記名参加者を参加順の匿名A・B表示にする", () => {
+  assert.match(rootHtml, /assignAnonymousParticipantNames\(allowedParticipants\)/);
+  assert.match(rootHtml, /userName: "匿名さん" \+ letter/);
+  assert.match(rootHtml, /return '匿<span class="anonymous-letter">'/);
+  assert.match(rootHtml, /\.anonymous-letter[\s\S]*font-size: 0\.62em/);
+});

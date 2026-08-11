@@ -1012,6 +1012,14 @@
       transform: none;
     }
 
+    .avatar-initial .anonymous-letter {
+      display: inline-block;
+      margin-left: 0.04em;
+      font-size: 0.62em;
+      font-weight: 900;
+      transform: translateY(-0.05em);
+    }
+
     .participant-state-badge {
       position: absolute;
       left: 50%;
@@ -3157,7 +3165,8 @@
           activeParticipants.push(person);
         });
         activeParticipants.sort(function(a, b) {
-          return getTimestampMillis(a.joinedAt || a.updatedAt) - getTimestampMillis(b.joinedAt || b.updatedAt);
+          const timeDifference = getTimestampMillis(a.joinedAt || a.updatedAt) - getTimestampMillis(b.joinedAt || b.updatedAt);
+          return timeDifference || String(a.userId || "").localeCompare(String(b.userId || ""));
         });
         const allowedParticipants = activeParticipants.slice(0, MAX_CALL_PARTICIPANTS);
         if (activeParticipants.length > MAX_CALL_PARTICIPANTS) {
@@ -3189,7 +3198,7 @@
           setStatus("通話が満員です", "別の通話URLを作って参加してください。");
           return;
         }
-        const renderedParticipants = allowedParticipants.map(applyRealtimeParticipantState);
+        const renderedParticipants = assignAnonymousParticipantNames(allowedParticipants).map(applyRealtimeParticipantState);
         renderedParticipants.forEach(function(person) {
           if (!person || !person.userId || person.userId === userId || connectionRemoteSeenIds.has(person.userId)) return;
           connectionRemoteSeenIds.add(person.userId);
@@ -4000,14 +4009,14 @@
       el.participants.innerHTML = otherItems.concat(selfItems).map(function(item) {
         const isSelf = item.userId === userId;
         const name = getDisplayName(item.userName || "匿名さん");
-        const initial = getInitial(name);
+        const initialHtml = getAvatarInitialHtml(name);
         const statusMeta = getParticipantStatusMeta(item, isSelf);
         const statusClass = item.muted ? "is-muted" : (item.connected ? "is-connected" : "is-waiting");
         const classes = ["participant"];
         if (isSelf) classes.push("is-self");
         if (item.speaking && !item.muted) classes.push("is-speaking");
         return '<button class="' + classes.join(" ") + '" type="button" data-name="' + escapeHtml(name + (isSelf ? "（自分）" : "")) + '" data-status="' + escapeHtml(statusMeta.detail) + '" aria-label="' + escapeHtml(name + " " + statusMeta.detail) + '">' +
-          '<span class="avatar-initial">' + escapeHtml(initial) + '</span>' +
+          '<span class="avatar-initial">' + initialHtml + '</span>' +
           '<span class="speaking-bars" aria-hidden="true"><span></span><span></span><span></span></span>' +
           '<i class="fa-solid fa-user avatar-mark ' + statusClass + '"></i>' +
           '<span class="participant-state-badge ' + escapeHtml(statusMeta.className) + '"><i class="fa-solid ' + escapeHtml(statusMeta.icon) + '"></i><span>' + escapeHtml(statusMeta.label) + '</span></span>' +
@@ -6022,9 +6031,27 @@
       if (el.name.value !== next) el.name.value = next;
     }
 
-    function getInitial(name) {
+    function isGeneratedAnonymousName(name) {
+      return /^匿名[A-Za-z0-9]{4}$/.test(getDisplayName(name));
+    }
+
+    function assignAnonymousParticipantNames(items) {
+      let anonymousIndex = 0;
+      return items.map(function(item) {
+        if (!item || !isGeneratedAnonymousName(item.userName)) return item;
+        const letter = String.fromCharCode(65 + anonymousIndex);
+        anonymousIndex += 1;
+        return Object.assign({}, item, { userName: "匿名さん" + letter });
+      });
+    }
+
+    function getAvatarInitialHtml(name) {
       const value = getDisplayName(name);
-      return value ? value.slice(0, 1).toUpperCase() : "匿";
+      const anonymousMatch = /^匿名さん([A-Z])$/.exec(value);
+      if (anonymousMatch) {
+        return '匿<span class="anonymous-letter">' + anonymousMatch[1] + '</span>';
+      }
+      return escapeHtml(value ? value.slice(0, 1).toUpperCase() : "匿");
     }
 
     function getTimestampMillis(value) {
