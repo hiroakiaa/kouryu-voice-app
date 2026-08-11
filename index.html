@@ -1081,6 +1081,12 @@
       color: var(--accent);
     }
 
+    .participant-limit {
+      color: var(--muted);
+      font-size: .68rem;
+      font-weight: 800;
+    }
+
     .participant.is-speaking {
       border-color: var(--ok);
       background: #082938;
@@ -2213,7 +2219,7 @@
     </section>
 
     <section class="card participants-card">
-      <h2><i class="fa-solid fa-user-group"></i> 参加者</h2>
+      <h2><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span></h2>
       <div id="participants" class="participants"></div>
       <div id="callEventNotice" class="call-event-notice" role="status" aria-live="polite"></div>
       <div id="notice" class="notice" role="status" aria-live="polite"></div>
@@ -3929,8 +3935,8 @@
       if (!items.length) {
         const emptyTitle = joined ? "相手を待っています" : "";
         const emptyText = joined
-          ? "同じURLの相手が参加すると、ここに表示されます。4人まで同時通話できます。5人目以降は、「新規URL」ボタンから新しい通話を始められます。"
-          : "まだ参加者はいません。4人まで同時通話できます。5人目以降は、「新規URL」ボタンから新しい通話を始められます。";
+          ? "同じURLの相手が参加すると、ここに表示されます。5人目以降は、「新規URL」ボタンから新しい通話を始められます。"
+          : "5人目以降は、「新規URL」ボタンから新しい通話を始められます。";
         const emptyTip = joined
           ? '<span class="empty-participants-tip"><i class="fa-solid fa-link"></i>URLボタンで共有できます</span>'
           : "";
