@@ -2464,7 +2464,8 @@
     const app = isDemoMode ? null : initializeApp(firebaseConfig);
     const db = isDemoMode ? null : getFirestore(app);
     const sessionId = createSessionId();
-    const userId = getOrCreateUserId() + "-" + sessionId.slice(-12);
+    const deviceId = getOrCreateUserId();
+    const userId = deviceId + "-" + sessionId.slice(-12);
     const callId = ensureCallId(params.get("call"));
     const isDefaultCall = callId === DEFAULT_CALL_ID;
     normalizeCallUrl();
@@ -2558,6 +2559,7 @@
     let lastSpeakingDataState = null;
     let muted = false;
     let joined = false;
+    let activeUserName = "";
     let micUnlockHintDismissed = false;
     let joinBusy = false;
     let participants = [];
@@ -2572,6 +2574,9 @@
     let unsubParticipants = null;
     let participantWatcherRetryTimer = null;
     let participantWatcherRetryAttempt = 0;
+    let lastAnonymousSlotWrite = "";
+    let participantNoticeQueue = [];
+    let participantNoticeTimer = null;
     let heartbeatTimer = null;
     let hiddenAutoLeaveTimer = null;
     let maxCallDurationTimer = null;
@@ -2959,7 +2964,7 @@
       if (joined) return;
       if (!runPassivePreflightCheck()) return;
       const activeOtherParticipants = participants.filter(function(person) {
-        return person && person.userId && person.userId !== userId && person.left !== true && isParticipantActive(person);
+        return person && person.userId && person.userId !== userId && !isSameDeviceParticipant(person) && person.left !== true && isParticipantActive(person);
       });
       if (activeOtherParticipants.length >= MAX_CALL_PARTICIPANTS) {
         deniedByCapacity = true;
@@ -2974,9 +2979,18 @@
       markMetricMilestone("before-call-start");
       recordConnectionStep("参加開始", "参加ボタンを押しました。", "join-start");
       hideCallReport();
-      const typedName = getDisplayName(el.name.value);
-      const userName = resolveUserName();
-      saveName(userName);
+      const enteredName = getDisplayName(el.name.value);
+      const typedName = isGeneratedAnonymousName(enteredName) ? "" : enteredName;
+      const resolvedUserName = resolveUserName();
+      const anonymousSlot = typedName ? "" : getAvailableAnonymousSlot(participants);
+      const userName = typedName ? resolvedUserName : "匿名さん" + anonymousSlot;
+      activeUserName = userName;
+      if (typedName) {
+        saveName(userName);
+      } else {
+        el.name.value = "";
+        saveName("");
+      }
 
       deniedByCapacity = false;
       joined = true;
@@ -2999,7 +3013,7 @@
         setStatus("参加しています", "参加者として登録しています。");
         recordWrite("participantJoin");
         recordConnectionStep("参加情報保存開始", "Firestoreに自分の参加状態を保存します。", "participant-write-start");
-        await setDoc(participantRef(userId), {
+        const participantData = {
           userId,
           sessionId,
           userName,
@@ -3011,7 +3025,8 @@
           joinedAt: serverTimestamp(),
           lastSeenAt: serverTimestamp(),
           updatedAt: serverTimestamp()
-        }, { merge: true });
+        };
+        await setDoc(participantRef(userId), participantData, { merge: true });
         ensureParticipantWatcher();
         recordConnectionStep("参加情報保存OK", "相手の端末から見える参加者になりました。", "participant-write-done");
         startHeartbeat();
@@ -3152,12 +3167,18 @@
     function watchParticipants() {
       recordListenerOpened("participants");
       unsubParticipants = onSnapshot(query(collection(callRef(), "participants"), where("left", "==", false)), function(snapshot) {
+        const recoveredFromRetry = participantWatcherRetryAttempt > 0;
         participantWatcherRetryAttempt = 0;
+        if (recoveredFromRetry) setNotice("参加者情報の接続が戻りました。");
         recordSnapshot("participants", snapshot);
         const activeParticipants = [];
         snapshot.forEach(function(item) {
           const data = item.data() || {};
           const person = Object.assign({ id: item.id }, data);
+          if (joined && person.userId !== userId && isSameDeviceParticipant(person)) {
+            markSupersededParticipant(item, data);
+            return;
+          }
           if (!isParticipantActive(person)) {
             if (joined) markParticipantStale(item, data);
             return;
@@ -3199,6 +3220,7 @@
           return;
         }
         const renderedParticipants = assignAnonymousParticipantNames(allowedParticipants).map(applyRealtimeParticipantState);
+        syncOwnAnonymousSlot(allowedParticipants, renderedParticipants);
         renderedParticipants.forEach(function(person) {
           if (!person || !person.userId || person.userId === userId || connectionRemoteSeenIds.has(person.userId)) return;
           connectionRemoteSeenIds.add(person.userId);
@@ -3218,9 +3240,8 @@
         }
       }, function(error) {
         console.warn(error);
-        showConnectionFailureGuide("Firestore participants listener");
         pushDiagnostic("error", "\u53c2\u52a0\u8005\u76e3\u8996\u306b\u5931\u6557", error && error.message ? error.message : "");
-        el.participants.innerHTML = '<div class="notice">参加者を読み込めませんでした。</div>';
+        setNotice("参加者情報を再接続中です。");
         recordListenerClosed("participants");
         unsubParticipants = null;
         if (participantWatcherRetryTimer) window.clearTimeout(participantWatcherRetryTimer);
@@ -3241,12 +3262,12 @@
       if (hasParticipantSnapshot) {
         nextMap.forEach(function(name, id) {
           if (id !== userId && !knownParticipantNames.has(id)) {
-            setNotice(name + "さんが参加しました。");
+            queueParticipantNotice(name + "さんが参加しました。");
           }
         });
         knownParticipantNames.forEach(function(name, id) {
           if (id !== userId && !nextMap.has(id)) {
-            setNotice(name + "さんが退室しました。");
+            queueParticipantNotice(name + "さんが退室しました。");
           }
         });
       }
@@ -4314,6 +4335,8 @@
       }
       clearJoinSlowTimer();
       joined = false;
+      activeUserName = "";
+      clearParticipantNoticeQueue();
       stopCallSafetyTimers();
       clearMetricTimers();
       stopStatsMonitor();
@@ -5207,6 +5230,8 @@
       if (maxCallDurationTimer) remaining.push("max call duration");
       if (passiveWatcherIdleTimer) remaining.push("passive watcher idle");
       if (participantSweepTimer) remaining.push("participant sweep");
+      if (participantWatcherRetryTimer) remaining.push("participant watcher retry");
+      if (participantNoticeTimer) remaining.push("participant notice");
       if (metricTimers.length) remaining.push("metrics timer " + metricTimers.length);
       if (statsTimer) remaining.push("stats monitor");
       if (speakingTimer) remaining.push("speaking monitor");
@@ -6008,7 +6033,7 @@
     }
 
     function getUserName() {
-      return resolveUserName();
+      return joined && activeUserName ? activeUserName : resolveUserName();
     }
 
     function resolveUserName() {
@@ -6032,17 +6057,74 @@
     }
 
     function isGeneratedAnonymousName(name) {
-      return /^匿名[A-Za-z0-9]{4}$/.test(getDisplayName(name));
+      return /^匿名[A-Za-z0-9]{4}$/.test(getDisplayName(name)) || /^匿名さん[A-D]$/.test(getDisplayName(name));
+    }
+
+    function isValidAnonymousSlot(value) {
+      return /^[A-D]$/.test(String(value || ""));
+    }
+
+    function getAvailableAnonymousSlot(items) {
+      const used = new Set((items || []).map(function(item) {
+        return getStoredAnonymousSlot(item);
+      }).filter(Boolean));
+      return ["A", "B", "C", "D"].find(function(letter) { return !used.has(letter); }) || "D";
+    }
+
+    function getStoredAnonymousSlot(item) {
+      const match = /^匿名さん([A-D])$/.exec(getDisplayName(item && item.userName));
+      return match ? match[1] : "";
     }
 
     function assignAnonymousParticipantNames(items) {
-      let anonymousIndex = 0;
+      const used = new Set();
       return items.map(function(item) {
         if (!item || !isGeneratedAnonymousName(item.userName)) return item;
-        const letter = String.fromCharCode(65 + anonymousIndex);
-        anonymousIndex += 1;
+        const storedSlot = getStoredAnonymousSlot(item);
+        let letter = isValidAnonymousSlot(storedSlot) && !used.has(storedSlot)
+          ? storedSlot
+          : ["A", "B", "C", "D"].find(function(candidate) { return !used.has(candidate); });
+        letter = letter || "D";
+        used.add(letter);
         return Object.assign({}, item, { userName: "匿名さん" + letter });
       });
+    }
+
+    function syncOwnAnonymousSlot(rawItems, renderedItems) {
+      if (!joined) return;
+      const rawSelf = rawItems.find(function(item) { return item && item.userId === userId; });
+      const renderedSelf = renderedItems.find(function(item) { return item && item.userId === userId; });
+      if (!rawSelf || !renderedSelf || !isGeneratedAnonymousName(rawSelf.userName)) return;
+      const slot = getStoredAnonymousSlot(renderedSelf);
+      if (!isValidAnonymousSlot(slot) || getStoredAnonymousSlot(rawSelf) === slot || lastAnonymousSlotWrite === slot) return;
+      lastAnonymousSlotWrite = slot;
+      recordWrite("participantAnonymousSlot");
+      setDoc(participantRef(userId), {
+        sessionId,
+        userName: "匿名さん" + slot,
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(console.warn);
+    }
+
+    function isSameDeviceParticipant(person) {
+      if (!person) return false;
+      return String(person.userId || "").indexOf(deviceId + "-") === 0;
+    }
+
+    function markSupersededParticipant(participantDoc, data) {
+      if (!participantDoc || !data || data.userId === userId || data.left === true) return;
+      const key = "superseded:" + (data.userId || participantDoc.id);
+      if (staleParticipantMarks.has(key)) return;
+      staleParticipantMarks.set(key, Date.now());
+      recordWrite("participantSuperseded");
+      setDoc(participantDoc.ref, {
+        left: true,
+        leftAt: serverTimestamp(),
+        stale: true,
+        connected: false,
+        speaking: false,
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(console.warn);
     }
 
     function getAvatarInitialHtml(name) {
@@ -6951,6 +7033,33 @@
         el.notice.textContent = "";
         el.notice.classList.remove("is-important");
       }, 3500);
+    }
+
+    function queueParticipantNotice(text) {
+      const friendly = getFriendlyNotice(text);
+      if (!friendly) return;
+      if (participantNoticeQueue.indexOf(friendly) === -1) participantNoticeQueue.push(friendly);
+      if (participantNoticeQueue.length > 4) participantNoticeQueue.shift();
+      if (!participantNoticeTimer) showNextParticipantNotice();
+    }
+
+    function showNextParticipantNotice() {
+      const next = participantNoticeQueue.shift();
+      if (!next) {
+        participantNoticeTimer = null;
+        return;
+      }
+      setNotice(next);
+      participantNoticeTimer = window.setTimeout(function() {
+        participantNoticeTimer = null;
+        showNextParticipantNotice();
+      }, 3700);
+    }
+
+    function clearParticipantNoticeQueue() {
+      if (participantNoticeTimer) window.clearTimeout(participantNoticeTimer);
+      participantNoticeTimer = null;
+      participantNoticeQueue = [];
     }
 
     function renderCallReport(text, important) {

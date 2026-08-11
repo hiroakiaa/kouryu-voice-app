@@ -47,23 +47,28 @@ test("表示名を正規化し、改行と制御文字を除去する", () => {
 });
 
 test("参加・退室メッセージはnoticeに表示する", () => {
-  assert.match(rootHtml, /setNotice\(name \+ "さんが参加しました。"\)/);
-  assert.match(rootHtml, /setNotice\(name \+ "さんが退室しました。"\)/);
+  assert.match(rootHtml, /queueParticipantNotice\(name \+ "さんが参加しました。"\)/);
+  assert.match(rootHtml, /queueParticipantNotice\(name \+ "さんが退室しました。"\)/);
+  assert.match(rootHtml, /participantNoticeQueue\.length > 4/);
   assert.doesNotMatch(rootHtml, /showCallEventNotice\(name \+ "さんが(?:参加|退室)しました。"\)/);
   assert.doesNotMatch(rootHtml, /callEventNotice|call-event-notice|showCallEventNotice|hideCallEventNotice/);
   assert.doesNotMatch(rootHtml, /が参加しています。/);
 });
 
 test("参加者表示はセッション競合と監視切断から復帰する", () => {
-  assert.match(rootHtml, /const userId = getOrCreateUserId\(\) \+ "-" \+ sessionId\.slice\(-12\)/);
+  assert.match(rootHtml, /const userId = deviceId \+ "-" \+ sessionId\.slice\(-12\)/);
   assert.match(rootHtml, /participantWatcherRetryTimer = window\.setTimeout/);
   assert.match(rootHtml, /const retryDelay = Math\.min\(30000/);
   assert.match(rootHtml, /await markLeft\(\);\s+stopLocalCall\(false\);/);
+  assert.match(rootHtml, /markSupersededParticipant\(item, data\)/);
+  assert.match(rootHtml, /参加者情報を再接続中です。/);
+  assert.match(rootHtml, /参加者情報の接続が戻りました。/);
 });
 
 test("無記名参加者を参加順の匿名A・B表示にする", () => {
   assert.match(rootHtml, /assignAnonymousParticipantNames\(allowedParticipants\)/);
   assert.match(rootHtml, /userName: "匿名さん" \+ letter/);
+  assert.match(rootHtml, /activeUserName = userName/);
   assert.match(rootHtml, /return '匿<span class="anonymous-letter">'/);
   assert.match(rootHtml, /\.anonymous-letter[\s\S]*font-size: 0\.62em/);
 });
