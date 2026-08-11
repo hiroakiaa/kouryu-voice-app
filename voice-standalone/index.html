@@ -2572,6 +2572,8 @@
     let maxCallDurationTimer = null;
     let passiveWatcherIdleTimer = null;
     let hiddenSince = 0;
+    let lastAudioResumeAt = 0;
+    let lastResumePresenceAt = 0;
     let participantSweepTimer = null;
     let lastConnectedState = null;
     let lastConnectionWrite = 0;
@@ -2731,6 +2733,17 @@
         }
         handleVisibleReturn();
       });
+      window.addEventListener("pageshow", function() {
+        if (!isDemoMode && joined) resumeCallAudio("pageshow");
+      });
+      window.addEventListener("focus", function() {
+        if (!isDemoMode && joined) resumeCallAudio("focus");
+      });
+      if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === "function") {
+        navigator.mediaDevices.addEventListener("devicechange", function() {
+          if (joined) resumeCallAudio("devicechange");
+        });
+      }
       updateDeviceTip();
       if (isDemoMode) {
         initDemoMode();
@@ -3316,6 +3329,39 @@
       hiddenSince = 0;
       if (hiddenDuration >= HIDDEN_AUTO_LEAVE_MS) {
         autoLeaveCall("画面を閉じた状態が2分以上続いたため、自動退室しました。");
+        return;
+      }
+      resumeCallAudio("visible");
+    }
+
+    async function resumeCallAudio(reason) {
+      if (!joined) return;
+      const now = Date.now();
+      if (now - lastAudioResumeAt < 1000) return;
+      lastAudioResumeAt = now;
+      try {
+        if (localAudioContext && localAudioContext.state === "suspended") {
+          await localAudioContext.resume();
+        }
+        const playResults = [];
+        peers.forEach(function(state) {
+          if (state && state.audio && state.audio.srcObject) {
+            playResults.push(state.audio.play().catch(function() {}));
+          }
+        });
+        await Promise.all(playResults);
+        const sourceTrack = rawLocalStream && rawLocalStream.getAudioTracks ? rawLocalStream.getAudioTracks()[0] : null;
+        if (sourceTrack && sourceTrack.readyState === "ended") {
+          reconnectCall();
+          return;
+        }
+        if (now - lastResumePresenceAt >= 60000) {
+          lastResumePresenceAt = now;
+          updatePresence();
+        }
+        pushDiagnostic("info", "音声を再開", reason || "resume");
+      } catch (error) {
+        console.warn(error);
       }
     }
 
@@ -5967,7 +6013,11 @@
     }
 
     function getDisplayName(value) {
-      return String(value || "").trim().slice(0, 8);
+      const normalized = String(value || "").normalize("NFKC")
+        .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      return Array.from(normalized).slice(0, 8).join("");
     }
 
     function enforceNameLimit() {
