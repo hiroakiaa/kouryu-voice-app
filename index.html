@@ -2935,6 +2935,18 @@
     async function joinCall() {
       if (joined) return;
       if (!runPassivePreflightCheck()) return;
+      const activeOtherParticipants = participants.filter(function(person) {
+        return person && person.userId && person.userId !== userId && person.left !== true && isParticipantActive(person);
+      });
+      if (activeOtherParticipants.length >= MAX_CALL_PARTICIPANTS) {
+        deniedByCapacity = true;
+        setCallPhase("failed", "この音声通話は4人までです。新しい通話URLを作ってください。");
+        setStatus("通話が満員です", "参加情報やマイクを開始する前に停止しました。別の通話URLを作って参加してください。");
+        setNotice("この通話は4人までです。「新規URL」ボタンから新しい通話を始められます。");
+        pushDiagnostic("info", "参加前に満員を確認", "Firestoreへの参加書き込みとマイク開始を行わずに停止しました。");
+        updateJoinButton();
+        return;
+      }
       resetMetrics();
       markMetricMilestone("before-call-start");
       recordConnectionStep("参加開始", "参加ボタンを押しました。", "join-start");
@@ -3173,6 +3185,7 @@
         notifyParticipantChanges(renderedParticipants);
         participants = renderedParticipants;
         renderParticipants(participants);
+        updateRemoteAudioVolumes();
         if (!joined) {
           updatePassiveParticipantPresence(participants);
         }
@@ -4956,7 +4969,17 @@
 
     function setRemoteAudioVolume(audio) {
       if (!audio) return;
-      audio.volume = Math.max(0, Math.min(1, VOICE_SETTINGS.remoteVolume || 0.85));
+      const remoteCount = Math.max(1, participants.filter(function(person) {
+        return person && person.userId && person.userId !== userId;
+      }).length);
+      const mixedVolume = (VOICE_SETTINGS.remoteVolume || 0.85) / Math.sqrt(remoteCount);
+      audio.volume = Math.max(0.3, Math.min(1, mixedVolume));
+    }
+
+    function updateRemoteAudioVolumes() {
+      peers.forEach(function(state) {
+        if (state && state.audio) setRemoteAudioVolume(state.audio);
+      });
     }
 
     function startStatsMonitor() {

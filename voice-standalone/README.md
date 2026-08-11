@@ -22,7 +22,7 @@ standaloneVoiceCalls/{callId}/participants/{participantId}
 standaloneVoiceCalls/{callId}/signals/{signalId}
 ```
 
-`outputs/firestore.rules` に単体通話用の許可を追加済みです。Firebase Console の Firestore ルールへ反映してください。
+リポジトリ直下の `firestore.rules` に単体通話用の検証ルールを用意しています。Firebase Console の Firestore ルールへ反映してください。
 
 ## 仕組み
 

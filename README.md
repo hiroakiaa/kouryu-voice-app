@@ -19,6 +19,12 @@ const KOURYU_VOICE_APP_URL = 'https://example.com/voice/';
 - 録音はしません。
 - 1つの通話URLにつき最大4人まで参加できます。
 
+## 運用資料
+
+- `FOUR_PERSON_TEST.md`: 4台実機での通話確認手順
+- `OPERATIONS.md`: 料金監視と予算アラートの設定
+- `firestore.rules`: 通話データの項目と型を限定するFirestore Rules
+
 ## つながらない場合
 
 学校ネットワークでP2P接続できない場合は、`rtcConfig.iceServers` にTURNサーバーを追加してください。

@@ -1,0 +1,77 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function validCallId(callId) {
+      return callId.size() >= 1
+        && callId.size() <= 48
+        && callId.matches('^[A-Za-z0-9_-]+$');
+    }
+
+    function validParticipant(data) {
+      return data.keys().hasOnly([
+          'userId', 'sessionId', 'userName', 'joined', 'left', 'muted',
+          'connected', 'speaking', 'stale', 'joinedAt', 'leftAt',
+          'lastSeenAt', 'updatedAt'
+        ])
+        && data.userId is string
+        && data.userId.size() >= 1
+        && data.userId.size() <= 128
+        && data.sessionId is string
+        && data.sessionId.size() >= 1
+        && data.sessionId.size() <= 160
+        && data.userName is string
+        && data.userName.size() <= 20
+        && (!('joined' in data) || data.joined is bool)
+        && (!('left' in data) || data.left is bool)
+        && (!('muted' in data) || data.muted is bool)
+        && (!('connected' in data) || data.connected is bool)
+        && (!('speaking' in data) || data.speaking is bool)
+        && (!('stale' in data) || data.stale is bool);
+    }
+
+    function validSignal(data) {
+      return data.keys().hasOnly([
+          'from', 'fromSessionId', 'fromName', 'to', 'toSessionId',
+          'type', 'payload', 'createdAt'
+        ])
+        && data.from is string
+        && data.from.size() >= 1
+        && data.from.size() <= 128
+        && data.fromSessionId is string
+        && data.fromSessionId.size() <= 160
+        && data.fromName is string
+        && data.fromName.size() <= 20
+        && data.to is string
+        && data.to.size() >= 1
+        && data.to.size() <= 128
+        && data.toSessionId is string
+        && data.toSessionId.size() <= 160
+        && data.type in ['offer', 'answer', 'candidate']
+        && data.payload is map;
+    }
+
+    match /standaloneVoiceCalls/{callId} {
+      allow read, write: if false;
+
+      match /participants/{participantId} {
+        allow read: if validCallId(callId);
+        allow create, update: if validCallId(callId)
+          && participantId == request.resource.data.userId
+          && validParticipant(request.resource.data);
+        allow delete: if false;
+      }
+
+      match /signals/{signalId} {
+        allow read: if validCallId(callId);
+        allow create: if validCallId(callId) && validSignal(request.resource.data);
+        allow update: if false;
+        allow delete: if validCallId(callId);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
