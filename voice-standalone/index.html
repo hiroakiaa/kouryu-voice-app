@@ -1264,7 +1264,6 @@
       color: #ffe3eb;
     }
 
-    .call-event-notice,
     .call-report {
       display: none;
       align-items: center;
@@ -1283,13 +1282,11 @@
       text-align: center;
     }
 
-    .call-event-notice.is-showing,
     .call-report.is-showing {
       display: inline-flex;
       justify-self: center;
     }
 
-    .call-event-notice.is-warning,
     .call-report.is-warning {
       border-color: rgba(255, 196, 87, 0.55);
       color: #ffe9ad;
@@ -2221,7 +2218,6 @@
     <section class="card participants-card">
       <h2><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span></h2>
       <div id="participants" class="participants"></div>
-      <div id="callEventNotice" class="call-event-notice" role="status" aria-live="polite"></div>
       <div id="notice" class="notice" role="status" aria-live="polite"></div>
     </section>
 
@@ -2525,7 +2521,6 @@
       diagnosticsToggle: document.getElementById("diagnosticsToggleBtn"),
       diagnosticsPanel: document.getElementById("diagnosticsPanel"),
       participants: document.getElementById("participants"),
-      callEventNotice: document.getElementById("callEventNotice"),
       name: document.getElementById("nameInput"),
       join: document.getElementById("joinBtn"),
       mute: document.getElementById("muteBtn"),
@@ -2582,7 +2577,6 @@
     let hasParticipantSnapshot = false;
     let lastParticipantsRenderSignature = "";
     let lastPassiveParticipantPresenceSignature = "";
-    let callEventNoticeTimer = null;
     let metricTimers = [];
     let joinSlowTimer = null;
     let connectionStuckTimer = null;
@@ -2970,7 +2964,6 @@
       markMetricMilestone("before-call-start");
       recordConnectionStep("参加開始", "参加ボタンを押しました。", "join-start");
       hideCallReport();
-      hideCallEventNotice();
       const typedName = getDisplayName(el.name.value);
       const userName = resolveUserName();
       saveName(userName);
@@ -4042,7 +4035,7 @@
       updateConnectionPill("参加者あり");
       if (presenceSignature !== lastPassiveParticipantPresenceSignature) {
         lastPassiveParticipantPresenceSignature = presenceSignature;
-        showCallEventNotice(label + " が参加しています。");
+        setNotice(label + " が参加しています。");
       }
     }
 
@@ -4777,12 +4770,12 @@
       if (callPhase === "waiting" && joined) {
         waitingHelpTimer = window.setTimeout(function() {
           if (callPhase !== "waiting" || !joined) return;
-          showCallEventNotice("相手が同じURLで参加すると始まります。URLボタンで共有できます。");
+          setNotice("相手が同じURLで参加すると始まります。URLボタンで共有できます。");
           pushDiagnostic("info", "相手待ちが続いています", "相手が同じURLを開いて参加ボタンを押しているか確認してください。");
         }, WAITING_HELP_DELAY_MS);
       }
       if (callPhase === "reconnecting") {
-        showCallEventNotice("通信が少し揺れています。自動で戻しています。", true);
+        setNotice("通信が少し揺れています。自動で戻しています。", true);
       }
     }
 
@@ -4818,7 +4811,7 @@
 
       if (openListeners > 2 && now - lastStabilityNoticeAt > FIRESTORE_GUARD_COOLDOWN_MS) {
         lastStabilityNoticeAt = now;
-        showCallEventNotice("通話監視が多くなっています。不要な監視を確認します。", true);
+        setNotice("通話監視が多くなっています。不要な監視を確認します。", true);
         pushDiagnostic("warn", "監視数が多いです", "Firestore listener " + openListeners + " / " + reason);
       }
 
@@ -5155,13 +5148,13 @@
       const current = el.audioPreset.value || "earphones";
       if (stats.quality === "poor" && current === "speaker") {
         lastAutoPresetCareAt = now;
-        showCallEventNotice("音が不安定です。近い端末ではイヤホンか近距離テストがおすすめです。", true);
+        setNotice("音が不安定です。近い端末ではイヤホンか近距離テストがおすすめです。", true);
         pushDiagnostic("warn", "音声設定の見直し候補", "現在: スピーカー / " + getQualityAdvice(stats));
         return;
       }
       if (stats.quality === "poor" && (stats.jitterMs > 60 || stats.lossPct > 5)) {
         lastAutoPresetCareAt = now;
-        showCallEventNotice("通信が不安定です。Wi-Fiや電波を確認してください。", true);
+        setNotice("通信が不安定です。Wi-Fiや電波を確認してください。", true);
         pushDiagnostic("warn", "通信環境の確認候補", getQualityAdvice(stats));
       }
     }
@@ -6927,27 +6920,6 @@
         el.notice.textContent = "";
         el.notice.classList.remove("is-important");
       }, 3500);
-    }
-
-    function showCallEventNotice(text, important) {
-      if (!el.callEventNotice) return;
-      const friendly = getFriendlyNotice(text);
-      el.callEventNotice.innerHTML = friendly
-        ? '<i class="fa-solid ' + (important ? "fa-triangle-exclamation" : "fa-circle-info") + '"></i><span>' + escapeHtml(friendly) + '</span>'
-        : "";
-      el.callEventNotice.classList.toggle("is-showing", !!friendly);
-      el.callEventNotice.classList.toggle("is-warning", !!important && !!friendly);
-      if (!friendly) return;
-      window.clearTimeout(callEventNoticeTimer);
-      callEventNoticeTimer = window.setTimeout(hideCallEventNotice, 4200);
-    }
-
-    function hideCallEventNotice() {
-      if (!el.callEventNotice) return;
-      window.clearTimeout(callEventNoticeTimer);
-      callEventNoticeTimer = null;
-      el.callEventNotice.textContent = "";
-      el.callEventNotice.classList.remove("is-showing", "is-warning");
     }
 
     function renderCallReport(text, important) {

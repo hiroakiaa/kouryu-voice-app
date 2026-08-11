@@ -50,4 +50,5 @@ test("参加・退室メッセージはnoticeに表示する", () => {
   assert.match(rootHtml, /setNotice\(name \+ "さんが参加しました。"\)/);
   assert.match(rootHtml, /setNotice\(name \+ "さんが退室しました。"\)/);
   assert.doesNotMatch(rootHtml, /showCallEventNotice\(name \+ "さんが(?:参加|退室)しました。"\)/);
+  assert.doesNotMatch(rootHtml, /callEventNotice|call-event-notice|showCallEventNotice|hideCallEventNotice/);
 });
