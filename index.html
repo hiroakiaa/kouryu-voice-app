@@ -105,17 +105,6 @@
       color: var(--text);
     }
 
-    .app-icon.has-call-report::after {
-      content: "";
-      position: absolute;
-      right: 0.32rem;
-      top: 0.32rem;
-      width: 0.46rem;
-      height: 0.46rem;
-      border-radius: 999rem;
-      background: var(--ok);
-    }
-
     .brand {
       min-width: 0;
       flex: 1 1 auto;
@@ -855,8 +844,11 @@
       gap: 0.5rem;
       align-items: flex-start;
       align-content: flex-start;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
       min-height: 3.25rem;
-      overflow-x: auto;
+      overflow-x: hidden;
       overflow-y: hidden;
       padding: 0.08rem 0.1rem 0.08rem 0;
       scrollbar-width: thin;
@@ -912,6 +904,8 @@
 
     .participant-mic-hint {
       flex: 1 0 100%;
+      box-sizing: border-box;
+      min-width: 0;
       align-self: flex-end;
       display: inline-flex;
       align-items: center;
@@ -2712,7 +2706,6 @@
       if (el.metricsHistoryModal) el.metricsHistoryModal.addEventListener("click", handleMetricsHistoryModalClick);
       if (el.metricsRateInput) el.metricsRateInput.addEventListener("input", renderMetrics);
       bindHorizontalWheel(document.querySelector(".secondary-controls"));
-      bindHorizontalWheel(el.participants);
       initExchangeRate();
       initAudioPreset();
       scheduleFreshnessCheck(false);
@@ -4229,8 +4222,8 @@
         lastCleanupSummary = cleanupResult.ok
           ? "終了処理OK: listener 0 / timer 0 / peer 0"
           : "終了処理を確認してください: " + cleanupResult.detail;
-        renderCallReport(buildCallEndReport(delayedActiveListeners, cleanupResult), delayedActiveListeners !== 0 || !cleanupResult.ok);
-        setNotice(lastCleanupSummary, delayedActiveListeners !== 0 || !cleanupResult.ok);
+        renderCallReport(buildCallEndReport(delayedActiveListeners, cleanupResult), false);
+        setNotice("通話を終了しました。");
       }, CLEANUP_AUDIT_DELAY_MS);
       if (updateStatus) {
         setStatus("退室しました", "もう一度参加できます。" + cleanupText);
@@ -6803,14 +6796,12 @@
       el.appInfoCallReport.innerHTML = text;
       el.appInfoCallReport.classList.add("is-showing");
       el.appInfoCallReport.classList.toggle("is-warning", !!important);
-      if (el.appInfoToggle) el.appInfoToggle.classList.add("has-call-report");
     }
 
     function hideCallReport() {
       if (!el.appInfoCallReport) return;
       el.appInfoCallReport.textContent = "";
       el.appInfoCallReport.classList.remove("is-showing", "is-warning");
-      if (el.appInfoToggle) el.appInfoToggle.classList.remove("has-call-report");
     }
 
     function buildCallEndReport(activeListeners, cleanupResult) {
@@ -6819,14 +6810,12 @@
       const writes = sumMetric(metrics.writes);
       const deletes = sumMetric(metrics.deletes);
       const totalYen = firestoreCostYen(reads, writes, deletes, getYenPerDollar());
-      const cleanupOk = activeListeners === 0 && cleanupResult && cleanupResult.ok;
-      return '<i class="fa-solid ' + (cleanupOk ? "fa-circle-check" : "fa-triangle-exclamation") + '"></i>' +
+      return '<i class="fa-solid fa-circle-check"></i>' +
         '<strong>終了レポート</strong>' +
         '<span>' + escapeHtml(formatCallDuration(seconds)) + '</span>' +
         '<span>reads ' + reads + '</span>' +
         '<span>writes ' + writes + '</span>' +
-        '<span>' + escapeHtml(formatYen(totalYen)) + '</span>' +
-        '<span>listener ' + activeListeners + '</span>';
+        '<span>' + escapeHtml(formatYen(totalYen)) + '</span>';
     }
 
     function formatCallDuration(seconds) {
