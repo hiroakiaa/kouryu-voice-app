@@ -2455,8 +2455,8 @@
     const metricsEnabled = params.get("metrics") === "1" || params.get("debug") === "1";
     const app = isDemoMode ? null : initializeApp(firebaseConfig);
     const db = isDemoMode ? null : getFirestore(app);
-    const userId = getOrCreateUserId();
     const sessionId = createSessionId();
+    const userId = getOrCreateUserId() + "-" + sessionId.slice(-12);
     const callId = ensureCallId(params.get("call"));
     const isDefaultCall = callId === DEFAULT_CALL_ID;
     normalizeCallUrl();
@@ -2562,6 +2562,8 @@
     let signalAcceptAfterMs = Date.now();
     let unsubSignals = null;
     let unsubParticipants = null;
+    let participantWatcherRetryTimer = null;
+    let participantWatcherRetryAttempt = 0;
     let heartbeatTimer = null;
     let hiddenAutoLeaveTimer = null;
     let maxCallDurationTimer = null;
@@ -3002,6 +3004,7 @@
           lastSeenAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         }, { merge: true });
+        ensureParticipantWatcher();
         recordConnectionStep("参加情報保存OK", "相手の端末から見える参加者になりました。", "participant-write-done");
         startHeartbeat();
         startCallSafetyTimers();
@@ -3073,14 +3076,8 @@
         el.mute.disabled = true;
         el.reconnect.disabled = true;
         recordWrite("participantMicFailed");
-        await setDoc(participantRef(userId), {
-          sessionId,
-          muted: true,
-          connected: false,
-          speaking: false,
-          lastSeenAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        }, { merge: true }).catch(console.warn);
+        await markLeft();
+        stopLocalCall(false);
         const micMeta = getMicPermissionMeta(error);
         showConnectionFailureGuide(micMeta.reason);
         pushDiagnostic("error", micMeta.title, micMeta.detail);
@@ -3126,6 +3123,9 @@
 
     function stopParticipantWatcher() {
       stopPassiveWatcherIdleTimer();
+      if (participantWatcherRetryTimer) window.clearTimeout(participantWatcherRetryTimer);
+      participantWatcherRetryTimer = null;
+      participantWatcherRetryAttempt = 0;
       if (unsubParticipants) {
         unsubParticipants();
         recordListenerClosed("participants");
@@ -3144,6 +3144,7 @@
     function watchParticipants() {
       recordListenerOpened("participants");
       unsubParticipants = onSnapshot(query(collection(callRef(), "participants"), where("left", "==", false)), function(snapshot) {
+        participantWatcherRetryAttempt = 0;
         recordSnapshot("participants", snapshot);
         const activeParticipants = [];
         snapshot.forEach(function(item) {
@@ -3213,9 +3214,13 @@
         el.participants.innerHTML = '<div class="notice">参加者を読み込めませんでした。</div>';
         recordListenerClosed("participants");
         unsubParticipants = null;
-        if (!joined) {
-          window.setTimeout(resumePassiveParticipantWatcher, 3000);
-        }
+        if (participantWatcherRetryTimer) window.clearTimeout(participantWatcherRetryTimer);
+        const retryDelay = Math.min(30000, 3000 * Math.pow(2, participantWatcherRetryAttempt));
+        participantWatcherRetryAttempt += 1;
+        participantWatcherRetryTimer = window.setTimeout(function() {
+          participantWatcherRetryTimer = null;
+          ensureParticipantWatcher();
+        }, retryDelay);
       });
     }
 
