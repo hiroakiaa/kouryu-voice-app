@@ -2370,7 +2370,7 @@
     };
 
     const APP_VERSION = "2026-08-10-cost-history";
-    const MAX_CALL_PARTICIPANTS = 2;
+    const MAX_CALL_PARTICIPANTS = 4;
     const PARTICIPANT_STALE_MS = 300 * 1000;
     const HEARTBEAT_MS = 120000;
     const SPEAKING_MONITOR_MS = 260;
@@ -2756,7 +2756,8 @@
       return [
         { userId, userName: selfName, muted, connected: true, speaking: !muted },
         { userId: "demo-teacher", userName: "Teacher", muted: false, connected: true, speaking: true },
-        { userId: "demo-student", userName: "Student", muted: true, connected: false, speaking: false }
+        { userId: "demo-student", userName: "Student", muted: true, connected: false, speaking: false },
+        { userId: "demo-guest", userName: "Guest", muted: false, connected: true, speaking: false }
       ];
     }
 
@@ -3134,7 +3135,7 @@
           const now = Date.now();
           if (now - lastCapacityWarnAt > 30000) {
             lastCapacityWarnAt = now;
-            pushDiagnostic("warn", "通話人数の上限を超えました", "この通話は1対1用です。先に入った人だけを接続します。");
+            pushDiagnostic("warn", "通話人数の上限を超えました", "この通話は4人までです。先に入った4人だけを接続します。");
           }
         }
         const allowedIds = new Set(allowedParticipants.map(function(item) { return item.userId; }));
@@ -3150,13 +3151,13 @@
               speaking: false,
               updatedAt: serverTimestamp()
             }, { merge: true }).catch(console.warn);
-            setCallPhase("failed", "この音声通話は2人までです。新しい通話URLを作ってください。");
-            pushDiagnostic("error", "通話が満員です", "3人目以降は接続しないようにしました。");
-            setNotice("この通話は2人までです。新しい通話URLを作ってください。");
+            setCallPhase("failed", "この音声通話は4人までです。新しい通話URLを作ってください。");
+            pushDiagnostic("error", "通話が満員です", "5人目以降は接続しないようにしました。");
+            setNotice("この通話は4人までです。新しい通話URLを作ってください。");
           }
           stopLocalCall(false);
-          setCallPhase("failed", "この音声通話は2人までです。新しい通話URLを作ってください。");
-          setStatus("通話が満員です", "新しい通話URLを作って、1対1で参加してください。");
+          setCallPhase("failed", "この音声通話は4人までです。新しい通話URLを作ってください。");
+          setStatus("通話が満員です", "別の通話URLを作って参加してください。");
           return;
         }
         const renderedParticipants = allowedParticipants.map(applyRealtimeParticipantState);
@@ -4751,8 +4752,8 @@
 
     function getDiagnosticAdvice(level, message, detail) {
       const text = [level, message, detail].join(" ").toLowerCase();
-      if (/満員|2人|capacity|limit/.test(text)) {
-        return "この音声通話は1対1用です。2人以上で使う場合は、新規URLを作ってペアごとに分けてください。";
+      if (/満員|4人|capacity|limit/.test(text)) {
+        return "この音声通話は4人までです。満員の場合は、新規URLを作って分かれてください。";
       }
       if (/マイク|microphone|notallowed|securityerror/.test(text)) {
         return "ブラウザのマイク許可を確認してください。iPhone/iPadはSafariのサイト設定、PCはアドレスバー付近の権限を見ます。";
@@ -5157,8 +5158,8 @@
       if (/timeout|stuck|時間/.test(text)) {
         return "接続に時間がかかっています。相手が同じURLで参加しているか、マイク許可で止まっていないか確認してください。";
       }
-      if (/capacity|満員|2人|limit/.test(text)) {
-        return "この通話は1対1用です。2人以上の場合は新しい通話URLを作って分かれてください。";
+      if (/capacity|満員|4人|limit/.test(text)) {
+        return "この通話は4人までです。満員の場合は新しい通話URLを作って分かれてください。";
       }
       return "音声接続が戻りませんでした。同じURLを開き直すか、新しい通話URLを作ってください。";
     }

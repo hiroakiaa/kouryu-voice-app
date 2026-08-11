@@ -17,7 +17,7 @@ const KOURYU_VOICE_APP_URL = 'https://example.com/voice/';
 - 音声は WebRTC で端末同士を直接接続します。
 - Firestore は通話状態、参加者、offer/answer/ICE candidate の一時保存に使います。
 - 録音はしません。
-- 最初は1対1通話を想定しています。
+- 1つの通話URLにつき最大4人まで参加できます。
 
 ## つながらない場合
 
