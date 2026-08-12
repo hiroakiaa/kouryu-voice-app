@@ -2285,10 +2285,6 @@
         <span><strong id="turnUsageStatus">待機中</strong><small>Cloudflare TURN</small></span>
         <span><strong id="turnUsageBytes">0 MB</strong><small>この端末で確認できた中継通信量</small></span>
       </div>
-      <div class="metrics-compare-summary">
-        <strong>Cloudflare無料枠: 月1,000 GB</strong><br>
-        TURNが必要な通話だけ中継通信量を使用します。この画面の通信量はこの端末・この通話の概算です。当月合計と請求確定額はCloudflare管理画面で確認します。
-      </div>
       <div id="metricsCompareSummary" class="metrics-compare-summary" aria-label="前回計測区間との比較"></div>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
@@ -5295,7 +5291,7 @@
     }
 
     function renderTurnUsage() {
-      if (el.turnUsageStatus) el.turnUsageStatus.textContent = turnUsage.relayActive ? "中継使用中" : "無料枠内・中継なし";
+      if (el.turnUsageStatus) el.turnUsageStatus.textContent = turnUsage.relayActive ? "中継使用中" : "中継なし";
       if (el.turnUsageBytes) {
         const megabytes = turnUsage.bytes / (1024 * 1024);
         el.turnUsageBytes.textContent = (megabytes < 0.01 ? "0" : megabytes.toFixed(megabytes < 10 ? 2 : 1)) + " MB";
