@@ -125,3 +125,10 @@ test("callTipsで利用者への請求がないことと通常の通信量を案
   assert.match(rootHtml, /参加者に請求されることはありません/);
   assert.match(rootHtml, /通常のデータ通信量は使用します/);
 });
+
+test("料金推移グラフに軸名と数値目盛りがある", () => {
+  assert.match(rootHtml, /縦軸：概算料金（円）／横軸：通話記録（古い→新しい）/);
+  assert.match(rootHtml, /chart-axis-label/);
+  assert.match(rootHtml, /chart-tick/);
+  assert.match(rootHtml, /通話記録（古い → 新しい）/);
+});

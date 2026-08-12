@@ -1794,6 +1794,30 @@
       stroke-width: 0.12rem;
     }
 
+    .metrics-history-chart .chart-axis {
+      stroke: rgba(223, 246, 255, 0.52);
+      stroke-width: 0.7;
+    }
+
+    .metrics-history-chart .chart-grid-line {
+      stroke: rgba(139, 233, 255, 0.12);
+      stroke-width: 0.55;
+    }
+
+    .metrics-history-chart .chart-tick,
+    .metrics-history-chart .chart-axis-label {
+      fill: var(--muted);
+      font-family: inherit;
+      font-size: 8px;
+      font-weight: 750;
+    }
+
+    .metrics-history-chart .chart-axis-label {
+      fill: var(--text);
+      font-size: 8.5px;
+      font-weight: 850;
+    }
+
     .metrics-history-chart .chart-empty {
       display: grid;
       min-height: 8rem;
@@ -2320,7 +2344,7 @@
       <div id="metricsHistorySummary" class="metrics-history-grid" aria-label="料金履歴の要約"></div>
       <div class="metrics-history-chart-wrap">
         <div class="metrics-history-chart-title">
-          <span>10分通話の概算料金の推移</span>
+          <span>10分通話の概算料金の推移<br><small>縦軸：概算料金（円）／横軸：通話記録（古い→新しい）</small></span>
           <small>直近20回</small>
         </div>
         <div id="metricsHistoryChart" class="metrics-history-chart" aria-label="10分通話料金の折れ線グラフ"></div>
@@ -7025,23 +7049,43 @@
     function renderCostHistoryChart(records) {
       if (!records.length) return '<div class="chart-empty">通話を終了すると、ここに料金の推移が表示されます。</div>';
       if (records.length === 1) return '<div class="chart-empty">もう1回記録すると、推移を線で確認できます。<br>最新: ' + escapeHtml(formatYen(records[0].tenMinuteCostYen)) + '</div>';
-      const width = 320;
-      const height = 120;
-      const pad = 14;
+      const width = 360;
+      const height = 150;
+      const left = 48;
+      const right = 12;
+      const top = 12;
+      const bottom = 30;
       const values = records.map(function(item) { return Number(item.tenMinuteCostYen) || 0; });
-      const min = Math.min.apply(null, values);
       const max = Math.max.apply(null, values);
-      const range = Math.max(0.000001, max - min);
+      const yMax = Math.max(0.001, max * 1.1);
       const points = values.map(function(value, index) {
-        const x = pad + (index / Math.max(1, values.length - 1)) * (width - pad * 2);
-        const y = height - pad - ((value - min) / range) * (height - pad * 2);
+        const x = left + (index / Math.max(1, values.length - 1)) * (width - left - right);
+        const y = height - bottom - (value / yMax) * (height - top - bottom);
         return { x, y, value };
       });
+      const yTicks = [0, 1, 2, 3].map(function(step) {
+        const value = yMax * step / 3;
+        const y = height - bottom - (step / 3) * (height - top - bottom);
+        return '<line class="chart-grid-line" x1="' + left + '" y1="' + y.toFixed(1) + '" x2="' + (width - right) + '" y2="' + y.toFixed(1) + '"></line>' +
+          '<text class="chart-tick" x="' + (left - 5) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="end">' + escapeHtml(value.toFixed(3)) + '</text>';
+      }).join("");
+      const xIndexes = Array.from(new Set([0, Math.floor((values.length - 1) / 2), values.length - 1]));
+      const xTicks = xIndexes.map(function(index) {
+        const x = left + (index / Math.max(1, values.length - 1)) * (width - left - right);
+        return '<line class="chart-grid-line" x1="' + x.toFixed(1) + '" y1="' + top + '" x2="' + x.toFixed(1) + '" y2="' + (height - bottom) + '"></line>' +
+          '<text class="chart-tick" x="' + x.toFixed(1) + '" y="' + (height - bottom + 12) + '" text-anchor="middle">' + (index + 1) + '</text>';
+      }).join("");
       const polyline = points.map(function(point) { return point.x.toFixed(1) + "," + point.y.toFixed(1); }).join(" ");
       const dots = points.map(function(point) {
         return '<circle class="chart-dot" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="2.8"><title>' + escapeHtml(formatYen(point.value)) + '</title></circle>';
       }).join("");
-      return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="10分通話料金の推移"><polyline class="chart-line" points="' + polyline + '"></polyline>' + dots + '</svg>';
+      return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="縦軸は10分通話の概算料金（円）、横軸は古い順の通話記録">' +
+        yTicks + xTicks +
+        '<line class="chart-axis" x1="' + left + '" y1="' + top + '" x2="' + left + '" y2="' + (height - bottom) + '"></line>' +
+        '<line class="chart-axis" x1="' + left + '" y1="' + (height - bottom) + '" x2="' + (width - right) + '" y2="' + (height - bottom) + '"></line>' +
+        '<text class="chart-axis-label" x="4" y="9">料金（円）</text>' +
+        '<text class="chart-axis-label" x="' + ((left + width - right) / 2).toFixed(1) + '" y="' + (height - 4) + '" text-anchor="middle">通話記録（古い → 新しい）</text>' +
+        '<polyline class="chart-line" points="' + polyline + '"></polyline>' + dots + '</svg>';
     }
 
     function costAverage(values) {
