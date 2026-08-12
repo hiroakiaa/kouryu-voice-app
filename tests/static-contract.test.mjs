@@ -148,3 +148,16 @@ test("TURN使用量・接続方式・プライバシー説明を記録表示す�
   assert.match(rootHtml, /接続環境によっては通話を成立させるためCloudflare TURNを経由/);
   assert.match(rootHtml, /data-chart-detail/);
 });
+
+test("App Checkと匿名化した障害記録を準備する", () => {
+  assert.match(rootHtml, /ReCaptchaEnterpriseProvider/);
+  assert.match(rootHtml, /firebase-app-check-site-key/);
+  assert.match(rootHtml, /DIAGNOSTIC_LOG_KEY/);
+  assert.match(rootHtml, /音声・名前・通話URLは含みません/);
+  assert.match(rootHtml, /障害記録をコピー/);
+});
+
+test("TURN制限時は一般向けの回線切替案内を表示する", () => {
+  assert.match(rootHtml, /中継接続を一時調整/);
+  assert.match(rootHtml, /Wi-Fiとモバイル回線を切り替えてから再接続/);
+});

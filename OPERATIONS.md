@@ -22,3 +22,24 @@
 Rulesを変更したときは、対象プロジェクトが `test-project-579c6` であることを確認してからデプロイし、本番で参加・退室・再接続を確認します。
 
 固定4枠は `slots/A` 〜 `slots/D` をTransactionで取得します。Rulesが未反映の場合はアプリが従来の4人判定へ自動的に戻るため、通話自体は停止しません。Firebaseへログイン済みの環境では `firebase deploy --only firestore:rules` で固定枠を有効化できます。
+
+## Cloudflare TURNの運用
+
+- Worker `kouryu-turn-credentials` はGitHub Pages以外からの呼び出しを拒否する。
+- IP・端末ごとの短時間・日次の認証情報発行数を制限する。
+- 異常増加時はWorker環境変数 `TURN_DISABLED=true` を設定するとTURNだけを緊急停止できる。アプリは直接接続とSTUNへ自動的に切り替わる。
+- TURNキーは半年ごと、または漏えいの疑いがあるときに交換する。新しいキーを作成し、Worker Secretsの `TURN_KEY_ID` と `TURN_KEY_API_TOKEN` を更新して疎通確認後、古いキーを失効する。
+- キーIDやAPIトークンをGitHub、HTML、診断ログへ保存しない。
+
+## Firebase App Check
+
+- WebアプリはreCAPTCHA Enterpriseを使う。サイトキーは公開情報としてHTMLの `firebase-app-check-site-key` に設定する。
+- 秘密鍵をHTMLへ入れない。
+- 最初はメトリクスを確認し、正規端末の検証済みリクエストを確認してからFirestoreの強制適用を有効にする。
+- 強制適用後はiPhone Safari、iPad Safari、PC Chromeで参加・退室・再参加を確認する。
+
+## 障害記録
+
+- 接続診断の「障害記録をコピー」は、この端末の直近30件だけを対象にする。
+- 音声、表示名、通話URL、TURN秘密情報は保存しない。
+- 保存項目は発生日時、エラー種別、接続方式、アプリ版だけとする。

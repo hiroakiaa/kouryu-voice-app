@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="turn-credentials-endpoint" content="https://kouryu-turn-credentials.allinone-hiroakiaa.workers.dev/">
+  <meta name="firebase-app-check-site-key" content="">
   <title>共通電話</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
@@ -2368,6 +2369,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
     import {
       getFirestore,
       addDoc,
@@ -2399,6 +2401,7 @@
       iceCandidatePoolSize: 2,
       iceServers: FALLBACK_ICE_SERVERS
     };
+    const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
     const APP_VERSION = "2026-08-11-capacity-slots";
@@ -2494,6 +2497,7 @@
     const COST_HISTORY_MAX_RECORDS = 120;
     const COST_HISTORY_MAX_DAYS = 60;
     const ACTION_RATE_KEY = "kouryu-voice-action-rate-v1";
+    const DIAGNOSTIC_LOG_KEY = "kouryu-voice-diagnostic-log-v1";
     const JOIN_RATE_LIMIT = { action: "join", max: 12, windowMs: 10 * 60 * 1000 };
     const NEW_CALL_RATE_LIMIT = { action: "new-call", max: 6, windowMs: 60 * 60 * 1000 };
     const TURN_DAILY_SAFETY_BYTES = 2 * 1024 * 1024 * 1024;
@@ -2505,6 +2509,10 @@
     const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "1";
     const metricsEnabled = params.get("metrics") === "1" || params.get("debug") === "1";
     const app = isDemoMode ? null : initializeApp(firebaseConfig);
+    const appCheck = !isDemoMode && APP_CHECK_SITE_KEY ? initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+      isTokenAutoRefreshEnabled: true
+    }) : null;
     const auth = isDemoMode ? null : getAuth(app);
     const db = isDemoMode ? null : getFirestore(app);
     const sessionId = createSessionId();
@@ -2887,7 +2895,9 @@
       }).catch(function(error) {
         rtcConfig = { iceCandidatePoolSize: 2, iceServers: FALLBACK_ICE_SERVERS };
         turnConfigurationPromise = null;
-        pushDiagnostic("info", "TURN未使用", "直接接続とSTUNで通話を続けます。", error && error.message ? error.message : "");
+        const code = error && error.message ? error.message : "";
+        const limited = /429|503/.test(code);
+        pushDiagnostic(limited ? "warn" : "info", limited ? "中継接続を一時調整" : "直接接続を使用", limited ? "接続できない場合は、Wi-Fiとモバイル回線を切り替えてから再接続してください。" : "端末同士の直接接続で通話を続けます。", code);
         return rtcConfig;
       });
       return turnConfigurationPromise;
@@ -5119,15 +5129,45 @@
     }
 
     function pushDiagnostic(level, message, detail) {
-      diagnostics.unshift({
+      const entry = {
         level: level || "info",
         message: message || "",
         detail: detail || "",
         advice: getDiagnosticAdvice(level, message, detail),
         time: new Date()
-      });
+      };
+      diagnostics.unshift(entry);
       diagnostics = diagnostics.slice(0, 40);
+      if (entry.level === "warn" || entry.level === "error") saveDiagnosticLog(entry);
       renderDiagnostics();
+    }
+
+    function saveDiagnosticLog(entry) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(DIAGNOSTIC_LOG_KEY) || "[]");
+        const rows = Array.isArray(saved) ? saved : [];
+        rows.unshift({
+          time: entry.time.toISOString(),
+          level: entry.level,
+          message: entry.message,
+          detail: entry.detail,
+          connection: turnUsage.relayActive ? "TURN中継" : "直接接続",
+          version: APP_VERSION
+        });
+        localStorage.setItem(DIAGNOSTIC_LOG_KEY, JSON.stringify(rows.slice(0, 30)));
+      } catch (_) {}
+    }
+
+    async function copyDiagnosticLog() {
+      let rows = [];
+      try { rows = JSON.parse(localStorage.getItem(DIAGNOSTIC_LOG_KEY) || "[]"); } catch (_) {}
+      const text = JSON.stringify({ version: APP_VERSION, exportedAt: new Date().toISOString(), events: Array.isArray(rows) ? rows : [] }, null, 2);
+      try {
+        await navigator.clipboard.writeText(text);
+        setNotice("障害記録をコピーしました。音声・名前・通話URLは含みません。");
+      } catch (_) {
+        setNotice("障害記録をコピーできませんでした。", true);
+      }
     }
 
     function getDiagnosticAdvice(level, message, detail) {
@@ -5159,7 +5199,7 @@
         el.diagnosticsPanel.innerHTML = '<div class="diagnostic-item"><strong>' + escapeHtml("\u307e\u3060\u8a3a\u65ad\u30ed\u30b0\u306f\u3042\u308a\u307e\u305b\u3093\u3002") + '</strong><span>' + escapeHtml("\u63a5\u7d9a\u3092\u958b\u59cb\u3059\u308b\u3068\u3001\u3053\u3053\u306b\u72b6\u614b\u304c\u6b8b\u308a\u307e\u3059\u3002") + '</span></div>';
         return;
       }
-      el.diagnosticsPanel.innerHTML = diagnostics.map(function(item) {
+      el.diagnosticsPanel.innerHTML = '<button id="copyDiagnosticLogBtn" class="metrics-copy-btn" type="button"><i class="fa-solid fa-copy"></i> 障害記録をコピー</button>' + diagnostics.map(function(item) {
         const time = item.time ? item.time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
         const icon = item.level === "error" ? "fa-circle-exclamation" : (item.level === "warn" ? "fa-triangle-exclamation" : "fa-circle-info");
         return '<div class="diagnostic-item is-' + escapeHtml(item.level) + '">' +
@@ -5169,6 +5209,8 @@
           (item.advice ? '<span class="diagnostic-advice">' + escapeHtml(item.advice) + '</span>' : '') +
           '</div>';
       }).join("");
+      const copyButton = document.getElementById("copyDiagnosticLogBtn");
+      if (copyButton) copyButton.addEventListener("click", copyDiagnosticLog);
       updateReconnectControl();
     }
 
