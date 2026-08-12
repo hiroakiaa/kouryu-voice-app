@@ -161,3 +161,18 @@ test("TURN制限時は一般向けの回線切替案内を表示する", () => {
   assert.match(rootHtml, /中継接続を一時調整/);
   assert.match(rootHtml, /Wi-Fiとモバイル回線を切り替えてから再接続/);
 });
+
+test("料金目安は参加端末数を含めた通話全体で計算する", () => {
+  assert.match(rootHtml, /参加端末数を含めた通話全体/);
+  assert.match(rootHtml, /function getActiveParticipantCount/);
+  assert.match(rootHtml, /tenMinuteReads \* participantCount/);
+  assert.match(rootHtml, /participantCountForEstimate/);
+});
+
+test("料金履歴の点はホバー・クリック・タップで最新からの位置と縦軸値を表示する", () => {
+  assert.match(rootHtml, /pointerover/);
+  assert.match(rootHtml, /focusin/);
+  assert.match(rootHtml, /最新から.*つ前/);
+  assert.match(rootHtml, /縦軸: /);
+  assert.match(rootHtml, /chart-dot\.is-selected/);
+});

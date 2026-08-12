@@ -1793,6 +1793,16 @@
       fill: #061522;
       stroke: var(--accent);
       stroke-width: 0.12rem;
+      cursor: pointer;
+      transition: r 120ms ease, fill 120ms ease;
+    }
+
+    .metrics-history-chart .chart-dot:hover,
+    .metrics-history-chart .chart-dot:focus,
+    .metrics-history-chart .chart-dot.is-selected {
+      fill: var(--accent);
+      outline: none;
+      r: 5px;
     }
 
     .metrics-history-chart .chart-axis {
@@ -2240,7 +2250,7 @@
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由し、参加状態と接続に必要な最小限の情報だけを処理します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、運営者向けのFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、10分通話で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、参加端末数を含めた通話全体のFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、通話全体の10分で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
     </section>
@@ -2293,13 +2303,13 @@
       <div class="metrics-cost-grid">
         <div class="metrics-cost-card">
           <div class="metrics-label">
-            <span>現在この1回の通話料金</span>
+            <span>現在の通話全体の料金</span>
             <button id="metricsNoteBtn" class="metrics-help-btn" type="button" aria-label="料金計算の説明" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
           </div>
           <div id="metricsCurrentCost" class="metrics-value">0.0000円</div>
         </div>
         <div class="metrics-cost-card">
-          <div class="metrics-label">通話中の1分あたり</div>
+          <div class="metrics-label">通話全体の1分あたり</div>
           <div id="metricsMinuteCost" class="metrics-value">0.0000円/分</div>
         </div>
       </div>
@@ -2328,7 +2338,7 @@
       </div>
       <pre id="metricsOutput" class="metrics-output"></pre>
       <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
-        現在の通話料金は、接続準備から現在までの推定reads / writes / deletesで計算します。1分あたりは、接続成立後の増え方をもとにした目安です。
+        参加端末数を含めた通話全体の料金です。この端末で確認した推定reads / writes / deletesを参加端末数で換算するため、実際の請求額とは差が出る場合があります。
       </div>
       <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
     </div>
@@ -2350,7 +2360,7 @@
           <small>直近20回</small>
         </div>
         <div id="metricsHistoryChart" class="metrics-history-chart" aria-label="10分通話料金の折れ線グラフ"></div>
-        <div id="chartPointDetail" class="metrics-history-note" aria-live="polite">点を選ぶと、日時・料金・通話時間・接続方式を確認できます。</div>
+        <div id="chartPointDetail" class="metrics-history-note" role="tooltip" aria-live="polite">点に触れるか選ぶと、縦軸の料金と最新からの位置を確認できます。</div>
       </div>
       <div class="metrics-history-sections">
         <section class="metrics-history-panel" aria-label="直近10回">
@@ -2771,6 +2781,8 @@
       if (el.metricsHistoryChart) {
         el.metricsHistoryChart.addEventListener("click", handleChartPointSelect);
         el.metricsHistoryChart.addEventListener("keydown", handleChartPointSelect);
+        el.metricsHistoryChart.addEventListener("pointerover", handleChartPointSelect);
+        el.metricsHistoryChart.addEventListener("focusin", handleChartPointSelect);
       }
       if (el.metricsNote) el.metricsNote.addEventListener("click", toggleMetricsNote);
       if (el.metricsRateHelp) el.metricsRateHelp.addEventListener("click", toggleMetricsRateTooltip);
@@ -6850,17 +6862,18 @@
       const writesPerMinute = data && Number.isFinite(data.writesPerMinute) ? data.writesPerMinute : 0;
       const deletesPerMinute = data && Number.isFinite(data.deletesPerMinute) ? data.deletesPerMinute : 0;
       const hasLiveEstimate = fixedReads || fixedWrites || fixedDeletes || readsPerMinute || writesPerMinute || deletesPerMinute;
+      const participantCount = Math.max(1, data && Number.isFinite(data.participantCount) ? data.participantCount : getActiveParticipantCount());
       const yenPerDollar = data && Number.isFinite(data.yenPerDollar) ? data.yenPerDollar : getYenPerDollar();
       const tenMinuteReads = fixedReads + readsPerMinute * 10;
       const tenMinuteWrites = fixedWrites + writesPerMinute * 10;
       const tenMinuteDeletes = fixedDeletes + deletesPerMinute * 10;
       const tenMinuteYen = hasLiveEstimate
-        ? firestoreCostYen(tenMinuteReads, tenMinuteWrites, tenMinuteDeletes, yenPerDollar)
+        ? firestoreCostYen(tenMinuteReads * participantCount, tenMinuteWrites * participantCount, tenMinuteDeletes * participantCount, yenPerDollar)
         : fallbackTenMinuteCost;
       const freeCandidates = [];
-      if (tenMinuteReads > 0) freeCandidates.push(50000 / tenMinuteReads);
-      if (tenMinuteWrites > 0) freeCandidates.push(20000 / tenMinuteWrites);
-      if (tenMinuteDeletes > 0) freeCandidates.push(20000 / tenMinuteDeletes);
+      if (tenMinuteReads > 0) freeCandidates.push(50000 / (tenMinuteReads * participantCount));
+      if (tenMinuteWrites > 0) freeCandidates.push(20000 / (tenMinuteWrites * participantCount));
+      if (tenMinuteDeletes > 0) freeCandidates.push(20000 / (tenMinuteDeletes * participantCount));
       const freeCalls = freeCandidates.length ? Math.min.apply(null, freeCandidates) : 350;
 
       if (el.tipsTenMinuteCost) el.tipsTenMinuteCost.textContent = formatYen(tenMinuteYen);
@@ -6888,10 +6901,11 @@
       const tenMinuteReads = fixedReads + readsPerMinute * 10;
       const tenMinuteWrites = fixedWrites + writesPerMinute * 10;
       const tenMinuteDeletes = fixedDeletes + deletesPerMinute * 10;
+      const participantCount = getActiveParticipantCount();
       const freeCandidates = [];
-      if (tenMinuteReads > 0) freeCandidates.push(FIRESTORE_FREE_READS_PER_DAY / tenMinuteReads);
-      if (tenMinuteWrites > 0) freeCandidates.push(FIRESTORE_FREE_WRITES_PER_DAY / tenMinuteWrites);
-      if (tenMinuteDeletes > 0) freeCandidates.push(FIRESTORE_FREE_DELETES_PER_DAY / tenMinuteDeletes);
+      if (tenMinuteReads > 0) freeCandidates.push(FIRESTORE_FREE_READS_PER_DAY / (tenMinuteReads * participantCount));
+      if (tenMinuteWrites > 0) freeCandidates.push(FIRESTORE_FREE_WRITES_PER_DAY / (tenMinuteWrites * participantCount));
+      if (tenMinuteDeletes > 0) freeCandidates.push(FIRESTORE_FREE_DELETES_PER_DAY / (tenMinuteDeletes * participantCount));
       return {
         yenPerDollar,
         durationSeconds,
@@ -6904,11 +6918,19 @@
         readsPerMinute,
         writesPerMinute,
         deletesPerMinute,
-        totalCostYen: firestoreCostYen(reads, writes, deletes, yenPerDollar),
-        minuteCostYen: firestoreCostYen(deltaReads / minutes, deltaWrites / minutes, deltaDeletes / minutes, yenPerDollar),
-        tenMinuteCostYen: firestoreCostYen(tenMinuteReads, tenMinuteWrites, tenMinuteDeletes, yenPerDollar),
+        participantCount,
+        totalCostYen: firestoreCostYen(reads * participantCount, writes * participantCount, deletes * participantCount, yenPerDollar),
+        minuteCostYen: firestoreCostYen((deltaReads / minutes) * participantCount, (deltaWrites / minutes) * participantCount, (deltaDeletes / minutes) * participantCount, yenPerDollar),
+        tenMinuteCostYen: firestoreCostYen(tenMinuteReads * participantCount, tenMinuteWrites * participantCount, tenMinuteDeletes * participantCount, yenPerDollar),
         freeTenMinuteCalls: freeCandidates.length ? Math.floor(Math.min.apply(null, freeCandidates)) : 0
       };
+    }
+
+    function getActiveParticipantCount() {
+      const active = participants.filter(function(person) {
+        return person && person.left !== true && isParticipantActive(person);
+      }).length;
+      return Math.max(1, active || (joined ? 1 : 0));
     }
 
     function recordCallCostHistory(snapshot) {
@@ -6938,6 +6960,7 @@
         writesPerMinute: data.writesPerMinute,
         deletesPerMinute: data.deletesPerMinute,
         yenPerDollar: data.yenPerDollar,
+        participantCount: data.participantCount,
         connectionMethod: turnUsage.relayActive ? "TURN中継" : "直接接続",
         turnBytes: Math.round(turnUsage.bytes)
       };
@@ -7165,8 +7188,10 @@
           '<text class="chart-tick" x="' + x.toFixed(1) + '" y="' + (height - bottom + 12) + '" text-anchor="middle">' + (index + 1) + '</text>';
       }).join("");
       const polyline = points.map(function(point) { return point.x.toFixed(1) + "," + point.y.toFixed(1); }).join(" ");
-      const dots = points.map(function(point) {
-        const detail = formatLocalDateTime(point.record.endedAt) + " / " + formatYen(point.value) + " / " + Math.max(0, Math.round((point.record.durationSeconds || 0) / 60)) + "分 / " + (point.record.connectionMethod || "直接接続");
+      const dots = points.map(function(point, index) {
+        const fromLatest = records.length - 1 - index;
+        const position = fromLatest === 0 ? "最新" : "最新から" + fromLatest + "つ前";
+        const detail = position + " / 縦軸: " + formatYen(point.value) + " / " + formatLocalDateTime(point.record.endedAt) + " / " + Math.max(0, Math.round((point.record.durationSeconds || 0) / 60)) + "分 / " + (point.record.connectionMethod || "直接接続") + " / " + Math.max(1, Number(point.record.participantCount) || 1) + "端末分の概算";
         return '<circle class="chart-dot" tabindex="0" role="button" data-chart-detail="' + escapeHtml(detail) + '" aria-label="' + escapeHtml(detail) + '" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="3.6"><title>' + escapeHtml(detail) + '</title></circle>';
       }).join("");
       return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="縦軸は10分通話の概算料金（円）、横軸は古い順の通話記録">' +
@@ -7183,6 +7208,10 @@
       const point = event.target && event.target.closest ? event.target.closest("[data-chart-detail]") : null;
       if (!point || !el.chartPointDetail) return;
       if (event.type === "keydown") event.preventDefault();
+      el.metricsHistoryChart.querySelectorAll(".chart-dot.is-selected").forEach(function(item) {
+        item.classList.remove("is-selected");
+      });
+      point.classList.add("is-selected");
       el.chartPointDetail.textContent = point.getAttribute("data-chart-detail") || "";
     }
 
@@ -7289,13 +7318,14 @@
       const reads = metrics.estimatedReads;
       const writes = sumMetric(metrics.writes);
       const deletes = sumMetric(metrics.deletes);
-      const totalYen = firestoreCostYen(reads, writes, deletes, yenPerDollar);
+      const participantCount = getActiveParticipantCount();
+      const totalYen = firestoreCostYen(reads * participantCount, writes * participantCount, deletes * participantCount, yenPerDollar);
       const connected = getConnectedMetricSnapshot();
       const minutes = connected ? Math.max(0.1, (latest.seconds - connected.seconds) / 60) : Math.max(0.1, latest.seconds / 60);
       const deltaReads = connected ? Math.max(0, reads - connected.estimatedReads) : reads;
       const deltaWrites = connected ? Math.max(0, writes - connected.writes) : writes;
       const deltaDeletes = connected ? Math.max(0, deletes - connected.deletes) : deletes;
-      const minuteYen = firestoreCostYen(deltaReads / minutes, deltaWrites / minutes, deltaDeletes / minutes, yenPerDollar);
+      const minuteYen = firestoreCostYen((deltaReads / minutes) * participantCount, (deltaWrites / minutes) * participantCount, (deltaDeletes / minutes) * participantCount, yenPerDollar);
       const readsPerMinute = Math.round(deltaReads / minutes);
       const writesPerMinute = Math.round(deltaWrites / minutes);
       const deletesPerMinute = Math.round(deltaDeletes / minutes);
@@ -7307,7 +7337,8 @@
         fixedDeletes: connected ? connected.deletes : deletes,
         readsPerMinute,
         writesPerMinute,
-        deletesPerMinute
+        deletesPerMinute,
+        participantCount
       });
 
       if (el.metricsCurrentCost) el.metricsCurrentCost.textContent = formatYen(totalYen);
@@ -7339,6 +7370,7 @@
       el.metricsOutput.textContent =
         "version: " + APP_VERSION + "\n" +
         "latest: " + latest.label + "\n" +
+        "participantCountForEstimate: " + participantCount + "\n" +
         "estimatedReads: " + metrics.estimatedReads + "\n" +
         "connectedFixedReads: " + (connected ? connected.estimatedReads : 0) + "\n" +
         "ongoingPerMinute: " + JSON.stringify({ reads: readsPerMinute, writes: writesPerMinute, deletes: deletesPerMinute }) + "\n" +
