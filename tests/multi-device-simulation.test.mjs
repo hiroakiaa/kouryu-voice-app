@@ -67,3 +67,16 @@ test("異常終了した枠は4分後に再利用", () => {
   assert.equal(model.join("new-device", "new-session"), "A");
   assert.equal(model.activeCount(), 1);
 });
+
+test("PC・iPad・iPhone・追加端末の4台で参加と退室を反復", () => {
+  const model = new PresenceModel();
+  const devices = ["pc", "ipad", "iphone", "fourth-device"];
+  for (let round = 0; round < 10; round += 1) {
+    const slots = devices.map((device) => model.join(device, `${device}-${round}`));
+    assert.deepEqual(slots, SLOT_NAMES);
+    assert.equal(model.activeCount(), 4);
+    devices.forEach((device) => model.leave(device, `${device}-${round}`));
+    assert.equal(model.activeCount(), 0);
+    model.now += 1_000;
+  }
+});

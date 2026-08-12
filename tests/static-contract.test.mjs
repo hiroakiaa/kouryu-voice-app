@@ -132,3 +132,19 @@ test("料金推移グラフに軸名と数値目盛りがある", () => {
   assert.match(rootHtml, /chart-tick/);
   assert.match(rootHtml, /通話記録（古い → 新しい）/);
 });
+
+test("連続操作とTURN認証情報の発行を制限する", () => {
+  assert.match(rootHtml, /JOIN_RATE_LIMIT/);
+  assert.match(rootHtml, /NEW_CALL_RATE_LIMIT/);
+  assert.match(rootHtml, /TURN_DAILY_SAFETY_BYTES/);
+  assert.match(turnWorker, /CF-Connecting-IP/);
+  assert.match(turnWorker, /rate_limited/);
+  assert.match(turnWorker, /TURN_DISABLED/);
+});
+
+test("TURN使用量・接続方式・プライバシー説明を記録表示する", () => {
+  assert.match(rootHtml, /connectionMethod: turnUsage\.relayActive/);
+  assert.match(rootHtml, /turnBytes: Math\.round/);
+  assert.match(rootHtml, /接続環境によっては通話を成立させるためCloudflare TURNを経由/);
+  assert.match(rootHtml, /data-chart-detail/);
+});

@@ -2237,6 +2237,7 @@
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由し、参加状態と接続に必要な最小限の情報だけを処理します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、運営者向けのFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、10分通話で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
@@ -2348,6 +2349,7 @@
           <small>直近20回</small>
         </div>
         <div id="metricsHistoryChart" class="metrics-history-chart" aria-label="10分通話料金の折れ線グラフ"></div>
+        <div id="chartPointDetail" class="metrics-history-note" aria-live="polite">点を選ぶと、日時・料金・通話時間・接続方式を確認できます。</div>
       </div>
       <div class="metrics-history-sections">
         <section class="metrics-history-panel" aria-label="直近10回">
@@ -2491,6 +2493,10 @@
     const COST_HISTORY_KEY = "kouryu-voice-cost-history-v1";
     const COST_HISTORY_MAX_RECORDS = 120;
     const COST_HISTORY_MAX_DAYS = 60;
+    const ACTION_RATE_KEY = "kouryu-voice-action-rate-v1";
+    const JOIN_RATE_LIMIT = { action: "join", max: 12, windowMs: 10 * 60 * 1000 };
+    const NEW_CALL_RATE_LIMIT = { action: "new-call", max: 6, windowMs: 60 * 60 * 1000 };
+    const TURN_DAILY_SAFETY_BYTES = 2 * 1024 * 1024 * 1024;
     const FIRESTORE_FREE_READS_PER_DAY = 50000;
     const FIRESTORE_FREE_WRITES_PER_DAY = 20000;
     const FIRESTORE_FREE_DELETES_PER_DAY = 20000;
@@ -2529,6 +2535,7 @@
       metricsHistoryChart: document.getElementById("metricsHistoryChart"),
       metricsHistoryRecent: document.getElementById("metricsHistoryRecent"),
       metricsHistoryPeriods: document.getElementById("metricsHistoryPeriods"),
+      chartPointDetail: document.getElementById("chartPointDetail"),
       metricsNote: document.getElementById("metricsNoteBtn"),
       metricsNotePopover: document.getElementById("metricsNotePopover"),
       metricsRateHelp: document.getElementById("metricsRateHelpBtn"),
@@ -2753,6 +2760,10 @@
       if (el.metricsCopy) el.metricsCopy.addEventListener("click", copyMetricsOutput);
       if (el.metricsHistoryOpen) el.metricsHistoryOpen.addEventListener("click", openMetricsHistoryModal);
       if (el.metricsHistoryClose) el.metricsHistoryClose.addEventListener("click", closeMetricsHistoryModal);
+      if (el.metricsHistoryChart) {
+        el.metricsHistoryChart.addEventListener("click", handleChartPointSelect);
+        el.metricsHistoryChart.addEventListener("keydown", handleChartPointSelect);
+      }
       if (el.metricsNote) el.metricsNote.addEventListener("click", toggleMetricsNote);
       if (el.metricsRateHelp) el.metricsRateHelp.addEventListener("click", toggleMetricsRateTooltip);
       if (el.connectionPill) el.connectionPill.addEventListener("click", toggleConnectionTooltip);
@@ -2838,13 +2849,18 @@
     function ensureTurnConfiguration() {
       if (!TURN_CREDENTIALS_ENDPOINT) return Promise.resolve(rtcConfig);
       if (turnConfigurationPromise) return turnConfigurationPromise;
+      if (getStoredTurnBytesForDate(getDateKey(new Date())) >= TURN_DAILY_SAFETY_BYTES) {
+        rtcConfig = { iceCandidatePoolSize: 2, iceServers: FALLBACK_ICE_SERVERS };
+        pushDiagnostic("info", "中継通信を自動調整", "安全のため直接接続とSTUNを優先します。");
+        return Promise.resolve(rtcConfig);
+      }
       turnConfigurationPromise = fetch(TURN_CREDENTIALS_ENDPOINT, {
         method: "POST",
         mode: "cors",
         cache: "no-store",
         credentials: "omit",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ callId: callId })
+        body: JSON.stringify({ callId: callId, clientId: deviceId })
       }).then(function(response) {
         if (!response.ok) throw new Error("TURN_CREDENTIALS_" + response.status);
         return response.json();
@@ -3077,6 +3093,10 @@
 
     async function joinCall() {
       if (joined) return;
+      if (!allowLocalAction(JOIN_RATE_LIMIT)) {
+        setNotice("短時間に参加操作が繰り返されました。10分ほど待ってからお試しください。", true);
+        return;
+      }
       if (!runPassivePreflightCheck()) return;
       try {
         await ensureAnonymousAuth();
@@ -4699,6 +4719,10 @@
     }
 
     async function openNewCall() {
+      if (!allowLocalAction(NEW_CALL_RATE_LIMIT)) {
+        setNotice("短時間に新しいURLが繰り返し作成されました。1時間ほど待ってからお試しください。", true);
+        return;
+      }
       const url = new URL(location.origin + location.pathname);
       url.searchParams.set("call", createCallId());
       if (joined) {
@@ -4712,6 +4736,21 @@
         stopParticipantWatcher();
       }
       location.assign(url.toString());
+    }
+
+    function allowLocalAction(rule) {
+      const now = Date.now();
+      try {
+        const stored = JSON.parse(localStorage.getItem(ACTION_RATE_KEY) || "{}");
+        const recent = (Array.isArray(stored[rule.action]) ? stored[rule.action] : []).filter(function(time) {
+          return Number.isFinite(Number(time)) && now - Number(time) < rule.windowMs;
+        });
+        if (recent.length >= rule.max) return false;
+        recent.push(now);
+        stored[rule.action] = recent;
+        localStorage.setItem(ACTION_RATE_KEY, JSON.stringify(stored));
+      } catch (_) {}
+      return true;
     }
 
     function updateJoinButton() {
@@ -6856,7 +6895,9 @@
         readsPerMinute: data.readsPerMinute,
         writesPerMinute: data.writesPerMinute,
         deletesPerMinute: data.deletesPerMinute,
-        yenPerDollar: data.yenPerDollar
+        yenPerDollar: data.yenPerDollar,
+        connectionMethod: turnUsage.relayActive ? "TURN中継" : "直接接続",
+        turnBytes: Math.round(turnUsage.bytes)
       };
       const history = loadCostHistory();
       history.records.unshift(record);
@@ -6915,7 +6956,9 @@
             totalCostSum: 0,
             readsSum: 0,
             writesSum: 0,
-            durationSecondsSum: 0
+            durationSecondsSum: 0,
+            turnBytesSum: 0,
+            turnRelayCount: 0
           };
         }
         days[key].count += 1;
@@ -6925,6 +6968,8 @@
         days[key].readsSum += Number(record.reads) || 0;
         days[key].writesSum += Number(record.writes) || 0;
         days[key].durationSecondsSum += Number(record.durationSeconds) || 0;
+        days[key].turnBytesSum += Number(record.turnBytes) || 0;
+        if (record.connectionMethod === "TURN中継") days[key].turnRelayCount += 1;
       });
       return Object.keys(days)
         .sort()
@@ -6987,6 +7032,7 @@
       const recent10 = records.slice(0, 10);
       const weekRecords = records.filter(function(item) { return item.weekKey === weekKey; });
       const monthRecords = records.filter(function(item) { return item.monthKey === monthKey; });
+      const turnRecords = records.filter(function(item) { return item.connectionMethod === "TURN中継"; });
       const stats = {
         average: costAverage(tenMinuteCosts),
         median: costMedian(tenMinuteCosts),
@@ -7004,6 +7050,7 @@
           renderHistoryStat("直近10回 平均", formatYen(stats.recentAverage), "最近の傾向") +
           renderHistoryStat("今週", weekRecords.length + "回", "合計 " + formatYen(sumBy(weekRecords, "totalCostYen"))) +
           renderHistoryStat("今月", monthRecords.length + "回", "合計 " + formatYen(sumBy(monthRecords, "totalCostYen"))) +
+          renderHistoryStat("接続方式", "中継 " + turnRecords.length + "回", "直接 " + (records.length - turnRecords.length) + "回") +
           renderHistoryStat("保存方法", "軽量", "Firestoreには保存しません");
       }
 
@@ -7061,7 +7108,7 @@
       const points = values.map(function(value, index) {
         const x = left + (index / Math.max(1, values.length - 1)) * (width - left - right);
         const y = height - bottom - (value / yMax) * (height - top - bottom);
-        return { x, y, value };
+        return { x, y, value, record: records[index] };
       });
       const yTicks = [0, 1, 2, 3].map(function(step) {
         const value = yMax * step / 3;
@@ -7077,7 +7124,8 @@
       }).join("");
       const polyline = points.map(function(point) { return point.x.toFixed(1) + "," + point.y.toFixed(1); }).join(" ");
       const dots = points.map(function(point) {
-        return '<circle class="chart-dot" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="2.8"><title>' + escapeHtml(formatYen(point.value)) + '</title></circle>';
+        const detail = formatLocalDateTime(point.record.endedAt) + " / " + formatYen(point.value) + " / " + Math.max(0, Math.round((point.record.durationSeconds || 0) / 60)) + "分 / " + (point.record.connectionMethod || "直接接続");
+        return '<circle class="chart-dot" tabindex="0" role="button" data-chart-detail="' + escapeHtml(detail) + '" aria-label="' + escapeHtml(detail) + '" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="3.6"><title>' + escapeHtml(detail) + '</title></circle>';
       }).join("");
       return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="縦軸は10分通話の概算料金（円）、横軸は古い順の通話記録">' +
         yTicks + xTicks +
@@ -7086,6 +7134,14 @@
         '<text class="chart-axis-label" x="4" y="9">料金（円）</text>' +
         '<text class="chart-axis-label" x="' + ((left + width - right) / 2).toFixed(1) + '" y="' + (height - 4) + '" text-anchor="middle">通話記録（古い → 新しい）</text>' +
         '<polyline class="chart-line" points="' + polyline + '"></polyline>' + dots + '</svg>';
+    }
+
+    function handleChartPointSelect(event) {
+      if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") return;
+      const point = event.target && event.target.closest ? event.target.closest("[data-chart-detail]") : null;
+      if (!point || !el.chartPointDetail) return;
+      if (event.type === "keydown") event.preventDefault();
+      el.chartPointDetail.textContent = point.getAttribute("data-chart-detail") || "";
     }
 
     function costAverage(values) {
@@ -7312,6 +7368,12 @@
         el.notice.textContent = "";
         el.notice.classList.remove("is-important");
       }, 3500);
+    }
+
+    function getStoredTurnBytesForDate(dateKey) {
+      return loadCostHistory().records.reduce(function(total, record) {
+        return total + ((record.dateKey === dateKey ? Number(record.turnBytes) : 0) || 0);
+      }, 0);
     }
 
     function queueParticipantNotice(text) {
