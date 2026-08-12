@@ -112,3 +112,16 @@ test("Cloudflare TURN uses short-lived credentials with a STUN fallback", () => 
   assert.match(turnWorker, /ttl: 7200/);
   assert.match(turnWorker, /https:\/\/hiroakiaa\.github\.io/);
 });
+
+test("料金画面にCloudflare TURNの無料枠と通話中継量を表示する", () => {
+  assert.match(rootHtml, /Cloudflare無料枠: 月1,000 GB/);
+  assert.match(rootHtml, /id="turnUsageStatus"/);
+  assert.match(rootHtml, /id="turnUsageBytes"/);
+  assert.match(rootHtml, /candidateType === "relay"/);
+});
+
+test("callTipsで利用者への請求がないことと通常の通信量を案内する", () => {
+  assert.match(rootHtml, /利用者の料金は0円/);
+  assert.match(rootHtml, /参加者に請求されることはありません/);
+  assert.match(rootHtml, /通常のデータ通信量は使用します/);
+});

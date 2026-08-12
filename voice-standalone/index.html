@@ -2213,7 +2213,8 @@
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>料金目安を確認</strong><span>アプリ左上のヘッドホンアイコン内の「料金目安」で確認できます。ユーザーの支払いはありません。分析用の表示です。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、10分通話で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、運営者向けのFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、10分通話で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
     </section>
@@ -2252,7 +2253,7 @@
   <div id="metricsModal" class="metrics-modal" aria-hidden="true">
     <div class="metrics-modal-card" role="dialog" aria-modal="true" aria-labelledby="metricsModalTitle">
       <div class="modal-head">
-        <h2 id="metricsModalTitle"><i class="fa-solid fa-yen-sign"></i> Firestore料金の目安</h2>
+        <h2 id="metricsModalTitle"><i class="fa-solid fa-yen-sign"></i> 運営料金の目安</h2>
         <div class="modal-head-actions">
           <button id="metricsHistoryOpenBtn" class="metrics-history-open-btn" type="button" aria-controls="metricsHistoryModal"><i class="fa-solid fa-chart-line"></i><span>履歴</span></button>
           <button id="metricsCloseBtn" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
@@ -2279,6 +2280,14 @@
       <div class="metrics-mode-summary" aria-label="Firestore計測の要約">
         <span><strong id="metricsFixedReads">0</strong><small>接続時の固定reads</small></span>
         <span><strong id="metricsOngoingReads">0/分</strong><small>通話中のreads目安</small></span>
+      </div>
+      <div class="metrics-mode-summary" aria-label="Cloudflare TURN料金の状況">
+        <span><strong id="turnUsageStatus">待機中</strong><small>Cloudflare TURN</small></span>
+        <span><strong id="turnUsageBytes">0 MB</strong><small>この端末で確認できた中継通信量</small></span>
+      </div>
+      <div class="metrics-compare-summary">
+        <strong>Cloudflare無料枠: 月1,000 GB</strong><br>
+        TURNが必要な通話だけ中継通信量を使用します。この画面の通信量はこの端末・この通話の概算です。当月合計と請求確定額はCloudflare管理画面で確認します。
       </div>
       <div id="metricsCompareSummary" class="metrics-compare-summary" aria-label="前回計測区間との比較"></div>
       <div class="metrics-breakdown">
@@ -2511,6 +2520,8 @@
       tipsDailyFreeCalls: document.getElementById("tipsDailyFreeCalls"),
       metricsFixedReads: document.getElementById("metricsFixedReads"),
       metricsOngoingReads: document.getElementById("metricsOngoingReads"),
+      turnUsageStatus: document.getElementById("turnUsageStatus"),
+      turnUsageBytes: document.getElementById("turnUsageBytes"),
       metricsCompareSummary: document.getElementById("metricsCompareSummary"),
       metricsReadsCount: document.getElementById("metricsReadsCount"),
       metricsWritesCount: document.getElementById("metricsWritesCount"),
@@ -2609,6 +2620,7 @@
     let connectionStuckTimer = null;
     let exchangeRateTimer = null;
     let statsTimer = null;
+    let turnUsage = { relayActive: false, bytes: 0 };
     let stabilityAuditTimer = null;
     let waitingHelpTimer = null;
     let freshnessCheckedAt = 0;
@@ -5212,20 +5224,30 @@
         statsTimer = null;
       }
       lastInboundStats.clear();
+      turnUsage = { relayActive: false, bytes: 0 };
+      renderTurnUsage();
       updateQualityUi({ rttMs: null, jitterMs: null, lossPct: null, quality: "idle" });
     }
 
     async function collectWebRtcStats() {
       if (!joined || !peers.size) return;
-      const values = { rtt: [], jitter: [], lost: 0, packets: 0 };
+      const values = { rtt: [], jitter: [], lost: 0, packets: 0, turnBytes: 0, relayActive: false };
       let remoteAudioChanged = false;
       for (const state of peers.values()) {
         if (!state || !state.peer || !isPeerConnected(state.peer)) continue;
         try {
           const report = await state.peer.getStats();
+          const statsById = new Map();
+          report.forEach(function(item) { statsById.set(item.id, item); });
           report.forEach(function(item) {
             if (item.type === "candidate-pair" && item.state === "succeeded" && (item.nominated || item.selected || item.currentRoundTripTime)) {
               if (typeof item.currentRoundTripTime === "number") values.rtt.push(item.currentRoundTripTime * 1000);
+              const localCandidate = statsById.get(item.localCandidateId);
+              const remoteCandidate = statsById.get(item.remoteCandidateId);
+              if ((localCandidate && localCandidate.candidateType === "relay") || (remoteCandidate && remoteCandidate.candidateType === "relay")) {
+                values.relayActive = true;
+                values.turnBytes += Number(item.bytesSent || 0) + Number(item.bytesReceived || 0);
+              }
             }
             if (item.type === "inbound-rtp" && (item.kind === "audio" || item.mediaType === "audio")) {
               if (typeof item.jitter === "number") values.jitter.push(item.jitter * 1000);
@@ -5261,9 +5283,22 @@
         lossPct: values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null,
         quality: classifyQuality(average(values.rtt), average(values.jitter), values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null)
       });
+      if (values.relayActive) {
+        turnUsage.relayActive = true;
+        turnUsage.bytes = Math.max(turnUsage.bytes, values.turnBytes);
+      }
+      renderTurnUsage();
       if (remoteAudioChanged || participants.length) {
         lastParticipantsRenderSignature = "";
         renderParticipants(participants);
+      }
+    }
+
+    function renderTurnUsage() {
+      if (el.turnUsageStatus) el.turnUsageStatus.textContent = turnUsage.relayActive ? "中継使用中" : "無料枠内・中継なし";
+      if (el.turnUsageBytes) {
+        const megabytes = turnUsage.bytes / (1024 * 1024);
+        el.turnUsageBytes.textContent = (megabytes < 0.01 ? "0" : megabytes.toFixed(megabytes < 10 ? 2 : 1)) + " MB";
       }
     }
 
@@ -7141,6 +7176,7 @@
       if (el.metricsMinuteCost) el.metricsMinuteCost.textContent = formatYen(minuteYen) + "/分";
       if (el.metricsFixedReads) el.metricsFixedReads.textContent = String(connected ? connected.estimatedReads : reads);
       if (el.metricsOngoingReads) el.metricsOngoingReads.textContent = String(readsPerMinute) + "/分";
+      renderTurnUsage();
       if (el.metricsCompareSummary) {
         el.metricsCompareSummary.innerHTML = renderMetricsCompareSummary(latest);
       }
