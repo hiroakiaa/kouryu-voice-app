@@ -2796,6 +2796,7 @@
     let pendingContactInvite = null;
     let unsubOutgoingCall = null;
     let autoJoinStarted = false;
+    let acceptIncomingBusy = false;
     let micUnlockHintDismissed = false;
     let joinBusy = false;
     let participants = [];
@@ -5248,28 +5249,41 @@
     }
 
     async function acceptIncomingCall() {
+      if (acceptIncomingBusy) return;
       const incoming = currentIncomingCall;
       if (!incoming || Number(incoming.expiresAtMs || 0) <= Date.now()) {
         showIncomingCall(null);
         setNotice("この着信は終了しました。");
         return;
       }
+      acceptIncomingBusy = true;
+      el.acceptIncoming.disabled = true;
+      el.declineIncoming.disabled = true;
+      el.acceptIncoming.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 応答中…';
+      el.incomingCallText.textContent = "通話画面を開いています。このままお待ちください。";
+      const responseWrite = setDoc(doc(db, "voiceCallInvitations", incoming.id), {
+        status: "accepted", respondedAt: serverTimestamp(), updatedAt: serverTimestamp()
+      }, { merge: true }).catch(function(error) {
+        pushDiagnostic("warn", "応答状態の保存に失敗", error && error.message ? error.message : "", "通話への移動は続けます。");
+      });
       try {
-        await setDoc(doc(db, "voiceCallInvitations", incoming.id), { status: "accepted", respondedAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
-        showIncomingCall(null);
+        await Promise.race([responseWrite, new Promise(function(resolve) { window.setTimeout(resolve, 900); })]);
         if (joined) {
-          await Promise.race([markLeft().catch(function() {}), new Promise(function(resolve) { window.setTimeout(resolve, 1200); })]);
+          await Promise.race([markLeft().catch(function() {}), new Promise(function(resolve) { window.setTimeout(resolve, 900); })]);
           stopLocalCall(false);
         }
-        const url = new URL(location.origin + location.pathname);
-        url.searchParams.set("call", ensureCallId(incoming.callId));
-        url.searchParams.set("autoJoin", "1");
-        url.searchParams.set("callRole", "callee");
-        url.searchParams.set("contactName", incoming.callerName || "相手");
-        location.assign(url.toString());
-      } catch (error) {
-        setNotice("着信に応答できませんでした。もう一度お試しください。", true);
+      } finally {
+        navigateToAcceptedCall(incoming);
       }
+    }
+
+    function navigateToAcceptedCall(incoming) {
+      const url = new URL(location.origin + location.pathname);
+      url.searchParams.set("call", ensureCallId(incoming.callId));
+      url.searchParams.set("autoJoin", "1");
+      url.searchParams.set("callRole", "callee");
+      url.searchParams.set("contactName", incoming.callerName || "相手");
+      location.assign(url.toString());
     }
 
     async function declineIncomingCall() {
