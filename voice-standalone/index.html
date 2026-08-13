@@ -1014,6 +1014,83 @@
       transform: none;
     }
 
+    .contacts-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(0, 8, 14, 0.82);
+    }
+
+    .contacts-modal.is-open { display: grid; }
+
+    .contacts-card {
+      width: min(560px, 100%);
+      max-height: min(720px, calc(100dvh - 36px));
+      overflow: auto;
+      border: 1px solid #245c73;
+      border-radius: 24px;
+      padding: 20px;
+      background: #061923;
+      color: #effbff;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+    }
+
+    .contacts-head, .contacts-actions, .contact-row, .incoming-call-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .contacts-head { justify-content: space-between; }
+    .contacts-head h2 { margin: 0; font-size: 1.2rem; }
+    .contacts-actions { margin: 14px 0; flex-wrap: wrap; }
+    .contacts-actions button, .contact-row button, .incoming-call-actions button {
+      min-height: 44px;
+      border: 1px solid #28677f;
+      border-radius: 14px;
+      padding: 9px 14px;
+      background: #092331;
+      color: #eafaff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .contacts-close { width: 44px; padding: 0 !important; }
+    .contacts-note { color: #9fc5d5; line-height: 1.55; font-size: 0.9rem; }
+    .contacts-list { display: grid; gap: 10px; margin-top: 14px; }
+    .contact-row { justify-content: space-between; border: 1px solid #173f51; border-radius: 16px; padding: 12px; }
+    .contact-row-main { min-width: 0; display: grid; gap: 3px; }
+    .contact-row-main strong { overflow-wrap: anywhere; }
+    .contact-row-main small { color: #8db4c5; }
+    .contacts-empty { border: 1px dashed #24566b; border-radius: 16px; padding: 18px; text-align: center; color: #9fc5d5; }
+
+    .incoming-call {
+      position: fixed;
+      z-index: 1300;
+      left: 50%;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      width: min(520px, calc(100% - 28px));
+      transform: translateX(-50%);
+      display: none;
+      border: 2px solid #75e4ff;
+      border-radius: 22px;
+      padding: 18px;
+      background: #071d28;
+      color: white;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .65);
+    }
+
+    .incoming-call.is-open { display: block; }
+    .incoming-call strong, .incoming-call span { display: block; }
+    .incoming-call span { margin-top: 5px; color: #b9d7e3; }
+    .incoming-call-actions { margin-top: 14px; }
+    .incoming-call-actions .accept { flex: 1; background: #116d59; border-color: #53dcb4; }
+    .incoming-call-actions .decline { flex: 1; border-color: #d9667f; }
+
     .avatar-initial .anonymous-letter {
       display: inline-block;
       margin-left: 0.04em;
@@ -2278,6 +2355,7 @@
         </label>
         <button id="muteBtn" type="button" disabled><i class="fa-solid fa-microphone-slash"></i><span>ミュート</span></button>
         <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
+        <button id="contactsBtn" type="button"><i class="fa-solid fa-address-book"></i><span>電話帳</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規URL</span></button>
       </div>
@@ -2285,6 +2363,28 @@
     </div>
 
   </main>
+  <div id="contactsModal" class="contacts-modal" aria-hidden="true">
+    <section class="contacts-card" role="dialog" aria-modal="true" aria-labelledby="contactsTitle">
+      <div class="contacts-head">
+        <h2 id="contactsTitle"><i class="fa-solid fa-address-book"></i> 電話帳</h2>
+        <button id="contactsCloseBtn" class="contacts-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="contacts-note">相手に登録用URLを送り、相手が承認するとお互いの電話帳に登録されます。発信時の通話URLは安全のため毎回新しく作ります。</p>
+      <div class="contacts-actions">
+        <button id="createContactInviteBtn" type="button"><i class="fa-solid fa-user-plus"></i> 登録用URLをコピー</button>
+        <button id="enableCallNotificationsBtn" type="button"><i class="fa-solid fa-bell"></i> 着信通知を有効にする</button>
+      </div>
+      <div id="contactsList" class="contacts-list"></div>
+    </section>
+  </div>
+  <aside id="incomingCall" class="incoming-call" role="alertdialog" aria-live="assertive" aria-hidden="true">
+    <strong id="incomingCallTitle">着信があります</strong>
+    <span id="incomingCallText"></span>
+    <div class="incoming-call-actions">
+      <button id="acceptIncomingBtn" class="accept" type="button"><i class="fa-solid fa-phone"></i> 応答</button>
+      <button id="declineIncomingBtn" class="decline" type="button"><i class="fa-solid fa-phone-slash"></i> 拒否</button>
+    </div>
+  </aside>
   <div id="avatarTooltip" class="avatar-tooltip" role="tooltip" aria-hidden="true"></div>
   <div id="metricsModal" class="metrics-modal" aria-hidden="true">
     <div class="metrics-modal-card" role="dialog" aria-modal="true" aria-labelledby="metricsModalTitle">
@@ -2386,11 +2486,13 @@
       collection,
       deleteDoc,
       doc,
+      getDoc,
       onSnapshot,
       query,
       runTransaction,
       serverTimestamp,
       setDoc,
+      Timestamp,
       where
     } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
@@ -2510,6 +2612,10 @@
     const DIAGNOSTIC_LOG_KEY = "kouryu-voice-diagnostic-log-v1";
     const JOIN_RATE_LIMIT = { action: "join", max: 12, windowMs: 10 * 60 * 1000 };
     const NEW_CALL_RATE_LIMIT = { action: "new-call", max: 6, windowMs: 60 * 60 * 1000 };
+    const CONTACT_INVITE_RATE_LIMIT = { action: "contact-invite", max: 8, windowMs: 60 * 60 * 1000 };
+    const CONTACT_CALL_RATE_LIMIT = { action: "contact-call", max: 8, windowMs: 10 * 60 * 1000 };
+    const CONTACT_INVITE_TTL_MS = 24 * 60 * 60 * 1000;
+    const INCOMING_CALL_TTL_MS = 90 * 1000;
     const TURN_DAILY_SAFETY_BYTES = 2 * 1024 * 1024 * 1024;
     const FIRESTORE_FREE_READS_PER_DAY = 50000;
     const FIRESTORE_FREE_WRITES_PER_DAY = 20000;
@@ -2601,6 +2707,17 @@
       share: document.getElementById("shareBtn"),
       reconnect: document.getElementById("reconnectBtn"),
       newCall: document.getElementById("newCallBtn"),
+      contacts: document.getElementById("contactsBtn"),
+      contactsModal: document.getElementById("contactsModal"),
+      contactsClose: document.getElementById("contactsCloseBtn"),
+      createContactInvite: document.getElementById("createContactInviteBtn"),
+      enableCallNotifications: document.getElementById("enableCallNotificationsBtn"),
+      contactsList: document.getElementById("contactsList"),
+      incomingCall: document.getElementById("incomingCall"),
+      incomingCallTitle: document.getElementById("incomingCallTitle"),
+      incomingCallText: document.getElementById("incomingCallText"),
+      acceptIncoming: document.getElementById("acceptIncomingBtn"),
+      declineIncoming: document.getElementById("declineIncomingBtn"),
       notice: document.getElementById("notice"),
       metricsOutput: document.getElementById("metricsOutput"),
       avatarTooltip: document.getElementById("avatarTooltip")
@@ -2628,6 +2745,10 @@
     let callSlot = "";
     let authUser = null;
     let authReadyPromise = null;
+    let contacts = [];
+    let unsubContacts = null;
+    let unsubIncomingCalls = null;
+    let currentIncomingCall = null;
     let micUnlockHintDismissed = false;
     let joinBusy = false;
     let participants = [];
@@ -2817,6 +2938,14 @@
         }
         handleVisibleReturn();
       });
+      el.contacts.addEventListener("click", openContactsModal);
+      el.contactsClose.addEventListener("click", closeContactsModal);
+      el.contactsModal.addEventListener("click", function(event) { if (event.target === el.contactsModal) closeContactsModal(); });
+      el.createContactInvite.addEventListener("click", createContactInvite);
+      el.enableCallNotifications.addEventListener("click", enableCallNotifications);
+      el.contactsList.addEventListener("click", handleContactsClick);
+      el.acceptIncoming.addEventListener("click", acceptIncomingCall);
+      el.declineIncoming.addEventListener("click", declineIncomingCall);
       window.addEventListener("pageshow", function() {
         if (!isDemoMode && joined) resumeCallAudio("pageshow");
       });
@@ -2836,6 +2965,8 @@
       renderParticipants([]);
       try {
         await ensureAnonymousAuth();
+        await acceptContactInviteFromUrl();
+        startContactWatchers();
         await ensureTurnConfiguration();
       } catch (error) {
         setCallPhase("failed", "安全な接続を準備できませんでした。ページを再読み込みしてください。");
@@ -4758,6 +4889,315 @@
         stopParticipantWatcher();
       }
       location.assign(url.toString());
+    }
+
+    function contactInviteRef(code) {
+      return doc(db, "voiceContactInvites", code);
+    }
+
+    function contactConnectionRef(id) {
+      return doc(db, "voiceConnections", id);
+    }
+
+    function contactConnectionId(uidA, uidB) {
+      return [String(uidA || ""), String(uidB || "")].sort().join("_");
+    }
+
+    function displayNameForContact() {
+      return sanitizeName(el.name.value) || activeUserName || "匿名さん";
+    }
+
+    function openContactsModal() {
+      renderContacts();
+      updateCallNotificationButton();
+      el.contactsModal.classList.add("is-open");
+      el.contactsModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeContactsModal() {
+      el.contactsModal.classList.remove("is-open");
+      el.contactsModal.setAttribute("aria-hidden", "true");
+    }
+
+    function startContactWatchers() {
+      if (!authUser || !db) return;
+      if (!unsubContacts) {
+        unsubContacts = onSnapshot(query(collection(db, "voiceConnections"), where("members", "array-contains", authUser.uid)), function(snapshot) {
+          contacts = snapshot.docs.map(function(item) {
+            const data = item.data() || {};
+            const isA = data.uidA === authUser.uid;
+            return {
+              id: item.id,
+              uid: isA ? data.uidB : data.uidA,
+              name: (isA ? data.nameB : data.nameA) || "匿名さん",
+              active: data.active !== false
+            };
+          }).filter(function(item) { return item.active && item.uid; });
+          renderContacts();
+        }, function(error) {
+          pushDiagnostic("warn", "電話帳の同期に失敗", error && error.message ? error.message : "");
+        });
+      }
+      if (!unsubIncomingCalls) {
+        unsubIncomingCalls = onSnapshot(query(collection(db, "voiceCallInvitations"), where("calleeUid", "==", authUser.uid)), function(snapshot) {
+          const now = Date.now();
+          const incoming = snapshot.docs.map(function(item) { return Object.assign({ id: item.id }, item.data() || {}); })
+            .filter(function(item) { return item.status === "ringing" && Number(item.expiresAtMs || 0) > now; })
+            .sort(function(a, b) { return Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0); })[0];
+          showIncomingCall(incoming || null);
+        }, function(error) {
+          pushDiagnostic("warn", "着信の同期に失敗", error && error.message ? error.message : "");
+        });
+      }
+    }
+
+    function renderContacts() {
+      if (!el.contactsList) return;
+      if (!contacts.length) {
+        el.contactsList.innerHTML = '<div class="contacts-empty">登録された連絡先はありません。<br>「登録用URLをコピー」から相手を招待できます。</div>';
+        return;
+      }
+      el.contactsList.innerHTML = contacts.map(function(contact) {
+        return '<div class="contact-row"><span class="contact-row-main"><strong>' + escapeHtml(contact.name) + '</strong><small>発信ごとに新しい通話URLを作成</small></span>' +
+          '<button type="button" data-call-contact="' + escapeHtml(contact.id) + '"><i class="fa-solid fa-phone"></i> 電話</button></div>';
+      }).join("");
+    }
+
+    async function createContactInvite() {
+      if (!authUser || !allowLocalAction(CONTACT_INVITE_RATE_LIMIT)) {
+        setNotice("登録用URLの作成が続いています。しばらく待ってからお試しください。", true);
+        return;
+      }
+      const code = createSecureToken(24);
+      const now = Date.now();
+      const name = displayNameForContact();
+      try {
+        await setDoc(contactInviteRef(code), {
+          ownerUid: authUser.uid,
+          ownerName: name,
+          active: true,
+          createdAtMs: now,
+          expiresAtMs: now + CONTACT_INVITE_TTL_MS,
+          expiresAt: Timestamp.fromMillis(now + CONTACT_INVITE_TTL_MS),
+          createdAt: serverTimestamp()
+        });
+        const url = new URL(location.origin + location.pathname);
+        url.searchParams.set("contactInvite", code);
+        await copyText(url.toString());
+        flashButton(el.createContactInvite, '<i class="fa-solid fa-check"></i> コピー済み');
+        setNotice("電話帳の登録用URLをコピーしました。URLは24時間有効です。", true);
+      } catch (error) {
+        setNotice("登録用URLを作成できませんでした。通信状態を確認してください。", true);
+        pushDiagnostic("error", "連絡先招待の作成に失敗", error && error.message ? error.message : "");
+      }
+    }
+
+    async function acceptContactInviteFromUrl() {
+      const code = new URLSearchParams(location.search).get("contactInvite");
+      if (!code || !authUser || !/^[A-Za-z0-9_-]{20,64}$/.test(code)) return;
+      try {
+        const inviteSnapshot = await getDoc(contactInviteRef(code));
+        const invite = inviteSnapshot.exists() ? inviteSnapshot.data() : null;
+        if (!invite || invite.active !== true || Number(invite.expiresAtMs || 0) <= Date.now()) {
+          setNotice("この電話帳登録URLは期限切れです。新しいURLを送ってもらってください。", true);
+          clearContactInviteFromUrl();
+          return;
+        }
+        if (invite.ownerUid === authUser.uid) {
+          setNotice("この登録用URLは相手に送ってください。", true);
+          clearContactInviteFromUrl();
+          return;
+        }
+        const id = contactConnectionId(invite.ownerUid, authUser.uid);
+        const ownerFirst = invite.ownerUid < authUser.uid;
+        const myName = displayNameForContact();
+        await setDoc(contactConnectionRef(id), {
+          uidA: ownerFirst ? invite.ownerUid : authUser.uid,
+          uidB: ownerFirst ? authUser.uid : invite.ownerUid,
+          nameA: ownerFirst ? invite.ownerName : myName,
+          nameB: ownerFirst ? myName : invite.ownerName,
+          members: [invite.ownerUid, authUser.uid],
+          inviteCode: code,
+          acceptedBy: authUser.uid,
+          active: true,
+          createdAtMs: Date.now(),
+          updatedAt: serverTimestamp()
+        });
+        await setDoc(contactInviteRef(code), {
+          active: false,
+          acceptedUid: authUser.uid,
+          acceptedName: myName,
+          acceptedAt: serverTimestamp()
+        }, { merge: true });
+        setNotice((invite.ownerName || "相手") + "さんを電話帳に登録しました。", true);
+      } catch (error) {
+        setNotice("電話帳へ登録できませんでした。登録用URLを送り直してもらってください。", true);
+        pushDiagnostic("error", "連絡先招待の承認に失敗", error && error.message ? error.message : "");
+      } finally {
+        clearContactInviteFromUrl();
+      }
+    }
+
+    function clearContactInviteFromUrl() {
+      try {
+        const url = new URL(location.href);
+        url.searchParams.delete("contactInvite");
+        url.searchParams.set("call", callId);
+        history.replaceState(null, "", url.toString());
+      } catch (_) {}
+    }
+
+    function handleContactsClick(event) {
+      const button = event.target.closest("[data-call-contact]");
+      if (!button) return;
+      const contact = contacts.find(function(item) { return item.id === button.dataset.callContact; });
+      if (contact) callContact(contact);
+    }
+
+    async function callContact(contact) {
+      if (!authUser || !contact || !allowLocalAction(CONTACT_CALL_RATE_LIMIT)) {
+        setNotice("短時間の発信が続いています。少し待ってからお試しください。", true);
+        return;
+      }
+      const nextCallId = createCallId();
+      const now = Date.now();
+      try {
+        await addDoc(collection(db, "voiceCallInvitations"), {
+          connectionId: contact.id,
+          callerUid: authUser.uid,
+          callerName: displayNameForContact(),
+          calleeUid: contact.uid,
+          calleeName: contact.name,
+          callId: nextCallId,
+          status: "ringing",
+          createdAtMs: now,
+          expiresAtMs: now + INCOMING_CALL_TTL_MS,
+          expiresAt: Timestamp.fromMillis(now + INCOMING_CALL_TTL_MS),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        closeContactsModal();
+        setNotice(contact.name + "さんを呼び出しています。", true);
+        const url = new URL(location.origin + location.pathname);
+        url.searchParams.set("call", nextCallId);
+        if (joined) {
+          await Promise.race([markLeft().catch(function() {}), new Promise(function(resolve) { window.setTimeout(resolve, 1200); })]);
+          stopLocalCall(false);
+        } else {
+          stopParticipantWatcher();
+        }
+        location.assign(url.toString());
+      } catch (error) {
+        setNotice("発信できませんでした。相手を登録し直すか、通信状態を確認してください。", true);
+        pushDiagnostic("error", "電話帳からの発信に失敗", error && error.message ? error.message : "");
+      }
+    }
+
+    function showIncomingCall(incoming) {
+      currentIncomingCall = incoming;
+      const open = !!incoming;
+      el.incomingCall.classList.toggle("is-open", open);
+      el.incomingCall.setAttribute("aria-hidden", open ? "false" : "true");
+      if (!incoming) return;
+      el.incomingCallTitle.textContent = (incoming.callerName || "匿名さん") + "さんから着信です";
+      el.incomingCallText.textContent = "応答すると新しい通話画面へ移動します。";
+      showSystemIncomingNotification(incoming);
+    }
+
+    async function enableCallNotifications() {
+      if (!("Notification" in window)) {
+        setNotice("このブラウザは着信通知に対応していません。アプリを開いた状態では着信を表示できます。", true);
+        return;
+      }
+      try {
+        const permission = await Notification.requestPermission();
+        updateCallNotificationButton();
+        if (permission === "granted") {
+          setNotice("着信通知を有効にしました。", true);
+        } else {
+          setNotice("通知は有効になっていません。ブラウザの通知設定から変更できます。", true);
+        }
+      } catch (_) {
+        setNotice("通知設定を変更できませんでした。ブラウザの設定を確認してください。", true);
+      }
+    }
+
+    function updateCallNotificationButton() {
+      if (!el.enableCallNotifications) return;
+      const permission = "Notification" in window ? Notification.permission : "unsupported";
+      if (permission === "granted") {
+        el.enableCallNotifications.innerHTML = '<i class="fa-solid fa-bell"></i> 着信通知は有効';
+        el.enableCallNotifications.disabled = true;
+      } else {
+        el.enableCallNotifications.innerHTML = '<i class="fa-solid fa-bell"></i> 着信通知を有効にする';
+        el.enableCallNotifications.disabled = permission === "unsupported";
+      }
+    }
+
+    function showSystemIncomingNotification(incoming) {
+      if (!("Notification" in window) || Notification.permission !== "granted" || !document.hidden) return;
+      try {
+        const notification = new Notification((incoming.callerName || "匿名さん") + "さんから着信です", {
+          body: "タップして応答画面を開きます。",
+          tag: "kouryu-call-" + incoming.id,
+          renotify: true
+        });
+        notification.onclick = function() {
+          window.focus();
+          notification.close();
+        };
+        window.setTimeout(function() { notification.close(); }, INCOMING_CALL_TTL_MS);
+      } catch (_) {}
+    }
+
+    async function acceptIncomingCall() {
+      const incoming = currentIncomingCall;
+      if (!incoming || Number(incoming.expiresAtMs || 0) <= Date.now()) {
+        showIncomingCall(null);
+        setNotice("この着信は終了しました。");
+        return;
+      }
+      try {
+        await setDoc(doc(db, "voiceCallInvitations", incoming.id), { status: "accepted", respondedAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+        showIncomingCall(null);
+        if (joined) {
+          await Promise.race([markLeft().catch(function() {}), new Promise(function(resolve) { window.setTimeout(resolve, 1200); })]);
+          stopLocalCall(false);
+        }
+        const url = new URL(location.origin + location.pathname);
+        url.searchParams.set("call", ensureCallId(incoming.callId));
+        location.assign(url.toString());
+      } catch (error) {
+        setNotice("着信に応答できませんでした。もう一度お試しください。", true);
+      }
+    }
+
+    async function declineIncomingCall() {
+      const incoming = currentIncomingCall;
+      showIncomingCall(null);
+      if (!incoming) return;
+      try {
+        await setDoc(doc(db, "voiceCallInvitations", incoming.id), { status: "declined", respondedAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+        setNotice("着信を拒否しました。");
+      } catch (_) {}
+    }
+
+    function createSecureToken(length) {
+      const bytes = new Uint8Array(length || 24);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes).map(function(value) { return (value % 64).toString(36); }).join("") + Date.now().toString(36);
+    }
+
+    async function copyText(value) {
+      if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(value);
+      const area = document.createElement("textarea");
+      area.value = value;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
     }
 
     function allowLocalAction(rule) {

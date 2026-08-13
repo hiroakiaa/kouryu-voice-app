@@ -176,3 +176,23 @@ test("料金履歴の点はホバー・クリック・タップで最新から�
   assert.match(rootHtml, /縦軸: /);
   assert.match(rootHtml, /chart-dot\.is-selected/);
 });
+
+test("電話帳は双方の承認後だけ登録し、発信ごとに新しい通話URLを作る", () => {
+  assert.match(rootHtml, /id="contactsBtn"/);
+  assert.match(rootHtml, /acceptContactInviteFromUrl/);
+  assert.match(rootHtml, /voiceContactInvites/);
+  assert.match(rootHtml, /voiceConnections/);
+  assert.match(rootHtml, /const nextCallId = createCallId\(\)/);
+  assert.match(rootHtml, /CONTACT_INVITE_TTL_MS = 24 \* 60 \* 60 \* 1000/);
+});
+
+test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
+  assert.match(rootHtml, /voiceCallInvitations/);
+  assert.match(rootHtml, /INCOMING_CALL_TTL_MS = 90 \* 1000/);
+  assert.match(rootHtml, /acceptIncomingCall/);
+  assert.match(rootHtml, /declineIncomingCall/);
+  assert.match(rootHtml, /status: "accepted"/);
+  assert.match(rootHtml, /status: "declined"/);
+  assert.match(rootHtml, /Notification\.requestPermission\(\)/);
+  assert.match(rootHtml, /showSystemIncomingNotification/);
+});
