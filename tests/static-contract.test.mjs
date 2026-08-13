@@ -107,7 +107,7 @@ test("匿名Firebase Authentication完了後だけFirestoreを使う", () => {
 test("Cloudflare TURN uses short-lived credentials with a STUN fallback", () => {
   assert.match(rootHtml, /stun:stun\.cloudflare\.com:3478/);
   assert.match(rootHtml, /function ensureTurnConfiguration/);
-  assert.match(rootHtml, /await ensureTurnConfiguration\(\)/);
+  assert.match(rootHtml, /ensureTurnConfiguration\(\)\.catch/);
   assert.match(turnWorker, /TURN_KEY_API_TOKEN/);
   assert.match(turnWorker, /ttl: 7200/);
   assert.match(turnWorker, /https:\/\/hiroakiaa\.github\.io/);
@@ -206,6 +206,9 @@ test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
   assert.match(rootHtml, /url\.searchParams\.set\("autoJoin", "1"\)/);
   assert.match(rootHtml, /function maybeAutoJoinCall\(\)/);
   assert.match(rootHtml, /muted = !startedFromPhonebook/);
+  assert.match(rootHtml, /setJoinBusy\(true, "自動参加中"\)/);
+  assert.match(rootHtml, /if \(joined && localStream\)/);
+  assert.doesNotMatch(rootHtml, /await ensureTurnConfiguration\(\)/);
   assert.match(rootHtml, /応答中…/);
   assert.match(rootHtml, /Promise\.race\(\[responseWrite/);
   assert.match(rootHtml, /finally \{\s*navigateToAcceptedCall\(incoming\)/);
