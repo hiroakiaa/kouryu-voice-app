@@ -123,7 +123,15 @@ service cloud.firestore {
         && resource.data.status == 'ringing'
         && resource.data.expiresAt > request.time
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'respondedAt', 'updatedAt'])
-        && request.resource.data.status in ['accepted', 'declined'];
+        && request.resource.data.status in ['accepted', 'declined', 'superseded'];
+      allow update: if request.auth != null
+        && resource.data.callerUid == request.auth.uid
+        && resource.data.status == 'ringing'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'callerActiveUntilMs', 'respondedAt', 'updatedAt'])
+        && request.resource.data.callerActiveUntilMs is int
+        && request.resource.data.callerActiveUntilMs >= resource.data.createdAtMs
+        && request.resource.data.callerActiveUntilMs <= resource.data.expiresAtMs
+        && request.resource.data.status in ['ringing', 'cancelled'];
       allow delete: if false;
     }
 
@@ -277,7 +285,7 @@ service cloud.firestore {
     function validNewCallInvitation(data) {
       return data.keys().hasOnly([
           'connectionId', 'callerUid', 'callerName', 'calleeUid', 'calleeName',
-          'callId', 'status', 'createdAtMs', 'expiresAtMs', 'expiresAt', 'createdAt', 'updatedAt'
+          'callId', 'status', 'createdAtMs', 'callerActiveUntilMs', 'expiresAtMs', 'expiresAt', 'createdAt', 'updatedAt'
         ])
         && data.connectionId is string && data.connectionId.size() >= 3 && data.connectionId.size() <= 260
         && data.callerUid is string && data.callerUid.size() >= 1 && data.callerUid.size() <= 128
@@ -288,6 +296,9 @@ service cloud.firestore {
         && validCallId(data.callId)
         && data.status == 'ringing'
         && data.createdAtMs is int
+        && data.callerActiveUntilMs is int
+        && data.callerActiveUntilMs > data.createdAtMs
+        && data.callerActiveUntilMs - data.createdAtMs <= 30000
         && data.expiresAtMs is int
         && data.expiresAt is timestamp
         && data.expiresAtMs > data.createdAtMs

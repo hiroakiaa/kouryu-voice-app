@@ -2794,10 +2794,12 @@
     let unsubContacts = null;
     let unsubIncomingCalls = null;
     let currentIncomingCall = null;
+    let incomingCallExpiryTimer = null;
     let currentRingingCalls = [];
     let contactsMessageTimer = null;
     let pendingContactInvite = null;
     let unsubOutgoingCall = null;
+    let outgoingInviteHeartbeatTimer = null;
     let autoJoinStarted = false;
     let acceptIncomingBusy = false;
     let micUnlockHintDismissed = false;
@@ -2973,9 +2975,11 @@
       runPassivePreflightCheck();
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
+        cancelOutgoingInvitation();
         if (!isDemoMode && joined) markLeft();
       });
       window.addEventListener("pagehide", function() {
+        cancelOutgoingInvitation();
         if (!isDemoMode && joined) markLeft();
       });
       document.addEventListener("visibilitychange", function() {
@@ -4684,6 +4688,7 @@
     }
 
     function leaveCall() {
+      cancelOutgoingInvitation();
       markLeft();
       stopLocalCall(true);
     }
@@ -4721,6 +4726,10 @@
       if (unsubOutgoingCall) {
         try { unsubOutgoingCall(); } catch (_) {}
         unsubOutgoingCall = null;
+      }
+      if (outgoingInviteHeartbeatTimer) {
+        window.clearInterval(outgoingInviteHeartbeatTimer);
+        outgoingInviteHeartbeatTimer = null;
       }
       stopStabilityAudit();
       clearConnectionStuckTimer();
@@ -5024,7 +5033,11 @@
         unsubIncomingCalls = onSnapshot(query(collection(db, "voiceCallInvitations"), where("calleeUid", "==", authUser.uid)), function(snapshot) {
           const now = Date.now();
           const ringingCalls = snapshot.docs.map(function(item) { return Object.assign({ id: item.id }, item.data() || {}); })
-            .filter(function(item) { return item.status === "ringing" && Number(item.expiresAtMs || 0) > now; })
+            .filter(function(item) {
+              return item.status === "ringing"
+                && Number(item.expiresAtMs || 0) > now
+                && Number(item.callerActiveUntilMs || 0) > now;
+            })
             .sort(function(a, b) { return Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0); });
           const incoming = ringingCalls[0];
           currentRingingCalls = ringingCalls;
@@ -5178,6 +5191,7 @@
           callId: nextCallId,
           status: "ringing",
           createdAtMs: now,
+          callerActiveUntilMs: now + 30000,
           expiresAtMs: now + INCOMING_CALL_TTL_MS,
           expiresAt: Timestamp.fromMillis(now + INCOMING_CALL_TTL_MS),
           createdAt: serverTimestamp(),
@@ -5211,14 +5225,23 @@
     }
 
     function showIncomingCall(incoming) {
+      const previousIncomingId = currentIncomingCall && currentIncomingCall.id;
+      if (incomingCallExpiryTimer) {
+        window.clearTimeout(incomingCallExpiryTimer);
+        incomingCallExpiryTimer = null;
+      }
       currentIncomingCall = incoming;
       const open = !!incoming;
       el.incomingCall.classList.toggle("is-open", open);
       el.incomingCall.setAttribute("aria-hidden", open ? "false" : "true");
       if (!incoming) return;
+      const validUntil = Math.min(Number(incoming.expiresAtMs || 0), Number(incoming.callerActiveUntilMs || 0));
+      incomingCallExpiryTimer = window.setTimeout(function() {
+        if (currentIncomingCall && currentIncomingCall.id === incoming.id) showIncomingCall(null);
+      }, Math.max(0, validUntil - Date.now() + 100));
       el.incomingCallTitle.textContent = (incoming.callerName || "匿名さん") + "さんから着信です";
       el.incomingCallText.textContent = "「応答して通話を始める」を押すと、この着信に応答してマイクをつなぎます。";
-      showSystemIncomingNotification(incoming);
+      if (previousIncomingId !== incoming.id) showSystemIncomingNotification(incoming);
     }
 
     async function enableCallNotifications() {
@@ -5419,9 +5442,18 @@
       const invitationId = params.get("outgoingInvite");
       if (!invitationId || !/^[A-Za-z0-9_-]{10,40}$/.test(invitationId) || !db) return;
       if (unsubOutgoingCall) unsubOutgoingCall();
+      refreshOutgoingInvitation(invitationId);
+      if (outgoingInviteHeartbeatTimer) window.clearInterval(outgoingInviteHeartbeatTimer);
+      outgoingInviteHeartbeatTimer = window.setInterval(function() {
+        refreshOutgoingInvitation(invitationId);
+      }, 15000);
       unsubOutgoingCall = onSnapshot(doc(db, "voiceCallInvitations", invitationId), function(snapshot) {
         if (!snapshot.exists()) return;
         const data = snapshot.data() || {};
+        if (data.status !== "ringing" && outgoingInviteHeartbeatTimer) {
+          window.clearInterval(outgoingInviteHeartbeatTimer);
+          outgoingInviteHeartbeatTimer = null;
+        }
         if (data.status === "accepted") {
           setNotice((data.calleeName || "相手") + "さんが応答しました。音声を接続しています。");
         } else if (data.status === "declined") {
@@ -5430,6 +5462,31 @@
           setNotice("応答がありませんでした。電話帳からかけ直せます。", true);
         }
       });
+    }
+
+    function refreshOutgoingInvitation(invitationId) {
+      if (!authUser || !db || !invitationId) return;
+      setDoc(doc(db, "voiceCallInvitations", invitationId), {
+        callerActiveUntilMs: Date.now() + 30000,
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(function(error) {
+        pushDiagnostic("info", "outgoing invitation heartbeat failed", error && error.message ? error.message : "");
+      });
+    }
+
+    function cancelOutgoingInvitation() {
+      if (outgoingInviteHeartbeatTimer) {
+        window.clearInterval(outgoingInviteHeartbeatTimer);
+        outgoingInviteHeartbeatTimer = null;
+      }
+      const invitationId = params.get("outgoingInvite");
+      if (!authUser || !db || !invitationId || !/^[A-Za-z0-9_-]{10,40}$/.test(invitationId)) return;
+      setDoc(doc(db, "voiceCallInvitations", invitationId), {
+        status: "cancelled",
+        callerActiveUntilMs: Date.now(),
+        respondedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(function() {});
     }
 
     function createSecureToken(length) {

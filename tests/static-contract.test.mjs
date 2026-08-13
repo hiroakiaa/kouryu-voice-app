@@ -234,3 +234,13 @@ test("重複した着信は最新1件だけを残し、拒否時にまとめて�
   assert.match(rootHtml, /const callsToDecline = currentRingingCalls\.filter/);
   assert.match(rootHtml, /Promise\.all\(\(callsToDecline\.length \? callsToDecline : \[incoming\]\)/);
 });
+
+test("caller liveness cancels stale incoming calls", () => {
+  assert.match(rootHtml, /callerActiveUntilMs: now \+ 30000/);
+  assert.match(rootHtml, /Number\(item\.callerActiveUntilMs \|\| 0\) > now/);
+  assert.match(rootHtml, /function refreshOutgoingInvitation\(invitationId\)/);
+  assert.match(rootHtml, /function cancelOutgoingInvitation\(\)/);
+  assert.match(rootHtml, /status: "cancelled"/);
+  assert.match(rootHtml, /incomingCallExpiryTimer/);
+  assert.match(rootHtml, /previousIncomingId !== incoming\.id/);
+});
