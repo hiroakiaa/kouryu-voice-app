@@ -1,0 +1,18 @@
+{
+  "name": "共通電話",
+  "short_name": "共通電話",
+  "description": "URLでつながる音声通話アプリ",
+  "start_url": "./?call=main-room",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#03101a",
+  "theme_color": "#03101a",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

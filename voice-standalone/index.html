@@ -5,7 +5,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="turn-credentials-endpoint" content="https://kouryu-turn-credentials.allinone-hiroakiaa.workers.dev/">
+  <meta name="push-endpoint" content="https://kouryu-call-notifications.allinone-hiroakiaa.workers.dev">
+  <meta name="push-vapid-public-key" content="BE2-Tk29DXccuqUnn8Mu9emNPGMMQBSlxV5SCJ05i8Ba2rab35DzvkmgQZyra5YmDlkhH3q0FQdC96pGzAQyxH4">
   <meta name="firebase-app-check-site-key" content="6LeJtoEtAAAAABNV7YMtZBvBbhhh7hfT9l5cWxsp">
+  <meta name="theme-color" content="#03101a">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./app-icon.svg" type="image/svg+xml">
   <title>共通電話</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
@@ -2542,6 +2547,8 @@
       { urls: ["stun:stun.cloudflare.com:3478"] }
     ];
     const TURN_CREDENTIALS_ENDPOINT = (document.querySelector('meta[name="turn-credentials-endpoint"]')?.content || "").trim();
+    const PUSH_ENDPOINT = (document.querySelector('meta[name="push-endpoint"]')?.content || "").trim().replace(/\/$/, "");
+    const PUSH_VAPID_PUBLIC_KEY = (document.querySelector('meta[name="push-vapid-public-key"]')?.content || "").trim();
     let rtcConfig = {
       iceCandidatePoolSize: 2,
       iceServers: FALLBACK_ICE_SERVERS
@@ -3012,6 +3019,7 @@
         await acceptContactInviteFromUrl();
         startContactWatchers();
         startOutgoingCallWatcher();
+        refreshClosedAppNotifications();
       } catch (error) {
         setCallPhase("failed", "安全な接続を準備できませんでした。ページを再読み込みしてください。");
         setStatus("接続準備に失敗しました", "ページを再読み込みして、もう一度お試しください。");
@@ -5167,6 +5175,9 @@
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
+        sendClosedAppCallNotification(contact, nextCallId, invitationRef.id).catch(function(error) {
+          pushDiagnostic("info", "閉じた端末への着信通知は送信できませんでした", error && error.message ? error.message : "");
+        });
         closeContactsModal();
         setNotice(contact.name + "さんを呼び出しています。", true);
         const url = new URL(location.origin + location.pathname);
@@ -5200,21 +5211,85 @@
     }
 
     async function enableCallNotifications() {
+      if (isIosDevice() && !isStandaloneDisplay()) {
+        setNotice("iPhone・iPadでアプリを閉じた後も着信を受けるには、Safariの共有ボタンから『ホーム画面に追加』し、追加した共通電話を開いて設定してください。", true);
+        return;
+      }
       if (!("Notification" in window)) {
         setNotice("このブラウザは着信通知に対応していません。アプリを開いた状態では着信を表示できます。", true);
         return;
       }
       try {
         const permission = await Notification.requestPermission();
-        updateCallNotificationButton();
         if (permission === "granted") {
-          setNotice("着信通知を有効にしました。", true);
+          await registerClosedAppNotifications();
+          setNotice("着信通知を有効にしました。アプリを閉じた後も、端末が通知に対応していれば着信を受け取れます。", true);
         } else {
           setNotice("通知は有効になっていません。ブラウザの通知設定から変更できます。", true);
         }
       } catch (_) {
-        setNotice("通知設定を変更できませんでした。ブラウザの設定を確認してください。", true);
+        if (Notification.permission === "granted") {
+          setNotice("アプリを開いている間の着信通知を有効にしました。閉じた後の通知設定は接続できなかったため、次に開いたとき自動的に再設定します。", true);
+        } else {
+          setNotice("通知設定を変更できませんでした。ブラウザの設定を確認してください。", true);
+        }
       }
+      updateCallNotificationButton();
+    }
+
+    function isIosDevice() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    }
+
+    function isStandaloneDisplay() {
+      return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+    }
+
+    function urlBase64ToUint8Array(value) {
+      const padding = "=".repeat((4 - value.length % 4) % 4);
+      const raw = atob((value + padding).replace(/-/g, "+").replace(/_/g, "/"));
+      return Uint8Array.from(raw, function(character) { return character.charCodeAt(0); });
+    }
+
+    async function registerClosedAppNotifications() {
+      if (!authUser) await authReadyPromise;
+      if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
+        || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
+      const registration = await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+      await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY)
+        });
+      }
+      const token = await authUser.getIdToken();
+      const response = await fetch(PUSH_ENDPOINT + "/push/register", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription: subscription.toJSON() })
+      });
+      if (!response.ok) throw new Error("push_registration_failed_" + response.status);
+      localStorage.setItem("kouryu-closed-app-notifications", "enabled");
+    }
+
+    async function refreshClosedAppNotifications() {
+      if (!("Notification" in window) || Notification.permission !== "granted"
+        || localStorage.getItem("kouryu-closed-app-notifications") !== "enabled") return;
+      try { await registerClosedAppNotifications(); } catch (_) {}
+    }
+
+    async function sendClosedAppCallNotification(contact, nextCallId, invitationId) {
+      if (!authUser || !PUSH_ENDPOINT) return;
+      const token = await authUser.getIdToken();
+      const response = await fetch(PUSH_ENDPOINT + "/push/notify", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ calleeUid: contact.uid, callerName: displayNameForContact(), callId: nextCallId, invitationId })
+      });
+      if (!response.ok) throw new Error("push_delivery_failed_" + response.status);
     }
 
     function updateCallNotificationButton() {
@@ -5222,7 +5297,7 @@
       const permission = "Notification" in window ? Notification.permission : "unsupported";
       if (permission === "granted") {
         el.enableCallNotifications.innerHTML = '<i class="fa-solid fa-bell"></i> 着信通知は有効';
-        el.enableCallNotifications.disabled = true;
+        el.enableCallNotifications.disabled = false;
       } else {
         el.enableCallNotifications.innerHTML = '<i class="fa-solid fa-bell"></i> 着信通知を有効にする';
         el.enableCallNotifications.disabled = permission === "unsupported";

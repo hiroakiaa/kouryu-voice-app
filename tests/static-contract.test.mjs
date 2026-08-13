@@ -215,3 +215,14 @@ test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
   assert.match(rootHtml, /Promise\.race\(\[responseWrite/);
   assert.match(rootHtml, /finally \{\s*navigateToAcceptedCall\(incoming\)/);
 });
+
+test("アプリを閉じた後の着信通知を安全なWeb Pushで受け取る", () => {
+  assert.match(rootHtml, /rel="manifest" href="\.\/manifest\.webmanifest"/);
+  assert.match(rootHtml, /navigator\.serviceWorker\.register\("\.\/service-worker\.js"/);
+  assert.match(rootHtml, /pushManager\.subscribe/);
+  assert.match(rootHtml, /authUser\.getIdToken\(\)/);
+  assert.match(rootHtml, /\/push\/register/);
+  assert.match(rootHtml, /\/push\/notify/);
+  assert.match(rootHtml, /ホーム画面に追加/);
+  assert.match(rootHtml, /sendClosedAppCallNotification\(contact, nextCallId, invitationRef\.id\)/);
+});

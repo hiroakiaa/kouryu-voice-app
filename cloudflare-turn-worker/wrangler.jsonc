@@ -1,8 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "kouryu-turn-credentials",
+  "name": "kouryu-call-notifications",
   "main": "src/index.js",
   "compatibility_date": "2026-08-11",
   "workers_dev": true,
+  "kv_namespaces": [
+    {
+      "binding": "PUSH_SUBSCRIPTIONS",
+      "id": "f4239a18329b4ad48f48a51318112347"
+    }
+  ],
   "observability": { "enabled": true }
 }
