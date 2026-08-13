@@ -4904,7 +4904,7 @@
     }
 
     function displayNameForContact() {
-      return sanitizeName(el.name.value) || activeUserName || "匿名さん";
+      return getDisplayName(el.name.value) || getDisplayName(activeUserName) || "匿名さん";
     }
 
     function openContactsModal() {

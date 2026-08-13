@@ -184,6 +184,8 @@ test("電話帳は双方の承認後だけ登録し、発信ごとに新しい�
   assert.match(rootHtml, /voiceConnections/);
   assert.match(rootHtml, /const nextCallId = createCallId\(\)/);
   assert.match(rootHtml, /CONTACT_INVITE_TTL_MS = 24 \* 60 \* 60 \* 1000/);
+  assert.doesNotMatch(rootHtml, /sanitizeName\(/);
+  assert.match(rootHtml, /return getDisplayName\(el\.name\.value\)/);
 });
 
 test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
