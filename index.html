@@ -2794,6 +2794,7 @@
     let unsubContacts = null;
     let unsubIncomingCalls = null;
     let currentIncomingCall = null;
+    let currentRingingCalls = [];
     let contactsMessageTimer = null;
     let pendingContactInvite = null;
     let unsubOutgoingCall = null;
@@ -5022,9 +5023,16 @@
       if (!unsubIncomingCalls) {
         unsubIncomingCalls = onSnapshot(query(collection(db, "voiceCallInvitations"), where("calleeUid", "==", authUser.uid)), function(snapshot) {
           const now = Date.now();
-          const incoming = snapshot.docs.map(function(item) { return Object.assign({ id: item.id }, item.data() || {}); })
+          const ringingCalls = snapshot.docs.map(function(item) { return Object.assign({ id: item.id }, item.data() || {}); })
             .filter(function(item) { return item.status === "ringing" && Number(item.expiresAtMs || 0) > now; })
-            .sort(function(a, b) { return Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0); })[0];
+            .sort(function(a, b) { return Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0); });
+          const incoming = ringingCalls[0];
+          currentRingingCalls = ringingCalls;
+          ringingCalls.slice(1).forEach(function(oldCall) {
+            setDoc(doc(db, "voiceCallInvitations", oldCall.id), {
+              status: "superseded", respondedAt: serverTimestamp(), updatedAt: serverTimestamp()
+            }, { merge: true }).catch(function() {});
+          });
           showIncomingCall(incoming || null);
         }, function(error) {
           pushDiagnostic("warn", "着信の同期に失敗", error && error.message ? error.message : "");
@@ -5175,7 +5183,10 @@
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
-        sendClosedAppCallNotification(contact, nextCallId, invitationRef.id).catch(function(error) {
+        await Promise.race([
+          sendClosedAppCallNotification(contact, nextCallId, invitationRef.id),
+          new Promise(function(resolve) { window.setTimeout(resolve, 1800); })
+        ]).catch(function(error) {
           pushDiagnostic("info", "閉じた端末への着信通知は送信できませんでした", error && error.message ? error.message : "");
         });
         closeContactsModal();
@@ -5360,10 +5371,18 @@
 
     async function declineIncomingCall() {
       const incoming = currentIncomingCall;
+      const callsToDecline = currentRingingCalls.filter(function(item) {
+        return incoming && (item.connectionId === incoming.connectionId || item.callerUid === incoming.callerUid);
+      });
       showIncomingCall(null);
       if (!incoming) return;
       try {
-        await setDoc(doc(db, "voiceCallInvitations", incoming.id), { status: "declined", respondedAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+        await Promise.all((callsToDecline.length ? callsToDecline : [incoming]).map(function(item) {
+          return setDoc(doc(db, "voiceCallInvitations", item.id), {
+            status: "declined", respondedAt: serverTimestamp(), updatedAt: serverTimestamp()
+          }, { merge: true });
+        }));
+        currentRingingCalls = [];
         setNotice("着信を拒否しました。");
       } catch (_) {}
     }

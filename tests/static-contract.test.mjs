@@ -225,4 +225,12 @@ test("アプリを閉じた後の着信通知を安全なWeb Pushで受け取る
   assert.match(rootHtml, /\/push\/notify/);
   assert.match(rootHtml, /ホーム画面に追加/);
   assert.match(rootHtml, /sendClosedAppCallNotification\(contact, nextCallId, invitationRef\.id\)/);
+  assert.match(rootHtml, /await Promise\.race\(\[\s*sendClosedAppCallNotification/);
+});
+
+test("重複した着信は最新1件だけを残し、拒否時にまとめて終了する", () => {
+  assert.match(rootHtml, /ringingCalls\.slice\(1\)\.forEach/);
+  assert.match(rootHtml, /status: "superseded"/);
+  assert.match(rootHtml, /const callsToDecline = currentRingingCalls\.filter/);
+  assert.match(rootHtml, /Promise\.all\(\(callsToDecline\.length \? callsToDecline : \[incoming\]\)/);
 });
