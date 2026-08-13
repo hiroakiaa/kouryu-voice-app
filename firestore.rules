@@ -73,6 +73,60 @@ service cloud.firestore {
       }
     }
 
+    match /voiceContactInvites/{inviteCode} {
+      allow create: if validContactInviteCode(inviteCode)
+        && request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && validNewContactInvite(request.resource.data);
+      allow read: if request.auth != null
+        && (resource.data.ownerUid == request.auth.uid
+          || resource.data.acceptedUid == request.auth.uid
+          || (resource.data.active == true && resource.data.expiresAt > request.time));
+      allow update: if request.auth != null
+        && resource.data.active == true
+        && resource.data.expiresAt > request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'active', 'acceptedUid', 'acceptedName', 'acceptedAt'
+        ])
+        && request.resource.data.active == false
+        && request.resource.data.acceptedUid == request.auth.uid
+        && request.resource.data.acceptedName is string
+        && request.resource.data.acceptedName.size() <= 20;
+      allow delete: if false;
+    }
+
+    match /voiceConnections/{connectionId} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.members;
+      allow create: if request.auth != null
+        && validVoiceConnection(request.resource.data)
+        && request.resource.data.acceptedBy == request.auth.uid
+        && request.auth.uid in request.resource.data.members
+        && exists(/databases/$(database)/documents/voiceContactInvites/$(request.resource.data.inviteCode))
+        && get(/databases/$(database)/documents/voiceContactInvites/$(request.resource.data.inviteCode)).data.active == true
+        && get(/databases/$(database)/documents/voiceContactInvites/$(request.resource.data.inviteCode)).data.ownerUid in request.resource.data.members
+        && get(/databases/$(database)/documents/voiceContactInvites/$(request.resource.data.inviteCode)).data.expiresAt > request.time;
+      allow update, delete: if false;
+    }
+
+    match /voiceCallInvitations/{invitationId} {
+      allow read: if request.auth != null
+        && (resource.data.callerUid == request.auth.uid || resource.data.calleeUid == request.auth.uid);
+      allow create: if request.auth != null
+        && validNewCallInvitation(request.resource.data)
+        && request.resource.data.callerUid == request.auth.uid
+        && exists(/databases/$(database)/documents/voiceConnections/$(request.resource.data.connectionId))
+        && get(/databases/$(database)/documents/voiceConnections/$(request.resource.data.connectionId)).data.active == true
+        && request.resource.data.callerUid in get(/databases/$(database)/documents/voiceConnections/$(request.resource.data.connectionId)).data.members
+        && request.resource.data.calleeUid in get(/databases/$(database)/documents/voiceConnections/$(request.resource.data.connectionId)).data.members;
+      allow update: if request.auth != null
+        && resource.data.calleeUid == request.auth.uid
+        && resource.data.status == 'ringing'
+        && resource.data.expiresAt > request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'respondedAt', 'updatedAt'])
+        && request.resource.data.status in ['accepted', 'declined'];
+      allow delete: if false;
+    }
+
 
     match /chatRooms/{roomId}/messages/{messageId} {
       allow read: if true;
@@ -181,6 +235,63 @@ service cloud.firestore {
       return callId.size() >= 1
         && callId.size() <= 48
         && callId.matches('^[A-Za-z0-9_-]+$');
+    }
+
+    function validContactInviteCode(code) {
+      return code.size() >= 20 && code.size() <= 64 && code.matches('^[A-Za-z0-9_-]+$');
+    }
+
+    function validNewContactInvite(data) {
+      return data.keys().hasOnly(['ownerUid', 'ownerName', 'active', 'createdAtMs', 'expiresAtMs', 'expiresAt', 'createdAt'])
+        && data.ownerUid is string
+        && data.ownerUid.size() >= 1
+        && data.ownerUid.size() <= 128
+        && data.ownerName is string
+        && data.ownerName.size() <= 20
+        && data.active == true
+        && data.createdAtMs is int
+        && data.expiresAtMs is int
+        && data.expiresAt is timestamp
+        && data.expiresAtMs > data.createdAtMs
+        && data.expiresAtMs - data.createdAtMs <= 86400000;
+    }
+
+    function validVoiceConnection(data) {
+      return data.keys().hasOnly([
+          'uidA', 'uidB', 'nameA', 'nameB', 'members', 'inviteCode', 'acceptedBy',
+          'active', 'createdAtMs', 'updatedAt'
+        ])
+        && data.uidA is string && data.uidA.size() >= 1 && data.uidA.size() <= 128
+        && data.uidB is string && data.uidB.size() >= 1 && data.uidB.size() <= 128
+        && data.uidA != data.uidB
+        && data.nameA is string && data.nameA.size() <= 20
+        && data.nameB is string && data.nameB.size() <= 20
+        && data.members is list && data.members.size() == 2
+        && data.uidA in data.members && data.uidB in data.members
+        && validContactInviteCode(data.inviteCode)
+        && data.acceptedBy is string
+        && data.active == true
+        && data.createdAtMs is int;
+    }
+
+    function validNewCallInvitation(data) {
+      return data.keys().hasOnly([
+          'connectionId', 'callerUid', 'callerName', 'calleeUid', 'calleeName',
+          'callId', 'status', 'createdAtMs', 'expiresAtMs', 'expiresAt', 'createdAt', 'updatedAt'
+        ])
+        && data.connectionId is string && data.connectionId.size() >= 3 && data.connectionId.size() <= 260
+        && data.callerUid is string && data.callerUid.size() >= 1 && data.callerUid.size() <= 128
+        && data.calleeUid is string && data.calleeUid.size() >= 1 && data.calleeUid.size() <= 128
+        && data.callerUid != data.calleeUid
+        && data.callerName is string && data.callerName.size() <= 20
+        && data.calleeName is string && data.calleeName.size() <= 20
+        && validCallId(data.callId)
+        && data.status == 'ringing'
+        && data.createdAtMs is int
+        && data.expiresAtMs is int
+        && data.expiresAt is timestamp
+        && data.expiresAtMs > data.createdAtMs
+        && data.expiresAtMs - data.createdAtMs <= 90000;
     }
 
     function validParticipant(data) {
