@@ -3448,7 +3448,7 @@
         pushDiagnostic("info", "\u30de\u30a4\u30af\u8a31\u53ef\u3092\u78ba\u8a8d", "\u76f8\u624b\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
         updateAudioHealth(0, false, "ノイズ抑制中");
         setStatus("相手を待っています", startedFromPhonebook ? "電話帳からの通話を開始しました。" : "最初はマイクOFFです。話すときだけミュートを解除してください。");
-        if (startedFromPhonebook) showCallFlowStatus(params.get("callRole") === "callee" ? "応答しました。通話を開始しています。" : "発信しました。相手の応答を待っています。");
+        if (startedFromPhonebook) setNotice(params.get("callRole") === "callee" ? "応答しました。通話を開始しています。" : "発信しました。相手の応答を待っています。");
         updatePresence();
         startParticipantSweep();
         startLiveWatchers();
@@ -5298,25 +5298,25 @@
       autoJoinStarted = true;
       const role = params.get("callRole");
       const contactName = getDisplayName(params.get("contactName")) || "相手";
-      showCallFlowStatus(role === "callee"
+      setNotice(role === "callee"
         ? contactName + "さんとの通話を始めます。マイクの許可が出たら『許可』を押してください。"
         : contactName + "さんを呼び出しています。相手が応答するまでこの画面でお待ちください。");
       setJoinBusy(true, "自動参加中");
       updateJoinButton();
       Promise.resolve(joinCall()).then(function() {
         if (joined && localStream) {
-          showCallFlowStatus(role === "callee"
+          setNotice(role === "callee"
             ? contactName + "さんとの通話に参加しました。"
             : contactName + "さんへ発信しました。応答を待っています。");
           return;
         }
         setJoinBusy(false);
         updateJoinButton();
-        showCallFlowStatus("自動参加を完了できませんでした。下の『参加する』を押してください。", true);
+        setNotice("自動参加を完了できませんでした。下の『参加する』を押してください。", true);
       }).catch(function(error) {
         setJoinBusy(false);
         updateJoinButton();
-        showCallFlowStatus("自動参加を完了できませんでした。下の『参加する』を押してください。", true);
+        setNotice("自動参加を完了できませんでした。下の『参加する』を押してください。", true);
         pushDiagnostic("warn", "電話帳通話の自動参加に失敗", error && error.message ? error.message : "");
       });
     }
@@ -5329,17 +5329,13 @@
         if (!snapshot.exists()) return;
         const data = snapshot.data() || {};
         if (data.status === "accepted") {
-          showCallFlowStatus((data.calleeName || "相手") + "さんが応答しました。音声を接続しています。", false);
+          setNotice((data.calleeName || "相手") + "さんが応答しました。音声を接続しています。");
         } else if (data.status === "declined") {
-          showCallFlowStatus((data.calleeName || "相手") + "さんは応答しませんでした。電話帳からかけ直せます。", true);
+          setNotice((data.calleeName || "相手") + "さんは応答しませんでした。電話帳からかけ直せます。", true);
         } else if (Number(data.expiresAtMs || 0) <= Date.now()) {
-          showCallFlowStatus("応答がありませんでした。電話帳からかけ直せます。", true);
+          setNotice("応答がありませんでした。電話帳からかけ直せます。", true);
         }
       });
-    }
-
-    function showCallFlowStatus(message, isError) {
-      setNotice(message || "", !!isError);
     }
 
     function createSecureToken(length) {
