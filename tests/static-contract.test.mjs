@@ -186,8 +186,11 @@ test("電話帳は双方の承認後だけ登録し、発信ごとに新しい�
   assert.match(rootHtml, /CONTACT_INVITE_TTL_MS = 24 \* 60 \* 60 \* 1000/);
   assert.doesNotMatch(rootHtml, /sanitizeName\(/);
   assert.match(rootHtml, /return getDisplayName\(el\.name\.value\)/);
-  assert.match(rootHtml, /showContactsMessage\("登録用URLをコピーしました。", false\)/);
+  assert.match(rootHtml, /showContactsMessage\("登録用URLをコピーしました。相手に送ってください。/);
   assert.match(rootHtml, /setTimeout\(clearContactsMessage, 3500\)/);
+  assert.match(rootHtml, /id="confirmContactInviteBtn"/);
+  assert.match(rootHtml, /async function confirmContactInvite\(\)/);
+  assert.match(rootHtml, /電話帳に登録しますか/);
 });
 
 test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
@@ -199,4 +202,8 @@ test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
   assert.match(rootHtml, /status: "declined"/);
   assert.match(rootHtml, /Notification\.requestPermission\(\)/);
   assert.match(rootHtml, /showSystemIncomingNotification/);
+  assert.match(rootHtml, /応答して通話を始める/);
+  assert.match(rootHtml, /url\.searchParams\.set\("autoJoin", "1"\)/);
+  assert.match(rootHtml, /function maybeAutoJoinCall\(\)/);
+  assert.match(rootHtml, /muted = !startedFromPhonebook/);
 });
