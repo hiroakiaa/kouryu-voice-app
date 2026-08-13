@@ -105,6 +105,16 @@ async function vapidAuthorization(endpoint, env) {
 }
 
 async function sendWebPush(subscription, payload, env) {
+  if (new URL(subscription.endpoint).hostname.endsWith("push.apple.com")) {
+    return fetch(subscription.endpoint, {
+      method: "POST",
+      headers: {
+        "Authorization": await vapidAuthorization(subscription.endpoint, env),
+        "TTL": "90",
+        "Urgency": "high"
+      }
+    });
+  }
   const encoder = new TextEncoder();
   const receiverPublic = fromBase64Url(subscription.keys.p256dh);
   const authSecret = fromBase64Url(subscription.keys.auth);
