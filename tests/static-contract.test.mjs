@@ -209,6 +209,8 @@ test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
   assert.match(rootHtml, /setJoinBusy\(true, "自動参加中"\)/);
   assert.match(rootHtml, /if \(joined && localStream\)/);
   assert.doesNotMatch(rootHtml, /await ensureTurnConfiguration\(\)/);
+  assert.doesNotMatch(rootHtml, /id="callFlowStatus"|class="call-flow-status"/);
+  assert.match(rootHtml, /function showCallFlowStatus\(message, isError\) \{\s*setNotice\(message \|\| "", !!isError\)/);
   assert.match(rootHtml, /応答中…/);
   assert.match(rootHtml, /Promise\.race\(\[responseWrite/);
   assert.match(rootHtml, /finally \{\s*navigateToAcceptedCall\(incoming\)/);

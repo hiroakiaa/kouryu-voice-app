@@ -1089,9 +1089,6 @@
     .contact-invite-review h3 { margin: 0 0 7px; }
     .contact-invite-review p { margin: 0 0 13px; color: #bad5df; line-height: 1.5; }
     .contact-primary { width: 100%; min-height: 52px !important; background: #116d59 !important; border-color: #5be2ba !important; }
-    .call-flow-status { position: fixed; z-index: 1250; top: max(14px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: min(620px, calc(100% - 28px)); display: none; border: 1px solid #3a758b; border-radius: 14px; padding: 12px 16px; background: #0a2634; color: #e8faff; line-height: 1.5; box-shadow: 0 12px 40px rgba(0,0,0,.5); text-align: center; font-weight: 700; }
-    .call-flow-status.is-visible { display: block; }
-    .call-flow-status.is-error { border-color: #bd6377; background: #351923; color: #ffdbe3; }
 
     .incoming-call {
       position: fixed;
@@ -2421,7 +2418,6 @@
       <button id="declineIncomingBtn" class="decline" type="button"><i class="fa-solid fa-phone-slash"></i> 拒否</button>
     </div>
   </aside>
-  <div id="callFlowStatus" class="call-flow-status" role="status" aria-live="assertive"></div>
   <div id="avatarTooltip" class="avatar-tooltip" role="tooltip" aria-hidden="true"></div>
   <div id="metricsModal" class="metrics-modal" aria-hidden="true">
     <div class="metrics-modal-card" role="dialog" aria-modal="true" aria-labelledby="metricsModalTitle">
@@ -2760,7 +2756,6 @@
       incomingCallText: document.getElementById("incomingCallText"),
       acceptIncoming: document.getElementById("acceptIncomingBtn"),
       declineIncoming: document.getElementById("declineIncomingBtn"),
-      callFlowStatus: document.getElementById("callFlowStatus"),
       notice: document.getElementById("notice"),
       metricsOutput: document.getElementById("metricsOutput"),
       avatarTooltip: document.getElementById("avatarTooltip")
@@ -5344,10 +5339,7 @@
     }
 
     function showCallFlowStatus(message, isError) {
-      if (!el.callFlowStatus) return;
-      el.callFlowStatus.textContent = message || "";
-      el.callFlowStatus.classList.toggle("is-visible", !!message);
-      el.callFlowStatus.classList.toggle("is-error", !!isError);
+      setNotice(message || "", !!isError);
     }
 
     function createSecureToken(length) {
