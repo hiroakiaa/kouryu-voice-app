@@ -1047,6 +1047,19 @@
     .contacts-head { justify-content: space-between; }
     .contacts-head h2 { margin: 0; font-size: 1.2rem; }
     .contacts-actions { margin: 14px 0; flex-wrap: wrap; }
+    .contacts-message {
+      display: none;
+      margin: -2px 0 12px;
+      border: 1px solid #2d7b70;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #0b342f;
+      color: #bfffea;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .contacts-message.is-visible { display: block; }
+    .contacts-message.is-error { border-color: #a64f63; background: #351923; color: #ffd4dd; }
     .contacts-actions button, .contact-row button, .incoming-call-actions button {
       min-height: 44px;
       border: 1px solid #28677f;
@@ -2374,6 +2387,7 @@
         <button id="createContactInviteBtn" type="button"><i class="fa-solid fa-user-plus"></i> 登録用URLをコピー</button>
         <button id="enableCallNotificationsBtn" type="button"><i class="fa-solid fa-bell"></i> 着信通知を有効にする</button>
       </div>
+      <div id="contactsMessage" class="contacts-message" role="status" aria-live="polite"></div>
       <div id="contactsList" class="contacts-list"></div>
     </section>
   </div>
@@ -2712,6 +2726,7 @@
       contactsClose: document.getElementById("contactsCloseBtn"),
       createContactInvite: document.getElementById("createContactInviteBtn"),
       enableCallNotifications: document.getElementById("enableCallNotificationsBtn"),
+      contactsMessage: document.getElementById("contactsMessage"),
       contactsList: document.getElementById("contactsList"),
       incomingCall: document.getElementById("incomingCall"),
       incomingCallTitle: document.getElementById("incomingCallTitle"),
@@ -2749,6 +2764,7 @@
     let unsubContacts = null;
     let unsubIncomingCalls = null;
     let currentIncomingCall = null;
+    let contactsMessageTimer = null;
     let micUnlockHintDismissed = false;
     let joinBusy = false;
     let participants = [];
@@ -4917,6 +4933,24 @@
     function closeContactsModal() {
       el.contactsModal.classList.remove("is-open");
       el.contactsModal.setAttribute("aria-hidden", "true");
+      clearContactsMessage();
+    }
+
+    function showContactsMessage(message, isError) {
+      if (!el.contactsMessage) return;
+      window.clearTimeout(contactsMessageTimer);
+      el.contactsMessage.textContent = message || "";
+      el.contactsMessage.classList.toggle("is-visible", !!message);
+      el.contactsMessage.classList.toggle("is-error", !!isError && !!message);
+      if (message) contactsMessageTimer = window.setTimeout(clearContactsMessage, 3500);
+    }
+
+    function clearContactsMessage() {
+      window.clearTimeout(contactsMessageTimer);
+      contactsMessageTimer = null;
+      if (!el.contactsMessage) return;
+      el.contactsMessage.textContent = "";
+      el.contactsMessage.classList.remove("is-visible", "is-error");
     }
 
     function startContactWatchers() {
@@ -4965,6 +4999,7 @@
 
     async function createContactInvite() {
       if (!authUser || !allowLocalAction(CONTACT_INVITE_RATE_LIMIT)) {
+        showContactsMessage("しばらく待ってから、もう一度お試しください。", true);
         setNotice("登録用URLの作成が続いています。しばらく待ってからお試しください。", true);
         return;
       }
@@ -4985,8 +5020,10 @@
         url.searchParams.set("contactInvite", code);
         await copyText(url.toString());
         flashButton(el.createContactInvite, '<i class="fa-solid fa-check"></i> コピー済み');
+        showContactsMessage("登録用URLをコピーしました。", false);
         setNotice("電話帳の登録用URLをコピーしました。URLは24時間有効です。", true);
       } catch (error) {
+        showContactsMessage("コピーできませんでした。もう一度お試しください。", true);
         setNotice("登録用URLを作成できませんでした。通信状態を確認してください。", true);
         pushDiagnostic("error", "連絡先招待の作成に失敗", error && error.message ? error.message : "");
       }

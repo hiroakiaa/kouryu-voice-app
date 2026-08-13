@@ -186,6 +186,8 @@ test("電話帳は双方の承認後だけ登録し、発信ごとに新しい�
   assert.match(rootHtml, /CONTACT_INVITE_TTL_MS = 24 \* 60 \* 60 \* 1000/);
   assert.doesNotMatch(rootHtml, /sanitizeName\(/);
   assert.match(rootHtml, /return getDisplayName\(el\.name\.value\)/);
+  assert.match(rootHtml, /showContactsMessage\("登録用URLをコピーしました。", false\)/);
+  assert.match(rootHtml, /setTimeout\(clearContactsMessage, 3500\)/);
 });
 
 test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
