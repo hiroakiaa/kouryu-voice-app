@@ -244,3 +244,20 @@ test("caller liveness cancels stale incoming calls", () => {
   assert.match(rootHtml, /incomingCallExpiryTimer/);
   assert.match(rootHtml, /previousIncomingId !== incoming\.id/);
 });
+
+test("電話帳通話を安全に開始・取消・終了し端末内履歴へ残す", () => {
+  assert.match(rootHtml, /id="cancelOutgoingBtn"/);
+  assert.match(rootHtml, /function stopOutgoingCall\(\)/);
+  assert.match(rootHtml, /if \(!navigator\.onLine\)/);
+  assert.match(rootHtml, /await authUser\.getIdToken\(\)/);
+  assert.match(rootHtml, /function endPhonebookCallAfterRemoteLeave\(name\)/);
+  assert.match(rootHtml, /CALL_HISTORY_KEY = "kouryu-voice-call-history-v1"/);
+  assert.match(rootHtml, /CALL_HISTORY_MAX_RECORDS = 20/);
+  assert.match(rootHtml, /この端末の着信・発信履歴/);
+});
+
+test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () => {
+  assert.match(turnWorker, /const deliveryKey = "push-sent:" \+ uid \+ ":" \+ invitationId/);
+  assert.match(turnWorker, /duplicate: true/);
+  assert.match(turnWorker, /expirationTtl: 120/);
+});

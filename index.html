@@ -1080,6 +1080,10 @@
     .contacts-close { width: 44px; padding: 0 !important; }
     .contacts-note { color: #9fc5d5; line-height: 1.55; font-size: 0.9rem; }
     .contacts-list { display: grid; gap: 10px; margin-top: 14px; }
+    .call-history-list { display: grid; gap: 8px; margin-top: 10px; }
+    .call-history-row { display: flex; justify-content: space-between; gap: 12px; border: 1px solid #173f51; border-radius: 14px; padding: 10px 12px; color: #c7e1eb; }
+    .call-history-row span { min-width: 0; overflow-wrap: anywhere; }
+    .call-history-row small { flex: 0 0 auto; color: #8db4c5; }
     .contact-row { justify-content: space-between; border: 1px solid #173f51; border-radius: 16px; padding: 12px; }
     .contact-row-main { min-width: 0; display: grid; gap: 3px; }
     .contact-row-main strong { overflow-wrap: anywhere; }
@@ -1900,6 +1904,7 @@
       cursor: pointer;
       transition: r 120ms ease, fill 120ms ease;
     }
+    .primary-action[hidden] { display: none; }
 
     .metrics-history-chart .chart-dot:hover,
     .metrics-history-chart .chart-dot:focus,
@@ -2387,6 +2392,7 @@
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規URL</span></button>
       </div>
+      <button id="cancelOutgoingBtn" class="danger primary-action" type="button" hidden><i class="fa-solid fa-phone-slash"></i><span>呼び出しをやめる</span></button>
       <button id="joinBtn" class="primary primary-action" type="button"><i class="fa-solid fa-phone"></i><span>参加する</span></button>
     </div>
 
@@ -2413,6 +2419,8 @@
       <div id="contactsMessage" class="contacts-message" role="status" aria-live="polite"></div>
       <h3 class="contact-section-title">登録済みの相手</h3>
       <div id="contactsList" class="contacts-list"></div>
+      <h3 class="contact-section-title"><i class="fa-solid fa-clock-rotate-left"></i> この端末の着信・発信履歴</h3>
+      <div id="callHistoryList" class="call-history-list"></div>
     </section>
   </div>
   <aside id="incomingCall" class="incoming-call" role="alertdialog" aria-live="assertive" aria-hidden="true">
@@ -2650,6 +2658,8 @@
     const COST_HISTORY_MAX_DAYS = 60;
     const ACTION_RATE_KEY = "kouryu-voice-action-rate-v1";
     const DIAGNOSTIC_LOG_KEY = "kouryu-voice-diagnostic-log-v1";
+    const CALL_HISTORY_KEY = "kouryu-voice-call-history-v1";
+    const CALL_HISTORY_MAX_RECORDS = 20;
     const JOIN_RATE_LIMIT = { action: "join", max: 12, windowMs: 10 * 60 * 1000 };
     const NEW_CALL_RATE_LIMIT = { action: "new-call", max: 6, windowMs: 60 * 60 * 1000 };
     const CONTACT_INVITE_RATE_LIMIT = { action: "contact-invite", max: 8, windowMs: 60 * 60 * 1000 };
@@ -2758,6 +2768,8 @@
       contactInviteReviewText: document.getElementById("contactInviteReviewText"),
       confirmContactInvite: document.getElementById("confirmContactInviteBtn"),
       contactsList: document.getElementById("contactsList"),
+      callHistoryList: document.getElementById("callHistoryList"),
+      cancelOutgoing: document.getElementById("cancelOutgoingBtn"),
       incomingCall: document.getElementById("incomingCall"),
       incomingCallTitle: document.getElementById("incomingCallTitle"),
       incomingCallText: document.getElementById("incomingCallText"),
@@ -2800,6 +2812,10 @@
     let pendingContactInvite = null;
     let unsubOutgoingCall = null;
     let outgoingInviteHeartbeatTimer = null;
+    let outgoingCallBusy = false;
+    let outgoingInvitationEnded = false;
+    let phonebookRemoteSeen = false;
+    let phonebookCallEnding = false;
     let autoJoinStarted = false;
     let acceptIncomingBusy = false;
     let micUnlockHintDismissed = false;
@@ -3000,6 +3016,7 @@
       el.confirmContactInvite.addEventListener("click", confirmContactInvite);
       el.enableCallNotifications.addEventListener("click", enableCallNotifications);
       el.contactsList.addEventListener("click", handleContactsClick);
+      if (el.cancelOutgoing) el.cancelOutgoing.addEventListener("click", stopOutgoingCall);
       el.acceptIncoming.addEventListener("click", acceptIncomingCall);
       el.declineIncoming.addEventListener("click", declineIncomingCall);
       window.addEventListener("pageshow", function() {
@@ -3024,6 +3041,7 @@
         await acceptContactInviteFromUrl();
         startContactWatchers();
         startOutgoingCallWatcher();
+        renderCallHistory();
         refreshClosedAppNotifications();
       } catch (error) {
         setCallPhase("failed", "安全な接続を準備できませんでした。ページを再読み込みしてください。");
@@ -3638,11 +3656,25 @@
         knownParticipantNames.forEach(function(name, id) {
           if (id !== userId && !nextMap.has(id)) {
             queueParticipantNotice(name + "さんが退室しました。");
+            if (params.get("callRole") && phonebookRemoteSeen && joined) endPhonebookCallAfterRemoteLeave(name);
           }
         });
       }
+      if (params.get("callRole") && Array.from(nextMap.keys()).some(function(id) { return id !== userId; })) phonebookRemoteSeen = true;
       knownParticipantNames = nextMap;
       hasParticipantSnapshot = true;
+    }
+
+    async function endPhonebookCallAfterRemoteLeave(name) {
+      if (phonebookCallEnding) return;
+      phonebookCallEnding = true;
+      const historyId = params.get("outgoingInvite") || ("call-" + callId + "-" + (params.get("callRole") || "phonebook"));
+      saveCallHistory({ id: historyId, direction: params.get("callRole") === "caller" ? "outgoing" : "incoming", name: name || getDisplayName(params.get("contactName")) || "相手", status: "ended", at: Date.now() });
+      await Promise.race([markLeft(), new Promise(function(resolve) { window.setTimeout(resolve, 700); })]);
+      stopLocalCall(false);
+      setStatus("通話を終了しました", "相手が退室したため通話を終了しました。");
+      setNotice((name || "相手") + "さんが退室したため、通話を終了しました。", true);
+      window.setTimeout(function() { setNotice((name || "相手") + "さんとの通話は終了しました。", true); }, 1000);
     }
 
     function watchSignals() {
@@ -5032,7 +5064,16 @@
       if (!unsubIncomingCalls) {
         unsubIncomingCalls = onSnapshot(query(collection(db, "voiceCallInvitations"), where("calleeUid", "==", authUser.uid)), function(snapshot) {
           const now = Date.now();
-          const ringingCalls = snapshot.docs.map(function(item) { return Object.assign({ id: item.id }, item.data() || {}); })
+          const invitationItems = snapshot.docs.map(function(item) { return Object.assign({ id: item.id }, item.data() || {}); });
+          invitationItems.forEach(function(item) {
+            if (now - Number(item.createdAtMs || 0) > 10 * 60 * 1000) return;
+            if (["accepted", "declined", "cancelled", "superseded"].indexOf(item.status) !== -1) {
+              saveCallHistory({ id: item.id, direction: "incoming", name: item.callerName || "相手", status: item.status === "superseded" ? "missed" : item.status, at: Number(item.createdAtMs || now) });
+            } else if (item.status === "ringing" && Number(item.expiresAtMs || 0) <= now) {
+              saveCallHistory({ id: item.id, direction: "incoming", name: item.callerName || "相手", status: "missed", at: Number(item.createdAtMs || now) });
+            }
+          });
+          const ringingCalls = invitationItems
             .filter(function(item) {
               return item.status === "ringing"
                 && Number(item.expiresAtMs || 0) > now
@@ -5174,14 +5215,57 @@
       if (contact) callContact(contact);
     }
 
+    function loadCallHistory() {
+      try {
+        const value = JSON.parse(localStorage.getItem(CALL_HISTORY_KEY) || "[]");
+        return Array.isArray(value) ? value.slice(0, CALL_HISTORY_MAX_RECORDS) : [];
+      } catch (_) { return []; }
+    }
+
+    function saveCallHistory(entry) {
+      if (!entry || !entry.id) return;
+      const storedHistory = loadCallHistory();
+      const existing = storedHistory.find(function(item) { return item && item.id === entry.id; });
+      if (existing && existing.status === entry.status) return;
+      const history = storedHistory.filter(function(item) { return item && item.id !== entry.id; });
+      history.unshift(Object.assign({ at: Date.now() }, entry));
+      try { localStorage.setItem(CALL_HISTORY_KEY, JSON.stringify(history.slice(0, CALL_HISTORY_MAX_RECORDS))); } catch (_) {}
+      renderCallHistory();
+    }
+
+    function callHistoryStatusLabel(status) {
+      return ({ ringing: "呼び出し中", accepted: "応答済み", declined: "拒否", cancelled: "発信取消", missed: "不在着信", ended: "通話終了" })[status] || "終了";
+    }
+
+    function renderCallHistory() {
+      if (!el.callHistoryList) return;
+      const history = loadCallHistory();
+      if (!history.length) {
+        el.callHistoryList.innerHTML = '<div class="contacts-empty">履歴はまだありません。</div>';
+        return;
+      }
+      el.callHistoryList.innerHTML = history.map(function(item) {
+        const direction = item.direction === "incoming" ? "着信" : "発信";
+        const time = new Date(Number(item.at) || Date.now()).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        return '<div class="call-history-row"><span><strong>' + escapeHtml(direction + "・" + (item.name || "相手")) + '</strong><br><small>' + escapeHtml(callHistoryStatusLabel(item.status)) + '</small></span><small>' + escapeHtml(time) + '</small></div>';
+      }).join("");
+    }
+
     async function callContact(contact) {
+      if (outgoingCallBusy) return;
+      if (!navigator.onLine) {
+        setNotice("インターネットに接続されていないため発信できません。接続後にもう一度お試しください。", true);
+        return;
+      }
       if (!authUser || !contact || !allowLocalAction(CONTACT_CALL_RATE_LIMIT)) {
         setNotice("短時間の発信が続いています。少し待ってからお試しください。", true);
         return;
       }
+      outgoingCallBusy = true;
       const nextCallId = createCallId();
       const now = Date.now();
       try {
+        await authUser.getIdToken();
         const invitationRef = await addDoc(collection(db, "voiceCallInvitations"), {
           connectionId: contact.id,
           callerUid: authUser.uid,
@@ -5197,6 +5281,7 @@
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
+        saveCallHistory({ id: invitationRef.id, direction: "outgoing", name: contact.name, status: "ringing", at: now });
         await Promise.race([
           sendClosedAppCallNotification(contact, nextCallId, invitationRef.id),
           new Promise(function(resolve) { window.setTimeout(resolve, 1800); })
@@ -5219,6 +5304,7 @@
         }
         location.assign(url.toString());
       } catch (error) {
+        outgoingCallBusy = false;
         setNotice("発信できませんでした。相手を登録し直すか、通信状態を確認してください。", true);
         pushDiagnostic("error", "電話帳からの発信に失敗", error && error.message ? error.message : "");
       }
@@ -5237,11 +5323,17 @@
       if (!incoming) return;
       const validUntil = Math.min(Number(incoming.expiresAtMs || 0), Number(incoming.callerActiveUntilMs || 0));
       incomingCallExpiryTimer = window.setTimeout(function() {
-        if (currentIncomingCall && currentIncomingCall.id === incoming.id) showIncomingCall(null);
+        if (currentIncomingCall && currentIncomingCall.id === incoming.id) {
+          saveCallHistory({ id: incoming.id, direction: "incoming", name: incoming.callerName || "相手", status: "missed", at: Number(incoming.createdAtMs || Date.now()) });
+          showIncomingCall(null);
+        }
       }, Math.max(0, validUntil - Date.now() + 100));
       el.incomingCallTitle.textContent = (incoming.callerName || "匿名さん") + "さんから着信です";
       el.incomingCallText.textContent = "「応答して通話を始める」を押すと、この着信に応答してマイクをつなぎます。";
-      if (previousIncomingId !== incoming.id) showSystemIncomingNotification(incoming);
+      if (previousIncomingId !== incoming.id) {
+        saveCallHistory({ id: incoming.id, direction: "incoming", name: incoming.callerName || "相手", status: "ringing", at: Number(incoming.createdAtMs || Date.now()) });
+        showSystemIncomingNotification(incoming);
+      }
     }
 
     async function enableCallNotifications() {
@@ -5363,6 +5455,7 @@
         return;
       }
       acceptIncomingBusy = true;
+      saveCallHistory({ id: incoming.id, direction: "incoming", name: incoming.callerName || "相手", status: "accepted", at: Date.now() });
       el.acceptIncoming.disabled = true;
       el.declineIncoming.disabled = true;
       el.acceptIncoming.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 応答中…';
@@ -5406,6 +5499,7 @@
           }, { merge: true });
         }));
         currentRingingCalls = [];
+        saveCallHistory({ id: incoming.id, direction: "incoming", name: incoming.callerName || "相手", status: "declined", at: Date.now() });
         setNotice("着信を拒否しました。");
       } catch (_) {}
     }
@@ -5431,6 +5525,7 @@
         updateJoinButton();
         setNotice("自動参加を完了できませんでした。下の『参加する』を押してください。", true);
       }).catch(function(error) {
+        if (role === "caller") cancelOutgoingInvitation();
         setJoinBusy(false);
         updateJoinButton();
         setNotice("自動参加を完了できませんでした。下の『参加する』を押してください。", true);
@@ -5441,6 +5536,8 @@
     function startOutgoingCallWatcher() {
       const invitationId = params.get("outgoingInvite");
       if (!invitationId || !/^[A-Za-z0-9_-]{10,40}$/.test(invitationId) || !db) return;
+      outgoingInvitationEnded = false;
+      if (el.cancelOutgoing) el.cancelOutgoing.hidden = false;
       if (unsubOutgoingCall) unsubOutgoingCall();
       refreshOutgoingInvitation(invitationId);
       if (outgoingInviteHeartbeatTimer) window.clearInterval(outgoingInviteHeartbeatTimer);
@@ -5454,11 +5551,18 @@
           window.clearInterval(outgoingInviteHeartbeatTimer);
           outgoingInviteHeartbeatTimer = null;
         }
+        if (data.status !== "ringing") {
+          outgoingInvitationEnded = true;
+          if (el.cancelOutgoing) el.cancelOutgoing.hidden = true;
+        }
         if (data.status === "accepted") {
+          saveCallHistory({ id: invitationId, direction: "outgoing", name: data.calleeName || "相手", status: "accepted", at: Date.now() });
           setNotice((data.calleeName || "相手") + "さんが応答しました。音声を接続しています。");
         } else if (data.status === "declined") {
+          saveCallHistory({ id: invitationId, direction: "outgoing", name: data.calleeName || "相手", status: "declined", at: Date.now() });
           setNotice((data.calleeName || "相手") + "さんは応答しませんでした。電話帳からかけ直せます。", true);
         } else if (Number(data.expiresAtMs || 0) <= Date.now()) {
+          saveCallHistory({ id: invitationId, direction: "outgoing", name: data.calleeName || "相手", status: "missed", at: Date.now() });
           setNotice("応答がありませんでした。電話帳からかけ直せます。", true);
         }
       });
@@ -5480,13 +5584,27 @@
         outgoingInviteHeartbeatTimer = null;
       }
       const invitationId = params.get("outgoingInvite");
-      if (!authUser || !db || !invitationId || !/^[A-Za-z0-9_-]{10,40}$/.test(invitationId)) return;
-      setDoc(doc(db, "voiceCallInvitations", invitationId), {
+      if (!authUser || !db || outgoingInvitationEnded || !invitationId || !/^[A-Za-z0-9_-]{10,40}$/.test(invitationId)) return Promise.resolve();
+      outgoingInvitationEnded = true;
+      if (el.cancelOutgoing) el.cancelOutgoing.hidden = true;
+      return setDoc(doc(db, "voiceCallInvitations", invitationId), {
         status: "cancelled",
         callerActiveUntilMs: Date.now(),
         respondedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(function() {});
+    }
+
+    async function stopOutgoingCall() {
+      const invitationId = params.get("outgoingInvite");
+      const contactName = getDisplayName(params.get("contactName")) || "相手";
+      if (el.cancelOutgoing) el.cancelOutgoing.disabled = true;
+      await Promise.race([cancelOutgoingInvitation(), new Promise(function(resolve) { window.setTimeout(resolve, 900); })]);
+      if (invitationId) saveCallHistory({ id: invitationId, direction: "outgoing", name: contactName, status: "cancelled", at: Date.now() });
+      if (joined) await Promise.race([markLeft(), new Promise(function(resolve) { window.setTimeout(resolve, 700); })]);
+      stopLocalCall(false);
+      setNotice("呼び出しをやめました。相手側の着信も終了します。", true);
+      if (el.cancelOutgoing) { el.cancelOutgoing.hidden = true; el.cancelOutgoing.disabled = false; }
     }
 
     function createSecureToken(length) {

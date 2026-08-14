@@ -184,6 +184,12 @@ async function handlePush(request, env, origin, path) {
   if (!calleeUid || calleeUid === uid || !callId || !invitationId) return response({ error: "invalid_request" }, 400, origin);
   if (!allowRequest("push-uid:" + uid, 8, TEN_MINUTES)) return response({ error: "rate_limited" }, 429, origin);
 
+  const deliveryKey = "push-sent:" + uid + ":" + invitationId;
+  if (await env.PUSH_SUBSCRIPTIONS.get(deliveryKey)) {
+    return response({ ok: true, delivered: false, duplicate: true }, 200, origin);
+  }
+  await env.PUSH_SUBSCRIPTIONS.put(deliveryKey, String(Date.now()), { expirationTtl: 120 });
+
   const stored = await env.PUSH_SUBSCRIPTIONS.get(calleeUid, "json");
   if (!stored || !validSubscription(stored.subscription)) return response({ ok: true, delivered: false }, 200, origin);
   try {
