@@ -3720,7 +3720,7 @@
 
     .metrics-history-chart .chart-line {
       stroke: #54ad39;
-      stroke-width: 0.2rem;
+      stroke-width: 0.13rem;
     }
 
     .metrics-history-chart .chart-dot {
@@ -3750,8 +3750,20 @@
       font-weight: 500;
     }
 
+    .metrics-history-chart .chart-average-line {
+      stroke: #c59a31;
+      stroke-width: 1.15;
+      stroke-dasharray: 5 4;
+    }
+
+    .metrics-history-chart .chart-average-label {
+      fill: #8a6a1f;
+      font-size: 8.5px;
+      font-weight: 500;
+    }
+
     #chartPointDetail.metrics-history-note {
-      display: block;
+      display: grid;
       min-height: 0;
       width: 100%;
       padding: 0.7rem 0.85rem;
@@ -3762,6 +3774,56 @@
       line-height: 1.7;
       overflow-wrap: anywhere;
       white-space: normal;
+    }
+
+    .chart-point-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      padding-bottom: 0.55rem;
+      border-bottom: 0.07rem dashed var(--line);
+    }
+
+    .chart-point-position {
+      padding: 0.24rem 0.52rem;
+      border: 0.07rem solid var(--line-strong);
+      border-radius: 999rem;
+      background: #fff9d9;
+      color: #5f733d;
+      font-size: 0.72rem;
+    }
+
+    .chart-point-cost {
+      color: #3f782f;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .chart-point-meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.45rem;
+    }
+
+    .chart-point-meta span {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.38rem;
+      padding: 0.42rem 0.5rem;
+      border-radius: 0.7rem;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .chart-point-meta i {
+      flex: 0 0 auto;
+      width: 1rem;
+      color: var(--accent-deep);
+      text-align: center;
     }
 
     @media (max-width: 42rem) {
@@ -3784,6 +3846,10 @@
       #chartPointDetail.metrics-history-note {
         padding: 0.65rem;
         font-size: 0.72rem;
+      }
+
+      .chart-point-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
   </style>
@@ -9515,15 +9581,17 @@
     function renderCostHistoryChart(records) {
       if (!records.length) return '<div class="chart-empty">通話を終了すると、ここに料金の推移が表示されます。</div>';
       if (records.length === 1) return '<div class="chart-empty">もう1回記録すると、推移を線で確認できます。<br>最新: ' + escapeHtml(formatYen(records[0].tenMinuteCostYen)) + '</div>';
-      const width = 360;
-      const height = 150;
-      const left = 48;
-      const right = 12;
-      const top = 12;
-      const bottom = 30;
+      const width = 540;
+      const height = 180;
+      const left = 82;
+      const right = 16;
+      const top = 24;
+      const bottom = 34;
       const values = records.map(function(item) { return Number(item.tenMinuteCostYen) || 0; });
       const max = Math.max.apply(null, values);
       const yMax = Math.max(0.001, max * 1.1);
+      const average = costAverage(values);
+      const averageY = height - bottom - (average / yMax) * (height - top - bottom);
       const points = values.map(function(value, index) {
         const x = left + (index / Math.max(1, values.length - 1)) * (width - left - right);
         const y = height - bottom - (value / yMax) * (height - top - bottom);
@@ -9546,13 +9614,15 @@
         const fromLatest = records.length - 1 - index;
         const position = fromLatest === 0 ? "最新" : "最新から" + fromLatest + "つ前";
         const detail = position + " / 縦軸: " + formatYen(point.value) + " / " + formatLocalDateTime(point.record.endedAt) + " / " + Math.max(0, Math.round((point.record.durationSeconds || 0) / 60)) + "分 / " + (point.record.connectionMethod || "直接接続") + " / " + Math.max(1, Number(point.record.participantCount) || 1) + "端末分の概算";
-        return '<circle class="chart-dot" tabindex="0" role="button" data-chart-detail="' + escapeHtml(detail) + '" aria-label="' + escapeHtml(detail) + '" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="3.6"><title>' + escapeHtml(detail) + '</title></circle>';
+        return '<circle class="chart-dot" tabindex="0" role="button" data-chart-detail="' + escapeHtml(detail) + '" data-chart-position="' + escapeHtml(position) + '" data-chart-cost="' + escapeHtml(formatYen(point.value)) + '" data-chart-date="' + escapeHtml(formatLocalDateTime(point.record.endedAt)) + '" data-chart-duration="' + escapeHtml(Math.max(0, Math.round((point.record.durationSeconds || 0) / 60)) + "分") + '" data-chart-method="' + escapeHtml(point.record.connectionMethod || "直接接続") + '" data-chart-participants="' + escapeHtml(Math.max(1, Number(point.record.participantCount) || 1) + "端末分") + '" aria-label="' + escapeHtml(detail) + '" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="3.6"><title>' + escapeHtml(detail) + '</title></circle>';
       }).join("");
       return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="縦軸は10分通話の概算料金（円）、横軸は古い順の通話記録">' +
         yTicks + xTicks +
         '<line class="chart-axis" x1="' + left + '" y1="' + top + '" x2="' + left + '" y2="' + (height - bottom) + '"></line>' +
         '<line class="chart-axis" x1="' + left + '" y1="' + (height - bottom) + '" x2="' + (width - right) + '" y2="' + (height - bottom) + '"></line>' +
-        '<text class="chart-axis-label" x="4" y="9">料金（円）</text>' +
+        '<line class="chart-average-line" x1="' + left + '" y1="' + averageY.toFixed(1) + '" x2="' + (width - right) + '" y2="' + averageY.toFixed(1) + '"></line>' +
+        '<text class="chart-average-label" x="' + (left - 38) + '" y="' + Math.max(top + 9, Math.min(height - bottom - 12, averageY - 4)).toFixed(1) + '" text-anchor="end"><tspan x="' + (left - 38) + '">平均値</tspan><tspan x="' + (left - 38) + '" dy="10">' + escapeHtml(formatYen(average)) + '</tspan></text>' +
+        '<text class="chart-axis-label" x="8" y="13">料金（円）</text>' +
         '<text class="chart-axis-label" x="' + ((left + width - right) / 2).toFixed(1) + '" y="' + (height - 4) + '" text-anchor="middle">通話記録（古い → 新しい）</text>' +
         '<polyline class="chart-line" points="' + polyline + '"></polyline>' + dots + '</svg>';
     }
@@ -9566,7 +9636,14 @@
         item.classList.remove("is-selected");
       });
       point.classList.add("is-selected");
-      el.chartPointDetail.textContent = point.getAttribute("data-chart-detail") || "";
+      el.chartPointDetail.innerHTML =
+        '<div class="chart-point-summary"><span class="chart-point-position">' + escapeHtml(point.getAttribute("data-chart-position") || "選択した記録") + '</span><strong class="chart-point-cost">' + escapeHtml(point.getAttribute("data-chart-cost") || "--円") + '</strong></div>' +
+        '<div class="chart-point-meta">' +
+          '<span><i class="fa-solid fa-calendar-day"></i>' + escapeHtml(point.getAttribute("data-chart-date") || "日時不明") + '</span>' +
+          '<span><i class="fa-solid fa-clock"></i>' + escapeHtml(point.getAttribute("data-chart-duration") || "0分") + '</span>' +
+          '<span><i class="fa-solid fa-tower-broadcast"></i>' + escapeHtml(point.getAttribute("data-chart-method") || "直接接続") + '</span>' +
+          '<span><i class="fa-solid fa-users"></i>' + escapeHtml(point.getAttribute("data-chart-participants") || "1端末分") + '</span>' +
+        '</div>';
     }
 
     function costAverage(values) {
