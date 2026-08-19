@@ -3645,7 +3645,9 @@
 
     /* Keep every call tip reachable without letting the panel leave the viewport. */
     .call-tips {
-      max-height: calc(100% - 5.8rem);
+      bottom: clamp(0.8rem, 2vw, 1.15rem);
+      height: auto;
+      max-height: none;
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior: contain;
@@ -3668,7 +3670,7 @@
 
     @media (max-width: 42rem) {
       .call-tips {
-        max-height: calc(100% - 5.15rem);
+        bottom: 0.65rem;
       }
     }
   </style>
