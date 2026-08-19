@@ -3642,6 +3642,35 @@
         padding: 0;
       }
     }
+
+    /* Keep every call tip reachable without letting the panel leave the viewport. */
+    .call-tips {
+      max-height: calc(100% - 5.8rem);
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line-strong) transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .call-tips::-webkit-scrollbar {
+      width: 0.5rem;
+    }
+
+    .call-tips::-webkit-scrollbar-thumb {
+      border: 0.1rem solid transparent;
+      border-radius: 999rem;
+      background: var(--line-strong);
+      background-clip: padding-box;
+    }
+
+    @media (max-width: 42rem) {
+      .call-tips {
+        max-height: calc(100% - 5.15rem);
+      }
+    }
   </style>
 </head>
 <body>
