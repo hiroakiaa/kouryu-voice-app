@@ -8,30 +8,30 @@
   <meta name="push-endpoint" content="https://kouryu-call-notifications.allinone-hiroakiaa.workers.dev">
   <meta name="push-vapid-public-key" content="BE2-Tk29DXccuqUnn8Mu9emNPGMMQBSlxV5SCJ05i8Ba2rab35DzvkmgQZyra5YmDlkhH3q0FQdC96pGzAQyxH4">
   <meta name="firebase-app-check-site-key" content="6LeJtoEtAAAAABNV7YMtZBvBbhhh7hfT9l5cWxsp">
-  <meta name="theme-color" content="#03101a">
+  <meta name="theme-color" content="#f5fff9">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./app-icon.svg" type="image/svg+xml">
   <title>共通電話</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
-      --bg: #03101a;
-      --panel: #061522;
-      --panel-soft: #091b2a;
-      --panel-raised: #0c2234;
-      --line: #1b5570;
-      --line-strong: #86e9ff;
-      --text: #f2fbff;
-      --muted: #bdd8e4;
-      --quiet: #89a9b8;
-      --accent: #8be9ff;
-      --accent-deep: #38c6e8;
-      --accent-soft: #0d3447;
-      --danger: #ff6d92;
-      --danger-soft: #2b0d18;
-      --ok: #9df2cf;
-      --warn: #c7f4ff;
-      --control: #061521;
+      --bg: #f5fff9;
+      --panel: #ffffff;
+      --panel-soft: #e7fff1;
+      --panel-raised: #f2fff7;
+      --line: #bcebd0;
+      --line-strong: #8fd3ad;
+      --text: #243544;
+      --muted: #6f8290;
+      --quiet: #718996;
+      --accent: #24b96b;
+      --accent-deep: #35b879;
+      --accent-soft: #d9f8e7;
+      --danger: #c94f68;
+      --danger-soft: #fff0f3;
+      --ok: #2f8f68;
+      --warn: #b98022;
+      --control: #ffffff;
     }
 
     * {
@@ -2295,6 +2295,334 @@
 
       .metrics-bar-row {
         grid-template-columns: 4.8rem minmax(0, 1fr) 2.6rem;
+      }
+    }
+    /* Light mint visual language shared with the companion applications. */
+    body {
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(36, 185, 107, 0.08), transparent 24rem),
+        radial-gradient(circle at 88% 94%, rgba(143, 211, 173, 0.12), transparent 22rem),
+        var(--bg);
+    }
+
+    main {
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: none;
+    }
+
+    header {
+      border: 0.08rem solid var(--line);
+      border-radius: 1.15rem;
+      padding: 0.72rem;
+      background: var(--panel-soft);
+    }
+
+    .app-icon,
+    .header-icon-btn,
+    .name-box input,
+    .connection-pill,
+    .audio-preset-control,
+    .audio-preset-control select,
+    .controls button,
+    .card,
+    .audio-health,
+    .app-info-tooltip,
+    .contacts-card,
+    .incoming-call,
+    .metrics-modal-card,
+    .metrics-history-section,
+    .metrics-history-stat,
+    .metric-card,
+    .metric-group,
+    .call-reliability-panel,
+    .diagnostics-panel {
+      box-shadow: none !important;
+    }
+
+    .app-icon {
+      border-color: var(--line-strong);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .app-icon.is-open,
+    .app-icon:not(:disabled):hover,
+    .app-icon:not(:disabled):focus-visible,
+    .header-icon-btn:hover,
+    .header-icon-btn:focus-visible {
+      border-color: var(--accent);
+      background: #ccf5df;
+      color: var(--accent-strong, #1f7653);
+    }
+
+    .header-icon-btn,
+    .name-box input,
+    .connection-pill {
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+    }
+
+    .name-box,
+    .name-box i,
+    .brand-subline,
+    .version-pill {
+      color: var(--muted);
+    }
+
+    .connection-pill.is-connected,
+    .connection-state-badge.is-connected {
+      border-color: #8fd3ad;
+      background: #e7fff1;
+      color: #247354;
+    }
+
+    .card,
+    .audio-health {
+      border-color: var(--line);
+      background: var(--panel);
+    }
+
+    .participants-card {
+      background: var(--panel-subtle, #f2fff7);
+    }
+
+    .participants-card h2,
+    .participant-limit,
+    .noise-guard,
+    .mic-state-toggle,
+    .notice {
+      color: var(--text);
+    }
+
+    .participant-limit {
+      border: 0.07rem solid var(--line);
+      border-radius: 999rem;
+      padding: 0.15rem 0.48rem;
+      background: var(--accent-soft);
+      color: #1f7653;
+    }
+
+    .participant .avatar,
+    .participant.is-self .avatar {
+      border-color: var(--line-strong);
+      background: var(--panel);
+      color: var(--accent-strong, #1f7653);
+    }
+
+    .participant.is-self .avatar {
+      background: var(--accent-soft);
+    }
+
+    .participant-name,
+    .participant-state-badge,
+    .participant-mute-badge {
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--text);
+    }
+
+    .empty-participants,
+    .waiting-guidance {
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--muted);
+    }
+
+    .notice.is-important {
+      border-color: var(--line-strong);
+      background: var(--accent-soft);
+      color: #1f7653;
+    }
+
+    .mic-level {
+      border-color: var(--line);
+      background: #edf7f1;
+    }
+
+    .mic-level-bar {
+      background: linear-gradient(90deg, #8fd3ad, #24b96b);
+    }
+
+    .secondary-controls,
+    .controls {
+      scrollbar-color: var(--line-strong) transparent;
+    }
+
+    .controls button,
+    .audio-preset-control {
+      border-color: var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 999rem;
+    }
+
+    .audio-preset-control select {
+      color: var(--text);
+      background: transparent;
+    }
+
+    .controls button:not(:disabled):hover,
+    .controls button:not(:disabled):focus-visible,
+    .audio-preset-control:focus-within {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #1f7653;
+    }
+
+    .primary-action.primary {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #1f7653;
+    }
+
+    .primary-action.danger,
+    .primary-action.is-leaving {
+      border-color: #d97d91;
+      background: var(--danger-soft);
+      color: #a63f56;
+    }
+
+    .call-tips {
+      border-color: var(--line);
+      background: var(--panel);
+    }
+
+    .tip-item {
+      border-color: var(--line);
+      background: var(--panel-subtle, #f2fff7);
+      color: var(--text);
+    }
+
+    .tip-item > i,
+    .tip-cost-number {
+      color: var(--accent);
+    }
+
+    .app-info-tooltip,
+    .contacts-card,
+    .metrics-modal-card,
+    .incoming-call {
+      border-color: var(--line-strong);
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .contacts-modal,
+    .metrics-modal {
+      background: rgba(36, 53, 68, 0.34);
+      backdrop-filter: blur(3px);
+    }
+
+    .app-info-action,
+    .contacts-actions button,
+    .contact-row button,
+    .incoming-call-actions button,
+    .contacts-close,
+    .metrics-close,
+    .metrics-history-open-btn {
+      border-color: var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      box-shadow: none;
+    }
+
+    .contact-primary,
+    .incoming-call-actions .accept {
+      border-color: var(--accent) !important;
+      background: var(--accent-soft) !important;
+      color: #1f7653 !important;
+    }
+
+    .incoming-call-actions .decline {
+      border-color: #d97d91;
+      background: var(--danger-soft);
+      color: #a63f56;
+    }
+
+    .contacts-note,
+    .contact-row-main small,
+    .incoming-call span,
+    .call-history-row small,
+    .metrics-intro,
+    .metrics-note,
+    .metrics-subtext {
+      color: var(--muted);
+    }
+
+    .contact-row,
+    .call-history-row,
+    .contacts-empty,
+    .contact-step,
+    .contact-invite-review,
+    .contacts-message,
+    .metrics-history-row,
+    .metrics-history-section,
+    .metrics-history-stat,
+    .metric-card,
+    .metric-group,
+    .call-reliability-panel,
+    .diagnostics-panel {
+      border-color: var(--line);
+      background: var(--panel-subtle, #f2fff7);
+      color: var(--text);
+    }
+
+    .contact-step strong,
+    .quality-chip,
+    .stat-chip,
+    .connection-state-badge {
+      border-color: var(--line);
+      background: var(--accent-soft);
+      color: #1f7653;
+    }
+
+    .contacts-message.is-error {
+      border-color: #d97d91;
+      background: var(--danger-soft);
+      color: #a63f56;
+    }
+
+    .metrics-history-chart,
+    .metrics-chart-wrap {
+      border-color: var(--line);
+      background: #fbfffc;
+    }
+
+    .chart-grid-line,
+    .metrics-chart-grid line {
+      stroke: #d8eee1;
+    }
+
+    .chart-line,
+    .chart-dot,
+    .metrics-chart-line {
+      stroke: var(--accent);
+    }
+
+    .chart-dot {
+      fill: #ffffff;
+    }
+
+    .incoming-call {
+      box-shadow: 0 1rem 2.8rem rgba(36, 53, 68, 0.16) !important;
+    }
+
+    @media (max-width: 42rem) {
+      body {
+        padding: max(0.35rem, env(safe-area-inset-top)) max(0.35rem, env(safe-area-inset-right)) max(0.55rem, env(safe-area-inset-bottom)) max(0.35rem, env(safe-area-inset-left));
+      }
+
+      main {
+        height: calc(100svh - max(0.9rem, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+        border-radius: 1.1rem;
+      }
+
+      header {
+        border-radius: 1rem;
+        padding: 0.58rem;
       }
     }
   </style>
