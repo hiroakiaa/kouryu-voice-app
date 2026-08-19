@@ -3440,6 +3440,208 @@
         column-gap: 0.5rem;
       }
     }
+
+    /* App information layout: clear header, actions, status, and readable diagnostics. */
+    .app-info-tooltip {
+      gap: 0.8rem;
+    }
+
+    .app-info-version {
+      min-height: 2.8rem;
+      padding: 0.55rem 0.7rem;
+      border: 0.08rem solid var(--line);
+      border-radius: 1rem;
+      background: linear-gradient(135deg, #f2ffdd, #e8f8d9);
+    }
+
+    .app-info-version strong {
+      font-family: "Mochiy Pop One", "Hiragino Maru Gothic ProN", sans-serif;
+      color: #477d36;
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    .version-pill {
+      padding: 0.34rem 0.6rem;
+      border: 0.07rem solid var(--line);
+      border-radius: 999rem;
+      background: #fffef8;
+    }
+
+    .app-info-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+      overflow: visible;
+      padding: 0;
+    }
+
+    .app-info-action {
+      width: 100%;
+      min-height: 3rem;
+      justify-content: center;
+      border-radius: 1rem;
+      font-size: 0.88rem;
+    }
+
+    .app-info-tooltip .call-reliability-panel {
+      display: grid;
+      gap: 0.7rem;
+      padding: 0.75rem;
+      border: 0.08rem solid var(--line);
+      border-radius: 1rem;
+      background: #fbfff4;
+    }
+
+    .call-reliability-main {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .call-state-detail {
+      overflow: visible;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.6;
+      text-overflow: clip;
+      white-space: normal;
+    }
+
+    .call-quality-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .call-quality-row > span {
+      justify-content: center;
+      min-height: 2.2rem;
+      padding: 0.36rem 0.48rem;
+    }
+
+    .diagnostics-panel.is-open {
+      align-content: start;
+    }
+
+    .diagnostic-copy-btn {
+      justify-self: end;
+      width: auto;
+      min-width: 9.5rem;
+      min-height: 2.55rem;
+      margin-bottom: 0.15rem;
+      padding: 0.5rem 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: 0.1rem solid var(--line-strong);
+      border-radius: 999rem;
+      outline: 0.08rem dashed rgba(67, 141, 49, 0.5);
+      outline-offset: -0.3rem;
+      background: #f0ffda;
+      color: #3d7030;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .diagnostic-item {
+      display: grid;
+      grid-template-columns: 4.8rem minmax(0, 1fr);
+      align-items: start;
+      column-gap: 0.75rem;
+      row-gap: 0;
+      padding: 0.65rem 0.1rem;
+    }
+
+    .diagnostic-item time {
+      padding-top: 0.12rem;
+      color: var(--muted);
+      font-size: 0.7rem;
+      white-space: nowrap;
+    }
+
+    .diagnostic-content {
+      min-width: 0;
+      display: grid;
+      gap: 0.38rem;
+    }
+
+    .diagnostic-content strong {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .diagnostic-content strong i {
+      flex: 0 0 auto;
+      width: 1rem;
+      margin-top: 0.15rem;
+      color: var(--accent-deep);
+      text-align: center;
+    }
+
+    .diagnostic-detail {
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.65;
+    }
+
+    .diagnostic-advice {
+      grid-column: auto;
+      margin-top: 0.08rem;
+      padding: 0.55rem 0.65rem;
+      border: 0.07rem solid var(--line);
+      border-radius: 0.75rem;
+      background: #f1fae8;
+      color: #4e6548;
+      font-size: 0.72rem;
+      line-height: 1.65;
+    }
+
+    .diagnostic-empty {
+      min-height: 7rem;
+      display: grid;
+      place-items: center;
+      gap: 0.35rem;
+      padding: 1rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .diagnostic-empty strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    @media (max-width: 42rem) {
+      .call-reliability-main {
+        grid-template-columns: 1fr;
+      }
+
+      .call-quality-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .diagnostic-copy-btn {
+        justify-self: stretch;
+        width: 100%;
+      }
+
+      .diagnostic-item {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+      }
+
+      .diagnostic-item time {
+        padding: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -7216,17 +7418,17 @@
     function renderDiagnostics() {
       if (!el.diagnosticsPanel) return;
       if (!diagnostics.length) {
-        el.diagnosticsPanel.innerHTML = '<div class="diagnostic-item"><strong>' + escapeHtml("\u307e\u3060\u8a3a\u65ad\u30ed\u30b0\u306f\u3042\u308a\u307e\u305b\u3093\u3002") + '</strong><span>' + escapeHtml("\u63a5\u7d9a\u3092\u958b\u59cb\u3059\u308b\u3068\u3001\u3053\u3053\u306b\u72b6\u614b\u304c\u6b8b\u308a\u307e\u3059\u3002") + '</span></div>';
+        el.diagnosticsPanel.innerHTML = '<div class="diagnostic-empty"><strong>' + escapeHtml("\u307e\u3060\u8a3a\u65ad\u30ed\u30b0\u306f\u3042\u308a\u307e\u305b\u3093\u3002") + '</strong><span>' + escapeHtml("\u63a5\u7d9a\u3092\u958b\u59cb\u3059\u308b\u3068\u3001\u3053\u3053\u306b\u72b6\u614b\u304c\u6b8b\u308a\u307e\u3059\u3002") + '</span></div>';
         return;
       }
-      el.diagnosticsPanel.innerHTML = '<button id="copyDiagnosticLogBtn" class="metrics-copy-btn" type="button"><i class="fa-solid fa-copy"></i> 障害記録をコピー</button>' + diagnostics.map(function(item) {
+      el.diagnosticsPanel.innerHTML = '<button id="copyDiagnosticLogBtn" class="diagnostic-copy-btn" type="button"><i class="fa-solid fa-copy"></i><span>障害記録をコピー</span></button>' + diagnostics.map(function(item) {
         const time = item.time ? item.time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
         const icon = item.level === "error" ? "fa-circle-exclamation" : (item.level === "warn" ? "fa-triangle-exclamation" : "fa-circle-info");
         return '<div class="diagnostic-item is-' + escapeHtml(item.level) + '">' +
           '<time>' + escapeHtml(time) + '</time>' +
-          '<strong><i class="fa-solid ' + icon + '"></i> ' + escapeHtml(item.message) + '</strong>' +
-          (item.detail ? '<span>' + escapeHtml(item.detail) + '</span>' : '') +
-          (item.advice ? '<span class="diagnostic-advice">' + escapeHtml(item.advice) + '</span>' : '') +
+          '<div class="diagnostic-content"><strong><i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(item.message) + '</span></strong>' +
+          (item.detail ? '<span class="diagnostic-detail">' + escapeHtml(item.detail) + '</span>' : '') +
+          (item.advice ? '<span class="diagnostic-advice">' + escapeHtml(item.advice) + '</span>' : '') + '</div>' +
           '</div>';
       }).join("");
       const copyButton = document.getElementById("copyDiagnosticLogBtn");
