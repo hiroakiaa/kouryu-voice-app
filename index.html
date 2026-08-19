@@ -3763,8 +3763,12 @@
     }
 
     #chartPointDetail.metrics-history-note {
-      display: grid;
+      display: grid !important;
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      grid-template-areas:
+        "summary"
+        "meta";
       grid-auto-flow: row;
       align-items: stretch;
       gap: 0.6rem;
@@ -3780,32 +3784,41 @@
       white-space: normal;
     }
 
-    #chartPointDetail > .chart-point-summary,
+    #chartPointDetail > .chart-point-summary {
+      grid-area: summary;
+      grid-column: 1 / -1;
+      width: 100%;
+    }
+
     #chartPointDetail > .chart-point-meta {
+      grid-area: meta;
       grid-column: 1 / -1;
       width: 100%;
     }
 
     .chart-point-summary {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
       gap: 0.55rem;
       padding-bottom: 0.55rem;
       border-bottom: 0.07rem dashed var(--line);
     }
 
     .chart-point-position {
+      justify-self: start;
+      max-width: 100%;
       padding: 0.24rem 0.52rem;
       border: 0.07rem solid var(--line-strong);
       border-radius: 999rem;
       background: #fff9d9;
       color: #5f733d;
       font-size: 0.72rem;
+      white-space: nowrap;
     }
 
     .chart-point-cost {
+      justify-self: end;
       white-space: nowrap;
       color: #3f782f;
       font-size: 1rem;
