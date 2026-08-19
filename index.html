@@ -8,10 +8,13 @@
   <meta name="push-endpoint" content="https://kouryu-call-notifications.allinone-hiroakiaa.workers.dev">
   <meta name="push-vapid-public-key" content="BE2-Tk29DXccuqUnn8Mu9emNPGMMQBSlxV5SCJ05i8Ba2rab35DzvkmgQZyra5YmDlkhH3q0FQdC96pGzAQyxH4">
   <meta name="firebase-app-check-site-key" content="6LeJtoEtAAAAABNV7YMtZBvBbhhh7hfT9l5cWxsp">
-  <meta name="theme-color" content="#f5fff9">
+  <meta name="theme-color" content="#f4ffe4">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./app-icon.svg" type="image/svg+xml">
   <title>共通電話</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
@@ -2623,6 +2626,286 @@
       header {
         border-radius: 1rem;
         padding: 0.58rem;
+      }
+    }
+
+    /* Cheerful lime theme: playful, readable, and still calm enough for calls. */
+    :root {
+      --bg: #f4ffe4;
+      --panel: #fffef8;
+      --panel-soft: #eaffc9;
+      --panel-raised: #f8ffed;
+      --line: #c8e99a;
+      --line-strong: #88c95a;
+      --text: #34452f;
+      --muted: #6d8067;
+      --quiet: #72866d;
+      --accent: #65b741;
+      --accent-deep: #438d31;
+      --accent-soft: #dcf7b8;
+      --control: #fffef8;
+      --cute-yellow: #fff3a8;
+      --cute-mint: #d7f8dc;
+      --cute-peach: #ffe4cb;
+    }
+
+    html,
+    body {
+      font-size: 18px;
+    }
+
+    body,
+    button,
+    input,
+    select,
+    textarea {
+      font-family: "Mochiy Pop One", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+      letter-spacing: 0.025em;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 8% 10%, rgba(255, 232, 98, 0.34) 0 0.42rem, transparent 0.46rem),
+        radial-gradient(circle at 92% 16%, rgba(101, 183, 65, 0.18) 0 0.55rem, transparent 0.6rem),
+        radial-gradient(circle at 14% 88%, rgba(118, 216, 158, 0.2), transparent 20rem),
+        linear-gradient(145deg, #fbfff2 0%, #f1ffdc 54%, #e8fbd6 100%);
+      background-size: 4.6rem 4.6rem, 6rem 6rem, auto, auto;
+    }
+
+    main {
+      border: 0.16rem solid var(--line-strong);
+      border-radius: 2rem;
+      background: rgba(255, 254, 248, 0.97);
+      box-shadow: 0 0.8rem 0 #d5ecb5, 0 1.35rem 2.8rem rgba(73, 121, 48, 0.12);
+    }
+
+    header {
+      position: relative;
+      overflow: hidden;
+      border: 0.12rem solid var(--line-strong);
+      border-radius: 1.5rem;
+      background: linear-gradient(135deg, #efffd3, #dff8bd);
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      inset: 0.32rem;
+      border: 0.1rem dashed rgba(67, 141, 49, 0.35);
+      border-radius: 1.12rem;
+      pointer-events: none;
+    }
+
+    header > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand h1 {
+      color: #3f772f;
+      font-size: clamp(1.22rem, 3.8vw, 1.58rem);
+      text-shadow: 0 0.12rem 0 #ffffff;
+    }
+
+    .card,
+    .audio-health,
+    .call-tips,
+    .contacts-card,
+    .metrics-modal-card,
+    .app-info-tooltip {
+      border-width: 0.11rem;
+      border-color: var(--line-strong);
+      border-radius: 1.55rem;
+      box-shadow: 0 0.34rem 0 #e1f1ca !important;
+    }
+
+    .participants-card {
+      background:
+        radial-gradient(circle at 97% 5%, rgba(255, 243, 168, 0.62), transparent 7rem),
+        var(--panel-raised);
+    }
+
+    .participants-card h2,
+    .contacts-head h2,
+    .metrics-modal-head h2 {
+      color: #477d36;
+      font-size: 1.14rem;
+    }
+
+    .participant-limit,
+    .connection-pill.is-connected,
+    .connection-state-badge.is-connected {
+      border-color: #8bc95d;
+      background: var(--cute-yellow);
+      color: #4d762e;
+    }
+
+    .participant .avatar,
+    .participant.is-self .avatar {
+      border-width: 0.14rem;
+      border-radius: 1.4rem;
+      background: linear-gradient(145deg, #ffffff, #efffd8);
+      box-shadow: 0 0.28rem 0 #cfe8aa;
+    }
+
+    .participant.is-self .avatar {
+      background: linear-gradient(145deg, #ecffd0, #cdefa6);
+    }
+
+    .empty-participants,
+    .waiting-guidance,
+    .notice.is-important {
+      border-style: dashed;
+      border-width: 0.11rem;
+    }
+
+    .notice.is-important {
+      background: linear-gradient(90deg, var(--cute-yellow), #eeffd3);
+      color: #4c732f;
+    }
+
+    .mic-level {
+      background: #eef8df;
+    }
+
+    .mic-level-bar {
+      background: linear-gradient(90deg, #b8df6f, #62bd57, #32a979);
+    }
+
+    .app-icon,
+    .header-icon-btn,
+    .controls button,
+    .primary-action,
+    .app-info-action,
+    .contacts-actions button,
+    .contact-row button,
+    .incoming-call-actions button,
+    .contacts-close,
+    .metrics-close,
+    .metrics-history-open-btn {
+      position: relative;
+      border-width: 0.12rem;
+      border-color: var(--line-strong);
+      outline: 0.1rem dashed rgba(67, 141, 49, 0.55);
+      outline-offset: -0.34rem;
+      box-shadow: 0 0.26rem 0 #d1e9ae !important;
+      font-size: max(0.84rem, 15px);
+    }
+
+    .app-icon,
+    .header-icon-btn {
+      background: linear-gradient(145deg, #fffff7, #dcf7b8);
+    }
+
+    .controls button:nth-child(3n + 1) {
+      background: #f2ffdd;
+    }
+
+    .controls button:nth-child(3n + 2) {
+      background: #e6fae8;
+    }
+
+    .controls button:nth-child(3n) {
+      background: #fff8ca;
+    }
+
+    .controls button:not(:disabled):active,
+    .primary-action:not(:disabled):active,
+    .header-icon-btn:not(:disabled):active,
+    .app-icon:not(:disabled):active {
+      transform: translateY(0.16rem);
+      box-shadow: 0 0.08rem 0 #c5dda3 !important;
+    }
+
+    .primary-action {
+      min-height: 3.55rem;
+      border-radius: 1.45rem;
+      font-size: 1.08rem;
+    }
+
+    .primary-action.primary {
+      background: linear-gradient(135deg, #e7ffc1, #c8f08f);
+    }
+
+    .primary-action.danger,
+    .primary-action.is-leaving {
+      outline-color: rgba(166, 63, 86, 0.42);
+      box-shadow: 0 0.26rem 0 #f3ccd5 !important;
+    }
+
+    .tip-item,
+    .contact-step,
+    .contact-row,
+    .call-history-row,
+    .metrics-history-row,
+    .metric-card,
+    .metric-group {
+      border-radius: 1.15rem;
+    }
+
+    .tip-item:nth-child(3n + 1),
+    .contact-step:nth-child(3n + 1) {
+      background: #f1ffdc;
+    }
+
+    .tip-item:nth-child(3n + 2),
+    .contact-step:nth-child(3n + 2) {
+      background: #e5f9e7;
+    }
+
+    .tip-item:nth-child(3n),
+    .contact-step:nth-child(3n) {
+      background: #fff9d5;
+    }
+
+    .tip-item,
+    .contacts-note,
+    .contact-row-main small,
+    .incoming-call span,
+    .metrics-intro,
+    .metrics-note,
+    .metrics-subtext {
+      line-height: 1.75;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    button:focus-visible {
+      outline-color: #4b9f37;
+    }
+
+    @media (max-width: 42rem) {
+      html,
+      body {
+        font-size: 17px;
+      }
+
+      main {
+        border-radius: 1.45rem;
+        box-shadow: 0 0.4rem 0 #d5ecb5;
+      }
+
+      header {
+        border-radius: 1.18rem;
+      }
+
+      header::after {
+        inset: 0.24rem;
+        border-radius: 0.9rem;
+      }
+
+      .brand h1 {
+        font-size: clamp(1.05rem, 5vw, 1.34rem);
+      }
+
+      .controls button,
+      .audio-preset-control {
+        min-height: 2.8rem;
+      }
+
+      .primary-action {
+        min-height: 3.35rem;
+        font-size: 1rem;
       }
     }
   </style>
