@@ -2908,6 +2908,232 @@
         font-size: 1rem;
       }
     }
+
+    /* Typography and interaction polish: display face for headings, calm face for reading. */
+    body,
+    button,
+    input,
+    select,
+    textarea {
+      font-family: "FOT-ロダン Pro M", "Rodin Pro M", "FOT-スーラ ProN M", "Sura Pro M", "TsukuARdGothic-Regular", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Yu Gothic", sans-serif;
+      font-weight: 400;
+      letter-spacing: 0.018em;
+    }
+
+    .brand h1,
+    .participants-card h2,
+    .contacts-head h2,
+    .modal-head h2,
+    .contact-section-title,
+    .metrics-history-panel h3,
+    .incoming-call > strong,
+    .primary-action {
+      font-family: "Mochiy Pop One", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+      font-weight: 400;
+      letter-spacing: 0.035em;
+    }
+
+    .app-info-tooltip,
+    .contacts-card,
+    .incoming-call,
+    .metrics-modal-card {
+      font-weight: 400;
+    }
+
+    .app-info-tooltip strong,
+    .contacts-card strong,
+    .incoming-call strong,
+    .metrics-modal-card strong {
+      font-weight: 500;
+    }
+
+    .contacts-note,
+    .contact-row-main small,
+    .call-history-row small,
+    .incoming-call span,
+    .metrics-intro,
+    .metrics-note,
+    .metrics-subtext,
+    .metrics-history-note,
+    .metrics-history-stat small,
+    .metrics-mode-summary small,
+    .metrics-compare-chip small,
+    .metrics-detail-note,
+    .tip-item span span {
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+
+    /* Replace every legacy dark hover/focus surface with the current lime palette. */
+    button:not(:disabled):hover,
+    button:not(:disabled):focus-visible,
+    .mic-state-toggle:not(:disabled):hover,
+    .mic-state-toggle:not(:disabled):focus-visible,
+    .metrics-history-open-btn:not(:disabled):hover,
+    .metrics-history-open-btn:not(:disabled):focus-visible,
+    .metrics-line:not(:disabled):hover,
+    .metrics-line:not(:disabled):focus-visible,
+    .metrics-line.is-open {
+      border-color: var(--accent-deep);
+      background: linear-gradient(135deg, #f1ffda, #dff7bd);
+      color: #376b2b;
+    }
+
+    button.primary:not(:disabled):hover,
+    button.primary:not(:disabled):focus-visible,
+    .contact-primary:not(:disabled):hover,
+    .contact-primary:not(:disabled):focus-visible,
+    .incoming-call-actions .accept:not(:disabled):hover,
+    .incoming-call-actions .accept:not(:disabled):focus-visible {
+      border-color: #559e3b !important;
+      background: linear-gradient(135deg, #ddffad, #bfe982) !important;
+      color: #315f27 !important;
+    }
+
+    button.danger:not(:disabled):hover,
+    button.danger:not(:disabled):focus-visible,
+    .incoming-call-actions .decline:not(:disabled):hover,
+    .incoming-call-actions .decline:not(:disabled):focus-visible {
+      border-color: #c8667c;
+      background: #ffe4ea;
+      color: #94364d;
+    }
+
+    .app-icon.is-open,
+    .header-icon-btn.is-open,
+    .app-icon:not(:disabled):hover,
+    .app-icon:not(:disabled):focus-visible,
+    .header-icon-btn:not(:disabled):hover,
+    .header-icon-btn:not(:disabled):focus-visible {
+      border-color: var(--accent-deep);
+      background: linear-gradient(145deg, #f8ffe9, #cef29d);
+      color: #376b2b;
+    }
+
+    /* Modal rhythm: icons have their own visual column instead of touching text. */
+    .contacts-head h2,
+    .modal-head h2,
+    .contact-section-title,
+    .metrics-history-panel h3 {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.62rem;
+      line-height: 1.45;
+    }
+
+    .contacts-head h2 > i,
+    .modal-head h2 > i,
+    .contact-section-title > i,
+    .metrics-history-panel h3 > i {
+      flex: 0 0 auto;
+      width: 1.35rem;
+      color: var(--accent-deep);
+      text-align: center;
+    }
+
+    .app-info-action,
+    .contacts-actions button,
+    .contact-row button,
+    .incoming-call-actions button,
+    .metrics-history-open-btn,
+    .contact-primary,
+    .primary-action,
+    .controls button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.62rem;
+      line-height: 1.45;
+    }
+
+    .app-info-action > i,
+    .contacts-actions button > i,
+    .contact-row button > i,
+    .incoming-call-actions button > i,
+    .metrics-history-open-btn > i,
+    .contact-primary > i,
+    .primary-action > i,
+    .controls button > i {
+      flex: 0 0 auto;
+      width: 1.15rem;
+      text-align: center;
+    }
+
+    .contacts-card,
+    .metrics-modal-card {
+      line-height: 1.65;
+    }
+
+    .contacts-head,
+    .modal-head {
+      min-height: 3rem;
+      padding-bottom: 0.78rem;
+      border-bottom: 0.09rem dashed var(--line);
+      margin-bottom: 0.9rem;
+    }
+
+    .metrics-history-note {
+      display: grid;
+      grid-template-columns: 1.35rem minmax(0, 1fr);
+      align-items: start;
+      column-gap: 0.72rem;
+      line-height: 1.7;
+    }
+
+    .metrics-history-note > i {
+      margin-top: 0.18rem;
+      color: var(--accent-deep);
+      text-align: center;
+    }
+
+    .tip-item {
+      grid-template-columns: 1.5rem minmax(0, 1fr);
+      column-gap: 0.72rem;
+    }
+
+    .tip-item > i {
+      margin-top: 0.2rem;
+      text-align: center;
+    }
+
+    .connection-state-badge,
+    .quality-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+    }
+
+    .metrics-label {
+      gap: 0.55rem;
+      line-height: 1.55;
+    }
+
+    .metrics-line {
+      column-gap: 0.65rem;
+      font-weight: 400;
+    }
+
+    .metrics-line strong {
+      font-weight: 500;
+    }
+
+    @media (max-width: 42rem) {
+      .contacts-card,
+      .metrics-modal-card {
+        line-height: 1.6;
+      }
+
+      .contacts-head h2,
+      .modal-head h2 {
+        gap: 0.48rem;
+      }
+
+      .contacts-actions button,
+      .incoming-call-actions button,
+      .contact-primary {
+        gap: 0.5rem;
+      }
+    }
   </style>
 </head>
 <body>
