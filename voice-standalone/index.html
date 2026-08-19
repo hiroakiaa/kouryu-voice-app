@@ -3673,6 +3673,18 @@
         bottom: 0.65rem;
       }
     }
+
+    /* Preserve a true circle around the primary phone icon. */
+    .primary-action > i {
+      flex: 0 0 2rem;
+      width: 2rem;
+      min-width: 2rem;
+      height: 2rem;
+      aspect-ratio: 1 / 1;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+    }
   </style>
 </head>
 <body>
