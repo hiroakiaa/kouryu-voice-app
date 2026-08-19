@@ -3685,6 +3685,107 @@
       place-items: center;
       border-radius: 50%;
     }
+
+    /* Make the history chart use the modal width and keep point details horizontal. */
+    .metrics-history-chart-wrap {
+      gap: 0.75rem;
+      padding: 0.85rem;
+    }
+
+    .metrics-history-chart-title {
+      align-items: flex-start;
+      font-size: 0.78rem;
+      line-height: 1.65;
+    }
+
+    .metrics-history-chart-title > span {
+      min-width: 0;
+    }
+
+    .metrics-history-chart-title small {
+      line-height: 1.55;
+    }
+
+    .metrics-history-chart {
+      min-height: clamp(12rem, 31vw, 22rem);
+      border-width: 0.1rem;
+      border-color: var(--line-strong);
+      border-radius: 1rem;
+    }
+
+    .metrics-history-chart svg {
+      width: 100%;
+      height: clamp(12rem, 31vw, 22rem);
+    }
+
+    .metrics-history-chart .chart-line {
+      stroke: #54ad39;
+      stroke-width: 0.2rem;
+    }
+
+    .metrics-history-chart .chart-dot {
+      stroke: #438d31;
+      stroke-width: 0.16rem;
+    }
+
+    .metrics-history-chart .chart-axis {
+      stroke: #66845b;
+      stroke-width: 0.9;
+    }
+
+    .metrics-history-chart .chart-grid-line {
+      stroke: #cfe4bf;
+      stroke-width: 0.7;
+    }
+
+    .metrics-history-chart .chart-tick {
+      fill: #5d7557;
+      font-size: 9px;
+      font-weight: 500;
+    }
+
+    .metrics-history-chart .chart-axis-label {
+      fill: #344f30;
+      font-size: 9.5px;
+      font-weight: 500;
+    }
+
+    #chartPointDetail.metrics-history-note {
+      display: block;
+      min-height: 0;
+      width: 100%;
+      padding: 0.7rem 0.85rem;
+      border-color: var(--line-strong);
+      background: linear-gradient(135deg, #f6ffe8, #ecf9e4);
+      color: #536b4d;
+      font-size: 0.76rem;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    @media (max-width: 42rem) {
+      .metrics-history-chart-wrap {
+        padding: 0.65rem;
+      }
+
+      .metrics-history-chart-title {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        font-size: 0.72rem;
+      }
+
+      .metrics-history-chart,
+      .metrics-history-chart svg {
+        min-height: 11rem;
+        height: 11rem;
+      }
+
+      #chartPointDetail.metrics-history-note {
+        padding: 0.65rem;
+        font-size: 0.72rem;
+      }
+    }
   </style>
 </head>
 <body>
