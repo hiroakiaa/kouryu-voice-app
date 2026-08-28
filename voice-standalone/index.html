@@ -4144,7 +4144,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-08-28-ipad-startup-recovery";
+    const APP_VERSION = "2026-08-11-capacity-slots";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
@@ -4382,9 +4382,6 @@
     let callSlot = "";
     let authUser = null;
     let authReadyPromise = null;
-    let joinAttemptPromise = null;
-    let startupRecoveryPromise = null;
-    let startupPrepared = false;
     let contacts = [];
     let unsubContacts = null;
     let unsubIncomingCalls = null;
@@ -4603,23 +4600,10 @@
       el.acceptIncoming.addEventListener("click", acceptIncomingCall);
       el.declineIncoming.addEventListener("click", declineIncomingCall);
       window.addEventListener("pageshow", function() {
-        if (isDemoMode) return;
-        if (joined) {
-          resumeCallAudio("pageshow");
-        } else {
-          recoverStartupConnection();
-        }
+        if (!isDemoMode && joined) resumeCallAudio("pageshow");
       });
       window.addEventListener("focus", function() {
-        if (isDemoMode) return;
-        if (joined) {
-          resumeCallAudio("focus");
-        } else if (!authUser) {
-          recoverStartupConnection();
-        }
-      });
-      window.addEventListener("online", function() {
-        if (!isDemoMode && !joined) recoverStartupConnection();
+        if (!isDemoMode && joined) resumeCallAudio("focus");
       });
       if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === "function") {
         navigator.mediaDevices.addEventListener("devicechange", function() {
@@ -4639,13 +4623,11 @@
         startOutgoingCallWatcher();
         renderCallHistory();
         refreshClosedAppNotifications();
-        startupPrepared = true;
       } catch (error) {
-        setCallPhase("waiting", "接続準備を自動でやり直しています。");
-        setStatus("接続を準備しています", "通信が戻り次第、自動で再開します。");
-        setNotice("接続準備に時間がかかっています。このまま少しお待ちください。", true);
+        setCallPhase("failed", "安全な接続を準備できませんでした。ページを再読み込みしてください。");
+        setStatus("接続準備に失敗しました", "ページを再読み込みして、もう一度お試しください。");
+        setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
         pushDiagnostic("error", "匿名認証に失敗", error && error.message ? error.message : "");
-        window.setTimeout(recoverStartupConnection, 1500);
         return;
       }
       ensureParticipantWatcher();
@@ -4663,51 +4645,15 @@
         return Promise.resolve(authUser);
       }
       if (!authReadyPromise) {
-        authReadyPromise = authenticateAnonymouslyWithRetry().catch(function(error) {
+        authReadyPromise = signInAnonymously(auth).then(function(result) {
+          authUser = result.user;
+          return authUser;
+        }).catch(function(error) {
           authReadyPromise = null;
           throw error;
         });
       }
       return authReadyPromise;
-    }
-
-    async function authenticateAnonymouslyWithRetry() {
-      let lastError = null;
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        try {
-          const result = await signInAnonymously(auth);
-          authUser = result.user;
-          return authUser;
-        } catch (error) {
-          lastError = error;
-          if (attempt < 2) await new Promise(function(resolve) {
-            window.setTimeout(resolve, 500 * (attempt + 1));
-          });
-        }
-      }
-      throw lastError || new Error("anonymous_auth_failed");
-    }
-
-    function recoverStartupConnection() {
-      if (isDemoMode || startupPrepared) return Promise.resolve(authUser);
-      if (startupRecoveryPromise) return startupRecoveryPromise;
-      startupRecoveryPromise = ensureAnonymousAuth().then(function(user) {
-        ensureParticipantWatcher();
-        startContactWatchers();
-        startOutgoingCallWatcher();
-        refreshClosedAppNotifications();
-        startupPrepared = true;
-        setCallPhase("waiting", "参加すると接続状態を表示します。");
-        setReadyStatus();
-        maybeAutoJoinCall();
-        return user;
-      }).catch(function(error) {
-        pushDiagnostic("warn", "起動時の接続準備を再試行", error && error.message ? error.message : "");
-        return null;
-      }).finally(function() {
-        startupRecoveryPromise = null;
-      });
-      return startupRecoveryPromise;
     }
 
     function ensureTurnConfiguration() {
@@ -4957,40 +4903,23 @@
       return false;
     }
 
-    function joinCall() {
-      if (joined) return Promise.resolve();
-      if (joinAttemptPromise) return joinAttemptPromise;
-      joinAttemptPromise = performJoinCall().finally(function() {
-        joinAttemptPromise = null;
-      });
-      return joinAttemptPromise;
-    }
-
-    async function performJoinCall() {
+    async function joinCall() {
       if (joined) return;
+      if (!allowLocalAction(JOIN_RATE_LIMIT)) {
+        setNotice("短時間に参加操作が繰り返されました。10分ほど待ってからお試しください。", true);
+        return;
+      }
       if (!runPassivePreflightCheck()) return;
-      setJoinBusy(true, "接続準備中");
-      updateJoinButton();
       try {
         await ensureAnonymousAuth();
       } catch (error) {
-        setJoinBusy(false);
-        updateJoinButton();
-        setNotice("接続準備を完了できませんでした。通信を確認して、もう一度参加を押してください。", true);
-        pushDiagnostic("warn", "参加前の認証に失敗", error && error.message ? error.message : "");
-        return;
-      }
-      if (!allowLocalAction(JOIN_RATE_LIMIT)) {
-        setJoinBusy(false);
-        updateJoinButton();
-        setNotice("短時間に参加操作が繰り返されました。10分ほど待ってからお試しください。", true);
+        setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
         return;
       }
       const activeOtherParticipants = participants.filter(function(person) {
         return person && person.userId && person.userId !== userId && !isSameDeviceParticipant(person) && person.left !== true && isParticipantActive(person);
       });
       if (activeOtherParticipants.length >= MAX_CALL_PARTICIPANTS) {
-        setJoinBusy(false);
         deniedByCapacity = true;
         setCallPhase("failed", "この音声通話は4人までです。新しい通話URLを作ってください。");
         setStatus("通話が満員です", "参加情報やマイクを開始する前に停止しました。別の通話URLを作って参加してください。");
@@ -5022,7 +4951,6 @@
       } catch (error) {
         callSlot = "";
         if (error && error.message === "CALL_FULL") {
-          setJoinBusy(false);
           deniedByCapacity = true;
           setCallPhase("failed", "この音声通話は4人までです。新しい通話URLを作ってください。");
           setStatus("通話が満員です", "別の通話URLを作って参加してください。");
