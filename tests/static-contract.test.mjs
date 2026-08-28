@@ -261,3 +261,14 @@ test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () 
   assert.match(turnWorker, /duplicate: true/);
   assert.match(turnWorker, /expirationTtl: 120/);
 });
+
+test("iPadの起動直後でも認証を再試行し参加処理を重複させない", () => {
+  assert.match(rootHtml, /authenticateAnonymouslyWithRetry/);
+  assert.match(rootHtml, /for \(let attempt = 0; attempt < 3; attempt \+= 1\)/);
+  assert.match(rootHtml, /function recoverStartupConnection\(\)/);
+  assert.match(rootHtml, /window\.addEventListener\("pageshow"/);
+  assert.match(rootHtml, /window\.addEventListener\("online"/);
+  assert.match(rootHtml, /if \(joinAttemptPromise\) return joinAttemptPromise/);
+  assert.match(rootHtml, /joinAttemptPromise = performJoinCall\(\)\.finally/);
+  assert.match(rootHtml, /await ensureAnonymousAuth\(\);[\s\S]*?allowLocalAction\(JOIN_RATE_LIMIT\)/);
+});
