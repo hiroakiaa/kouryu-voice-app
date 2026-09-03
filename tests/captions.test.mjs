@@ -11,6 +11,8 @@ function harness(available = async () => 'available', clock = Date, overrides = 
     setAttribute(key, value) { this[key] = value; }
     addEventListener(name, fn) { this.events[name] = fn; }
     click() { return this.events.click?.(); }
+    showModal() { this.open = true; }
+    close() { this.open = false; }
   }
   const nodes = new Map();
   const root = { querySelector: key => { if (!nodes.has(key)) nodes.set(key, new Element()); return nodes.get(key); } };
@@ -33,6 +35,15 @@ function harness(available = async () => 'available', clock = Date, overrides = 
 }
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const packet = (text = 'WebRTCを使います', seq = 1, final = false) => ({ id: 'utterance-1', seq, final, text });
+
+test('聞き逃しと用語は独立したダイアログで開き、Escapeと字幕OFFで閉じる', async()=>{
+ const h=harness();h.toggle();await flush();h.controller.receive('A',packet('WebRTCを使います。',1,true));
+ const replay=h.nodes.get('[data-caption-replay-panel]'),term=h.nodes.get('[data-caption-term-panel]');
+ h.nodes.get('[data-caption-replay-button]').click();assert.equal(replay.open,true);
+ let prevented=false;replay.events.cancel({preventDefault(){prevented=true}});assert.equal(prevented,true);assert.equal(replay.open,false);
+ h.list.children[0].children[0].children[1].children[1].click();assert.equal(term.open,true);assert.equal(replay.open,false);
+ h.toggle();assert.equal(term.open,false);assert.equal(term.hidden,true);
+});
 
 test('用語をタップしたときだけ語単体を問い合わせ、閉じた後の回答を破棄する',async()=>{
  let resolve, signal;const requests=[];

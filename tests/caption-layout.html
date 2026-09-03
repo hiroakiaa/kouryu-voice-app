@@ -1,12 +1,15 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><title>通話全体の字幕レイアウト試験</title>
 <style>body{font:16px sans-serif}iframe{display:block;border:1px solid #789;margin:16px 0}</style>
 <h1>通話全体の字幕レイアウト（合成文字、実マイク不使用）</h1>
+<pre id="dialogMeasurements"></pre>
 <iframe id="mobile" title="390×700" width="390" height="700"></iframe>
 <iframe id="short" title="390×550" width="390" height="550"></iframe>
 <iframe id="desktop" title="900×800" width="900" height="800"></iframe>
 <iframe id="boundary" title="640×800" width="640" height="800"></iframe>
 <script type="module">
 const html=await(await fetch('../index.html')).text();const doc=new DOMParser().parseFromString(html,'text/html');
+const only=new URLSearchParams(location.search).get('frame');if(only)for(const frame of document.querySelectorAll('iframe'))if(frame.id!==only)frame.remove();
+window.addEventListener('message',event=>{if(event.data?.captionDialog)document.querySelector('#dialogMeasurements').textContent+=JSON.stringify(event.data)+'\n';});
 const main=doc.querySelector('main');main.querySelector('#captionsPanel').hidden=false;
 main.querySelector('#participants').innerHTML='<div class="participant">A</div><div class="participant">B</div><div class="participant">C</div><div class="participant">D</div>';
 main.querySelector('#shareBtn').textContent='字幕30件';
@@ -15,7 +18,8 @@ main.querySelector('#joinBtn').textContent='画面最下部';
 main.querySelector('#newCallBtn').textContent='過去を表示';
 for(const frame of document.querySelectorAll('iframe')) frame.srcdoc=`<!doctype html><html lang="ja"><meta name="viewport" content="width=device-width"><style>${doc.querySelector('style').textContent}</style><body class="has-captions">${main.outerHTML}<script type="module">
 import {createCaptions} from '../captions.js';let sequence=0;
-const controller=createCaptions({root:document.querySelector('#captionsPanel'),getCall:()=>({joined:true,muted:true,userId:'self'}),speakerName:id=>id,send:()=>{}});
+const controller=createCaptions({root:document.querySelector('#captionsPanel'),features:{facts:true,terms:true,replay:true,explanations:true},getExplanation:async()=> 'ブラウザーやアプリ間で音声、映像、データをリアルタイムに送受信するための技術です。接続情報の交換にサーバーを用い、必要に応じて中継サーバーを介して通信を行います。',getCall:()=>({joined:true,muted:true,userId:'self'}),speakerName:id=>id,send:()=>{}});
+for(const dialog of document.querySelectorAll('dialog'))dialog.addEventListener('toggle',()=>{if(!dialog.open)return;const r=dialog.getBoundingClientRect(),h=dialog.querySelector('.caption-dialog-header').getBoundingClientRect(),body=dialog.querySelector('.caption-dialog-body');parent.postMessage({captionDialog:dialog.id,width:innerWidth,height:innerHeight,left:r.left,top:r.top,right:r.right,bottom:r.bottom,closeVisible:h.top>=0&&h.bottom<innerHeight,bodyScroll:body.scrollHeight>body.clientHeight},'*')});
 const add=()=>{const n=++sequence;controller.receive('話者'+(n%4+1),{id:'sample-'+n,seq:n,final:true,text:'字幕'+n+'：明日の午後3時に4人でWebRTCの打ち合わせをします。最新の文章の末尾まで表示します。'});};
 document.querySelector('#shareBtn').onclick=()=>{for(let i=0;i<30;i++)add()};document.querySelector('#muteBtn').onclick=add;
 document.querySelector('#joinBtn').onclick=()=>{window.scrollTo({top:document.body.scrollHeight,behavior:'instant'});const b=document.querySelector('#joinBtn').getBoundingClientRect(),c=document.querySelector('.controls').getBoundingClientRect(),m=document.querySelector('main'),s=getComputedStyle(m),l=document.querySelector('[data-caption-list]');document.querySelector('#notice').textContent=JSON.stringify({width:innerWidth,button:b.width,controls:c.width,available:m.clientWidth-parseFloat(s.paddingLeft)-parseFloat(s.paddingRight),bottom:b.bottom,viewport:innerHeight,captionRemaining:l.scrollHeight-l.clientHeight-l.scrollTop});};

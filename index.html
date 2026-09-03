@@ -3889,16 +3889,15 @@
     body.has-captions .participants-card { min-height: 5rem; }
     .controls { align-self: stretch; width: 100%; min-width: 0; }
     .controls > .primary-action { width: 100%; max-width: none; justify-self: stretch; }
-    .captions-card { margin-top: 0; padding: .7rem; min-width: 0; min-height: 13rem; flex: 1 0 13rem; display: flex; flex-direction: column; gap: .25rem; }
+    .captions-card { margin-top: 0; padding: .7rem; min-width: 0; min-height: 13rem; flex: 1 0 auto; display: flex; flex-direction: column; gap: .25rem; }
     .captions-card[hidden], .captions-card [hidden] { display: none !important; }
     .caption-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
     .caption-heading h2 { margin: 0; font-size: 1rem; }
     .caption-heading button, .caption-prepare { font: inherit; font-size: .85rem; padding: .5rem .8rem; }
     .caption-help { font-size: .8rem; line-height: 1.6; margin: .65rem 0 0; }
     .caption-list { max-height: 15rem; overflow-y: auto; overscroll-behavior: contain; margin-top: .4rem; text-align: left; padding-bottom: .65rem; overflow-anchor: none; scroll-padding-bottom: .65rem; }
-    .captions-card > [data-caption-list] { flex: 1 1 0; min-height: 6rem; max-height: none; }
+    .captions-card > [data-caption-list] { flex: 1 1 6rem; min-height: 6rem; max-height: 15rem; }
     .captions-card > :not([data-caption-list]) { flex-shrink: 0; }
-    .captions-card .caption-replay { max-height: 15rem; overflow-y: auto; }
     .caption-line { padding: .6rem .7rem; margin: .4rem 0; border-radius: .7rem; background: #f5fae9; color: #294525; overflow-wrap: anywhere; font-weight: 400; line-height: 1.65; }
     .caption-speaker { display: block; color: #4c6b43; font-size: .75rem; }
     .caption-line.is-interim { color: #58694d; border-left: 2px dotted #89a475; }
@@ -3906,15 +3905,24 @@
     .caption-settings { margin-top: .6rem; font-size: .8rem; text-align: left; }
     .caption-settings label { display: flex; align-items: center; gap: .4rem; padding-top: .5rem; }
     .caption-settings input { width: auto; }
-    .caption-replay { border-top: 1px dashed #a6bf80; margin-top: .75rem; padding-top: .6rem; text-align: left; }
-    .caption-replay-header { display: flex; align-items: center; justify-content: space-between; gap: .4rem; flex-wrap: wrap; }
-    .caption-replay h3 { font-size: .9rem; margin: 0; }
-    .caption-replay button { font: inherit; font-size: .8rem; padding: .4rem .7rem; }
+    .caption-dialog { position: fixed; inset: 0; margin: auto; padding: 0; width: min(42rem, calc(100vw - 24px)); max-width: none; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); border: 2px solid #83b957; border-radius: 1.2rem; background: #fffef9; color: #243c24; box-shadow: 0 16px 64px #142e2440; text-align: left; overflow: hidden; }
+    .caption-dialog[open] { display: flex; flex-direction: column; }
+    .caption-dialog::backdrop { background: rgb(18 35 26 / 48%); }
+    .caption-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; background: #edf7df; border-bottom: 1px solid #d2e5bc; flex: 0 0 auto; }
+    .caption-dialog h3 { margin: 0; font-size: 1.1rem; overflow-wrap: anywhere; }
+    .caption-dialog-header h3 { min-width: 0; }
+    .caption-dialog button { font: inherit; font-size: .9rem; min-height: 44px; padding: .5rem .9rem; flex-shrink: 0; }
+    .caption-dialog-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem; font-size: 1rem; line-height: 1.85; overflow-wrap: anywhere; }
+    .caption-dialog .caption-help { color: #50614a; margin: 0 0 1rem; font-size: .85rem; }
+    .caption-dialog [data-caption-explanation] { margin: .75rem 0 1rem; font-size: 1.1rem; line-height: 1.85; }
+    .caption-dialog [data-caption-explanation-panel] { margin-bottom: 1.25rem; padding-bottom: .5rem; border-bottom: 1px solid #d2e5bc; }
+    .caption-dialog .caption-list { max-height: none; overflow: visible; padding: 0; margin: 0; }
+    .caption-dialog .caption-speaker { font-size: .85rem; }
     .captions-card .caption-term { display: inline; width: auto; height: auto; min-width: 0; min-height: 0; padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; color: inherit; font: inherit; white-space: normal; text-decoration: underline dotted #658547; text-underline-offset: .2em; transform: none; }
     .captions-card .caption-term::before, .captions-card .caption-term::after { content: none; }
     .captions-card .caption-term:hover { text-decoration-style: solid; }
     .captions-card .caption-term:focus-visible { outline: 2px solid #548d34; outline-offset: 2px; }
-    .caption-term-context { overflow-wrap: anywhere; max-height: 10rem; overflow-y: auto; line-height: 1.7; font-size: .9rem; }
+    .caption-term-context { overflow-wrap: anywhere; line-height: 1.8; font-size: 1rem; margin: 0; padding: .85rem; background: #f5fae9; border-radius: .7rem; }
   </style>
 </head>
 <body>
@@ -4005,16 +4013,20 @@
       <details class="caption-settings"><summary>字幕の設定</summary><label><input type="checkbox" data-caption-facts checked>日時・金額・数量などを強調</label><label><input type="checkbox" data-caption-terms checked>専門用語の候補に下線</label></details>
       <p class="caption-help">下線の語を押すと、その語だけをAIへ送り、自分向けの短い解説を表示します。</p>
       <div class="caption-list" data-caption-list aria-label="直近60秒の字幕" tabindex="0" hidden></div>
-      <section id="captionTermCard" class="caption-replay" data-caption-term-panel aria-label="選択した言葉" tabindex="-1" hidden>
-        <div class="caption-replay-header"><h3 data-caption-term-title></h3><button type="button" data-caption-term-close>閉じる</button></div>
+      <dialog id="captionTermCard" class="caption-dialog" data-caption-term-panel aria-labelledby="captionTermTitle" hidden>
+        <div class="caption-dialog-header"><h3 id="captionTermTitle" data-caption-term-title></h3><button type="button" data-caption-term-close autofocus>閉じる</button></div>
+        <div class="caption-dialog-body" tabindex="0">
         <div data-caption-explanation-panel hidden><h3>ひとことで</h3><p data-caption-explanation role="status"></p><button type="button" data-caption-explanation-retry hidden>もう一度取得</button><p class="caption-help">AIによる一般的な説明です。選んだ語だけを送信し、説明は自分だけに表示します。</p></div>
         <p class="caption-help">字幕の原文</p><p class="caption-term-context" data-caption-term-context></p>
-      </section>
-      <section id="captionReplay" class="caption-replay" data-caption-replay-panel aria-label="聞き逃した発言" tabindex="-1" hidden>
-        <div class="caption-replay-header"><h3>直前の字幕</h3><button type="button" data-caption-replay-close>閉じる</button></div>
+        </div>
+      </dialog>
+      <dialog id="captionReplay" class="caption-dialog" data-caption-replay-panel aria-labelledby="captionReplayTitle" hidden>
+        <div class="caption-dialog-header"><h3 id="captionReplayTitle">直前の字幕</h3><button type="button" data-caption-replay-close autofocus>閉じる</button></div>
+        <div class="caption-dialog-body" tabindex="0">
         <p class="caption-help">開いた時点の確定字幕です。60秒を過ぎた発言は消えます。</p>
-        <div class="caption-list" data-caption-replay-list tabindex="0"></div>
-      </section>
+        <div class="caption-list" data-caption-replay-list></div>
+        </div>
+      </dialog>
     </section>
 
     <div class="controls">
@@ -4204,7 +4216,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-streaming-captions-explanations";
+    const APP_VERSION = "2026-09-03-readable-caption-dialogs";
     const CAPTIONS_ENABLED = true;
     const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true, terms: true, explanations: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";

@@ -152,13 +152,18 @@ export function createCaptions({ root, getCall, send, speakerName, getExplanatio
     }
     return [...(factsEnabled ? cached.facts : []), ...(termsEnabled ? cached.terms : [])].sort((a,b) => a.start-b.start);
   }
+  function showPanel(panel, visible) {
+    panel.hidden = !visible;
+    if (visible && !panel.open) panel.showModal?.();
+    if (!visible && panel.open) panel.close?.();
+  }
   function renderTerm() {
     if (!termPanel || !termTitle || !termContext) return;
     const row = selectedTerm && buffer.rows.find(r => r.text && r.speaker === selectedTerm.speaker && r.id === selectedTerm.id);
     if (!row) { selectedTerm = null; clearExplanation(); }
-    termPanel.hidden = !row;
     termTitle.textContent = row ? row.text.slice(selectedTerm.start,selectedTerm.end) : '';
     termContext.textContent = row ? row.text : '';
+    showPanel(termPanel, !!row);
   }
   function render() {
     buffer.prune();
@@ -189,7 +194,7 @@ export function createCaptions({ root, getCall, send, speakerName, getExplanatio
             marked.setAttribute('aria-controls','captionTermCard');
             marked.addEventListener('click', () => {
               selectedTerm = {speaker:row.speaker,id:row.id,start:span.start,end:span.end};
-              renderTerm(); termPanel?.focus?.();
+              closeReplay(); renderTerm(); termClose?.focus?.();
               void explainSelected();
             });
           }
@@ -206,7 +211,7 @@ export function createCaptions({ root, getCall, send, speakerName, getExplanatio
   }
   function renderReplay() {
     if (!replayPanel || !replayList) return;
-    replayPanel.hidden = !replayKeys;
+    showPanel(replayPanel, !!replayKeys);
     if (!replayKeys) { replayList.replaceChildren(); return; }
     const fragment = document.createDocumentFragment();
     const rows = buffer.rows.filter(row => row.final && row.text && replayKeys.has(JSON.stringify([row.speaker, row.id])));
@@ -360,17 +365,20 @@ export function createCaptions({ root, getCall, send, speakerName, getExplanatio
   factsToggle?.addEventListener('change', () => { factsEnabled = !!features.facts && factsToggle.checked; render(); });
   termsToggle?.addEventListener('change', () => { termsEnabled = !!features.terms && termsToggle.checked; selectedTerm = null; render(); });
   termClose?.addEventListener('click', () => { selectedTerm = null; renderTerm(); list.focus?.(); });
+  termPanel?.addEventListener('cancel', event => { event.preventDefault(); selectedTerm = null; renderTerm(); list.focus?.(); });
   termPanel?.addEventListener('keydown', event => { if (event.key === 'Escape') { selectedTerm = null; renderTerm(); list.focus?.(); } });
   replayButton?.addEventListener('click', () => {
     if (!enabled || !features.replay) return;
     if (replayKeys) { closeReplay(); return; }
+    selectedTerm = null; renderTerm();
     buffer.prune();
     // Keep identifiers only, so opening the panel never extends text retention.
     replayKeys = new Set(buffer.rows.filter(row => row.final).map(row => JSON.stringify([row.speaker, row.id])));
     replayButton.setAttribute('aria-expanded', 'true'); renderReplay();
-    replayPanel?.focus?.();
+    replayClose?.focus?.();
   });
   replayClose?.addEventListener('click', () => { closeReplay(); replayButton?.focus?.(); });
+  replayPanel?.addEventListener('cancel', event => { event.preventDefault(); closeReplay(); replayButton?.focus?.(); });
   replayPanel?.addEventListener('keydown', event => { if (event.key === 'Escape') { closeReplay(); replayButton?.focus?.(); } });
   prepare.addEventListener('click', async () => {
     if (!enabled || !Recognition || typeof Recognition.install !== 'function') return;
