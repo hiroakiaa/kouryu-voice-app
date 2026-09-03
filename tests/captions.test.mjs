@@ -22,7 +22,7 @@ function harness(available = async () => 'available', clock = Date, overrides = 
     start() { assert.equal(this.processLocally, true); this.started = true; }
     abort() { this.aborted = true; }
   }
-  const context = vm.createContext({ Date: clock, Math, console, setInterval: fn => { const id = intervals.size + 1; intervals.set(id,fn); return id; },
+  const context = vm.createContext({ Date: clock, Math, console, AbortController, setInterval: fn => { const id = intervals.size + 1; intervals.set(id,fn); return id; },
     clearInterval: id => intervals.delete(id), setTimeout: fn => { const id = timeouts.size + 1; timeouts.set(id,fn); return id; }, clearTimeout: id => timeouts.delete(id),
     document: { createElement: () => new Element(), createDocumentFragment: () => new Element() } });
   vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { CaptionBuffer, createCaptions, findFactSpans, findTermSpans };', context);
@@ -33,6 +33,14 @@ function harness(available = async () => 'available', clock = Date, overrides = 
 }
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const packet = (text = 'WebRTCを使います', seq = 1, final = false) => ({ id: 'utterance-1', seq, final, text });
+
+test('用語をタップしたときだけ語単体を問い合わせ、閉じた後の回答を破棄する',async()=>{
+ let resolve, signal;const requests=[];
+ const h=harness(undefined,Date,{features:{facts:true,replay:true,terms:true,explanations:true},getExplanation:(term,options)=>{requests.push(term);signal=options.signal;return new Promise(r=>resolve=r)}});
+ h.toggle();await flush();h.controller.receive('A',packet('WebRTCの説明です。',1,true));assert.equal(requests.length,0);
+ const words=h.list.children[0].children[0].children[1];words.children[1].click();assert.deepEqual(requests,['WebRTC']);assert.equal(h.sent.length,0);
+ h.nodes.get('[data-caption-term-close]').click();assert.equal(signal.aborted,true);resolve('遅い説明');await flush();assert.equal(h.nodes.get('[data-caption-explanation]').textContent,'');h.toggle();
+});
 
 test('サーバー方式はブラウザー内蔵認識なしで起動し、開始イベント後だけ認識中を表示する', async () => {
   let recognizer;

@@ -205,7 +205,8 @@ test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
   assert.match(rootHtml, /応答して通話を始める/);
   assert.match(rootHtml, /url\.searchParams\.set\("autoJoin", "1"\)/);
   assert.match(rootHtml, /function maybeAutoJoinCall\(\)/);
-  assert.match(rootHtml, /muted = !startedFromPhonebook/);
+  assert.doesNotMatch(rootHtml, /muted = !startedFromPhonebook/);
+  assert.match(rootHtml, /マイクはONです。そのまま話せます。/);
   assert.match(rootHtml, /setJoinBusy\(true, "自動参加中"\)/);
   assert.match(rootHtml, /if \(joined && localStream\)/);
   assert.doesNotMatch(rootHtml, /await ensureTurnConfiguration\(\)/);

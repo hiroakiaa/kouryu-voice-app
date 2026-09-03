@@ -70,7 +70,7 @@ export function findTermSpans(text, limit = 4) {
   return selected;
 }
 
-export function createCaptions({ root, getCall, send, speakerName, features = { facts: true, replay: true, terms: true }, recognitionMode = 'local', Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
+export function createCaptions({ root, getCall, send, speakerName, getExplanation, features = { facts: true, replay: true, terms: true }, recognitionMode = 'local', Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
   const serverRecognition = recognitionMode === 'server';
   const button = root.querySelector('[data-caption-toggle]');
   const status = root.querySelector('[data-caption-status]');
@@ -86,6 +86,36 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
   const termTitle = root.querySelector('[data-caption-term-title]');
   const termContext = root.querySelector('[data-caption-term-context]');
   const termClose = root.querySelector('[data-caption-term-close]');
+  const explanationPanel = root.querySelector('[data-caption-explanation-panel]');
+  const explanationText = root.querySelector('[data-caption-explanation]');
+  const explanationRetry = root.querySelector('[data-caption-explanation-retry]');
+  let explanationRequest = null, explanationGeneration = 0, explanationTimer = null;
+  function clearExplanation() {
+    explanationGeneration++; explanationRequest?.abort(); explanationRequest = null;
+    clearTimeout(explanationTimer); explanationTimer = null;
+    if(explanationText)explanationText.textContent='';
+    if(explanationPanel)explanationPanel.hidden=true;
+    if(explanationRetry)explanationRetry.hidden=true;
+  }
+  async function explainSelected() {
+    clearExplanation();
+    if(!features.explanations||!getExplanation||!selectedTerm||!explanationText)return;
+    const row=buffer.rows.find(r=>r.speaker===selectedTerm.speaker&&r.id===selectedTerm.id);
+    if(!row)return;
+    const term=row.text.slice(selectedTerm.start,selectedTerm.end), token=explanationGeneration;
+    explanationPanel.hidden=false;explanationText.textContent='意味を確認しています…';
+    explanationRequest=new AbortController();
+    explanationTimer=setTimeout(()=>explanationRequest?.abort(),15000);
+    try{
+      const text=await getExplanation(term,{signal:explanationRequest.signal});
+      if(token!==explanationGeneration||!enabled||!selectedTerm)return;
+      explanationText.textContent=text;
+    }catch(_){
+      if(token!==explanationGeneration||!enabled)return;
+      explanationText.textContent='解説を取得できませんでした。';if(explanationRetry)explanationRetry.hidden=false;
+    }finally{if(token===explanationGeneration){clearTimeout(explanationTimer);explanationTimer=null;explanationRequest=null}}
+  }
+  explanationRetry?.addEventListener('click',()=>{void explainSelected()});
   let selectedTerm = null, termsEnabled = !!features.terms, lastSignature = '';
   const annotationCache = new WeakMap();
   if (termsToggle) { termsToggle.checked = termsEnabled; termsToggle.disabled = !features.terms; }
@@ -124,8 +154,8 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
   }
   function renderTerm() {
     if (!termPanel || !termTitle || !termContext) return;
-    const row = selectedTerm && buffer.rows.find(r => r.speaker === selectedTerm.speaker && r.id === selectedTerm.id);
-    if (!row) selectedTerm = null;
+    const row = selectedTerm && buffer.rows.find(r => r.text && r.speaker === selectedTerm.speaker && r.id === selectedTerm.id);
+    if (!row) { selectedTerm = null; clearExplanation(); }
     termPanel.hidden = !row;
     termTitle.textContent = row ? row.text.slice(selectedTerm.start,selectedTerm.end) : '';
     termContext.textContent = row ? row.text : '';
@@ -137,6 +167,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     lastSignature = signature;
     const fragment = document.createDocumentFragment();
     for (const row of buffer.rows) {
+      if (!row.text) continue;
       const line = document.createElement('p');
       line.className = row.final ? 'caption-line' : 'caption-line is-interim';
       const name = document.createElement('span');
@@ -159,6 +190,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
             marked.addEventListener('click', () => {
               selectedTerm = {speaker:row.speaker,id:row.id,start:span.start,end:span.end};
               renderTerm(); termPanel?.focus?.();
+              void explainSelected();
             });
           }
           marked.textContent = row.text.slice(span.start, span.end); words.append(marked); cursor = span.end;
@@ -177,7 +209,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     replayPanel.hidden = !replayKeys;
     if (!replayKeys) { replayList.replaceChildren(); return; }
     const fragment = document.createDocumentFragment();
-    const rows = buffer.rows.filter(row => row.final && replayKeys.has(JSON.stringify([row.speaker, row.id])));
+    const rows = buffer.rows.filter(row => row.final && row.text && replayKeys.has(JSON.stringify([row.speaker, row.id])));
     for (const row of rows) {
       const line = document.createElement('p'); line.className = 'caption-line';
       const name = document.createElement('span'); name.className = 'caption-speaker'; name.textContent = speakerName(row.speaker);
@@ -248,7 +280,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
       setStatus('音声認識を開始しています…');
       speech.onstart = () => {
         if (token !== generation || !enabled) return;
-        setStatus(serverRecognition ? '自分の音声を認識中です。話すと数秒後に字幕が出ます。相手の発言には相手側でも字幕ONが必要です。' : '自分の音声を端末内で認識中です。');
+        setStatus(serverRecognition ? '自分の音声を認識中です。途中の字幕から順次表示・共有します。相手の発言には相手側でも字幕ONが必要です。' : '自分の音声を端末内で認識中です。');
       };
       const prefix = instance + '-' + (++runId) + '-';
       speech.onresult = event => {
@@ -258,7 +290,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
           const text = String(result[0]?.transcript || '').trim().slice(0, 600);
-          if (!text) continue;
+          if (!text && !result.isFinal) continue;
           const packet = { type: 'caption', id: prefix + i, seq: ++seq, final: !!result.isFinal, text };
           buffer.put(live.userId, packet);
           // Interim updates are disposable; final results always get a send attempt.

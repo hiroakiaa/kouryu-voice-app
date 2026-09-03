@@ -4,6 +4,7 @@
 <iframe id="mobile" title="390×700" width="390" height="700"></iframe>
 <iframe id="short" title="390×550" width="390" height="550"></iframe>
 <iframe id="desktop" title="900×800" width="900" height="800"></iframe>
+<iframe id="boundary" title="640×800" width="640" height="800"></iframe>
 <script type="module">
 const html=await(await fetch('../index.html')).text();const doc=new DOMParser().parseFromString(html,'text/html');
 const main=doc.querySelector('main');main.querySelector('#captionsPanel').hidden=false;
@@ -17,7 +18,7 @@ import {createCaptions} from '../captions.js';let sequence=0;
 const controller=createCaptions({root:document.querySelector('#captionsPanel'),getCall:()=>({joined:true,muted:true,userId:'self'}),speakerName:id=>id,send:()=>{}});
 const add=()=>{const n=++sequence;controller.receive('話者'+(n%4+1),{id:'sample-'+n,seq:n,final:true,text:'字幕'+n+'：明日の午後3時に4人でWebRTCの打ち合わせをします。最新の文章の末尾まで表示します。'});};
 document.querySelector('#shareBtn').onclick=()=>{for(let i=0;i<30;i++)add()};document.querySelector('#muteBtn').onclick=add;
-document.querySelector('#joinBtn').onclick=()=>window.scrollTo({top:document.body.scrollHeight,behavior:'instant'});
+document.querySelector('#joinBtn').onclick=()=>{window.scrollTo({top:document.body.scrollHeight,behavior:'instant'});const b=document.querySelector('#joinBtn').getBoundingClientRect(),c=document.querySelector('.controls').getBoundingClientRect(),m=document.querySelector('main'),s=getComputedStyle(m),l=document.querySelector('[data-caption-list]');document.querySelector('#notice').textContent=JSON.stringify({width:innerWidth,button:b.width,controls:c.width,available:m.clientWidth-parseFloat(s.paddingLeft)-parseFloat(s.paddingRight),bottom:b.bottom,viewport:innerHeight,captionRemaining:l.scrollHeight-l.clientHeight-l.scrollTop});};
 document.querySelector('#newCallBtn').onclick=()=>document.querySelector('[data-caption-list]').scrollTo({top:0,behavior:'instant'});
 <\/script></body></html>`;
 </script></html>

@@ -3887,6 +3887,8 @@
     body.has-captions main > .participants-card,
     body.has-captions main > .controls { flex: 0 0 auto; }
     body.has-captions .participants-card { min-height: 5rem; }
+    .controls { align-self: stretch; width: 100%; min-width: 0; }
+    .controls > .primary-action { width: 100%; max-width: none; justify-self: stretch; }
     .captions-card { margin-top: 0; padding: .7rem; min-width: 0; min-height: 13rem; flex: 1 0 13rem; display: flex; flex-direction: column; gap: .25rem; }
     .captions-card[hidden], .captions-card [hidden] { display: none !important; }
     .caption-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
@@ -3975,7 +3977,7 @@
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。字幕ON時は自分の音声をCloudflareの音声認識へ送信して一時処理します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、参加端末数を含めた通話全体のFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、通話全体の10分で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、参加端末数を含めた通話全体のFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、通話全体の10分で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる目安です。字幕・用語解説のAI利用料は別です。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>電話帳から電話</strong><span>最初に登録URLを相手へ送り、相手が「この相手を登録する」を押します。次回からは電話帳の「電話する」だけで呼び出せます。着信側が「応答して通話を始める」を押すと、双方が自動で通話へ参加します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
@@ -4001,9 +4003,11 @@
       <p class="caption-help" data-caption-status role="status">字幕をONにすると、自分のマイク音声をCloudflareの音声認識へ送信し、字幕を通話相手に共有します。音声・字幕を保存せず、字幕は60秒で消えます。</p>
       <button type="button" class="caption-prepare" data-caption-prepare hidden>日本語音声認識をダウンロード</button>
       <details class="caption-settings"><summary>字幕の設定</summary><label><input type="checkbox" data-caption-facts checked>日時・金額・数量などを強調</label><label><input type="checkbox" data-caption-terms checked>専門用語の候補に下線</label></details>
+      <p class="caption-help">下線の語を押すと、その語だけをAIへ送り、自分向けの短い解説を表示します。</p>
       <div class="caption-list" data-caption-list aria-label="直近60秒の字幕" tabindex="0" hidden></div>
       <section id="captionTermCard" class="caption-replay" data-caption-term-panel aria-label="選択した言葉" tabindex="-1" hidden>
         <div class="caption-replay-header"><h3 data-caption-term-title></h3><button type="button" data-caption-term-close>閉じる</button></div>
+        <div data-caption-explanation-panel hidden><h3>ひとことで</h3><p data-caption-explanation role="status"></p><button type="button" data-caption-explanation-retry hidden>もう一度取得</button><p class="caption-help">AIによる一般的な説明です。選んだ語だけを送信し、説明は自分だけに表示します。</p></div>
         <p class="caption-help">字幕の原文</p><p class="caption-term-context" data-caption-term-context></p>
       </section>
       <section id="captionReplay" class="caption-replay" data-caption-replay-panel aria-label="聞き逃した発言" tabindex="-1" hidden>
@@ -4120,7 +4124,7 @@
       </div>
       <pre id="metricsOutput" class="metrics-output"></pre>
       <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
-        参加端末数を含めた通話全体の料金です。この端末で確認した推定reads / writes / deletesを参加端末数で換算するため、実際の請求額とは差が出る場合があります。
+        参加端末数を含めた通話全体の料金です。この端末で確認した推定reads / writes / deletesを参加端末数で換算するため、実際の請求額とは差が出る場合があります。字幕・用語解説のAI利用料は、この概算には含まれません。
       </div>
       <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
     </div>
@@ -4200,9 +4204,9 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-captions-follow-silence";
+    const APP_VERSION = "2026-09-03-streaming-captions-explanations";
     const CAPTIONS_ENABLED = true;
-    const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true, terms: true });
+    const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true, terms: true, explanations: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
@@ -4540,16 +4544,28 @@
     let captionController = null;
     if (CAPTIONS_ENABLED) {
       // Dynamic import is isolated: a missing caption asset cannot stop the phone.
-      Promise.all([import('./captions.js?v=' + APP_VERSION), import('./caption-server.js?v=' + APP_VERSION)]).then(function(modules) {
+      Promise.all([import('./captions.js?v=' + APP_VERSION), import('./caption-stream.js?v=' + APP_VERSION)]).then(function(modules) {
         const module = modules[0];
         captionController = module.createCaptions({
           recognitionMode: 'server',
-          Recognition: modules[1].createServerRecognition({
-            endpoint: 'https://kouryu-captions.allinone-hiroakiaa.workers.dev/transcribe',
+          Recognition: modules[1].createStreamingRecognition({
+            endpoint: 'wss://kouryu-captions.allinone-hiroakiaa.workers.dev/stream',
             getStream: function() { return localStream; },
             getToken: function() { if (!authUser) throw new Error('auth'); return authUser.getIdToken(); }
           }),
           features: CAPTION_FEATURES,
+          getExplanation: async function(term, options) {
+            if (!authUser || !joined) throw new Error('auth');
+            const token = await authUser.getIdToken();
+            const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/explain', {
+              method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+              body: JSON.stringify({ term }), signal: options.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'
+            });
+            if (!response.ok) throw new Error('unavailable');
+            const data = await response.json();
+            if (typeof data.explanation !== 'string') throw new Error('unavailable');
+            return data.explanation.slice(0, 240);
+          },
           root: document.getElementById('captionsPanel'),
           getCall: function() { return { joined: joined && !!localStream, muted, userId }; },
           speakerName: function(id) {
@@ -5066,7 +5082,7 @@
       processedSignals = new Set();
       deletedSignalIds = new Set();
       const startedFromPhonebook = params.get("autoJoin") === "1";
-      muted = !startedFromPhonebook;
+      muted = false;
       micUnlockHintDismissed = false;
       setJoinBusy(true, "接続中");
       startJoinSlowTimer();
@@ -5155,7 +5171,7 @@
         setCallPhase("waiting", "\u76f8\u624b\u306e\u53c2\u52a0\u3068\u97f3\u58f0\u63a5\u7d9a\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
         pushDiagnostic("info", "\u30de\u30a4\u30af\u8a31\u53ef\u3092\u78ba\u8a8d", "\u76f8\u624b\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
         updateAudioHealth(0, false, "ノイズ抑制中");
-        setStatus("相手を待っています", startedFromPhonebook ? "電話帳からの通話を開始しました。" : "最初はマイクOFFです。話すときだけミュートを解除してください。");
+        setStatus("相手を待っています", startedFromPhonebook ? "電話帳からの通話を開始しました。マイクはONです。" : "マイクはONです。そのまま話せます。");
         if (startedFromPhonebook) setNotice(params.get("callRole") === "callee" ? "応答しました。通話を開始しています。" : "発信しました。相手の応答を待っています。");
         updatePresence();
         startParticipantSweep();

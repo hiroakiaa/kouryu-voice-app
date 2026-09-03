@@ -63,3 +63,13 @@ test('字幕停止は処理中リクエストを中断し、遅い字幕を表�
   resolveFetch(new Response(JSON.stringify({text:'遅い字幕'})));await new Promise(r=>setImmediate(r));
   assert.equal(results,0);assert.equal(stopped,0);assert.equal(recognizer.pending,null);
 });
+
+test('用語解説は認証と入力を検証し、語だけをモデルへ送り、保存を無効にする',async()=>{
+ const e=env();e.EXPLAIN_LIMIT={limit:async()=>({success:true})};let input;
+ e.AI.run=async(_model,value)=>{input=value;return {choices:[{message:{content:'機能を利用するための窓口です。'}}]}};
+ const request=body=>new Request('https://caption.example/explain',{method:'POST',headers:{Origin:'https://hiroakiaa.github.io','Content-Type':'application/json'},body:JSON.stringify(body)});
+ assert.equal((await handle(request({term:'API'}),e,async()=>{throw Error('auth')})).status,401);
+ assert.equal((await handle(request({term:'<script>'}),e,async()=>'u')).status,400);assert.equal(input,undefined);
+ const r=await handle(request({term:'API',context:'送ってはいけない会話'}),e,async()=>'u');assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');
+ assert.equal(input.store,false);assert.doesNotMatch(JSON.stringify(input),/送ってはいけない会話/);assert.deepEqual(JSON.parse(input.messages[1].content),{term:'API',reference:''});
+});

@@ -7,7 +7,8 @@
   "ai": { "binding": "AI" },
   "ratelimits": [
     { "name": "USER_LIMIT", "namespace_id": "903001", "simple": { "limit": 25, "period": 60 } },
-    { "name": "IP_LIMIT", "namespace_id": "903002", "simple": { "limit": 120, "period": 60 } }
+    { "name": "IP_LIMIT", "namespace_id": "903002", "simple": { "limit": 120, "period": 60 } },
+    { "name": "EXPLAIN_LIMIT", "namespace_id": "903003", "simple": { "limit": 10, "period": 60 } }
   ],
   "observability": { "enabled": false },
   "logpush": false
