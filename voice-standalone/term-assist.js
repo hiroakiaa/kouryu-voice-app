@@ -1,5 +1,5 @@
 import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
-import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-ai-analogies';
+import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-shared-analogies';
 
 // Only dictionary terms survive recognition. No transcript is stored or sent to peers.
 export function extractTerms(text) {

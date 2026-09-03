@@ -4,12 +4,53 @@
   "account_id": "78671eff571039eacb434186eb34002a",
   "compatibility_date": "2026-09-03",
   "workers_dev": true,
-  "ai": { "binding": "AI" },
+  "ai": {
+    "binding": "AI"
+  },
   "ratelimits": [
-    { "name": "USER_LIMIT", "namespace_id": "903001", "simple": { "limit": 25, "period": 60 } },
-    { "name": "IP_LIMIT", "namespace_id": "903002", "simple": { "limit": 120, "period": 60 } },
-    { "name": "EXPLAIN_LIMIT", "namespace_id": "903003", "simple": { "limit": 10, "period": 60 } }
+    {
+      "name": "USER_LIMIT",
+      "namespace_id": "903001",
+      "simple": {
+        "limit": 25,
+        "period": 60
+      }
+    },
+    {
+      "name": "IP_LIMIT",
+      "namespace_id": "903002",
+      "simple": {
+        "limit": 120,
+        "period": 60
+      }
+    },
+    {
+      "name": "EXPLAIN_LIMIT",
+      "namespace_id": "903003",
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
+    }
   ],
-  "observability": { "enabled": false },
-  "logpush": false
+  "observability": {
+    "enabled": false
+  },
+  "logpush": false,
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ANALOGIES",
+        "class_name": "AnalogyCache"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "analogy-v1",
+      "new_sqlite_classes": [
+        "AnalogyCache"
+      ]
+    }
+  ]
 }
