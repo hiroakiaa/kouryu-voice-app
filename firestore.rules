@@ -2,35 +2,69 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Personal numbers and approval-only rooms. Existing URL rooms are unchanged.
+    // Phone home: personal calls are pairs; groups have at most four registered members.
     match /numberProfiles/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['number'])
-        && request.resource.data.number.matches('^[0-9]{8}$')
+      allow create: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['number','name'])
+        && request.resource.data.number.matches('^[0-9]{8}$') && (!('name' in request.resource.data) || shortName(request.resource.data.name))
         && getAfter(/databases/$(database)/documents/voiceNumbers/$(request.resource.data.number)).data.ownerUid == uid;
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']) && shortName(request.resource.data.name);
+      match /contacts/{number} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['name','number','uid'])
+          && number.matches('^[0-9]{8}$') && request.resource.data.number == number && shortName(request.resource.data.name)
+          && get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.resource.data.uid;
+      }
+      match /history/{id} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['number','name','status','direction','at']) && shortName(request.resource.data.name)
+          && request.resource.data.number is string && request.resource.data.number.size() <= 8
+          && request.resource.data.status in ['ringing','accepted','declined','cancelled','busy','missed']
+          && request.resource.data.direction in ['incoming','outgoing'] && request.resource.data.at is number;
+      }
     }
+    function shortName(v) { return v is string && v.size() > 0 && v.size() <= 40; }
     match /voiceNumbers/{number} {
       allow get: if request.auth != null;
-      allow create: if request.auth != null && number.matches('^[0-9]{8}$')
-        && request.resource.data.keys().hasOnly(['ownerUid','number'])
+      allow create: if request.auth != null && number.matches('^[0-9]{8}$') && request.resource.data.keys().hasOnly(['ownerUid','number'])
         && request.resource.data.number == number && request.resource.data.ownerUid == request.auth.uid
         && !exists(/databases/$(database)/documents/numberProfiles/$(request.auth.uid))
         && getAfter(/databases/$(database)/documents/numberProfiles/$(request.auth.uid)).data.number == number;
       match /blocked/{uid} {
         allow get: if request.auth != null && (uid == request.auth.uid || get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.auth.uid);
-        allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.auth.uid;
+        allow list, create, update, delete: if request.auth != null && get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.auth.uid;
       }
+    }
+    function leaseFree(uid) {
+      return !exists(/databases/$(database)/documents/phoneBusy/$(uid))
+        || get(/databases/$(database)/documents/phoneBusy/$(uid)).data.until <= request.time
+        || (get(/databases/$(database)/documents/phoneBusy/$(uid)).data.callId.matches('^n_.*')
+          && get(/databases/$(database)/documents/numberVoiceCalls/$(get(/databases/$(database)/documents/phoneBusy/$(uid)).data.callId)).data.active == false);
+    }
+    match /phoneBusy/{uid} {
+      allow get: if request.auth != null;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.resource.data.keys().hasOnly(['callId','until'])
+        && request.resource.data.until > request.time && request.resource.data.until <= request.time + duration.value(270,'s')
+        && (leaseFree(uid) || (resource != null && resource.data.callId == request.resource.data.callId))
+        && ((request.auth.uid == uid && ((request.resource.data.callId.matches('^g_.*') && groupMember(request.resource.data.callId))
+          || (request.resource.data.callId.matches('^n_.*') && uid in getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.callId)).data.members)))
+          || (request.resource.data.callId.matches('^n_.*')
+            && getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.callId)).data.ownerUid == request.auth.uid
+            && getAfter(/databases/$(database)/documents/numberInvitations/$(uid)).data.status == 'accepted'
+            && getAfter(/databases/$(database)/documents/numberInvitations/$(uid)).data.roomId == request.resource.data.callId));
     }
     function validNumberRequest(uid) {
       let d = request.resource.data;
       return request.auth != null && uid == request.auth.uid && d.from == uid && d.to != uid
-        && d.keys().hasOnly(['from','to','number','name','status','createdAt','expiresAt'])
-        && d.number.matches('^[0-9]{8}$') && d.name is string && d.name.size() <= 20
+        && d.keys().hasOnly(['from','to','number','fromNumber','name','status','createdAt','expiresAt'])
+        && d.number.matches('^[0-9]{8}$') && shortName(d.name)
         && get(/databases/$(database)/documents/voiceNumbers/$(d.number)).data.ownerUid == d.to
+        && (!('fromNumber' in d) || get(/databases/$(database)/documents/voiceNumbers/$(d.fromNumber)).data.ownerUid == uid)
         && !exists(/databases/$(database)/documents/voiceNumbers/$(d.number)/blocked/$(uid))
-        && d.status == 'ringing' && d.createdAt == request.time
-        && d.expiresAt > request.time && d.expiresAt <= request.time + duration.value(90,'s');
+        && d.status == 'ringing' && d.createdAt == request.time && d.expiresAt > request.time && d.expiresAt <= request.time + duration.value(90,'s');
     }
     match /numberInvitations/{uid} {
       allow get: if request.auth != null && (uid == request.auth.uid || resource.data.to == request.auth.uid);
@@ -41,52 +75,88 @@ service cloud.firestore {
       allow update: if request.auth != null && resource.data.status == 'ringing'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
         && ((uid == request.auth.uid && request.resource.data.status == 'cancelled')
-          || (resource.data.to == request.auth.uid && request.resource.data.status == 'declined'));
-      allow update: if request.auth != null && resource.data.to == request.auth.uid
-        && resource.data.status == 'ringing' && resource.data.expiresAt > request.time
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','roomId'])
-        && request.resource.data.status == 'accepted'
+          || (resource.data.to == request.auth.uid && request.resource.data.status in ['declined','busy']));
+      allow update: if request.auth != null && resource.data.to == request.auth.uid && resource.data.status == 'ringing' && resource.data.expiresAt > request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','roomId']) && request.resource.data.status == 'accepted'
         && getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.roomId)).data.ownerUid == request.auth.uid
         && getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.roomId)).data.active == true
         && uid in getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.roomId)).data.members;
     }
     function numberMember(id) {
       let r = get(/databases/$(database)/documents/numberVoiceCalls/$(id)).data;
-      return request.auth != null && r.active && r.expiresAt > request.time && request.auth.uid in r.members;
+      return request.auth != null && r.active && r.members.size() == 2 && r.expiresAt > request.time && request.auth.uid in r.members;
     }
-    function validNumberRoom(d) {
-      return d.keys().hasOnly(['ownerUid','number','members','active','expiresAt','admittedAt'])
-        && d.members is list && d.members.size() >= 1 && d.members.size() <= 4
-        && d.members.toSet().size() == d.members.size() && d.ownerUid in d.members
-        && d.active is bool && d.expiresAt is timestamp;
+    function ownPhoneLease(id) {
+      return get(/databases/$(database)/documents/phoneBusy/$(request.auth.uid)).data.callId == id
+        && get(/databases/$(database)/documents/phoneBusy/$(request.auth.uid)).data.until > request.time;
     }
     match /numberVoiceCalls/{id} {
       allow get: if request.auth != null && (!exists(/databases/$(database)/documents/numberVoiceCalls/$(id)) || request.auth.uid in resource.data.members);
-      allow create: if request.auth != null && id.matches('^n_[a-zA-Z0-9_-]{10,40}$') && validNumberRoom(request.resource.data)
+      allow create: if request.auth != null && id.matches('^n_[a-zA-Z0-9_-]{10,40}$')
+        && request.resource.data.keys().hasOnly(['ownerUid','number','members','active','expiresAt'])
         && request.resource.data.ownerUid == request.auth.uid && request.resource.data.active == true
+        && request.resource.data.members.size() == 2 && request.resource.data.members.toSet().size() == 2 && request.resource.data.members[0] == request.auth.uid
         && get(/databases/$(database)/documents/voiceNumbers/$(request.resource.data.number)).data.ownerUid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/numberInvitations/$(request.resource.data.members[1])).data.roomId == id
+        && getAfter(/databases/$(database)/documents/numberInvitations/$(request.resource.data.members[1])).data.status == 'accepted'
+        && getAfter(/databases/$(database)/documents/phoneBusy/$(request.auth.uid)).data.callId == id
+        && getAfter(/databases/$(database)/documents/phoneBusy/$(request.resource.data.members[1])).data.callId == id
         && request.resource.data.expiresAt > request.time && request.resource.data.expiresAt <= request.time + duration.value(66,'m');
-      allow update: if request.auth != null && validNumberRoom(request.resource.data)
-        && ((resource.data.ownerUid == request.auth.uid && resource.data.active && resource.data.expiresAt > request.time
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members','active','admittedAt']))
-          || (request.auth.uid in resource.data.members && request.auth.uid != resource.data.ownerUid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
-            && request.resource.data.members == resource.data.members.removeAll([request.auth.uid])));
+      allow update: if request.auth != null && request.auth.uid in resource.data.members
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['active']) && request.resource.data.active == false;
       match /participants/{uid} {
         allow read: if numberMember(id);
-        allow create, update: if numberMember(id) && uid == request.auth.uid
+        allow create, update: if numberMember(id) && ownPhoneLease(id) && uid == request.auth.uid
           && request.resource.data.authUid == uid && request.resource.data.userId == uid && validParticipant(request.resource.data);
       }
       match /signals/{signal} {
         allow read, delete: if numberMember(id);
-        allow create: if numberMember(id) && request.resource.data.fromAuthUid == request.auth.uid
+        allow create: if numberMember(id) && ownPhoneLease(id) && request.resource.data.fromAuthUid == request.auth.uid
           && request.resource.data.from == request.auth.uid && validSignal(request.resource.data);
       }
       match /slots/{slot} {
         allow read: if numberMember(id);
-        allow create: if numberMember(id) && validSlot(request.resource.data) && request.resource.data.slot == slot && request.resource.data.authUid == request.auth.uid;
-        allow update: if numberMember(id) && validSlot(request.resource.data) && request.resource.data.slot == slot && request.resource.data.authUid == request.auth.uid
-          && (resource.data.authUid == request.auth.uid || resource.data.active == false || resource.data.updatedAt + duration.value(240,'s') < request.time);
+        allow create, update: if numberMember(id) && ownPhoneLease(id) && validSlot(request.resource.data) && request.resource.data.slot == slot
+          && request.resource.data.authUid == request.auth.uid
+          && (!exists(/databases/$(database)/documents/numberVoiceCalls/$(id)/slots/$(slot)) || resource.data.authUid == request.auth.uid || !resource.data.active || resource.data.updatedAt + duration.value(240,'s') < request.time);
+      }
+    }
+    function groupMember(id) {
+      let g = get(/databases/$(database)/documents/phoneGroups/$(id)).data;
+      return request.auth != null && g.active && request.auth.uid in g.members;
+    }
+    function validGroup(d) { return d.keys().hasOnly(['name','ownerUid','members','active']) && shortName(d.name)
+      && d.active is bool && d.members is list && d.members.size() >= 1 && d.members.size() <= 4 && d.members.toSet().size() == d.members.size() && d.ownerUid in d.members; }
+    match /phoneGroups/{id} {
+      allow get: if request.auth != null;
+      allow list: if request.auth != null && request.auth.uid in resource.data.members;
+      allow create: if request.auth != null && id.matches('^g_[a-f0-9]{32}$') && validGroup(request.resource.data)
+        && request.resource.data.ownerUid == request.auth.uid && request.resource.data.members == [request.auth.uid] && request.resource.data.active;
+      allow update: if request.auth != null && resource.data.active && validGroup(request.resource.data)
+        && ((resource.data.ownerUid == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','active']))
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+            && ((! (request.auth.uid in resource.data.members) && request.resource.data.members == resource.data.members.concat([request.auth.uid]))
+              || (request.auth.uid != resource.data.ownerUid && request.resource.data.members == resource.data.members.removeAll([request.auth.uid])))));
+    }
+    match /phoneGroupInvites/{id} {
+      allow read: if request.auth != null && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+      allow create, update: if request.auth != null && request.resource.data.keys().hasOnly(['groupId','to','from','name','status'])
+        && groupMember(request.resource.data.groupId) && request.resource.data.from == request.auth.uid
+        && id == request.resource.data.groupId + '_' + request.resource.data.to && shortName(request.resource.data.name) && request.resource.data.status == 'invited';
+    }
+    match /groupVoiceCalls/{id} {
+      match /participants/{uid} {
+        allow read: if groupMember(id);
+        allow create, update: if groupMember(id) && ownPhoneLease(id) && uid == request.auth.uid && request.resource.data.authUid == uid && request.resource.data.userId == uid && validParticipant(request.resource.data);
+      }
+      match /signals/{signal} {
+        allow read, delete: if groupMember(id);
+        allow create: if groupMember(id) && ownPhoneLease(id) && request.resource.data.fromAuthUid == request.auth.uid && request.resource.data.from == request.auth.uid && validSignal(request.resource.data);
+      }
+      match /slots/{slot} {
+        allow read: if groupMember(id);
+        allow create, update: if groupMember(id) && ownPhoneLease(id) && validSlot(request.resource.data) && request.resource.data.slot == slot && request.resource.data.authUid == request.auth.uid
+          && (!exists(/databases/$(database)/documents/groupVoiceCalls/$(id)/slots/$(slot)) || resource.data.authUid == request.auth.uid || !resource.data.active || resource.data.updatedAt + duration.value(240,'s') < request.time);
       }
     }
 

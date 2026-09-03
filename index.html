@@ -4012,10 +4012,36 @@
     .number-modal input {min-width:0;flex:1;width:160px;font-size:20px;padding:10px;border:1px solid #a4ce83;border-radius:12px;background:white;color:#30462d;}
     .number-own strong{font-size:28px;letter-spacing:2px;font-variant-numeric:tabular-nums;}.number-note{font-size:13px;line-height:1.6;color:#596b51;}.number-dial{margin-top:8px;}
     #numberAccept{background:#ccefaa;} .number-modal :focus-visible{outline:2px solid #548d3c;outline-offset:3px;}
+.phone-home-card {display:none;padding:20px;background:#fffef8;border:2px solid #8bc85b;border-radius:24px;color:#30462d;min-height:320px;overflow:auto;}
+.phone-home .phone-home-card {display:block;}
+.phone-home main>.participants-card,.phone-home main>#captionsPanel,.phone-home main>#audioHealth,.phone-home main>.controls {display:none!important;}
+.phone-home .brand-subline{display:none;}
+.phone-home main {height:auto;min-height:calc(100dvh - 32px);}
+.phone-tabs,.phone-form-row,.phone-own,.phone-setup,.phone-row {display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.phone-tabs {border-bottom:1px solid #cad8b9;padding-bottom:12px;}
+.phone-tabs button{flex:1;white-space:nowrap;}
+.phone-tabs [aria-selected="true"],.phone-primary {background:#d2f3ac!important;}
+.phone-home-card [hidden] {display:none!important;}
+.phone-home-card input {min-width:0;max-width:100%;width:100%;box-sizing:border-box;background:white;color:#30462d;border:1px solid #aacb89;border-radius:10px;padding:12px;font-size:16px;}
+.phone-home-card label{display:grid;gap:6px;flex:1;min-width:150px;}
+.phone-form-row>input{flex:1;width:160px;}.phone-setup input{flex:1;width:140px;}
+.phone-home-card button {border:1px solid #a4ce83;border-radius:12px;background:#f4fce9;color:#30462d;padding:10px 14px;min-height:44px;box-shadow:none;outline:none;transform:none;}
+.phone-home-card button::before,.phone-home-card button::after{display:none;}
+.phone-home-card button:focus-visible{outline:2px solid #42782f;outline-offset:3px;}
+.phone-own{margin:22px 0;}.phone-own strong{font-size:clamp(22px,4vw,32px);letter-spacing:2px;}
+.phone-row{border-bottom:1px solid #dfebd1;padding:14px 0;}.phone-row>div{flex:1;min-width:140px;}.phone-row small{display:block;color:#65745b;margin-top:5px;}
+.phone-note{font-size:13px;line-height:1.7;}#phoneMessage:empty{display:none;}#phoneMessage{background:#f3f9e8;padding:10px;border-radius:10px;}
+#groupInviteContact{max-width:100%;padding:10px;margin:10px;}
+#contactsBtn,#numberOpen,#newCallBtn{display:none!important;}
+body:not(.is-in-call) #phoneToGroup{display:none;}
+@media(max-width:480px){.phone-home-card{padding:14px;}.phone-tabs{gap:5px;}.phone-tabs button{padding:10px 7px;}.phone-form-row>button{flex:1;} .phone-home main{min-height:calc(100dvh - 16px);}}
+
+    .phone-home .name-box{display:none;}
+    #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
 </head>
-<body>
+<body class="phone-home">
   <main>
     <header>
       <button id="appInfoToggleBtn" class="app-icon" type="button" aria-controls="appInfoTooltip" aria-expanded="false" aria-label="アプリ情報">
@@ -4037,6 +4063,16 @@
         </label>
       </div>
     </header>
+<section id="phoneHome" class="phone-home-card">
+ <nav class="phone-tabs" role="tablist" aria-label="電話アプリ"><button data-phone-tab="dial" role="tab" aria-controls="phoneDialPanel" aria-selected="true">電話</button><button data-phone-tab="contacts" role="tab" aria-controls="phoneContactsPanel" aria-selected="false">電話帳</button><button data-phone-tab="groups" role="tab" aria-controls="phoneGroupsPanel" aria-selected="false">グループ</button><button data-phone-tab="settings" role="tab" aria-controls="phoneSettingsPanel" aria-selected="false">設定</button></nav>
+ <p id="phoneMessage" role="status" aria-live="polite"></p>
+ <section id="phoneDialPanel" role="tabpanel"><h2>自分の電話</h2><div class="phone-setup"><label for="phoneName">名前</label><input id="phoneName" maxlength="20" autocomplete="nickname" placeholder="相手に表示する名前"><button id="phoneSaveName" hidden>名前を保存</button><button id="phoneCreateNumber">自分の番号を作る</button></div><div class="phone-own"><strong id="phoneOwnNumber">準備中…</strong><button id="phoneCopy" hidden>コピー</button><button id="phoneShare" hidden>番号の共有リンク</button></div><form id="phoneDialForm"><label for="phoneDialNumber">相手の8桁の番号</label><div class="phone-form-row"><input id="phoneDialNumber" inputmode="numeric" placeholder="1234 5678" maxlength="20" autocomplete="off"><button type="submit" class="phone-primary">電話する</button></div></form><button id="phoneCancel" hidden>呼び出しをやめる</button><h3>最近の発着信</h3><div id="phoneHistory"></div></section>
+ <section id="phoneContactsPanel" role="tabpanel" hidden><h2>電話帳</h2><div class="phone-form-row"><label>8桁の番号<input id="phoneContactNumber" inputmode="numeric" maxlength="20" placeholder="1234 5678"></label><label>自分の電話帳での名前<input id="phoneContactName" maxlength="40" placeholder="お母さん、田中さん など"></label><button id="phoneAddContact">登録</button></div><div id="phoneContacts"></div><details id="legacyPhonebook" hidden><summary>以前の電話帳から登録する</summary><p>相手の8桁の番号を確認して登録してください。</p><div id="legacyPhoneContacts"></div></details></section>
+ <section id="phoneGroupsPanel" role="tabpanel" hidden><h2>グループ</h2><p>同じテーマで話す、最大4人の場所です。</p><div class="phone-form-row"><input id="phoneGroupName" aria-label="新しいグループ名" placeholder="家族、旅行の相談 など" maxlength="40"><button id="phoneCreateGroup">グループを作る</button></div><div id="phoneGroupInvites"></div><div id="phoneGroups"></div></section>
+ <section id="phoneSettingsPanel" role="tabpanel" hidden><h2>番号の引き継ぎ</h2><p id="accountStatus" role="status"></p><div class="phone-form-row"><label>メールアドレス<input id="phoneEmail" type="email" autocomplete="email"></label><label>パスワード<input id="phonePassword" type="password" minlength="6" autocomplete="current-password"></label></div><div class="phone-form-row"><button id="account-save">この番号を保存</button><button id="account-login">ログイン</button><button id="account-reset">パスワードを再設定</button><button id="account-logout">ログアウト</button></div><p class="phone-note">初めての端末では、番号を作る前にログインすると、保存した番号・電話帳・グループを使えます。</p><h3>ブロックした相手</h3><div id="phoneBlocks"></div></section>
+</section>
+<dialog id="groupDialog" class="number-modal" aria-labelledby="groupTitle"><div class="number-head"><h2 id="groupTitle">グループ</h2><button id="groupClose" aria-label="閉じる">×</button></div><p id="groupMembers"></p><p id="groupPeople"></p><div class="phone-form-row"><button id="groupAcceptInvite">招待を承認して登録</button><button id="groupJoin">通話に参加</button><button id="groupShare">招待リンクをコピー</button></div><div id="groupInviteArea"><label for="groupInviteContact">電話帳から招待</label><select id="groupInviteContact"></select><button id="groupInviteSend">招待する</button></div><div class="phone-form-row"><button id="groupQuit">グループを退出</button><button id="groupDelete">グループを削除</button></div></dialog>
+
 
     <dialog id="appInfoTooltip" class="app-info-tooltip metrics-modal-card" aria-labelledby="appInfoTitle" aria-hidden="true">
       <div class="modal-head">
@@ -4072,7 +4108,7 @@
 
     <dialog id="callTips" class="card call-tips" aria-labelledby="callTipsTitle" aria-hidden="true">
       <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
-      <span class="tip-item"><i class="fa-solid fa-link"></i><span><strong>同じURLで参加</strong><span>URLを開いた人だけが同じ通話に入れます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-link"></i><span><strong>番号で電話</strong><span>相手の8桁の番号に発信し、相手が応答すると1対1で話せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>参加で開始</strong><span>表示名を入れてから参加すると相手に名前が伝わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
@@ -4080,8 +4116,8 @@
       <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。通話中は自分の音声と短い認識文をCloudflareのAIへ送信し、用語を自動検出します。ミュート中・退室後は停止します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のアプリ情報→「料金目安」で、音声認識・用語AI補助・説明・たとえを含む費用を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">通話全体の10分で <strong id="tipsTenMinuteCost" class="tip-cost-number">計算中</strong></span><span id="tipsCostConditions" class="tip-cost-line"></span><span class="tip-cost-line">無料枠内の追加請求は0円。残りの無料枠はこの画面では取得していません。</span></span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>電話帳から電話</strong><span>最初に登録URLを相手へ送り、相手が「この相手を登録する」を押します。次回からは電話帳の「電話する」だけで呼び出せます。着信側が「応答して通話を始める」を押すと、双方が自動で通話へ参加します。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>グループ</strong><span>同じテーマで話す場所を作り、招待を承認した最大4人で繰り返し使えます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>電話帳から電話</strong><span>相手の番号と自分がわかりやすい名前を登録します。履歴や共有リンクからも登録できます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
     </dialog>
 
@@ -4148,6 +4184,7 @@
         <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
         <button id="contactsBtn" type="button"><i class="fa-solid fa-address-book"></i><span>電話帳</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
+        <button id="phoneHomeBtn" type="button">電話ホーム</button><button id="phoneToGroup" type="button">グループで話す</button>
         <button id="numberOpen" type="button">番号で電話</button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規URL</span></button>
       </div>
@@ -4348,9 +4385,9 @@
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
-    import {createNumberCalls} from "./number-calls.js?v=2026-09-03-number-calls";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-03-phone-home";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-03-number-calls";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-03-phone-home";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4392,7 +4429,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-number-calls";
+    const APP_VERSION = "2026-09-03-phone-home";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4976,13 +5013,11 @@
       renderParticipants([]);
       try {
         await ensureAnonymousAuth();
-        if(callId.startsWith('n_')) userId=authUser.uid;
+        if(/^n_|^g_/.test(callId)) userId=authUser.uid;
         numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId}),name:displayNameForContact,push:(callee,id)=>sendClosedAppCallNotification({uid:callee},'main-room',id+Date.now()),stop:()=>stopLocalCall(true),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
           navigate:id=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('autoJoin','1');location.assign(u.toString());}});
         await numberCalls.start();
-        await acceptContactInviteFromUrl();
-        startContactWatchers();
-        startOutgoingCallWatcher();
+        // The number phonebook replaces the old registration-link flow.
         renderCallHistory();
         refreshClosedAppNotifications();
       } catch (error) {
@@ -4992,7 +5027,8 @@
         pushDiagnostic("error", "匿名認証に失敗", error && error.message ? error.message : "");
         return;
       }
-      if(callId.startsWith('n_')&&!(await numberCalls.allowed())){setNotice('番号から電話し、持ち主の承認を受けてください。',true);return;}
+      if(/^n_|^g_/.test(callId)&&!(await numberCalls.allowed())){setNotice('番号から電話し、持ち主の承認を受けてください。',true);return;}
+      if(!/^n_|^g_/.test(callId))return;
       ensureParticipantWatcher();
       maybeAutoJoinCall();
       ensureTurnConfiguration().catch(function(error) {
@@ -5000,7 +5036,8 @@
       });
     }
 
-    function ensureAnonymousAuth() {
+    async function ensureAnonymousAuth() {
+      if(auth)await auth.authStateReady();
       if (isDemoMode) return Promise.resolve(null);
       if (authUser) return Promise.resolve(authUser);
       if (auth && auth.currentUser) {
@@ -5269,6 +5306,7 @@
 
     async function joinCall() {
       if (joined) return;
+      if(!/^n_|^g_/.test(callId)){setNotice("電話番号から発信するか、グループを選んでください。",true);return;}
       if (!allowLocalAction(JOIN_RATE_LIMIT)) {
         setNotice("短時間に参加操作が繰り返されました。10分ほど待ってからお試しください。", true);
         return;
@@ -5280,7 +5318,7 @@
         setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
         return;
       }
-      if(numberCalls && !(await numberCalls.allowed())){setNotice('この通話には、番号の持ち主の承認が必要です。番号から電話してください。',true);return;}
+      try{if(numberCalls && !(await numberCalls.acquire())){setNotice('電話への応答、またはグループへの登録が必要です。',true);return;}}catch(error){setNotice(error.message||'参加できませんでした。',true);return;}
       const activeOtherParticipants = participants.filter(function(person) {
         return person && person.userId && person.userId !== userId && !isSameDeviceParticipant(person) && person.left !== true && isParticipantActive(person);
       });
@@ -5323,7 +5361,7 @@
           updateJoinButton();
           return;
         }
-        if(callId.startsWith('n_')){setNotice('参加枠を確保できませんでした。もう一度お試しください。',true);return;}
+        if(/^n_|^g_/.test(callId)){setNotice('参加枠を確保できませんでした。もう一度お試しください。',true);return;}
         pushDiagnostic("info", "固定参加枠は準備中", "従来の4人判定で参加を続けます。");
       }
 
@@ -5778,6 +5816,7 @@
 
     function updatePresence() {
       if (!joined) return;
+      numberCalls?.pulse();
       recordWrite("participantHeartbeat");
       setDoc(participantRef(userId), {
         sessionId,
@@ -6400,8 +6439,8 @@
       if (!items.length) {
         const emptyTitle = joined ? "相手を待っています" : "";
         const emptyText = joined
-          ? "同じURLの相手が参加すると、ここに表示されます。5人目以降は、「新規URL」ボタンから新しい通話を始められます。"
-          : "5人目以降は、「新規URL」ボタンから新しい通話を始められます。";
+          ? "相手が通話に参加すると、ここに表示されます。"
+          : "グループ通話は最大4人です。";
         const emptyTip = joined
           ? '<span class="empty-participants-tip"><i class="fa-solid fa-link"></i>URLボタンで共有できます</span>'
           : "";
@@ -9095,15 +9134,15 @@
     }
 
     function callRef() {
-      return doc(db, callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId);
+      return doc(db, callId.startsWith("g_") ? "groupVoiceCalls" : callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId);
     }
 
     function participantRef(id) {
-      return doc(db, callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId, "participants", id);
+      return doc(db, callId.startsWith("g_") ? "groupVoiceCalls" : callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId, "participants", id);
     }
 
     function slotRef(slot) {
-      return doc(db, callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId, "slots", slot);
+      return doc(db, callId.startsWith("g_") ? "groupVoiceCalls" : callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId, "slots", slot);
     }
 
     async function claimCallSlot() {

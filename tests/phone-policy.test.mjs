@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {isLeaseLive,canJoinGroup} from '../phone-policy.js';
+test('busy leases expire without keeping callers busy forever',()=>{assert.equal(isLeaseLive(null,100),false);assert.equal(isLeaseLive({until:{toMillis:()=>100}},100),false);assert.equal(isLeaseLive({until:{toMillis:()=>101}},100),true);});
+test('groups allow registered members to return but cannot accept a fifth member',()=>{const g={active:true,members:['a','b','c','d']};assert.equal(canJoinGroup(g,'a'),true);assert.equal(canJoinGroup(g,'e'),false);assert.equal(canJoinGroup({...g,active:false},'a'),false);assert.equal(canJoinGroup({...g,members:['a','b']},'c'),true);});
