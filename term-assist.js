@@ -1,4 +1,4 @@
-import {createTermDiscovery} from './learned-terms.js?v=2026-09-03-discovery';
+import {createTermDiscovery} from './learned-terms.js?v=2026-09-03-quiet-terms';
 import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
 import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-shared-analogies';
 
@@ -25,7 +25,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   let enabled=false, speech=null, generation=0, failed=false, selected=null, request=null, requestId=0, timeout=null, expiry=null;
   let sequence=0;
   const instance=Math.random().toString(36).slice(2,10);
-  const offText='自動検出ON中は音声認識に加え、短い認識文を最大30秒に1回AIへ送ります。一般的な専門用語だけを共有辞書に保存し、相手と共有します。音声・認識文は保存しません。';
+  const offText='';
   const discovery=createTermDiscovery({getDictionary,discoverTerms,isActive:()=>enabled&&getCall().joined,knownTerms:extractTerms,
     onStatus:text=>{const hint=node('discovery-status');if(hint)hint.textContent=text},
     onTerms:(terms,share=true,speaker=getCall().userId)=>publishTerms(terms,share,speaker)});
@@ -45,7 +45,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   }
   function render() {
     const fragment=document.createDocumentFragment();
-    if(!entries.size){const empty=document.createElement('p');empty.className='term-empty';empty.textContent='会話に出てきた用語がここに並びます。気になる語を入力して調べることもできます。';fragment.append(empty)}
+    if(!entries.size){const empty=document.createElement('p');empty.className='term-empty';empty.textContent='用語はまだありません。';fragment.append(empty)}
     for(const [key,entry] of entries){
       const button=document.createElement('button');button.type='button';button.className='term-item';
       button.setAttribute('aria-label','用語を調べる：'+entry.term);
@@ -101,13 +101,13 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     const call=getCall();toggle.disabled=!call.joined;input.disabled=submit.disabled=!call.joined;
     if(!call.joined){stop();return}
     if(!enabled)return;
-    if(call.muted){stopSpeech();status.textContent='マイクOFF中は自分の検出を休止します。相手から届く用語は追加されます。';return}
+    if(call.muted){stopSpeech();status.textContent='マイクOFF・相手の用語は受信中';return}
     if(speech||failed)return;
     discovery.start();
     const token=++generation;
     try{
-      const current=new Recognition();speech=current;status.textContent='音声から用語を探す準備をしています…';
-      current.onstart=()=>{if(token===generation)status.textContent='用語を検出中です。登録済みの語は数秒ごと、未知の語のAI補助は最大30秒間隔です。相手側でも自動検出ONが必要です。'};
+      const current=new Recognition();speech=current;status.textContent='準備中…';
+      current.onstart=()=>{if(token===generation)status.textContent='検出中'};
       current.onresult=event=>{
         if(token!==generation||!enabled||!getCall().joined||getCall().muted)return;
         for(let i=event.resultIndex;i<event.results.length;i++){const r=event.results[i];if(r?.isFinal)publish(r[0]?.transcript)}

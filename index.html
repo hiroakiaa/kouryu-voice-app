@@ -3951,6 +3951,11 @@
     .cost-scenario-breakdown > div {display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #b5ca9c;}
     .cost-scenario-breakdown dd {margin:0;text-align:right;white-space:nowrap;}
     .cost-scenario summary {cursor:pointer;min-height:44px;padding:10px 0;}
+    #captionsPanel [data-term-status]:empty,
+    #captionsPanel [data-term-discovery-status]:empty {display:none;}
+    .term-help {font-size:.85rem;line-height:1.6;}
+    .term-help summary {cursor:pointer;padding:8px 0;min-height:44px;display:list-item;}
+    .term-help p {margin:8px 0;}
   </style>
 </head>
 <body>
@@ -4037,15 +4042,20 @@
       <div class="caption-heading"><h2 id="captionsTitle">会話の用語 <span class="term-count" data-term-count>0語</span></h2>
         <button type="button" data-term-toggle aria-pressed="false" disabled>自動検出をON</button>
       </div>
-      <p class="caption-help" data-term-status role="status">自動検出ON中は音声認識に加え、短い認識文を最大30秒に1回AIへ送ります。AIが一般的な専門用語と判断した語を共有辞書に保存します。音声・認識文は保存しません。</p>
-      <p class="caption-help">気になる用語を押すと、自分だけに短い説明を表示します。一覧は最大80語で、自動検出OFF・退室で消えます。辞書にない語や聞き取れない語は、手入力できます。</p>
+      <p class="caption-help" data-term-status role="status"></p>
       <form class="term-form" data-term-form>
 
         <input id="termInput" aria-label="調べたい用語" data-term-input placeholder="用語を入力して調べる" maxlength="80" required autocomplete="off" disabled>
         <button type="submit" data-term-submit disabled>調べる</button>
       </form>
       <div class="term-list" data-term-list aria-label="会話に出てきた用語" tabindex="0"></div>
-      <p class="caption-help">自動検出は数秒遅れて追加されます。音声は無音を除いて処理します。AI補助は短い認識文から専門用語を探し、一般的な語だけを共有辞書に保存します。認識文の保存や会話の要約はしません。</p>
+      <details class="term-help">
+        <summary>使い方・AIへの送信について</summary>
+        <p>用語を押すと説明を表示します。見つからない語は入力して調べられます。</p>
+        <p>自動検出ON中は音声と短い認識文をAIへ送信します。一般的な専門用語と判断された語は共有辞書に保存します。音声・認識文は保存しません。</p>
+        <p>用語の追加には数秒かかり、未知の語のAI補助は最大30秒間隔です。相手の音声の検出には相手側でもONが必要です。</p>
+        <p>一覧は最大80語。自動検出OFF・退室でこの画面から消えます。共有辞書は残り、他の人も再利用できます。</p>
+      </details>
       <p class="caption-help" role="status" data-term-discovery-status></p>
       <dialog class="caption-dialog" data-term-dialog aria-labelledby="termDialogTitle" hidden>
         <div class="caption-dialog-header"><h3 id="termDialogTitle" data-term-title></h3><button type="button" data-term-close autofocus>閉じる</button></div>
@@ -4290,7 +4300,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-costs";
+    const APP_VERSION = "2026-09-03-quiet-terms";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;

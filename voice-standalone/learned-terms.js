@@ -32,7 +32,7 @@ export function createTermDiscovery({getDictionary,discoverTerms,isActive,onTerm
   try{
    const terms=await discoverTerms(text,{signal:controller.signal});text='';
    if(id!==epoch||controller.signal.aborted||!isActive())return;
-   remember(terms);onTerms((terms||[]).filter(validLearnedTerm).slice(0,3));onStatus('AI補助は最大30秒に1回。登録済みの語は辞書で検出します。');
+   remember(terms);onTerms((terms||[]).filter(validLearnedTerm).slice(0,3));onStatus('');
   }catch(_){if(id===epoch&&isActive())onStatus('AI補助を利用できません。辞書での検出は続いています。')}
   finally{clearTimeout(timeout);text='';if(id===epoch){request=null;if(pending)schedule()}}
  }
