@@ -163,9 +163,9 @@ test("TURN制限時は一般向けの回線切替案内を表示する", () => {
 });
 
 test("料金目安は参加端末数を含めた通話全体で計算する", () => {
-  assert.match(rootHtml, /参加端末数を含めた通話全体/);
+  assert.match(rootHtml, /全機能を含む10分間の試算/);
   assert.match(rootHtml, /function getActiveParticipantCount/);
-  assert.match(rootHtml, /tenMinuteReads \* participantCount/);
+  assert.match(rootHtml, /costParticipants/);
   assert.match(rootHtml, /participantCountForEstimate/);
 });
 

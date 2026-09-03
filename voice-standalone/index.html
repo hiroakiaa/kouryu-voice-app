@@ -3941,6 +3941,16 @@
     .captions-card .caption-term:hover { text-decoration-style: solid; }
     .captions-card .caption-term:focus-visible { outline: 2px solid #548d34; outline-offset: 2px; }
     .caption-term-context { overflow-wrap: anywhere; line-height: 1.8; font-size: 1rem; margin: 0; padding: .85rem; background: #f5fae9; border-radius: .7rem; }
+    .cost-scenario {border:1px solid var(--accent-deep);border-radius:12px;padding:12px;}
+    #costScenarioTotal {font-size:1.6rem;font-weight:800;line-height:1.4;}
+    .cost-scenario h3 {margin:0 0 12px;}
+    .cost-scenario-inputs {display:grid;gap:10px;}
+    .cost-scenario-inputs label {display:grid;gap:5px;}
+    .cost-scenario-inputs select {width:100%;min-width:0;min-height:44px;font:inherit;color:inherit;background:var(--panel, #fffef7);border:1px solid var(--accent-deep);border-radius:8px;padding:6px;}
+    .cost-scenario-breakdown {margin:12px 0;}
+    .cost-scenario-breakdown > div {display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #b5ca9c;}
+    .cost-scenario-breakdown dd {margin:0;text-align:right;white-space:nowrap;}
+    .cost-scenario summary {cursor:pointer;min-height:44px;padding:10px 0;}
   </style>
 </head>
 <body>
@@ -3971,9 +3981,11 @@
         <strong>情報</strong>
         <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
       </div>
+      <p id="appInfoCostSummary" class="caption-help"></p>
+      <p id="appInfoCostConditions" class="caption-help"></p>
       <div id="appInfoCallReport" class="app-info-call-report" role="status" aria-live="polite"></div>
       <div class="app-info-actions" aria-label="詳しい情報">
-        <button id="metricsToggleBtn" class="app-info-action" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="Firestore料金の目安">
+        <button id="metricsToggleBtn" class="app-info-action" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="全機能の料金目安">
           <i class="fa-solid fa-yen-sign"></i><span>料金目安</span>
         </button>
         <button id="diagnosticsToggleBtn" class="app-info-action" type="button" aria-controls="diagnosticsPanel" aria-expanded="false" aria-label="接続診断">
@@ -4003,7 +4015,7 @@
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。用語の自動検出ON時は自分の音声をCloudflareの音声認識へ送信して一時処理します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、参加端末数を含めた通話全体のFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、通話全体の10分で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる目安です。用語検出・解説のAI利用料は別です。</span></span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のアプリ情報→「料金目安」で、音声認識・用語AI補助・説明・たとえを含む費用を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">通話全体の10分で <strong id="tipsTenMinuteCost" class="tip-cost-number">計算中</strong></span><span id="tipsCostConditions" class="tip-cost-line"></span><span class="tip-cost-line">無料枠内の追加請求は0円。残りの無料枠はこの画面では取得していません。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>電話帳から電話</strong><span>最初に登録URLを相手へ送り、相手が「この相手を登録する」を押します。次回からは電話帳の「電話する」だけで呼び出せます。着信側が「応答して通話を始める」を押すと、双方が自動で通話へ参加します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
@@ -4134,16 +4146,41 @@
         <input id="metricsRateInput" inputmode="decimal" value="158" aria-label="1ドルあたりの円換算">
         <button id="metricsRateHelpBtn" class="metrics-rate-help-btn" type="button" aria-label="為替レートの取得時刻" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
       </label>
+      <section class="cost-scenario" aria-labelledby="costScenarioTitle">
+        <h3 id="costScenarioTitle">全機能を含む10分間の試算</h3>
+        <div class="cost-scenario-inputs">
+          <label>参加人数<select id="costParticipants"><option value="1">1人</option><option value="2" selected>2人</option><option value="3">3人</option><option value="4">4人</option></select></label>
+          <label>利用条件<select id="costScenario"><option value="cached">登録済み中心・たとえ再利用</option><option value="reuse">AI補助多め・たとえ再利用</option><option value="new" selected>AI補助多め・たとえ新規10回</option></select></label>
+        </div>
+        <p id="costScenarioTotal" class="metrics-value" role="status"></p>
+        <p class="caption-help">無料枠を差し引く前の利用相当額です。現在の通話の実測額や請求額ではありません。</p>
+        <dl class="cost-scenario-breakdown">
+          <div><dt>音声認識</dt><dd id="cost-speech"></dd></div>
+          <div><dt>用語のAI補助</dt><dd id="cost-discovery"></dd></div>
+          <div><dt>短い説明（10回）</dt><dd id="cost-explanation"></dd></div>
+          <div><dt>たとえ生成</dt><dd id="cost-analogy"></dd></div>
+          <div><dt>接続・状態管理</dt><dd id="cost-firestore"></dd></div>
+          <div><dt>音声の中継</dt><dd id="cost-turn"></dd></div>
+          <div><dt>共有辞書・保存・ページ公開</dt><dd>0円（無料枠内）</dd></div>
+        </dl>
+        <p id="costAssumptions" class="caption-help"></p>
+        <details><summary>計算条件と無料枠について</summary>
+          <p class="caption-help">実際は無音の長さ、AIの出力、検出回数、中継の有無で変わります。新しい用語が多い場合のAI補助は1端末あたり抽出20回・審査20回で計算しています。</p>
+          <p class="caption-help">接続管理は全体で読み取り1,000回・書き込み200回・削除20回。中継は直接接続の0円から、片方向64kbpsで全組み合わせを両端中継する場合まで。共有保存とWorkers実行は無料枠内を仮定しています。</p>
+          <p class="caption-help">AIはアカウント全体で1日10,000ニューロンの無料枠を共有します。現在のWorkers Freeでは超過時にAI処理が停止します。ほかのサービスには別の無料枠があります。残り枠や請求額は取得していません。携帯回線の通信料は含みません。</p>
+          <p class="caption-help">単価確認：2026年9月3日。<a href="https://developers.cloudflare.com/workers-ai/platform/pricing/" target="_blank" rel="noopener noreferrer">AI料金表</a> · <a href="https://developers.cloudflare.com/durable-objects/platform/pricing/" target="_blank" rel="noopener noreferrer">共有保存料金表</a></p>
+        </details>
+      </section>
       <div class="metrics-cost-grid">
         <div class="metrics-cost-card">
           <div class="metrics-label">
-            <span>現在の通話全体の料金</span>
+            <span>現在の接続管理費（Firestore推定）</span>
             <button id="metricsNoteBtn" class="metrics-help-btn" type="button" aria-label="料金計算の説明" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
           </div>
           <div id="metricsCurrentCost" class="metrics-value">0.0000円</div>
         </div>
         <div class="metrics-cost-card">
-          <div class="metrics-label">通話全体の1分あたり</div>
+          <div class="metrics-label">接続管理の1分あたり</div>
           <div id="metricsMinuteCost" class="metrics-value">0.0000円/分</div>
         </div>
       </div>
@@ -4172,7 +4209,7 @@
       </div>
       <pre id="metricsOutput" class="metrics-output"></pre>
       <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
-        参加端末数を含めた通話全体の料金です。この端末で確認した推定reads / writes / deletesを参加端末数で換算するため、実際の請求額とは差が出る場合があります。用語検出・解説のAI利用料は、この概算には含まれません。
+        この計測欄はFirestoreの接続管理費だけです。端末の推定reads / writes / deletesを人数で換算しています。AIや中継を含む費用は上の「全機能を含む10分間の試算」を参照してください。
       </div>
       <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
     </div>
@@ -4180,7 +4217,7 @@
   <div id="metricsHistoryModal" class="metrics-modal metrics-history-modal" aria-hidden="true">
     <div class="metrics-modal-card metrics-history-card" role="dialog" aria-modal="true" aria-labelledby="metricsHistoryTitle">
       <div class="modal-head">
-        <h2 id="metricsHistoryTitle"><i class="fa-solid fa-chart-line"></i> 料金履歴</h2>
+        <h2 id="metricsHistoryTitle"><i class="fa-solid fa-chart-line"></i> 接続管理の料金履歴</h2>
         <button id="metricsHistoryCloseBtn" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="metrics-history-note">
@@ -4190,7 +4227,7 @@
       <div id="metricsHistorySummary" class="metrics-history-grid" aria-label="料金履歴の要約"></div>
       <div class="metrics-history-chart-wrap">
         <div class="metrics-history-chart-title">
-          <span>10分通話の概算料金の推移<br><small>縦軸：概算料金（円）／横軸：通話記録（古い→新しい）</small></span>
+          <span>接続管理費の推移（AI料金を除く）<br><small>縦軸：概算料金（円）／横軸：通話記録（古い→新しい）</small></span>
           <small>直近20回</small>
         </div>
         <div id="metricsHistoryChart" class="metrics-history-chart" aria-label="10分通話料金の折れ線グラフ"></div>
@@ -4211,6 +4248,7 @@
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-03-costs";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4252,7 +4290,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-discovery";
+    const APP_VERSION = "2026-09-03-costs";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4407,7 +4445,7 @@
       metricsCurrentCost: document.getElementById("metricsCurrentCost"),
       metricsMinuteCost: document.getElementById("metricsMinuteCost"),
       tipsTenMinuteCost: document.getElementById("tipsTenMinuteCost"),
-      tipsDailyFreeCalls: document.getElementById("tipsDailyFreeCalls"),
+
       metricsFixedReads: document.getElementById("metricsFixedReads"),
       metricsOngoingReads: document.getElementById("metricsOngoingReads"),
       turnUsageStatus: document.getElementById("turnUsageStatus"),
@@ -4579,6 +4617,7 @@
       ok: false,
       message: "まだ自動取得していません。"
     };
+    const costEstimator = createCostEstimator(document, getYenPerDollar);
     const metrics = createMetrics();
     window.voiceFirestoreMetrics = metrics;
     window.kouryuVoiceAppVersion = APP_VERSION;
@@ -9510,42 +9549,7 @@
       return value.toFixed(3) + "円";
     }
 
-    function formatCallCountRange(value) {
-      if (!Number.isFinite(value) || value <= 0) return "300〜400回";
-      if (value < 10) return "約" + Math.max(1, Math.floor(value)) + "回";
-      const bucket = value >= 100 ? 100 : 10;
-      const lower = Math.max(bucket, Math.floor(value / bucket) * bucket);
-      const upper = lower + bucket;
-      return lower.toLocaleString("ja-JP") + "〜" + upper.toLocaleString("ja-JP") + "回";
-    }
-
-    function updateTipsCostEstimate(data) {
-      if (!el.tipsTenMinuteCost && !el.tipsDailyFreeCalls) return;
-      const fallbackTenMinuteCost = 0.017;
-      const fixedReads = data && Number.isFinite(data.fixedReads) ? data.fixedReads : 0;
-      const fixedWrites = data && Number.isFinite(data.fixedWrites) ? data.fixedWrites : 0;
-      const fixedDeletes = data && Number.isFinite(data.fixedDeletes) ? data.fixedDeletes : 0;
-      const readsPerMinute = data && Number.isFinite(data.readsPerMinute) ? data.readsPerMinute : 0;
-      const writesPerMinute = data && Number.isFinite(data.writesPerMinute) ? data.writesPerMinute : 0;
-      const deletesPerMinute = data && Number.isFinite(data.deletesPerMinute) ? data.deletesPerMinute : 0;
-      const hasLiveEstimate = fixedReads || fixedWrites || fixedDeletes || readsPerMinute || writesPerMinute || deletesPerMinute;
-      const participantCount = Math.max(1, data && Number.isFinite(data.participantCount) ? data.participantCount : getActiveParticipantCount());
-      const yenPerDollar = data && Number.isFinite(data.yenPerDollar) ? data.yenPerDollar : getYenPerDollar();
-      const tenMinuteReads = fixedReads + readsPerMinute * 10;
-      const tenMinuteWrites = fixedWrites + writesPerMinute * 10;
-      const tenMinuteDeletes = fixedDeletes + deletesPerMinute * 10;
-      const tenMinuteYen = hasLiveEstimate
-        ? firestoreCostYen(tenMinuteReads * participantCount, tenMinuteWrites * participantCount, tenMinuteDeletes * participantCount, yenPerDollar)
-        : fallbackTenMinuteCost;
-      const freeCandidates = [];
-      if (tenMinuteReads > 0) freeCandidates.push(50000 / (tenMinuteReads * participantCount));
-      if (tenMinuteWrites > 0) freeCandidates.push(20000 / (tenMinuteWrites * participantCount));
-      if (tenMinuteDeletes > 0) freeCandidates.push(20000 / (tenMinuteDeletes * participantCount));
-      const freeCalls = freeCandidates.length ? Math.min.apply(null, freeCandidates) : 350;
-
-      if (el.tipsTenMinuteCost) el.tipsTenMinuteCost.textContent = formatYen(tenMinuteYen);
-      if (el.tipsDailyFreeCalls) el.tipsDailyFreeCalls.textContent = formatCallCountRange(freeCalls);
-    }
+    function updateTipsCostEstimate() { costEstimator.render(); }
 
     function getMetricsCostEstimate(latest) {
       const target = latest || (metrics.milestones.length ? metrics.milestones[metrics.milestones.length - 1] : getMetricSnapshot("current"));
@@ -10206,5 +10210,7 @@
 <!-- kouryu voice standalone deploy marker 2026-08-07-001 -->
 </body>
 </html>
+
+
 
 
