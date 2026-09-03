@@ -170,3 +170,8 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneNameDialog input{box-sizing:border-box;width:100%;min-height:48px;padding:10px;border:2px solid #c3e39c;border-radius:14px;background:#fffef9;color:#30462d;font-size:18px;}
 @media(prefers-reduced-motion:reduce){#phoneOwnDetails{transition:none;}}
 @media(max-height:640px){#phoneDialPanel{padding-top:52px;padding-bottom:2px;}#phoneOwnToggle{top:2px;}}
+#phoneDialPanel{padding:8px 0;}
+.phone-dial-content{position:relative;}
+#phoneOwnToggle{position:static;align-self:flex-end;flex:0 0 auto;margin:0 6px 0 0;}
+#phoneOwnDetails{right:6px;top:58px;}
+@media(max-height:640px){#phoneDialPanel{padding:0;}.phone-dial-content{gap:0;}#phoneOwnToggle{margin-bottom:2px;}}

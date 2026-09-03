@@ -1,3 +1,4 @@
+import {bindDialInput} from './dial-input.js';
 import {copyNumberFeedback} from './copy-feedback.js?v=2026-09-04-phone-details';
 import {doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,collection,query,where,runTransaction,serverTimestamp,Timestamp,getDocs,orderBy,limit} from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js';
 import {getAuth,EmailAuthProvider,linkWithCredential,signInWithEmailAndPassword,sendPasswordResetEmail,sendEmailVerification,signOut} from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js';
@@ -86,8 +87,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,usa
   $('phoneNameForm').addEventListener('submit',async e=>{e.preventDefault();$('phoneSaveName').disabled=true;try{await saveName();}catch(_){$('phoneNameMessage').textContent='保存できませんでした。通信を確認してください。';}finally{$('phoneSaveName').disabled=false;}});
   const tabs=document.querySelector('.phone-tabs');tabs.addEventListener('wheel',e=>{if(e.ctrlKey||tabs.scrollWidth<=tabs.clientWidth)return;const before=tabs.scrollLeft;tabs.scrollLeft+=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?tabs.clientWidth:1);if(before!==tabs.scrollLeft)e.preventDefault();},{passive:false});
   tabs.addEventListener('keydown',e=>{const buttons=[...tabs.querySelectorAll('[data-phone-tab]')],i=buttons.indexOf(document.activeElement);if(i<0||!['ArrowRight','ArrowLeft','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;tab(buttons[next].dataset.phoneTab);buttons[next].focus();});
-  const input=$('phoneDialNumber');let cursor=null,endCursor=null;input.addEventListener('select',()=>{cursor=input.selectionStart;endCursor=input.selectionEnd;});input.addEventListener('blur',()=>{cursor=input.selectionStart;endCursor=input.selectionEnd;});
-  function editDial(key){const a=cursor??input.value.length,b=endCursor??a;const left=key===null?Math.max(0,a-(a===b?1:0)):a;const value=input.value.slice(0,left)+(key||'')+input.value.slice(b);if(value.length>input.maxLength)return;input.value=value;cursor=endCursor=left+(key?key.length:0);input.setSelectionRange(cursor,cursor);input.dispatchEvent(new Event('input',{bubbles:true}));}
+  const editDial=bindDialInput($('phoneDialNumber'));
   for(const b of document.querySelectorAll('[data-phone-key]'))b.onclick=()=>editDial(b.dataset.phoneKey);
   $('phoneBackspace').onclick=()=>editDial(null);
   $('phoneDialForm').addEventListener('submit',e=>{e.preventDefault();dial($('phoneDialNumber').value);});
