@@ -1,3 +1,4 @@
+import {copyNumberFeedback} from './copy-feedback.js';
 import {doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,collection,query,where,runTransaction,serverTimestamp,Timestamp,getDocs,orderBy,limit} from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js';
 import {getAuth,EmailAuthProvider,linkWithCredential,signInWithEmailAndPassword,sendPasswordResetEmail,sendEmailVerification,signOut} from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js';
 import {normalizeNumber,formatNumber} from './number-call-policy.js';
@@ -24,7 +25,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,usa
  function numberLink(){const u=new URL(location.origin+location.pathname);u.searchParams.set('contact',own);return u.toString();}
  async function createNumber(){if(busy)return;const display=$('phoneName').value.trim();if(!display){$('phoneNameDialog').showModal();$('phoneNameMessage').textContent='番号を作る前に、名前を保存してください。';$('phoneName').focus();return;}busy=true;
   try{for(let i=0;i<10;i++){const n=crypto.getRandomValues(new Uint32Array(1))[0];if(n>=4200000000){i--;continue;}const number=String(n%1e8).padStart(8,'0');const value=await tx(async t=>{const p=await t.get(profile);if(p.exists())return p.data().number;const s=await t.get(ref('voiceNumbers',number));if(s.exists())return null;t.set(ref('voiceNumbers',number),{number,ownerUid:uid});t.set(profile,{number,name:display.slice(0,20)});return number;});if(value){own=value;renderOwn();msg('自分の番号を作成しました。');return;}}throw Error();}catch(_){msg('番号を作れませんでした。通信を確認してください。');}finally{busy=false;}}
- function renderOwn(){$('phoneOwnNumber').textContent=own?formatNumber(own):'番号を設定してください';$('phoneCreateNumber').hidden=!!own;$('phoneShare').hidden=!own;$('phoneCopy').hidden=!own;}
+ function renderOwn(){$('phoneOwnNumber').textContent=own?formatNumber(own):'番号を設定してください';$('phoneCreateNumber').hidden=!!own;$('phoneCopy').hidden=!own;}
  async function saveName(){const value=Array.from($('phoneName').value.normalize('NFKC').replace(/\s+/g,' ').trim()).slice(0,8).join('');if(!value){$('phoneNameMessage').textContent='名前を入力してください。';return;}if(own)await patch(profile,{name:value});$('phoneName').value=value;$('nameInput').value=value;$('nameInput').dispatchEvent(new Event('change',{bubbles:true}));$('phoneNameOpen').title=value+'：名前を編集';$('phoneNameDialog').close();msg('名前を保存しました。');}
 
  function myName(){return $('nameInput').value.trim().slice(0,8)||name();}
@@ -74,7 +75,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,usa
   for(const b of document.querySelectorAll('[data-phone-tab]'))b.onclick=()=>tab(b.dataset.phoneTab);
   $('shareBtn').textContent=state().callId.startsWith('g_')?'招待リンク':'番号を共有';$('shareBtn').addEventListener('click',e=>{e.stopImmediatePropagation();copy(state().callId.startsWith('g_')?groupLink({id:state().callId}):numberLink());},true);
   const bind=(id,fn)=>$(id).addEventListener('click',async()=>{const b=$(id);b.disabled=true;try{await fn();}catch(e){msg(e.message||'操作できませんでした。');}finally{b.disabled=false;}});
-  bind('phoneCreateNumber',createNumber);bind('phoneCopy',()=>copy(own));bind('phoneShare',()=>copy(numberLink()));bind('phoneCancel',()=>cancel());bind('phoneAddContact',()=>addContact());bind('phoneCreateGroup',createGroup);
+  bind('phoneCreateNumber',createNumber);bind('phoneCopy',()=>copyNumberFeedback($('phoneCopy'),own));bind('phoneCancel',()=>cancel());bind('phoneAddContact',()=>addContact());bind('phoneCreateGroup',createGroup);
   $('phoneNameOpen').onclick=()=>{$('phoneNameMessage').textContent='';$('phoneNameDialog').showModal();$('phoneName').focus();};
   $('phoneNameClose').onclick=()=>{$('phoneName').value=$('nameInput').value;$('phoneNameDialog').close();};
   $('phoneNameDialog').addEventListener('cancel',()=>{$('phoneName').value=$('nameInput').value;});
