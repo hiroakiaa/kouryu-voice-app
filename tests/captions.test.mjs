@@ -25,7 +25,7 @@ function harness(available = async () => 'available', clock = Date) {
   const context = vm.createContext({ Date: clock, Math, console, setInterval: fn => { const id = intervals.size + 1; intervals.set(id,fn); return id; },
     clearInterval: id => intervals.delete(id), setTimeout: fn => { const id = timeouts.size + 1; timeouts.set(id,fn); return id; }, clearTimeout: id => timeouts.delete(id),
     document: { createElement: () => new Element(), createDocumentFragment: () => new Element() } });
-  vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { CaptionBuffer, createCaptions, findFactSpans };', context);
+  vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { CaptionBuffer, createCaptions, findFactSpans, findTermSpans };', context);
   const call = { joined: true, muted: false, userId: 'self' };
   const controller = context.api.createCaptions({ root, getCall: () => call, send: packet => sent.push(packet), speakerName: id => id, Recognition });
   return { ...context.api, controller, call, instances, sent, intervals, timeouts, nodes,
@@ -127,4 +127,30 @@ test('聞き逃しは確定原文のみ・追加通知なし・開いた後も60
   assert.doesNotMatch(flatten(replay),/直前の確定原文/);
   assert.match(flatten(replay),/確定字幕はありません/);
   h.call.joined=false;h.controller.sync();assert.equal(flatten(replay),'');assert.equal(h.intervals.size,0);
+});
+
+test('専門語の複合語を優先し、重複・単語の途中・過剰な下線を避ける', () => {
+  const {findTermSpans}=harness();
+  const text='WebRTCではICE Candidateを交換してNAT Traversalを行います。';
+  assert.deepEqual(Array.from(findTermSpans(text),s=>text.slice(s.start,s.end)),['WebRTC','ICE Candidate','NAT Traversal']);
+  const repeated='APIとAPI、SDK、HTTP、DNS、TCP、UDP';
+  assert.equal(findTermSpans(repeated).length,4);
+  assert.equal(findTermSpans('RAPID MYAPI REQUESTS アイスを食べる').length,0);
+  assert.equal(findTermSpans('ICE　Candidate').length,1);
+});
+test('下線は確定字幕だけ、タップは通信せず、期限切れと退室で原文カードを消す', async () => {
+  let now=10000;class Clock extends Date{static now(){return now}}
+  const h=harness(undefined,Clock);h.toggle();await flush();
+  h.controller.receive('A',packet('WebRTCを使います',1,false));
+  assert.equal(h.list.children[0].children[0].children[1].textContent,'WebRTCを使います');
+  h.controller.receive('A',packet('WebRTCを使います。',2,true));
+  const term=h.list.children[0].children[0].children[1].children[1];assert.equal(term.className,'caption-term');
+  for(const tick of h.intervals.values())tick();
+  assert.equal(h.list.children[0].children[0].children[1].children[1],term,'unchanged ticks must not replace focused buttons');
+  term.click();assert.equal(h.nodes.get('[data-caption-term-title]').textContent,'WebRTC');
+  assert.equal(h.nodes.get('[data-caption-term-context]').textContent,'WebRTCを使います。');assert.equal(h.sent.length,0);
+  now+=60001;for(const tick of h.intervals.values())tick();
+  assert.equal(h.nodes.get('[data-caption-term-context]').textContent,'');
+  assert.equal(h.nodes.get('[data-caption-term-panel]').hidden,true);
+  h.call.joined=false;h.controller.sync();assert.equal(h.intervals.size,0);
 });

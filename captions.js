@@ -44,7 +44,33 @@ export function findFactSpans(text) {
   return selected;
 }
 
-export function createCaptions({ root, getCall, send, speakerName, features = { facts: true, replay: true }, Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
+const TERM_DICTIONARY = [
+  'ICE Candidate', 'NAT Traversal', 'WebRTC', 'TURN', 'STUN', 'OAuth', 'OpenID Connect', 'API', 'SDK', 'HTTP', 'HTTPS', 'DNS', 'IPアドレス',
+  'TCP', 'UDP', 'TLS', 'VPN', 'LAN', 'NAT', 'ICE', 'P2P', 'SFU', 'WebSocket', 'WebTransport', 'Webhook', 'Firestore', 'Firebase',
+  'クラウド', 'シグナリング', 'エンドツーエンド暗号化', 'トランザクション', 'キャッシュ', 'データベース', 'アルゴリズム', '機械学習', '生成AI', 'LLM',
+  '内生性', '外生性', '操作変数法', '限界効用', '機会費用', '需要曲線', '供給曲線', '回帰分析', '相関係数', '因果推論', '標準偏差', '有意水準', '帰無仮説',
+  '契約不適合責任', '善管注意義務', '債務不履行', '損害賠償', '瑕疵担保責任', '成年後見制度', 'インボイス制度', '著作権', '個人情報保護法',
+  'GDP', 'CPI', 'NISA', 'ETF', '投資信託', '複利', '分散投資', '減価償却', '流動資産', '損益計算書', '貸借対照表', '稟議', '決裁',
+  'HbA1c', 'MRI', 'CT', '高血圧', '糖尿病', '抗体', '抗原', '炎症', 'インフォームドコンセント', 'インフィールドフライ', 'オフサイド'
+];
+const termRegex = new RegExp(TERM_DICTIONARY.slice().sort((a,b) => b.length-a.length)
+  .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '[ 　]+')).join('|'), 'gi');
+
+export function findTermSpans(text, limit = 4) {
+  const selected = [], seen = new Set();
+  for (const match of text.matchAll(termRegex)) {
+    const start = match.index, end = start + match[0].length;
+    if (/[A-Za-z0-9]/.test(match[0][0]) && /[A-Za-z0-9_]/.test(text[start-1] || '')) continue;
+    if (/[A-Za-z0-9]/.test(match[0].at(-1)) && /[A-Za-z0-9_]/.test(text[end] || '')) continue;
+    const key = match[0].toLowerCase().replace(/[ 　]+/g, ' ');
+    if (seen.has(key)) continue;
+    seen.add(key); selected.push({start,end,kind:'用語候補'});
+    if (selected.length >= limit) break;
+  }
+  return selected;
+}
+
+export function createCaptions({ root, getCall, send, speakerName, features = { facts: true, replay: true, terms: true }, Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
   const button = root.querySelector('[data-caption-toggle]');
   const status = root.querySelector('[data-caption-status]');
   const list = root.querySelector('[data-caption-list]');
@@ -54,6 +80,14 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
   const replayPanel = root.querySelector('[data-caption-replay-panel]');
   const replayList = root.querySelector('[data-caption-replay-list]');
   const replayClose = root.querySelector('[data-caption-replay-close]');
+  const termsToggle = root.querySelector('[data-caption-terms]');
+  const termPanel = root.querySelector('[data-caption-term-panel]');
+  const termTitle = root.querySelector('[data-caption-term-title]');
+  const termContext = root.querySelector('[data-caption-term-context]');
+  const termClose = root.querySelector('[data-caption-term-close]');
+  let selectedTerm = null, termsEnabled = !!features.terms, lastSignature = '';
+  const annotationCache = new WeakMap();
+  if (termsToggle) { termsToggle.checked = termsEnabled; termsToggle.disabled = !features.terms; }
   let replayKeys = null;
   if (replayButton) { replayButton.hidden = !features.replay; replayButton.disabled = true; }
   let factsEnabled = !!features.facts;
@@ -63,8 +97,28 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
   let busy = false, errors = 0, runId = 0, seq = 0, lastInterim = 0, suspended = false, runTimer = null;
   const instance = Math.random().toString(36).slice(2, 12);
   const setStatus = text => { status.textContent = text; };
+  function annotations(row) {
+    let cached = row.final && annotationCache.get(row);
+    if (!cached) {
+      const facts = features.facts ? findFactSpans(row.text) : [];
+      const terms = features.terms && row.final ? findTermSpans(row.text).filter(t => !facts.some(f => t.start < f.end && t.end > f.start)) : [];
+      cached = {facts,terms}; if (row.final) annotationCache.set(row,cached);
+    }
+    return [...(factsEnabled ? cached.facts : []), ...(termsEnabled ? cached.terms : [])].sort((a,b) => a.start-b.start);
+  }
+  function renderTerm() {
+    if (!termPanel || !termTitle || !termContext) return;
+    const row = selectedTerm && buffer.rows.find(r => r.speaker === selectedTerm.speaker && r.id === selectedTerm.id);
+    if (!row) selectedTerm = null;
+    termPanel.hidden = !row;
+    termTitle.textContent = row ? row.text.slice(selectedTerm.start,selectedTerm.end) : '';
+    termContext.textContent = row ? row.text : '';
+  }
   function render() {
     buffer.prune();
+    const signature = JSON.stringify([factsEnabled, termsEnabled, buffer.rows.map(r => [r.speaker,r.id,r.seq,r.final,speakerName(r.speaker)])]);
+    if (signature === lastSignature) { renderReplay(); renderTerm(); return; }
+    lastSignature = signature;
     const stick = list.scrollHeight - list.scrollTop - list.clientHeight < 40;
     const fragment = document.createDocumentFragment();
     for (const row of buffer.rows) {
@@ -74,13 +128,24 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
       name.className = 'caption-speaker';
       name.textContent = speakerName(row.speaker) + (row.final ? '' : '（認識中）');
       const words = document.createElement('span');
-      const spans = factsEnabled ? findFactSpans(row.text) : [];
+      let spans = [];
+      try { spans = annotations(row); } catch (_) { /* display the original on detection failure */ }
       if (!spans.length) words.textContent = row.text;
       else {
         let cursor = 0;
         for (const span of spans) {
           const plain = document.createElement('span'); plain.textContent = row.text.slice(cursor, span.start); words.append(plain);
-          const marked = document.createElement('mark'); marked.className = 'caption-fact'; marked.title = span.kind;
+          const isTerm = span.kind === '用語候補';
+          const marked = document.createElement(isTerm ? 'button' : 'mark');
+          marked.className = isTerm ? 'caption-term' : 'caption-fact'; marked.title = span.kind;
+          if (isTerm) {
+            marked.type = 'button'; marked.setAttribute('aria-label', '用語候補：' + row.text.slice(span.start,span.end));
+            marked.setAttribute('aria-controls','captionTermCard');
+            marked.addEventListener('click', () => {
+              selectedTerm = {speaker:row.speaker,id:row.id,start:span.start,end:span.end};
+              renderTerm(); termPanel?.focus?.();
+            });
+          }
           marked.textContent = row.text.slice(span.start, span.end); words.append(marked); cursor = span.end;
         }
         const tail = document.createElement('span'); tail.textContent = row.text.slice(cursor); words.append(tail);
@@ -90,6 +155,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     list.replaceChildren(fragment);
     if (stick) list.scrollTop = list.scrollHeight;
     renderReplay();
+    renderTerm();
   }
   function renderReplay() {
     if (!replayPanel || !replayList) return;
@@ -125,6 +191,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
   function disable() {
     enabled = false; suspended = false; stopRecognition();
     closeReplay(); if (replayButton) replayButton.disabled = true;
+    selectedTerm = null;
     clearInterval(timer); timer = null;
     buffer.clear(); render();
     list.hidden = true; prepare.hidden = true;
@@ -223,6 +290,9 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     sync();
   });
   factsToggle?.addEventListener('change', () => { factsEnabled = !!features.facts && factsToggle.checked; render(); });
+  termsToggle?.addEventListener('change', () => { termsEnabled = !!features.terms && termsToggle.checked; selectedTerm = null; render(); });
+  termClose?.addEventListener('click', () => { selectedTerm = null; renderTerm(); list.focus?.(); });
+  termPanel?.addEventListener('keydown', event => { if (event.key === 'Escape') { selectedTerm = null; renderTerm(); list.focus?.(); } });
   replayButton?.addEventListener('click', () => {
     if (!enabled || !features.replay) return;
     if (replayKeys) { closeReplay(); return; }

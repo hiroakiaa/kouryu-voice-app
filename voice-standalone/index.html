@@ -3895,6 +3895,11 @@
     .caption-replay-header { display: flex; align-items: center; justify-content: space-between; gap: .4rem; flex-wrap: wrap; }
     .caption-replay h3 { font-size: .9rem; margin: 0; }
     .caption-replay button { font: inherit; font-size: .8rem; padding: .4rem .7rem; }
+    .captions-card .caption-term { display: inline; width: auto; height: auto; min-width: 0; min-height: 0; padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; color: inherit; font: inherit; white-space: normal; text-decoration: underline dotted #658547; text-underline-offset: .2em; transform: none; }
+    .captions-card .caption-term::before, .captions-card .caption-term::after { content: none; }
+    .captions-card .caption-term:hover { text-decoration-style: solid; }
+    .captions-card .caption-term:focus-visible { outline: 2px solid #548d34; outline-offset: 2px; }
+    .caption-term-context { overflow-wrap: anywhere; max-height: 10rem; overflow-y: auto; line-height: 1.7; font-size: .9rem; }
   </style>
 </head>
 <body>
@@ -3982,8 +3987,12 @@
       </div>
       <p class="caption-help" data-caption-status role="status">自分の発言を字幕にして通話相手へ共有します。字幕は60秒で消え、保存しません。</p>
       <button type="button" class="caption-prepare" data-caption-prepare hidden>日本語音声認識をダウンロード</button>
-      <details class="caption-settings"><summary>字幕の設定</summary><label><input type="checkbox" data-caption-facts checked>日時・金額・数量などを強調</label></details>
+      <details class="caption-settings"><summary>字幕の設定</summary><label><input type="checkbox" data-caption-facts checked>日時・金額・数量などを強調</label><label><input type="checkbox" data-caption-terms checked>専門用語の候補に下線</label></details>
       <div class="caption-list" data-caption-list aria-label="直近60秒の字幕" tabindex="0" hidden></div>
+      <section id="captionTermCard" class="caption-replay" data-caption-term-panel aria-label="選択した言葉" tabindex="-1" hidden>
+        <div class="caption-replay-header"><h3 data-caption-term-title></h3><button type="button" data-caption-term-close>閉じる</button></div>
+        <p class="caption-help">字幕の原文</p><p class="caption-term-context" data-caption-term-context></p>
+      </section>
       <section id="captionReplay" class="caption-replay" data-caption-replay-panel aria-label="聞き逃した発言" tabindex="-1" hidden>
         <div class="caption-replay-header"><h3>直前の字幕</h3><button type="button" data-caption-replay-close>閉じる</button></div>
         <p class="caption-help">開いた時点の確定字幕です。60秒を過ぎた発言は消えます。</p>
@@ -4180,7 +4189,7 @@
 
     const APP_VERSION = "2026-09-03-captions-phase1-preview";
     const CAPTIONS_ENABLED = true;
-    const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true });
+    const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true, terms: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
