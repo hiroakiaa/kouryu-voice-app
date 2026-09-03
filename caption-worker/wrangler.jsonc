@@ -31,6 +31,14 @@
         "limit": 10,
         "period": 60
       }
+    },
+    {
+      "name": "DISCOVERY_LIMIT",
+      "namespace_id": "903004",
+      "simple": {
+        "limit": 2,
+        "period": 60
+      }
     }
   ],
   "observability": {
@@ -42,6 +50,10 @@
       {
         "name": "ANALOGIES",
         "class_name": "AnalogyCache"
+      },
+      {
+        "name": "TERM_DICTIONARY",
+        "class_name": "TermDictionary"
       }
     ]
   },
@@ -50,6 +62,12 @@
       "tag": "analogy-v1",
       "new_sqlite_classes": [
         "AnalogyCache"
+      ]
+    },
+    {
+      "tag": "dictionary-v1",
+      "new_sqlite_classes": [
+        "TermDictionary"
       ]
     }
   ]

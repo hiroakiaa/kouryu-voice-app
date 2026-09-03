@@ -1,7 +1,8 @@
+import {createTermDiscovery} from './learned-terms.js?v=2026-09-03-discovery';
 import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
 import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-shared-analogies';
 
-// Only dictionary terms survive recognition. No transcript is stored or sent to peers.
+// Only validated terms survive recognition. No transcript is stored or sent to peers.
 export function extractTerms(text) {
   if (typeof text !== 'string') return [];
   const normalized = text.slice(0, 600).normalize('NFKC')
@@ -15,7 +16,7 @@ export function extractTerms(text) {
 }
 const keyOf = term => term.toLowerCase().replace(/\s+/g, ' ');
 
-export function createTermAssist({root, getCall, send, speakerName, Recognition, getExplanation, getAnalogy}) {
+export function createTermAssist({root, getCall, send, speakerName, Recognition, getExplanation, getAnalogy, getDictionary, discoverTerms}) {
   const node = name => root.querySelector('[data-term-' + name + ']');
   const toggle=node('toggle'), status=node('status'), list=node('list'), count=node('count');
   const dialog=node('dialog'), title=node('title'), answer=node('answer'), close=node('close'), retry=node('retry');
@@ -24,7 +25,10 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   let enabled=false, speech=null, generation=0, failed=false, selected=null, request=null, requestId=0, timeout=null, expiry=null;
   let sequence=0;
   const instance=Math.random().toString(36).slice(2,10);
-  const offText='自動検出ON中は自分の音声をCloudflareへ送り、専門用語だけを相手と共有します。音声・会話全文は保存しません。';
+  const offText='自動検出ON中は音声認識に加え、短い認識文を最大30秒に1回AIへ送ります。一般的な専門用語だけを共有辞書に保存し、相手と共有します。音声・認識文は保存しません。';
+  const discovery=createTermDiscovery({getDictionary,discoverTerms,isActive:()=>enabled&&getCall().joined,knownTerms:extractTerms,
+    onStatus:text=>{const hint=node('discovery-status');if(hint)hint.textContent=text},
+    onTerms:(terms,share=true,speaker=getCall().userId)=>publishTerms(terms,share,speaker)});
   const analogies=createTermAnalogy({root,getTerm:()=>entries.get(selected)?.term,getCall,getAnalogy});
 
   function cancelRequest() {
@@ -36,7 +40,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     if(dialog.open)dialog.close();dialog.hidden=true;
   }
   function stopSpeech() {
-    generation++;
+    generation++;discovery.stop();
     if(speech){const old=speech;speech=null;old.onresult=old.onstart=old.onerror=old.onend=null;try{old.abort()}catch(_){}}
   }
   function render() {
@@ -56,16 +60,18 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     if(entries.size>=80){const oldest=entries.keys().next().value;entries.delete(oldest);clearTimeout(cache.get(oldest)?.timer);cache.delete(oldest);if(selected===oldest)closeDialog()}
     entries.set(key,{term,speaker,manual});return key;
   }
-  function publish(text) {
-    const fresh=[];let changed=false;
-    for(const term of extractTerms(text)){
+  function publishTerms(terms,share=true,speaker=getCall().userId) {
+    const fresh=[];
+    let changed=false;
+    for(const term of terms.slice(0,20)){
       // A term seen from another speaker still needs to be shared by this sender.
-      if(!sent.has(keyOf(term))){sent.add(keyOf(term));fresh.push(term)}
-      if(!entries.has(keyOf(term))){add(term,getCall().userId);changed=true}
+      if(share&&!sent.has(keyOf(term))){sent.add(keyOf(term));fresh.push(term)}
+      if(!entries.has(keyOf(term))){add(term,speaker);changed=true}
     }
     if(fresh.length){try{send({type:'terms',id:instance+'-'+(++sequence),terms:fresh})}catch(_){}}
     if(changed)render();
   }
+  function publish(text){publishTerms([...extractTerms(text),...discovery.match(text)]);discovery.observe(text)}
   const sent=new Set();
   async function explain(key) {
     if(!getCall().joined||!entries.has(key))return;
@@ -97,10 +103,11 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     if(!enabled)return;
     if(call.muted){stopSpeech();status.textContent='マイクOFF中は自分の検出を休止します。相手から届く用語は追加されます。';return}
     if(speech||failed)return;
+    discovery.start();
     const token=++generation;
     try{
       const current=new Recognition();speech=current;status.textContent='音声から用語を探す準備をしています…';
-      current.onstart=()=>{if(token===generation)status.textContent='用語を検出中です。数秒ごとに追加します。相手の発言には相手側でも自動検出ONが必要です。'};
+      current.onstart=()=>{if(token===generation)status.textContent='用語を検出中です。登録済みの語は数秒ごと、未知の語のAI補助は最大30秒間隔です。相手側でも自動検出ONが必要です。'};
       current.onresult=event=>{
         if(token!==generation||!enabled||!getCall().joined||getCall().muted)return;
         for(let i=event.resultIndex;i<event.results.length;i++){const r=event.results[i];if(r?.isFinal)publish(r[0]?.transcript)}
@@ -128,9 +135,12 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     if(!enabled||!getCall().joined)return;
     // During rollout, old full-caption clients are parsed locally, never displayed.
     const terms=packet?.type==='caption'&&packet.final?extractTerms(packet.text):packet?.type==='terms'&&Array.isArray(packet.terms)&&packet.terms.length<=20?packet.terms:[];
+    const unknown=terms.filter(t=>typeof t==='string'&&t.length<=40&&!extractTerms(t).some(v=>keyOf(v)===keyOf(t)));
+    if(unknown.length)void discovery.receive(unknown,speaker);
     let changed=false;
     for(const term of terms){if(typeof term!=='string'||term.length>80)continue;const found=extractTerms(term);if(found.length!==1||keyOf(found[0])!==keyOf(term))continue;
       if(!entries.has(keyOf(term))){add(term,speaker);changed=true}}
     if(changed)render();
   }};
 }
+

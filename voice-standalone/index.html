@@ -4025,7 +4025,7 @@
       <div class="caption-heading"><h2 id="captionsTitle">会話の用語 <span class="term-count" data-term-count>0語</span></h2>
         <button type="button" data-term-toggle aria-pressed="false" disabled>自動検出をON</button>
       </div>
-      <p class="caption-help" data-term-status role="status">自動検出ON中は自分の音声をCloudflareへ送り、専門用語だけを相手と共有します。音声・会話全文は保存しません。</p>
+      <p class="caption-help" data-term-status role="status">自動検出ON中は音声認識に加え、短い認識文を最大30秒に1回AIへ送ります。AIが一般的な専門用語と判断した語を共有辞書に保存します。音声・認識文は保存しません。</p>
       <p class="caption-help">気になる用語を押すと、自分だけに短い説明を表示します。一覧は最大80語で、自動検出OFF・退室で消えます。辞書にない語や聞き取れない語は、手入力できます。</p>
       <form class="term-form" data-term-form>
 
@@ -4033,7 +4033,8 @@
         <button type="submit" data-term-submit disabled>調べる</button>
       </form>
       <div class="term-list" data-term-list aria-label="会話に出てきた用語" tabindex="0"></div>
-      <p class="caption-help">自動検出は数秒遅れて追加されます。音声は無音を除いて処理し、説明は押した語だけをAIへ送信します。会話全体の要約はしません。</p>
+      <p class="caption-help">自動検出は数秒遅れて追加されます。音声は無音を除いて処理します。AI補助は短い認識文から専門用語を探し、一般的な語だけを共有辞書に保存します。認識文の保存や会話の要約はしません。</p>
+      <p class="caption-help" role="status" data-term-discovery-status></p>
       <dialog class="caption-dialog" data-term-dialog aria-labelledby="termDialogTitle" hidden>
         <div class="caption-dialog-header"><h3 id="termDialogTitle" data-term-title></h3><button type="button" data-term-close autofocus>閉じる</button></div>
         <div class="caption-dialog-body" tabindex="0">
@@ -4251,7 +4252,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-shared-analogies";
+    const APP_VERSION = "2026-09-03-discovery";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4592,7 +4593,19 @@
       // Dynamic import is isolated: a missing caption asset cannot stop the phone.
       Promise.all([import('./term-assist.js?v=' + APP_VERSION), import('./caption-server.js?v=' + APP_VERSION)]).then(function(modules) {
         const module = modules[0];
+        async function termRequest(path, body, options) {
+          if (!authUser || !joined) throw new Error('auth');
+          const token = await authUser.getIdToken();
+          const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/' + path, {
+            method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+            body:JSON.stringify(body),signal:options.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'
+          });
+          if (!response.ok) throw new Error('unavailable');
+          return (await response.json()).terms;
+        }
         captionController = module.createTermAssist({
+          getDictionary: options => termRequest('dictionary', {}, options),
+          discoverTerms: (text, options) => termRequest('discover', {text}, options),
           Recognition: modules[1].createServerRecognition({
             endpoint: 'https://kouryu-captions.allinone-hiroakiaa.workers.dev/transcribe',
             getStream: function() { return localStream; },
@@ -10193,4 +10206,5 @@
 <!-- kouryu voice standalone deploy marker 2026-08-07-001 -->
 </body>
 </html>
+
 

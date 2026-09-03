@@ -1,0 +1,19 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>専門用語AI補助の確認</title>
+<h1>専門用語AI補助（合成認識文・実マイク不使用）</h1>
+<button id="known">登録済みの認識文</button><button id="unknown">未登録の認識文</button><button id="remote">相手から共有語を受信</button><button id="leave">終了</button><p id="calls">AI補助要求：0回</p><main></main>
+<script type="module">
+import {createTermAssist} from '../term-assist.js';
+const doc=new DOMParser().parseFromString(await(await fetch('../index.html')).text(),'text/html');
+const style=document.createElement('style');style.textContent=doc.querySelector('style').textContent;document.head.append(style);
+const root=doc.querySelector('#captionsPanel');root.hidden=false;document.querySelector('main').append(root);
+let joined=true,speech,calls=0;
+class Recognition{constructor(){speech=this}start(){this.onstart?.()}abort(){}}
+async function api(path,body,{signal}){const r=await fetch('/test-'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});if(!r.ok)throw Error('api');return (await r.json()).terms}
+const controller=createTermAssist({root,getCall:()=>({joined,muted:false,userId:'self'}),send:()=>{},speakerName:()=> 'テスト話者',Recognition,
+ getDictionary:options=>api('dictionary',{},options),discoverTerms:(text,options)=>{document.querySelector('#calls').textContent='AI補助要求：'+(++calls)+'回';return api('discover',{text},options)},getExplanation:async()=> '画面確認用の説明'});
+function emit(text){const r=[{transcript:text}];r.isFinal=true;speech?.onresult?.({resultIndex:0,results:[r]})}
+document.querySelector('#known').onclick=()=>emit('冪等性とgRPCです。');
+document.querySelector('#unknown').onclick=()=>emit('ブルームフィルターを使うと、要素が集合に存在しないことを高速に判定できます。');
+document.querySelector('#remote').onclick=()=>controller.receive('peer',{type:'terms',terms:['イベントソーシング','勝手な語']});
+document.querySelector('#leave').onclick=async()=>{joined=false;controller.sync();await fetch('/test-clean',{method:'POST'});document.querySelector('#calls').textContent='一時アカウント削除済み'};
+</script></html>

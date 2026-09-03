@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createTermAssist,extractTerms} from '../term-assist.js';
 
-function setup(getExplanation=async()=> '短い解説') {
+function setup(getExplanation=async()=> '短い解説',extra={}) {
  class Element {
   constructor(){this.children=[];this.events={};this.textContent='';this.value=''}
   append(...nodes){this.children.push(...nodes)}
@@ -18,10 +18,18 @@ function setup(getExplanation=async()=> '短い解説') {
  const nodes=new Map();const root={querySelector:s=>{if(!nodes.has(s))nodes.set(s,new Element());return nodes.get(s)}};
  const call={joined:true,muted:false,userId:'self'},sent=[],instances=[];
  class Recognition {constructor(){instances.push(this)}start(){this.onstart?.()}abort(){this.aborted=true}}
- const api=createTermAssist({root,getCall:()=>call,send:p=>sent.push(p),speakerName:x=>x,Recognition,getExplanation});
+ const api=createTermAssist({root,getCall:()=>call,send:p=>sent.push(p),speakerName:x=>x,Recognition,getExplanation,...extra});
  return {api,call,sent,instances,node:k=>nodes.get('[data-term-'+k+']'),result:text=>{const r=[{transcript:text}];r.isFinal=true;instances.at(-1).onresult({resultIndex:0,results:[r]})}};
 }
 const tick=()=>new Promise(r=>setImmediate(r));
+
+test('共有辞書の語を認識・送信し、相手の共有語は照合後にだけ追加する',async()=>{
+ let calls=0;const h=setup(undefined,{getDictionary:async()=>['冪等性','gRPC'],discoverTerms:async()=>{calls++;return []}});
+ h.node('toggle').click();await tick();h.result('冪等性です。');await new Promise(r=>setTimeout(r,5));
+ assert.deepEqual(h.sent[0].terms,['冪等性']);assert.equal(calls,0);
+ h.api.receive('peer',{type:'terms',terms:['gRPC','勝手な語']});await tick();
+ assert.equal(h.node('count').textContent,'2語');assert.equal(h.sent.length,1);h.api.stop();
+});
 
 test('用語候補だけを抽出し、重複と普通の文章を除外する',()=>{
  assert.deepEqual(extractTerms('明日はAPIとAPI、機械学習について話します。'),['API','機械学習']);
