@@ -3877,6 +3877,16 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
+    .captions-card { margin-top: 1rem; padding: 1rem; min-width: 0; }
+    .captions-card[hidden], .captions-card [hidden] { display: none !important; }
+    .caption-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+    .caption-heading h2 { margin: 0; font-size: 1rem; }
+    .caption-heading button, .caption-prepare { font: inherit; font-size: .85rem; padding: .5rem .8rem; }
+    .caption-help { font-size: .8rem; line-height: 1.6; margin: .65rem 0 0; }
+    .caption-list { max-height: 15rem; overflow-y: auto; overscroll-behavior: contain; margin-top: .75rem; text-align: left; }
+    .caption-line { padding: .6rem .7rem; margin: .4rem 0; border-radius: .7rem; background: #f5fae9; color: #294525; overflow-wrap: anywhere; font-weight: 400; line-height: 1.65; }
+    .caption-speaker { display: block; color: #4c6b43; font-size: .75rem; }
+    .caption-line.is-interim { color: #58694d; border-left: 2px dotted #89a475; }
   </style>
 </head>
 <body>
@@ -3955,6 +3965,15 @@
       <h2><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span></h2>
       <div id="participants" class="participants"></div>
       <div id="notice" class="notice" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="captionsPanel" class="card captions-card" aria-labelledby="captionsTitle" hidden>
+      <div class="caption-heading"><h2 id="captionsTitle">字幕（試用）</h2>
+        <button type="button" data-caption-toggle aria-pressed="false" disabled>字幕をON</button>
+      </div>
+      <p class="caption-help" data-caption-status role="status">自分の発言を字幕にして通話相手へ共有します。字幕は60秒で消え、保存しません。</p>
+      <button type="button" class="caption-prepare" data-caption-prepare hidden>日本語音声認識をダウンロード</button>
+      <div class="caption-list" data-caption-list aria-label="直近60秒の字幕" tabindex="0" hidden></div>
     </section>
 
     <div class="controls">
@@ -4144,7 +4163,8 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-08-11-capacity-slots";
+    const APP_VERSION = "2026-09-03-captions-phase1-preview";
+    const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
@@ -4479,6 +4499,30 @@
     renderMetrics();
     setReadyStatus();
 
+    let captionController = null;
+    if (CAPTIONS_ENABLED) {
+      // Dynamic import is isolated: a missing caption asset cannot stop the phone.
+      import('./captions.js').then(function(module) {
+        captionController = module.createCaptions({
+          root: document.getElementById('captionsPanel'),
+          getCall: function() { return { joined: joined && !!localStream, muted, userId }; },
+          speakerName: function(id) {
+            const person = participants.find(function(item) { return item.userId === id; });
+            return (person ? getDisplayName(person.userName) : (id === userId ? '自分' : '参加者')) + (person && id === userId ? '（自分）' : '');
+          },
+          send: function(packet) {
+            if (!joined || muted) return;
+            peers.forEach(function(state) {
+              if (state.dataChannel && state.dataChannel.bufferedAmount < 16384) {
+                sendPeerData(state, packet);
+              }
+            });
+          }
+        });
+        document.getElementById('captionsPanel').hidden = false;
+      }).catch(function() { /* captions remain unavailable; phone initialization continues */ });
+    }
+
     init();
 
     async function init() {
@@ -4571,10 +4615,12 @@
       runPassivePreflightCheck();
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
+        if (captionController) captionController.stop();
         cancelOutgoingInvitation();
         if (!isDemoMode && joined) markLeft();
       });
       window.addEventListener("pagehide", function() {
+        if (captionController) captionController.stop();
         cancelOutgoingInvitation();
         if (!isDemoMode && joined) markLeft();
       });
@@ -5689,11 +5735,23 @@
     }
 
     function handlePeerDataMessage(state, raw) {
-      if (!state || !raw) return;
+      if (!state || !raw || typeof raw !== "string" || raw.length > 8192) return;
       let message = null;
       try {
         message = JSON.parse(raw);
       } catch (error) {
+        return;
+      }
+      if (message && message.type === 'caption') {
+        if (!joined || !captionController || peers.get(state.id) !== state ||
+            message.from !== state.id || message.sessionId !== state.remoteSessionId ||
+            !Number.isFinite(message.sentAt) || Math.abs(Date.now() - message.sentAt) > 10000) return;
+        const now = Date.now();
+        if (!state.captionWindowAt || now - state.captionWindowAt >= 1000) {
+          state.captionWindowAt = now; state.captionCount = 0;
+        }
+        if (++state.captionCount > 12) return;
+        captionController.receive(state.id, message);
         return;
       }
       if (!message || message.type !== "presence" || message.from !== state.id) return;
@@ -6273,6 +6331,7 @@
     }
 
     function applyMuteState(writePresence) {
+      if (captionController) captionController.sync();
       if (localStream) {
         localStream.getAudioTracks().forEach(function(track) { track.enabled = !muted; });
       }
@@ -6327,6 +6386,7 @@
       }
       clearJoinSlowTimer();
       joined = false;
+      if (captionController) captionController.sync();
       activeUserName = "";
       clearParticipantNoticeQueue();
       stopCallSafetyTimers();
@@ -6406,6 +6466,7 @@
     }
 
     function closePeer(remoteId) {
+      if (captionController) captionController.removePeer(remoteId);
       const state = peers.get(remoteId);
       if (!state) return;
       clearReconnectTimer(state);
