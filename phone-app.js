@@ -1,4 +1,4 @@
-import {copyNumberFeedback} from './copy-feedback.js';
+import {copyNumberFeedback} from './copy-feedback.js?v=2026-09-04-phone-details';
 import {doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,collection,query,where,runTransaction,serverTimestamp,Timestamp,getDocs,orderBy,limit} from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js';
 import {getAuth,EmailAuthProvider,linkWithCredential,signInWithEmailAndPassword,sendPasswordResetEmail,sendEmailVerification,signOut} from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js';
 import {normalizeNumber,formatNumber} from './number-call-policy.js';
