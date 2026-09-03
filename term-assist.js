@@ -96,12 +96,12 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     finally{if(id===requestId){clearTimeout(timeout);request=null}}
   }
   function clear() {closeDialog();analogies.clear();entries.clear();for(const entry of cache.values())clearTimeout(entry.timer);cache.clear();sent.clear();render()}
-  function stop() {enabled=false;failed=false;stopSpeech();clear();toggle.textContent='自動検出をON';toggle.setAttribute('aria-pressed','false');status.textContent=offText}
+  function stop() {enabled=false;failed=false;stopSpeech();clear();toggle.textContent='検出を再開';toggle.hidden=true;status.textContent=offText}
   function sync() {
     const call=getCall();toggle.disabled=!call.joined;input.disabled=submit.disabled=!call.joined;
     if(!call.joined){stop();return}
-    if(!enabled)return;
-    if(call.muted){stopSpeech();status.textContent='マイクOFF・相手の用語は受信中';return}
+    enabled=true;toggle.hidden=!failed;
+    if(call.muted){stopSpeech();failed=false;toggle.hidden=true;status.textContent='マイクOFF・相手の用語は受信中';return}
     if(speech||failed)return;
     discovery.start();
     const token=++generation;
@@ -112,13 +112,13 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
         if(token!==generation||!enabled||!getCall().joined||getCall().muted)return;
         for(let i=event.resultIndex;i<event.results.length;i++){const r=event.results[i];if(r?.isFinal)publish(r[0]?.transcript)}
       };
-      const failure=event=>{if(token!==generation)return;stopSpeech();failed=true;status.textContent=event?.error==='quota'?'自動検出の利用上限に達しました。通話と受信は続けられます。':'自動検出を停止しました。マイクや通信を確認し、自動検出をOFF→ONにしてください。'};
+      const failure=event=>{if(token!==generation)return;stopSpeech();failed=true;toggle.hidden=false;status.textContent=event?.error==='quota'?'自動検出の利用上限に達しました。通話と受信は続けられます。':'検出が止まりました。「検出を再開」を押してください。'};
       current.onerror=failure;current.onend=failure;current.start();
-    }catch(_){stopSpeech();failed=true;status.textContent='自動検出を開始できませんでした。手入力で用語を調べられます。'}
+    }catch(_){stopSpeech();failed=true;toggle.hidden=false;status.textContent='検出を開始できません。「検出を再開」を押してください。'}
   }
   toggle.addEventListener('click',()=>{
-    if(enabled){stop();return}if(!getCall().joined)return;
-    enabled=true;failed=false;toggle.textContent='自動検出をOFF';toggle.setAttribute('aria-pressed','true');sync();
+    if(!getCall().joined||!failed)return;
+    failed=false;toggle.hidden=true;sync();
   });
   form.addEventListener('submit',event=>{
     event.preventDefault();if(!getCall().joined)return;

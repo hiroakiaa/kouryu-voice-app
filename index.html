@@ -4018,7 +4018,7 @@
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。用語の自動検出ON時は自分の音声をCloudflareの音声認識へ送信して一時処理します。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。通話中は自分の音声と短い認識文をCloudflareのAIへ送信し、用語を自動検出します。ミュート中・退室後は停止します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のアプリ情報→「料金目安」で、音声認識・用語AI補助・説明・たとえを含む費用を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">通話全体の10分で <strong id="tipsTenMinuteCost" class="tip-cost-number">計算中</strong></span><span id="tipsCostConditions" class="tip-cost-line"></span><span class="tip-cost-line">無料枠内の追加請求は0円。残りの無料枠はこの画面では取得していません。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
@@ -4040,7 +4040,7 @@
 
     <section id="captionsPanel" class="card captions-card" aria-labelledby="captionsTitle" hidden>
       <div class="caption-heading"><h2 id="captionsTitle">会話の用語 <span class="term-count" data-term-count>0語</span></h2>
-        <button type="button" data-term-toggle aria-pressed="false" disabled>自動検出をON</button>
+        <button type="button" data-term-toggle hidden disabled>検出を再開</button>
       </div>
       <p class="caption-help" data-term-status role="status"></p>
       <form class="term-form" data-term-form>
@@ -4052,9 +4052,9 @@
       <details class="term-help">
         <summary>使い方・AIへの送信について</summary>
         <p>用語を押すと説明を表示します。見つからない語は入力して調べられます。</p>
-        <p>自動検出ON中は音声と短い認識文をAIへ送信します。一般的な専門用語と判断された語は共有辞書に保存します。音声・認識文は保存しません。</p>
-        <p>用語の追加には数秒かかり、未知の語のAI補助は最大30秒間隔です。相手の音声の検出には相手側でもONが必要です。</p>
-        <p>一覧は最大80語。自動検出OFF・退室でこの画面から消えます。共有辞書は残り、他の人も再利用できます。</p>
+        <p>通話への参加と同時に用語の検出を開始し、音声と短い認識文をAIへ送信します。一般的な専門用語と判断された語は共有辞書に保存します。音声・認識文は保存しません。</p>
+        <p>用語の追加には数秒かかり、未知の語のAI補助は最大30秒間隔です。参加者全員が自動で検出します。ミュート中は自分の検出を休止し、解除すると再開します。</p>
+        <p>一覧は最大80語。退室するとこの画面から消えます。共有辞書は残り、他の人も再利用できます。</p>
       </details>
       <p class="caption-help" role="status" data-term-discovery-status></p>
       <dialog class="caption-dialog" data-term-dialog aria-labelledby="termDialogTitle" hidden>
@@ -4300,7 +4300,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-quiet-terms";
+    const APP_VERSION = "2026-09-03-auto-terms";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;

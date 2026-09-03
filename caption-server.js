@@ -16,6 +16,7 @@ export function createServerRecognition({ endpoint, getStream, getToken, fetcher
     constructor() { this.active = false; this.pending = null; this.sending = false; this.index = 0; }
     start() {
       this.active = true;
+      this.startTimer = setTimeout(() => { if (this.active) this.fail('audio-capture'); }, 8000);
       // Must be called synchronously from the caption/microphone button on iOS.
       try {
         const stream = getStream();
@@ -43,7 +44,7 @@ export function createServerRecognition({ endpoint, getStream, getToken, fetcher
           if (this.active && this.context.state !== 'running') this.fail('interrupted');
         };
         if (this.context.state !== 'running') { this.fail('interrupted'); return; }
-        this.onstart?.();
+        clearTimeout(this.startTimer);this.onstart?.();
       } catch (_) { if (this.active) this.fail('audio-capture'); }
     }
     async drain() {
@@ -79,6 +80,7 @@ export function createServerRecognition({ endpoint, getStream, getToken, fetcher
     }
     fail(error) { const notify = this.onerror; this.abort(); notify?.({ error }); }
     abort() {
+      clearTimeout(this.startTimer);
       this.active = false; this.request?.abort();
       this.pending?.samples.fill(0); this.pending = null;
       if (this.node) { this.node.port.onmessage = null; this.node.port.postMessage('stop'); this.node.disconnect(); }
