@@ -111,3 +111,27 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneDialForm #phoneBackspace{grid-column:3;width:clamp(48px,var(--dial-key),60px);height:clamp(48px,var(--dial-key),60px);padding:0;min-height:48px;border:2px solid #bad895;border-radius:18px;background:#f1f9e5;box-shadow:0 3px 0 #dcecc6;font-size:26px;}
 
 @media(min-height:641px){#phoneDialPanel{gap:16px;padding-top:14px;}.phone-own{margin-bottom:0;}}
+/* Separate the control groups, while keeping the own-number area nearby. */
+#phoneDialPanel{gap:10px;}
+.phone-own{gap:5px 10px;}
+.phone-own-label{font-size:14px;}
+.phone-own strong{font-size:24px;}
+.phone-own-actions button{min-height:44px;font-size:14px;padding:7px 14px;}
+#phoneDialForm{gap:14px;min-height:336px;flex-basis:336px;margin:0 auto;}
+#phoneDialForm>*{--dial-key:clamp(44px,min(calc((100cqw - 48px) / 3),calc((100cqh - 104px - 3 * var(--dial-gap)) / 5)),80px);}
+.phone-number-entry{height:64px;}
+.phone-number-entry label{left:16px;top:7px;font-size:11px;}
+.phone-home-card .phone-number-entry input{height:64px;min-height:64px;padding:24px 16px 8px;font-size:25px;line-height:28px;}
+@media(max-height:640px){
+ #phoneDialPanel{gap:4px;padding-top:6px;padding-bottom:2px;}
+ .phone-own{gap:2px 8px;}
+ .phone-own-label{font-size:12px;}
+ .phone-own strong{font-size:18px;}
+ .phone-own-actions button{min-height:36px;padding:4px 10px;font-size:12px;}
+ #phoneDialForm{gap:8px;min-height:312px;flex-basis:312px;}
+ #phoneDialForm>*{--dial-gap:4px;--dial-key:clamp(44px,min(calc((100cqw - 48px) / 3),calc((100cqh - 84px - 3 * var(--dial-gap)) / 5)),80px);}
+ .phone-number-entry{height:56px;}
+ .phone-number-entry label{top:5px;font-size:10px;}
+ .phone-home-card .phone-number-entry input{height:56px;min-height:56px;padding:20px 14px 6px;font-size:22px;line-height:26px;}
+ body.phone-home main{gap:6px;padding-top:6px;padding-bottom:6px;}
+}
