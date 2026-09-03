@@ -65,7 +65,7 @@ test("参加・退室メッセージはnoticeに表示する", () => {
 });
 
 test("参加者表示はセッション競合と監視切断から復帰する", () => {
-  assert.match(rootHtml, /const userId = deviceId \+ "-" \+ sessionId\.slice\(-12\)/);
+  assert.match(rootHtml, /let userId = deviceId \+ "-" \+ sessionId\.slice\(-12\)/);
   assert.match(rootHtml, /participantWatcherRetryTimer = window\.setTimeout/);
   assert.match(rootHtml, /const retryDelay = Math\.min\(30000/);
   assert.match(rootHtml, /await markLeft\(\);\s+stopLocalCall\(false\);/);

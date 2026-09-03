@@ -2,6 +2,94 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Personal numbers and approval-only rooms. Existing URL rooms are unchanged.
+    match /numberProfiles/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['number'])
+        && request.resource.data.number.matches('^[0-9]{8}$')
+        && getAfter(/databases/$(database)/documents/voiceNumbers/$(request.resource.data.number)).data.ownerUid == uid;
+    }
+    match /voiceNumbers/{number} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null && number.matches('^[0-9]{8}$')
+        && request.resource.data.keys().hasOnly(['ownerUid','number'])
+        && request.resource.data.number == number && request.resource.data.ownerUid == request.auth.uid
+        && !exists(/databases/$(database)/documents/numberProfiles/$(request.auth.uid))
+        && getAfter(/databases/$(database)/documents/numberProfiles/$(request.auth.uid)).data.number == number;
+      match /blocked/{uid} {
+        allow get: if request.auth != null && (uid == request.auth.uid || get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.auth.uid);
+        allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.auth.uid;
+      }
+    }
+    function validNumberRequest(uid) {
+      let d = request.resource.data;
+      return request.auth != null && uid == request.auth.uid && d.from == uid && d.to != uid
+        && d.keys().hasOnly(['from','to','number','name','status','createdAt','expiresAt'])
+        && d.number.matches('^[0-9]{8}$') && d.name is string && d.name.size() <= 20
+        && get(/databases/$(database)/documents/voiceNumbers/$(d.number)).data.ownerUid == d.to
+        && !exists(/databases/$(database)/documents/voiceNumbers/$(d.number)/blocked/$(uid))
+        && d.status == 'ringing' && d.createdAt == request.time
+        && d.expiresAt > request.time && d.expiresAt <= request.time + duration.value(90,'s');
+    }
+    match /numberInvitations/{uid} {
+      allow get: if request.auth != null && (uid == request.auth.uid || resource.data.to == request.auth.uid);
+      allow list: if request.auth != null && resource.data.to == request.auth.uid;
+      allow create: if validNumberRequest(uid);
+      allow update: if validNumberRequest(uid) && resource.data.createdAt + duration.value(30,'s') <= request.time
+        && (resource.data.status != 'ringing' || resource.data.expiresAt <= request.time);
+      allow update: if request.auth != null && resource.data.status == 'ringing'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && ((uid == request.auth.uid && request.resource.data.status == 'cancelled')
+          || (resource.data.to == request.auth.uid && request.resource.data.status == 'declined'));
+      allow update: if request.auth != null && resource.data.to == request.auth.uid
+        && resource.data.status == 'ringing' && resource.data.expiresAt > request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','roomId'])
+        && request.resource.data.status == 'accepted'
+        && getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.roomId)).data.ownerUid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.roomId)).data.active == true
+        && uid in getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.roomId)).data.members;
+    }
+    function numberMember(id) {
+      let r = get(/databases/$(database)/documents/numberVoiceCalls/$(id)).data;
+      return request.auth != null && r.active && r.expiresAt > request.time && request.auth.uid in r.members;
+    }
+    function validNumberRoom(d) {
+      return d.keys().hasOnly(['ownerUid','number','members','active','expiresAt','admittedAt'])
+        && d.members is list && d.members.size() >= 1 && d.members.size() <= 4
+        && d.members.toSet().size() == d.members.size() && d.ownerUid in d.members
+        && d.active is bool && d.expiresAt is timestamp;
+    }
+    match /numberVoiceCalls/{id} {
+      allow get: if request.auth != null && (!exists(/databases/$(database)/documents/numberVoiceCalls/$(id)) || request.auth.uid in resource.data.members);
+      allow create: if request.auth != null && id.matches('^n_[a-zA-Z0-9_-]{10,40}$') && validNumberRoom(request.resource.data)
+        && request.resource.data.ownerUid == request.auth.uid && request.resource.data.active == true
+        && get(/databases/$(database)/documents/voiceNumbers/$(request.resource.data.number)).data.ownerUid == request.auth.uid
+        && request.resource.data.expiresAt > request.time && request.resource.data.expiresAt <= request.time + duration.value(66,'m');
+      allow update: if request.auth != null && validNumberRoom(request.resource.data)
+        && ((resource.data.ownerUid == request.auth.uid && resource.data.active && resource.data.expiresAt > request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members','active','admittedAt']))
+          || (request.auth.uid in resource.data.members && request.auth.uid != resource.data.ownerUid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+            && request.resource.data.members == resource.data.members.removeAll([request.auth.uid])));
+      match /participants/{uid} {
+        allow read: if numberMember(id);
+        allow create, update: if numberMember(id) && uid == request.auth.uid
+          && request.resource.data.authUid == uid && request.resource.data.userId == uid && validParticipant(request.resource.data);
+      }
+      match /signals/{signal} {
+        allow read, delete: if numberMember(id);
+        allow create: if numberMember(id) && request.resource.data.fromAuthUid == request.auth.uid
+          && request.resource.data.from == request.auth.uid && validSignal(request.resource.data);
+      }
+      match /slots/{slot} {
+        allow read: if numberMember(id);
+        allow create: if numberMember(id) && validSlot(request.resource.data) && request.resource.data.slot == slot && request.resource.data.authUid == request.auth.uid;
+        allow update: if numberMember(id) && validSlot(request.resource.data) && request.resource.data.slot == slot && request.resource.data.authUid == request.auth.uid
+          && (resource.data.authUid == request.auth.uid || resource.data.active == false || resource.data.updatedAt + duration.value(240,'s') < request.time);
+      }
+    }
+
     match /publicRooms/{roomId} {
       allow read: if true;
       allow create, update: if isValidPublicRoom();

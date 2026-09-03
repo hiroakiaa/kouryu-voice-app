@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {normalizeNumber,formatNumber,canAddCaller} from '../number-call-policy.js';
+test('eight digit numbers retain leading zeros and accept full-width input',()=>{assert.equal(normalizeNumber('０００１ ２３４５'),'00012345');assert.equal(formatNumber('00012345'),'0001 2345');for(const s of ['1234567','123456789','1234567x',''])assert.equal(normalizeNumber(s),null);});
+test('only owner can add a new caller to a live room below capacity',()=>{const r={ownerUid:'a',members:['a','b','c'],active:true,expiresAt:{toMillis:()=>200}};assert.equal(canAddCaller(r,'a','d',100),true);for(const [room,owner,caller,time] of [[r,'b','d',100],[r,'a','b',100],[r,'a','d',201],[{...r,active:false},'a','d',100],[{...r,members:['a','b','c','d']},'a','e',100]])assert.equal(canAddCaller(room,owner,caller,time),false);assert.equal(canAddCaller(null,'a','a',100),false);});

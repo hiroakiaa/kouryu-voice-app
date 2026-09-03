@@ -4003,6 +4003,15 @@
     #tipsCloseBtn:focus-visible {outline:2px solid #548d3c;outline-offset:3px;}
     #audioHealth {grid-template-columns:auto minmax(0,1fr) auto;gap:10px;}
     #callElapsed {font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;line-height:1.4;min-width:3.5em;text-align:right;}
+    .number-modal {position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(460px,calc(100% - 32px));max-height:88dvh;overflow:auto;padding:20px;border:2px solid #8bc85b;border-radius:24px;background:#fffef8;color:#30462d;}
+    .number-modal::backdrop {background:rgba(30,35,38,.58);}
+    .number-head,.number-own,.number-dial,.number-actions {display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    .number-head {justify-content:space-between;}.number-head h2{margin:0;font-size:22px;}
+    .number-modal button{padding:10px 14px;min-height:44px;border:1px solid #a4ce83;border-radius:12px;background:#f1fbdc;color:#30462d;box-shadow:none;outline:none;}
+    .number-modal button::before,.number-modal button::after{display:none;}.number-modal button[hidden]{display:none;}
+    .number-modal input {min-width:0;flex:1;width:160px;font-size:20px;padding:10px;border:1px solid #a4ce83;border-radius:12px;background:white;color:#30462d;}
+    .number-own strong{font-size:28px;letter-spacing:2px;font-variant-numeric:tabular-nums;}.number-note{font-size:13px;line-height:1.6;color:#596b51;}.number-dial{margin-top:8px;}
+    #numberAccept{background:#ccefaa;} .number-modal :focus-visible{outline:2px solid #548d3c;outline-offset:3px;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
 </head>
@@ -4139,6 +4148,7 @@
         <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
         <button id="contactsBtn" type="button"><i class="fa-solid fa-address-book"></i><span>電話帳</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
+        <button id="numberOpen" type="button">番号で電話</button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規URL</span></button>
       </div>
       <button id="cancelOutgoingBtn" class="danger primary-action" type="button" hidden><i class="fa-solid fa-phone-slash"></i><span>呼び出しをやめる</span></button>
@@ -4146,6 +4156,14 @@
     </div>
 
   </main>
+  <dialog id="numberModal" class="number-modal" aria-labelledby="numberTitle">
+    <div class="number-head"><h2 id="numberTitle">番号で電話</h2><button id="numberClose" type="button" aria-label="閉じる">×</button></div>
+    <p>自分の番号</p><div class="number-own"><strong id="myNumber">未設定</strong><button id="numberCreate" type="button">番号を作る</button><button id="numberCopy" type="button" hidden>コピー</button></div>
+    <details><summary>番号の設定</summary><button id="numberUnblock" type="button">最後のブロックを解除</button><p class="number-note">このブラウザー専用の番号です。データを削除すると引き継げません。</p></details>
+    <form id="numberForm"><label for="numberInput">相手の8桁の番号</label><div class="number-dial"><input id="numberInput" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="1234 5678"><button id="numberDial" type="submit">電話する</button></div></form>
+    <p id="numberStatus" role="status">相手が承認するとつながります。最大4人。</p><button id="numberCancel" type="button" hidden>呼び出しをやめる</button>
+  </dialog>
+  <dialog id="numberIncoming" class="number-modal" aria-labelledby="numberCaller"><h2 id="numberCaller">着信</h2><p id="numberIncomingText"></p><div class="number-actions"><button id="numberAccept" type="button">応答する</button><button id="numberDecline" type="button">拒否</button><button id="numberBlock" type="button">この相手をブロック</button></div></dialog>
   <div id="contactsModal" class="contacts-modal" aria-hidden="true">
     <section class="contacts-card" role="dialog" aria-modal="true" aria-labelledby="contactsTitle">
       <div class="contacts-head">
@@ -4330,8 +4348,9 @@
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
+    import {createNumberCalls} from "./number-calls.js?v=2026-09-03-number-calls";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-03-faster-terms";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-03-number-calls";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4373,7 +4392,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-tips-clock";
+    const APP_VERSION = "2026-09-03-number-calls";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4493,7 +4512,7 @@
     const db = isDemoMode ? null : getFirestore(app);
     const sessionId = createSessionId();
     const deviceId = getOrCreateUserId();
-    const userId = deviceId + "-" + sessionId.slice(-12);
+    let userId = deviceId + "-" + sessionId.slice(-12);
     const callId = ensureCallId(params.get("call"));
     const isDefaultCall = callId === DEFAULT_CALL_ID;
     normalizeCallUrl();
@@ -4623,6 +4642,7 @@
     let outgoingInviteHeartbeatTimer = null;
     let outgoingCallBusy = false;
     let outgoingInvitationEnded = false;
+    let numberCalls = null;
     let phonebookRemoteSeen = false;
     let phonebookCallEnding = false;
     let autoJoinStarted = false;
@@ -4956,6 +4976,10 @@
       renderParticipants([]);
       try {
         await ensureAnonymousAuth();
+        if(callId.startsWith('n_')) userId=authUser.uid;
+        numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId}),name:displayNameForContact,push:(callee,id)=>sendClosedAppCallNotification({uid:callee},'main-room',id+Date.now()),stop:()=>stopLocalCall(true),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
+          navigate:id=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('autoJoin','1');location.assign(u.toString());}});
+        await numberCalls.start();
         await acceptContactInviteFromUrl();
         startContactWatchers();
         startOutgoingCallWatcher();
@@ -4968,6 +4992,7 @@
         pushDiagnostic("error", "匿名認証に失敗", error && error.message ? error.message : "");
         return;
       }
+      if(callId.startsWith('n_')&&!(await numberCalls.allowed())){setNotice('番号から電話し、持ち主の承認を受けてください。',true);return;}
       ensureParticipantWatcher();
       maybeAutoJoinCall();
       ensureTurnConfiguration().catch(function(error) {
@@ -5255,6 +5280,7 @@
         setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
         return;
       }
+      if(numberCalls && !(await numberCalls.allowed())){setNotice('この通話には、番号の持ち主の承認が必要です。番号から電話してください。',true);return;}
       const activeOtherParticipants = participants.filter(function(person) {
         return person && person.userId && person.userId !== userId && !isSameDeviceParticipant(person) && person.left !== true && isParticipantActive(person);
       });
@@ -5297,6 +5323,7 @@
           updateJoinButton();
           return;
         }
+        if(callId.startsWith('n_')){setNotice('参加枠を確保できませんでした。もう一度お試しください。',true);return;}
         pushDiagnostic("info", "固定参加枠は準備中", "従来の4人判定で参加を続けます。");
       }
 
@@ -6694,7 +6721,7 @@
         speaking: false,
         updatedAt: serverTimestamp()
       }, { merge: true }).catch(console.warn);
-      return Promise.all([participantLeave, releaseCallSlot(slotToRelease)]);
+      return Promise.all([participantLeave, releaseCallSlot(slotToRelease)]).then(()=>numberCalls?.leave());
     }
 
     function stopLocalCall(updateStatus) {
@@ -9068,15 +9095,15 @@
     }
 
     function callRef() {
-      return doc(db, "standaloneVoiceCalls", callId);
+      return doc(db, callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId);
     }
 
     function participantRef(id) {
-      return doc(db, "standaloneVoiceCalls", callId, "participants", id);
+      return doc(db, callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId, "participants", id);
     }
 
     function slotRef(slot) {
-      return doc(db, "standaloneVoiceCalls", callId, "slots", slot);
+      return doc(db, callId.startsWith("n_") ? "numberVoiceCalls" : "standaloneVoiceCalls", callId, "slots", slot);
     }
 
     async function claimCallSlot() {
@@ -9387,6 +9414,7 @@
       callCost.start();endedCostExtras=null;turnUsage={relayActive:false,bytes:0};
       Object.assign(metrics, createMetrics());
       metrics.startedAt = Date.now();
+      if(numberCalls){const setup=numberCalls.takeSetupUsage();metrics.estimatedReads+=setup.reads;metrics.writes.numberCalls=setup.writes;}
       renderCallElapsed();
       lastCleanupSummary = "";
       connectionRemoteSeenIds = new Set();
