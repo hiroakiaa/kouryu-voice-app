@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 const source = await readFile(new URL('../captions.js', import.meta.url), 'utf8');
-function harness(available = async () => 'available', clock = Date) {
+function harness(available = async () => 'available', clock = Date, overrides = {}) {
   class Element {
     constructor() { this.children = []; this.events = {}; this.hidden = false; this.textContent = ''; }
     append(...nodes) { this.children.push(...nodes); }
@@ -27,12 +27,25 @@ function harness(available = async () => 'available', clock = Date) {
     document: { createElement: () => new Element(), createDocumentFragment: () => new Element() } });
   vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { CaptionBuffer, createCaptions, findFactSpans, findTermSpans };', context);
   const call = { joined: true, muted: false, userId: 'self' };
-  const controller = context.api.createCaptions({ root, getCall: () => call, send: packet => sent.push(packet), speakerName: id => id, Recognition });
+  const controller = context.api.createCaptions({ root, getCall: () => call, send: packet => sent.push(packet), speakerName: id => id, Recognition, ...overrides });
   return { ...context.api, controller, call, instances, sent, intervals, timeouts, nodes,
     toggle: () => nodes.get('[data-caption-toggle]').click(), list: nodes.get('[data-caption-list]') };
 }
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const packet = (text = 'WebRTCを使います', seq = 1, final = false) => ({ id: 'utterance-1', seq, final, text });
+
+test('サーバー方式はブラウザー内蔵認識なしで起動し、開始イベント後だけ認識中を表示する', async () => {
+  let recognizer;
+  class ServerRecognition { constructor(){recognizer=this} start(){} abort(){this.aborted=true} }
+  const h=harness(undefined,Date,{recognitionMode:'server',Recognition:ServerRecognition});
+  h.toggle();await flush();
+  const status=h.nodes.get('[data-caption-status]');assert.match(status.textContent,/開始しています/);
+  recognizer.onstart();assert.match(status.textContent,/認識中/);
+  const result=[{transcript:'明日の午後3時です。'}];result.isFinal=true;
+  recognizer.onresult({resultIndex:0,results:[result]});assert.equal(h.sent[0].text,result[0].transcript);
+  assert.equal(h.timeouts.size,0,'サーバー認識を30秒タイマーで中断しない');
+  h.call.muted=true;h.controller.sync();assert.equal(recognizer.aborted,true);h.toggle();
+});
 
 test('字幕は原文のまま更新され、確定後の逆順・重複到着は無視する', () => {
   const { CaptionBuffer } = harness(); let now = 0;

@@ -3960,7 +3960,7 @@
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由し、参加状態と接続に必要な最小限の情報だけを処理します。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。字幕ON時は自分の音声をCloudflareの音声認識へ送信して一時処理します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、参加端末数を含めた通話全体のFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、通話全体の10分で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる仕様です。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
@@ -3985,7 +3985,7 @@
         <button type="button" data-caption-toggle aria-pressed="false" disabled>字幕をON</button>
         <button type="button" data-caption-replay-button aria-expanded="false" aria-controls="captionReplay" disabled>聞き逃した</button>
       </div>
-      <p class="caption-help" data-caption-status role="status">自分の発言を字幕にして通話相手へ共有します。字幕は60秒で消え、保存しません。</p>
+      <p class="caption-help" data-caption-status role="status">字幕をONにすると、自分のマイク音声をCloudflareの音声認識へ送信し、字幕を通話相手に共有します。音声・字幕を保存せず、字幕は60秒で消えます。</p>
       <button type="button" class="caption-prepare" data-caption-prepare hidden>日本語音声認識をダウンロード</button>
       <details class="caption-settings"><summary>字幕の設定</summary><label><input type="checkbox" data-caption-facts checked>日時・金額・数量などを強調</label><label><input type="checkbox" data-caption-terms checked>専門用語の候補に下線</label></details>
       <div class="caption-list" data-caption-list aria-label="直近60秒の字幕" tabindex="0" hidden></div>
@@ -4187,7 +4187,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-captions-phase4-preview";
+    const APP_VERSION = "2026-09-03-captions-cloud-asr";
     const CAPTIONS_ENABLED = true;
     const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true, terms: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
@@ -4527,8 +4527,15 @@
     let captionController = null;
     if (CAPTIONS_ENABLED) {
       // Dynamic import is isolated: a missing caption asset cannot stop the phone.
-      import('./captions.js?v=' + APP_VERSION).then(function(module) {
+      Promise.all([import('./captions.js?v=' + APP_VERSION), import('./caption-server.js?v=' + APP_VERSION)]).then(function(modules) {
+        const module = modules[0];
         captionController = module.createCaptions({
+          recognitionMode: 'server',
+          Recognition: modules[1].createServerRecognition({
+            endpoint: 'https://kouryu-captions.allinone-hiroakiaa.workers.dev/transcribe',
+            getStream: function() { return localStream; },
+            getToken: function() { if (!authUser) throw new Error('auth'); return authUser.getIdToken(); }
+          }),
           features: CAPTION_FEATURES,
           root: document.getElementById('captionsPanel'),
           getCall: function() { return { joined: joined && !!localStream, muted, userId }; },
@@ -6384,10 +6391,10 @@
     }
 
     function applyMuteState(writePresence) {
-      if (captionController) captionController.sync();
       if (localStream) {
         localStream.getAudioTracks().forEach(function(track) { track.enabled = !muted; });
       }
+      if (captionController) captionController.sync();
       if (!muted) micUnlockHintDismissed = true;
       el.mute.innerHTML = muted
         ? '<i class="fa-solid fa-microphone"></i><span>解除</span>'

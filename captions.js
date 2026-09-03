@@ -1,4 +1,4 @@
-// Phase 1: ephemeral captions. No storage, logging, fetch, or cloud ASR fallback.
+// Ephemeral caption UI. Recognition is injected; conversation data is never persisted.
 export class CaptionBuffer {
   constructor(now = Date.now) { this.now = now; this.rows = []; }
   prune() { this.rows = this.rows.filter(row => this.now() - row.at < 60000).slice(-80); }
@@ -70,7 +70,8 @@ export function findTermSpans(text, limit = 4) {
   return selected;
 }
 
-export function createCaptions({ root, getCall, send, speakerName, features = { facts: true, replay: true, terms: true }, Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
+export function createCaptions({ root, getCall, send, speakerName, features = { facts: true, replay: true, terms: true }, recognitionMode = 'local', Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
+  const serverRecognition = recognitionMode === 'server';
   const button = root.querySelector('[data-caption-toggle]');
   const status = root.querySelector('[data-caption-status]');
   const list = root.querySelector('[data-caption-list]');
@@ -183,7 +184,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     clearTimeout(runTimer); runTimer = null;
     if (recognizer) {
       const old = recognizer; recognizer = null;
-      old.onresult = old.onend = old.onerror = null;
+      old.onresult = old.onend = old.onerror = old.onstart = null;
       try { old.abort(); } catch (_) { /* audio call remains independent */ }
     }
     buffer.removeInterim(getCall().userId);
@@ -196,7 +197,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     buffer.clear(); render();
     list.hidden = true; prepare.hidden = true;
     button.textContent = '字幕をON'; button.setAttribute('aria-pressed', 'false');
-    setStatus('自分の発言を字幕にして通話相手へ共有します。字幕は60秒で消え、保存しません。');
+    setStatus(serverRecognition ? '字幕をONにすると、自分のマイク音声をCloudflareの音声認識へ送信し、字幕を通話相手に共有します。音声・字幕を保存せず、字幕は60秒で消えます。' : '自分の発言を字幕にして通話相手へ共有します。字幕は60秒で消え、保存しません。');
   }
   function fail(text) {
     stopRecognition(); suspended = true;
@@ -208,6 +209,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     const token = ++generation;
     busy = true;
     try {
+      if (!serverRecognition) {
       if (!Recognition || typeof Recognition.available !== 'function') {
         fail('このブラウザーは端末内の日本語音声認識に未対応です。'); return;
       }
@@ -220,11 +222,17 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
         setStatus(available === 'downloadable' ? '自分の字幕には日本語音声認識のダウンロードが必要です。' : 'この端末では日本語音声認識をまだ利用できません。相手の字幕は表示できます。');
         return;
       }
+      }
       const speech = new Recognition();
-      if (!('processLocally' in speech)) { fail('端末内音声認識を利用できません。'); return; }
-      speech.processLocally = true;
+      if (!serverRecognition && !('processLocally' in speech)) { fail('端末内音声認識を利用できません。'); return; }
+      if (!serverRecognition) speech.processLocally = true;
       speech.lang = 'ja-JP'; speech.continuous = true; speech.interimResults = true;
       recognizer = speech; busy = false;
+      setStatus('音声認識を開始しています…');
+      speech.onstart = () => {
+        if (token !== generation || !enabled) return;
+        setStatus(serverRecognition ? '自分の音声を認識中です。話すと数秒後に字幕が出ます。相手の発言には相手側でも字幕ONが必要です。' : '自分の音声を端末内で認識中です。');
+      };
       const prefix = instance + '-' + (++runId) + '-';
       speech.onresult = event => {
         const live = getCall();
@@ -247,6 +255,17 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
       speech.onerror = event => {
         if (token !== generation) return;
         if (event.error === 'no-speech') return;
+        if (serverRecognition) {
+          const messages = {
+            quota: '字幕の利用上限に達しました。時間をおいて字幕をOFF→ONにしてください。',
+            auth: '字幕の認証が切れました。通話に入り直してください。',
+            interrupted: '字幕の音声処理が中断しました。この画面を開き、字幕をOFF→ONにしてください。',
+            overloaded: '字幕の認識が追いつかないため停止しました。時間をおいて字幕をOFF→ONにしてください。',
+            'audio-capture': '字幕用の音声処理を開始できませんでした。マイクをONにし、字幕をOFF→ONにしてください。'
+          };
+          fail(messages[event.error] || '字幕サーバーに接続できませんでした。時間をおいて字幕をOFF→ONにしてください。');
+          render(); return;
+        }
         fail(event.error === 'not-allowed' ? '字幕用のマイクを利用できませんでした。字幕をOFFにしてから再度ONにできます。' : '自分の字幕を停止しました。字幕をOFFにしてから再度ONにできます。');
         render();
       };
@@ -260,11 +279,10 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
       };
       speech.start();
       // Bound the recognition engine's result list as well as our own buffer.
-      runTimer = setTimeout(() => {
+      if (!serverRecognition) runTimer = setTimeout(() => {
         if (token !== generation) return;
         stopRecognition(); errors = 0; render(); void startRecognition();
       }, 30000);
-      setStatus('自分の発言を端末内で字幕にして共有中です。発言者も字幕をONにしてください。');
     } catch (_) {
       if (token === generation) fail('自分の字幕を開始できませんでした。');
     }
