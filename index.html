@@ -3955,7 +3955,7 @@
     #captionsPanel [data-term-status]:empty,
     #captionsPanel [data-term-discovery-status]:empty {display:none;}
   </style>
-  <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-call-cost">
+  <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
 </head>
 <body>
   <main>
@@ -3980,11 +3980,12 @@
       </div>
     </header>
 
-    <div id="appInfoTooltip" class="app-info-tooltip" aria-hidden="true">
-      <div class="app-info-version">
-        <strong>情報</strong>
-        <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
+    <dialog id="appInfoTooltip" class="app-info-tooltip metrics-modal-card" aria-labelledby="appInfoTitle" aria-hidden="true">
+      <div class="modal-head">
+        <h2 id="appInfoTitle">アプリ情報</h2>
+        <button id="appInfoCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button>
       </div>
+      <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
       <p id="appInfoCostSummary" class="caption-help"></p>
       
       <div id="appInfoCallReport" class="app-info-call-report" role="status" aria-live="polite"></div>
@@ -4009,7 +4010,7 @@
         </div>
         <div id="diagnosticsPanel" class="diagnostics-panel" aria-hidden="true"></div>
       </section>
-    </div>
+    </dialog>
 
     <section id="callTips" class="card call-tips" aria-live="polite" aria-hidden="true">
       <span class="tip-item"><i class="fa-solid fa-link"></i><span><strong>同じURLで参加</strong><span>URLを開いた人だけが同じ通話に入れます。</span></span></span>
@@ -4310,7 +4311,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-call-cost";
+    const APP_VERSION = "2026-09-03-info-modal";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4803,6 +4804,13 @@
       el.name.addEventListener("blur", saveName);
       el.participants.addEventListener("click", handleParticipantClick);
       if (el.appInfoToggle) el.appInfoToggle.addEventListener("click", toggleAppInfoTooltip);
+      document.getElementById('appInfoCloseBtn').addEventListener('click',hideAppInfoTooltip);
+      el.appInfoTooltip.addEventListener('cancel',function(event){event.preventDefault();hideAppInfoTooltip()});
+      el.appInfoTooltip.addEventListener('click',function(event){
+        if(event.target!==el.appInfoTooltip)return;
+        const box=el.appInfoTooltip.getBoundingClientRect();
+        if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)hideAppInfoTooltip();
+      });
       el.tipsToggle.addEventListener("click", toggleCallTips);
       if (el.metricsToggle) el.metricsToggle.addEventListener("click", toggleMetricsModal);
       if (el.metricsClose) el.metricsClose.addEventListener("click", closeMetricsModal);
@@ -8716,6 +8724,7 @@
         closeMetricsModal();
         scheduleFreshnessCheck(false);
       }
+      if(isOpen)el.appInfoTooltip.showModal();else el.appInfoTooltip.close();
       el.appInfoTooltip.classList.toggle("is-open", isOpen);
       el.appInfoTooltip.setAttribute("aria-hidden", isOpen ? "false" : "true");
       el.appInfoToggle.classList.toggle("is-open", isOpen);
@@ -8724,6 +8733,7 @@
 
     function hideAppInfoTooltip() {
       if (!el.appInfoToggle || !el.appInfoTooltip) return;
+      if(el.appInfoTooltip.open)el.appInfoTooltip.close();
       el.appInfoTooltip.classList.remove("is-open");
       el.appInfoTooltip.setAttribute("aria-hidden", "true");
       el.appInfoToggle.classList.remove("is-open");

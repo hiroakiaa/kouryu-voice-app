@@ -71,3 +71,11 @@
 .metrics-modal-card .cost-tabs [aria-selected="true"] {background:#e4f2d5;border-color:#70a64a;}
 #currentCallPanel {min-width:0;}
 #currentCallPanel .cost-scenario-breakdown dd {overflow-wrap:anywhere;}
+
+/* Native dialog provides the dimmed backdrop and keyboard focus containment. */
+#appInfoTooltip {position:fixed;inset:0;margin:auto;width:min(36rem,calc(100% - 32px));max-height:88dvh;transform:none;transition:none;overflow:auto;background:var(--metrics-surface);}
+#appInfoTooltip:not([open]) {display:none;}
+#appInfoTooltip[open] {display:grid;opacity:1;pointer-events:auto;}
+#appInfoTooltip::backdrop {background:rgba(30,35,38,.58);}
+#appInfoTooltip .version-pill {justify-self:start;}
+#appInfoTooltip #appInfoCostSummary {font-size:24px;font-weight:700;margin:0;}
