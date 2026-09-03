@@ -4054,7 +4054,6 @@
         <div class="caption-dialog-body" tabindex="0">
           <h3>ひとことで</h3><p class="term-answer" data-term-answer role="status"></p>
           <button type="button" data-term-retry hidden>もう一度取得</button>
-          <p class="caption-help">AIによる一般的な説明です。文脈によって意味が異なることがあります。説明は自分だけに表示し、60秒で消去します。</p>
           <section class="analogy-section" aria-labelledby="analogyTitle">
             <h3 id="analogyTitle">たとえで理解する</h3>
             <div class="analogy-controls">
@@ -4065,12 +4064,11 @@
               </label>
               <button type="button" data-analogy-button>たとえを見る</button>
             </div>
-            <p class="caption-help">用語・ジャンル・たとえは共有辞典に保存し、他の人も再利用します。未登録の場合だけAIで作成します。会話や利用者情報は保存しません。この画面の表示は60秒で閉じます。</p>
             <p role="status" data-analogy-status></p>
             <div class="analogy-result" data-analogy-result role="region" aria-label="AIのたとえ" tabindex="-1" hidden>
-              <h4>たとえば</h4><p data-analogy-example></p>
-              <h4>似ているところ</h4><p data-analogy-similarity></p>
-              <h4>このたとえの限界</h4><p data-analogy-limit></p>
+              <h4>身近なものでいうと</h4><p data-analogy-example></p>
+              <h4>ここが同じ</h4><p data-analogy-similarity></p>
+              <h4>ここはちがう</h4><p data-analogy-limit></p>
             </div>
           </section>
         </div>
@@ -4290,7 +4288,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-no-rebuild";
+    const APP_VERSION = "2026-09-03-simple-analogy";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
