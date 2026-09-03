@@ -4187,7 +4187,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-captions-phase1-preview";
+    const APP_VERSION = "2026-09-03-captions-phase4-preview";
     const CAPTIONS_ENABLED = true;
     const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true, terms: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
@@ -4527,7 +4527,7 @@
     let captionController = null;
     if (CAPTIONS_ENABLED) {
       // Dynamic import is isolated: a missing caption asset cannot stop the phone.
-      import('./captions.js').then(function(module) {
+      import('./captions.js?v=' + APP_VERSION).then(function(module) {
         captionController = module.createCaptions({
           features: CAPTION_FEATURES,
           root: document.getElementById('captionsPanel'),

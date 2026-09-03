@@ -9,7 +9,6 @@ const controllers=[], states=[], peers=[], channels=[], recognizers=[];
 class SyntheticRecognition {
   static async available(){return 'available'}
   processLocally=true; start(){} abort(){}
-  constructor(){recognizers.push(this)}
 }
 for(let i=0;i<4;i++) {
  const root=document.createElement('section');
@@ -17,7 +16,8 @@ for(let i=0;i<4;i++) {
  document.querySelector('main').append(root);
  states[i]={joined:true,muted:false,userId:String.fromCharCode(65+i)};
  channels[i]=[];
- controllers[i]=createCaptions({root,getCall:()=>states[i],speakerName:id=>'匿名さん'+id,Recognition:SyntheticRecognition,
+ const Recognition=class extends SyntheticRecognition { constructor(){super();recognizers[i]=this} };
+ controllers[i]=createCaptions({root,getCall:()=>states[i],speakerName:id=>'匿名さん'+id,Recognition,
   send:packet=>channels[i].forEach(ch=>{if(ch.readyState==='open')ch.send(JSON.stringify(packet))})});
 }
 document.querySelector('#connect').onclick=async()=>{
