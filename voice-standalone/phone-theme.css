@@ -53,3 +53,47 @@ body.phone-home main{height:auto;max-height:none;min-width:0;overflow:visible;di
  .phone-row>div{flex-basis:100%;}
  .phone-number-entry input{font-size:24px;}
 }
+/* Keep the app shell still; only the selected tab owns overflow. */
+body.phone-home{height:100dvh;min-height:0;overflow:hidden;box-sizing:border-box;}
+body.phone-home main{height:100%;min-height:0;max-height:100%;overflow:hidden;box-sizing:border-box;}
+body.phone-home main>header{flex:0 0 auto;}
+body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:hidden;}
+.phone-tabs{flex:0 0 auto;}
+.phone-home-card [role="tabpanel"]{flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain;}
+#phoneMessage{flex:0 0 auto;max-height:3.5em;overflow-y:auto;margin:6px 0;font-size:13px;}
+#phoneDialPanel{display:flex;flex-direction:column;gap:8px;}
+.phone-own{flex:0 0 auto;margin:0;gap:3px;}
+.phone-own-actions{margin:0;}
+.phone-dialer{flex:1 0 290px;min-height:290px;width:100%;max-width:310px;display:grid;grid-template-rows:18px 44px minmax(176px,1fr) 48px;gap:8px;margin:0 auto;}
+.phone-home-card .phone-dialer>label{margin:0;}
+.phone-number-entry{margin:0;}
+.phone-number-entry input{min-height:44px;height:44px;padding:4px;}
+.phone-keypad{min-height:0;grid-template-rows:repeat(4,minmax(44px,1fr));gap:6px 18px;}
+.phone-home-card .phone-key{height:100%;max-height:80px;width:auto;max-width:100%;justify-self:center;align-self:center;box-sizing:border-box;padding:0;}
+.phone-home-card .phone-call{width:48px;height:48px;margin:0 auto;font-size:22px;}
+#phoneCancel{flex:0 0 auto;margin:0 auto;}
+@media(max-width:640px), (max-height:740px){
+ body.phone-home{padding:6px max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));}
+ body.phone-home main{padding:8px;gap:8px;border-radius:24px;}
+ body.phone-home main>header{padding:7px 10px;min-height:60px;box-sizing:border-box;gap:8px;}
+ .phone-home header h1{font-size:22px;}
+ .phone-home header .app-icon,.phone-home header .header-icon-btn{width:40px;height:40px;min-height:40px;flex:0 0 40px;}
+ .phone-home .header-actions{gap:8px;}
+ body.phone-home .phone-home-card{padding:8px 10px;border-radius:20px;}
+ .phone-home-card .phone-tabs{gap:8px;padding:2px 2px 8px;}
+ .phone-home-card .phone-tabs button{min-height:44px;flex:0 0 88px;padding:8px 12px;font-size:15px;}
+ .phone-home-card [role="tabpanel"]{padding:8px 0 4px;}
+ .phone-own{flex-direction:row;flex-wrap:wrap;gap:2px 8px;}
+ .phone-own-label{font-size:12px;}
+ .phone-own strong{font-size:18px;letter-spacing:1px;}
+ .phone-own-actions{flex-basis:100%;gap:6px;}
+ .phone-own-actions button{min-height:36px;padding:4px 10px;font-size:12px;}
+ .phone-dialer{max-width:270px;}
+ .phone-key>span{font-size:26px;}
+ .phone-key>small{font-size:8px;line-height:1.1;}
+ #phoneDialPanel{gap:6px;}
+}
+@media(max-height:640px) and (max-width:640px){
+ .phone-home-card .phone-dialer>label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+ .phone-dialer{min-height:298px;flex-basis:298px;grid-template-rows:44px minmax(194px,1fr) 48px;gap:6px;}
+}
