@@ -10,7 +10,7 @@ export function encodeWav(samples) {
   return bytes;
 }
 
-export function createServerRecognition({ endpoint, getStream, getToken, fetcher = fetch,
+export function createServerRecognition({ endpoint, getStream, getToken, fetcher = fetch, onUsage = () => {},
   Context = window.AudioContext || window.webkitAudioContext, Worklet = window.AudioWorkletNode }) {
   return class ServerRecognition {
     constructor() { this.active = false; this.pending = null; this.sending = false; this.index = 0; }
@@ -58,6 +58,7 @@ export function createServerRecognition({ endpoint, getStream, getToken, fetcher
         if (!this.active) return;
         if (controller.signal.aborted) { this.fail('network'); return; }
         const body = encodeWav(chunk.samples); chunk.samples.fill(0);
+        onUsage(chunk.samples.length / 16000);
         const response = await fetcher(endpoint, {
           method: 'POST', headers: { 'Content-Type': 'audio/wav', Authorization: 'Bearer ' + token },
           body, signal: controller.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'

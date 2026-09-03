@@ -20,8 +20,7 @@ export function createCostEstimator(root,getRate){
   const money=n=>n.toFixed(2)+'円',range=money(c.low)+'〜'+money(c.high);
   const conditions=mode.value==='cached'?'登録済み中心・たとえ再利用':mode.value==='reuse'?'AI補助多め・たとえ再利用':'AI補助多め・たとえ新規10回';
   const text=(id,value)=>{const el=node(id);if(el)el.textContent=value};
-  text('costScenarioTotal',range);text('appInfoCostSummary',c.participants+'人・10分の運営費試算：'+range);
-  text('appInfoCostConditions',conditions+'。無料枠適用前。');
+  text('costScenarioTotal',range);
   text('tipsTenMinuteCost',range);text('tipsCostConditions',c.participants+'人・'+conditions+'の試算。実際の請求額ではありません。');
   for(const key of ['speech','explanation','discovery','analogy','firestore'])text('cost-'+key,money(c[key]));
   text('cost-turn','0円〜'+money(c.turn));

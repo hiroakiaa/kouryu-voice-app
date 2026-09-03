@@ -53,14 +53,14 @@ test('無音・レート上限ではモデルを実行せず、認識失敗は�
   const result=await handle(req(),e,async()=>'u');assert.equal(result.status,503);assert.doesNotMatch(await result.text(),/private/);
 });
 test('字幕停止は処理中リクエストを中断し、遅い字幕を表示せず通話マイクを止めない',async()=>{
-  let stopped=0, resolveFetch, signal, node;
+  let stopped=0, resolveFetch, signal, node, sentSeconds=0;
   class Context { state='running'; destination={};audioWorklet={addModule:async()=>{}};resume(){return Promise.resolve()}createMediaStreamSource(){return {connect(){},disconnect(){}}}close(){this.state='closed';return Promise.resolve()} }
   class Worklet {constructor(){this.port={postMessage(){}};node=this}connect(){}disconnect(){} }
   const stream={getAudioTracks:()=>[{readyState:'live',enabled:true,stop(){stopped++}}]};
-  const Recognition=createServerRecognition({endpoint:'https://caption.example/transcribe',getStream:()=>stream,getToken:async()=>'token',Context,Worklet,fetcher:(_url,init)=>{signal=init.signal;return new Promise(r=>resolveFetch=r)}});
+  const Recognition=createServerRecognition({endpoint:'https://caption.example/transcribe',onUsage:seconds=>{sentSeconds+=seconds},getStream:()=>stream,getToken:async()=>'token',Context,Worklet,fetcher:(_url,init)=>{signal=init.signal;return new Promise(r=>resolveFetch=r)}});
   const recognizer=new Recognition();let results=0;recognizer.onresult=()=>results++;recognizer.start();
   await new Promise(r=>setImmediate(r));node.port.onmessage({data:new Int16Array(48000)});
-  await new Promise(r=>setImmediate(r));recognizer.abort();assert.equal(signal.aborted,true);
+  await new Promise(r=>setImmediate(r));recognizer.abort();assert.equal(signal.aborted,true);assert.equal(sentSeconds,3);
   resolveFetch(new Response(JSON.stringify({text:'遅い字幕'})));await new Promise(r=>setImmediate(r));
   assert.equal(results,0);assert.equal(stopped,0);assert.equal(recognizer.pending,null);
 });

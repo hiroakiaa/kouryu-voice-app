@@ -9,10 +9,10 @@ test('全機能の試算は人数・為替・共有たとえの再利用を反�
  assert.equal(estimateOperatingCost({participants:2,rate:300}).low,two.low*2);
  assert.equal(estimateOperatingCost({participants:1}).turn,0);
 });
-test('人数と利用条件を変えると情報欄・料金画面・ヒントを同じ試算に更新する',()=>{
+test('人数と利用条件を変えると料金画面・ヒントを同じ試算に更新する',()=>{
  const nodes=new Map();const root={querySelector:key=>{if(!nodes.has(key))nodes.set(key,{value:key==='#costParticipants'?'2':'new',addEventListener(event,fn){this[event]=fn}});return nodes.get(key)}};
  const ui=createCostEstimator(root,()=>150);ui.render();
- assert.equal(nodes.get('#costScenarioTotal').textContent,'4.09円〜4.23円');assert.match(nodes.get('#appInfoCostSummary').textContent,/2人/);
+ assert.equal(nodes.get('#costScenarioTotal').textContent,'4.09円〜4.23円');assert.equal(nodes.has('#appInfoCostSummary'),false);
  nodes.get('#costParticipants').value='4';nodes.get('#costParticipants').change();
  assert.equal(nodes.get('#tipsTenMinuteCost').textContent,'7.54円〜8.41円');
  nodes.get('#costScenario').value='cached';nodes.get('#costScenario').change();assert.equal(nodes.get('#cost-analogy').textContent,'0.00円');assert.equal(nodes.get('#cost-discovery').textContent,'0.00円');

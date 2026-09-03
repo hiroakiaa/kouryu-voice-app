@@ -3955,7 +3955,7 @@
     #captionsPanel [data-term-status]:empty,
     #captionsPanel [data-term-discovery-status]:empty {display:none;}
   </style>
-  <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-panel-polish">
+  <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-call-cost">
 </head>
 <body>
   <main>
@@ -3986,7 +3986,7 @@
         <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
       </div>
       <p id="appInfoCostSummary" class="caption-help"></p>
-      <p id="appInfoCostConditions" class="caption-help"></p>
+      
       <div id="appInfoCallReport" class="app-info-call-report" role="status" aria-live="polite"></div>
       <div class="app-info-actions" aria-label="詳しい情報">
         <button id="metricsToggleBtn" class="app-info-action" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="全機能の料金目安">
@@ -4144,7 +4144,11 @@
         <input id="metricsRateInput" inputmode="decimal" value="158" aria-label="1ドルあたりの円換算">
         <button id="metricsRateHelpBtn" class="metrics-rate-help-btn" type="button" aria-label="為替レートの取得時刻" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
       </div>
-      <section class="cost-scenario" aria-labelledby="costScenarioTitle">
+      <div class="cost-tabs" role="tablist" aria-label="料金の表示">
+        <button id="currentCallTab" role="tab" data-cost-tab aria-controls="currentCallPanel" aria-selected="true" type="button">今回の通話</button>
+        <button id="costScenarioTab" role="tab" data-cost-tab aria-controls="costScenarioPanel" aria-selected="false" tabindex="-1" type="button">10分間の試算</button>
+      </div>
+      <section id="costScenarioPanel" role="tabpanel" aria-labelledby="costScenarioTab" hidden class="cost-scenario" aria-labelledby="costScenarioTitle">
         <h3 id="costScenarioTitle">全機能を含む10分間の試算</h3>
         <div class="cost-scenario-inputs">
           <label>参加人数<select id="costParticipants"><option value="1">1人</option><option value="2" selected>2人</option><option value="3">3人</option><option value="4">4人</option></select></label>
@@ -4169,6 +4173,21 @@
           <p class="caption-help">単価確認：2026年9月3日。<a href="https://developers.cloudflare.com/workers-ai/platform/pricing/" target="_blank" rel="noopener noreferrer">AI料金表</a> · <a href="https://developers.cloudflare.com/durable-objects/platform/pricing/" target="_blank" rel="noopener noreferrer">共有保存料金表</a></p>
         </details>
       </section>
+      <section id="currentCallPanel" role="tabpanel" aria-labelledby="currentCallTab">
+        <h3>今回の通話の概算</h3><p id="currentCallTotal" class="metrics-value">約0.000円</p>
+        <p><span id="currentCallDuration">0分0秒</span> · <span id="currentCallCoverage"></span></p>
+        <dl class="cost-scenario-breakdown">
+<div><dt>音声認識</dt><dd id="current-speech"></dd></div>
+<div><dt>用語のAI補助</dt><dd id="current-discovery"></dd></div>
+<div><dt>短い説明</dt><dd id="current-explanation"></dd></div>
+<div><dt>新しいたとえ</dt><dd id="current-analogy"></dd></div>
+<div><dt>共有たとえの再利用</dt><dd id="current-shared"></dd></div>
+<div><dt>接続・状態管理</dt><dd id="current-firestore"></dd></div>
+<div><dt>音声の中継</dt><dd id="current-turn"></dd></div>
+        </dl>
+        <p class="caption-help">無料枠適用前の利用相当額で、請求額ではありません。音声の送信秒数・AIへの要求回数から計算します。相手の端末から受け取れた数値を合算するため、未更新の端末や切断直前の利用は含まれない場合があります。</p>
+        <details><summary>計算条件・詳しい接続データ</summary>
+        <p class="caption-help">説明は入力500・出力200トークン、たとえは800・600、用語補助は抽出800・200と審査600・400を各1回として概算します。失敗・中断した要求も処理された可能性があるため含めます。共有たとえは応答で再利用が確認できた場合に生成費を除きます。共有保存とページ配信は無料枠内を仮定します。各端末の参加開始からの累計で、途中参加時は相手の先行利用も含みます。</p>
       <div class="metrics-cost-grid">
         <div class="metrics-cost-card">
           <div class="metrics-label">
@@ -4206,8 +4225,10 @@
         <button id="metricsCopyBtn" class="metrics-copy-btn" type="button" aria-label="計測結果をコピー"><i class="fa-solid fa-copy"></i></button>
       </div>
       <pre id="metricsOutput" class="metrics-output"></pre>
+        </details>
+      </section>
       <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
-        この計測欄はFirestoreの接続管理費だけです。端末の推定reads / writes / deletesを人数で換算しています。AIや中継を含む費用は上の「全機能を含む10分間の試算」を参照してください。
+        この計測欄はFirestoreの接続管理費だけです。端末の推定reads / writes / deletesを人数で換算しています。AIや中継を含む費用は「今回の通話」、条件別の目安は「10分間の試算」で確認できます。
       </div>
       <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
     </div>
@@ -4246,7 +4267,8 @@
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-03-costs";
+    import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-03-call-cost";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4288,7 +4310,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-simple-analogy";
+    const APP_VERSION = "2026-09-03-call-cost";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4615,6 +4637,21 @@
       ok: false,
       message: "まだ自動取得していません。"
     };
+    const callCost = createCallCost();
+    let endedCostExtras = null;
+    function currentCostExtras(){return endedCostExtras || {reads:metrics.estimatedReads,writes:sumMetric(metrics.writes),deletes:sumMetric(metrics.deletes),turnBytes:turnUsage.bytes}}
+    function adjustSharedAnalogy(){renderCurrentCallCost();broadcastLocalRealtimeState(true)}
+    function trackCallUsage(key,n=1){callCost.add(key,n);renderCurrentCallCost();broadcastLocalRealtimeState(true)}
+    function renderCurrentCallCost(){
+      const data=callCost.snapshot(currentCostExtras());if(!data.started)data.values={};const c=estimateCallCost(data.values,getYenPerDollar());
+      const text=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t};
+      text('appInfoCostSummary','約'+c.total.toFixed(3)+'円');text('currentCallTotal','約'+c.total.toFixed(3)+'円');
+      text('currentCallDuration',Math.floor(data.seconds/60)+'分'+Math.floor(data.seconds%60)+'秒');
+      text('currentCallCoverage',data.started ? data.devices+'参加分の受信済み集計' : '通話前');
+      const count={speech:(data.values.speechSeconds||0).toFixed(1)+'秒',discovery:(data.values.discovery||0)+'回',explanation:(data.values.explanation||0)+'回',analogy:Math.max(0,(data.values.analogy||0)-(data.values.shared||0))+'回',firestore:'read '+(data.values.reads||0)+' / write '+(data.values.writes||0)+' / delete '+(data.values.deletes||0),turn:((data.values.turnBytes||0)/1e6).toFixed(3)+' MB'};
+      for(const key of Object.keys(count))text('current-'+key,c[key].toFixed(4)+'円（'+count[key]+'）');
+      text('current-shared',(data.values.shared||0)+'回（生成費0円）');
+    }
     const costEstimator = createCostEstimator(document, getYenPerDollar);
     const metrics = createMetrics();
     window.voiceFirestoreMetrics = metrics;
@@ -4633,6 +4670,7 @@
         async function termRequest(path, body, options) {
           if (!authUser || !joined) throw new Error('auth');
           const token = await authUser.getIdToken();
+          if(path==='discover')trackCallUsage('discovery');
           const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/' + path, {
             method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
             body:JSON.stringify(body),signal:options.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'
@@ -4644,6 +4682,7 @@
           getDictionary: options => termRequest('dictionary', {}, options),
           discoverTerms: (text, options) => termRequest('discover', {text}, options),
           Recognition: modules[1].createServerRecognition({
+            onUsage: seconds => trackCallUsage('speechSeconds',seconds),
             endpoint: 'https://kouryu-captions.allinone-hiroakiaa.workers.dev/transcribe',
             getStream: function() { return localStream; },
             getToken: function() { if (!authUser) throw new Error('auth'); return authUser.getIdToken(); }
@@ -4653,6 +4692,7 @@
             await ensureAnonymousAuth();
             if (!joined || options.signal.aborted) throw new Error('aborted');
             const token = await authUser.getIdToken();
+            trackCallUsage('explanation');
             const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/explain', {
               method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
               body: JSON.stringify({ term }), signal: options.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'
@@ -4667,12 +4707,13 @@
             await ensureAnonymousAuth();
             if (!joined || options.signal.aborted) throw new Error('aborted');
             const token = await authUser.getIdToken();
+            trackCallUsage('analogy');
             const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/explain', {
               method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
               body: JSON.stringify({ term, genre }), signal: options.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'
             });
             if (!response.ok) throw new Error('unavailable');
-            const data = await response.json(); return { ...data.analogy, revision: data.revision, source: data.source };
+            const data = await response.json(); if(data.source==='shared'){callCost.add('shared');/* A cache hit removes the provisional generation estimate. */ adjustSharedAnalogy();} return { ...data.analogy, revision: data.revision, source: data.source };
           },
           root: document.getElementById('captionsPanel'),
           getCall: function() { return { joined: joined && !!localStream, muted, userId }; },
@@ -4701,6 +4742,7 @@
     init();
 
     async function init() {
+      bindCostTabs(document);
       el.join.addEventListener("click", function() {
         if (isDemoMode) {
           toggleDemoJoin();
@@ -5951,6 +5993,7 @@
         return;
       }
       if (!message || message.type !== "presence" || message.from !== state.id) return;
+      if(joined && peers.get(state.id)===state && message.sessionId===state.remoteSessionId && callCost.receive(state.id,message.costUsage))renderCurrentCallCost();
       negotiateCaptionChannel(state, message);
       setRealtimeParticipantState(state.id, {
         speaking: !!message.speaking,
@@ -6004,6 +6047,7 @@
       return sendPeerData(state, {
         type: "presence",
         captionProtocol: CAPTIONS_ENABLED ? 1 : 0,
+        costUsage: callCost.packet(currentCostExtras()),
         muted,
         speaking: speakingState
       });
@@ -6557,9 +6601,9 @@
     }
 
     function leaveCall() {
-      cancelOutgoingInvitation();
-      markLeft();
-      stopLocalCall(true);
+      try { cancelOutgoingInvitation(); } catch(error) { console.warn(error); }
+      try { Promise.resolve(markLeft()).catch(console.warn); } catch(error) { console.warn(error); }
+      finally { stopLocalCall(true); }
     }
 
     function markLeft() {
@@ -6583,8 +6627,13 @@
         metrics.endedAt = Date.now();
       }
       clearJoinSlowTimer();
+      try { broadcastLocalRealtimeState(true); } catch(error) { console.warn(error); }
+      endedCostExtras=currentCostExtras();callCost.end();
       joined = false;
-      if (captionController) captionController.sync();
+      if (localStream) localStream.getTracks().forEach(function(track){try{track.stop()}catch(_){}});
+      if (rawLocalStream) rawLocalStream.getTracks().forEach(function(track){try{track.stop()}catch(_){}});
+      updateJoinButton();
+      try { if (captionController) captionController.sync(); } catch(error) { console.warn(error); }
       activeUserName = "";
       clearParticipantNoticeQueue();
       stopCallSafetyTimers();
@@ -6608,7 +6657,7 @@
       autoReconnectTimers.clear();
       autoReconnectAttempts.clear();
       const activeListeners = verifyListenerCleanup();
-      if (shouldMarkEnded) markMetricMilestone("call-ended");
+      if (shouldMarkEnded) { try { markMetricMilestone("call-ended"); } catch(error) { console.warn(error); } }
       stopSpeakingMonitor();
       Array.from(peers.keys()).forEach(closePeer);
       peers.clear();
@@ -6620,9 +6669,7 @@
       noRemoteAudioWarned = false;
       lastRemoteTrackAt = 0;
       firestoreGuardActiveUntil = 0;
-      if (localStream) localStream.getTracks().forEach(function(track) { track.stop(); });
-      if (rawLocalStream) rawLocalStream.getTracks().forEach(function(track) { track.stop(); });
-      if (localAudioContext && typeof localAudioContext.close === "function") localAudioContext.close().catch(function() {});
+      try { if (localAudioContext && typeof localAudioContext.close === "function") Promise.resolve(localAudioContext.close()).catch(function() {}); } catch(error) { console.warn(error); }
       localStream = null;
       rawLocalStream = null;
       localAudioContext = null;
@@ -8045,7 +8092,6 @@
         statsTimer = null;
       }
       lastInboundStats.clear();
-      turnUsage = { relayActive: false, bytes: 0 };
       renderTurnUsage();
       updateQualityUi({ rttMs: null, jitterMs: null, lossPct: null, quality: "idle" });
     }
@@ -8108,6 +8154,7 @@
         turnUsage.relayActive = true;
         turnUsage.bytes = Math.max(turnUsage.bytes, values.turnBytes);
       }
+      renderCurrentCallCost();broadcastLocalRealtimeState(true);
       renderTurnUsage();
       if (remoteAudioChanged || participants.length) {
         lastParticipantsRenderSignature = "";
@@ -8733,9 +8780,9 @@
       if (event) event.stopPropagation();
       if (!el.metricsHistoryModal) return;
       closeMetricsModal();
-      renderMetricsHistory();
       el.metricsHistoryModal.classList.add("is-open");
       el.metricsHistoryModal.setAttribute("aria-hidden", "false");
+      renderMetricsHistory();
     }
 
     function closeMetricsHistoryModal() {
@@ -9250,6 +9297,7 @@
     }
 
     function resetMetrics() {
+      callCost.start();endedCostExtras=null;turnUsage={relayActive:false,bytes:0};
       Object.assign(metrics, createMetrics());
       metrics.startedAt = Date.now();
       lastCleanupSummary = "";
@@ -9784,7 +9832,6 @@
           renderHistoryStat("記録", records.length + "回", "直近" + COST_HISTORY_MAX_RECORDS + "回まで保存") +
           renderHistoryStat("10分通話 平均", formatYen(stats.average), "中央値 " + formatYen(stats.median)) +
           renderHistoryStat("最頻値", formatYen(stats.mode), "近い金額をまとめて計算") +
-          renderHistoryStat("無料枠の目安", formatCallCountRange(stats.freeAverage), "10分通話 / 日") +
           renderHistoryStat("直近10回 平均", formatYen(stats.recentAverage), "最近の傾向") +
           renderHistoryStat("今週", weekRecords.length + "回", "合計 " + formatYen(sumBy(weekRecords, "totalCostYen"))) +
           renderHistoryStat("今月", monthRecords.length + "回", "合計 " + formatYen(sumBy(monthRecords, "totalCostYen"))) +
@@ -9812,7 +9859,7 @@
 
     function renderCostHistoryRow(record) {
       const date = formatLocalDateTime(record.endedAt);
-      return '<div class="metrics-history-row"><span><strong>' + escapeHtml(formatYen(record.tenMinuteCostYen)) + '</strong><br><small>' + escapeHtml(date) + ' / ' + Math.max(0, Math.round((record.durationSeconds || 0) / 60)) + '分</small></span><span><strong>' + escapeHtml(formatCallCountRange(record.freeTenMinuteCalls)) + '</strong><br><small>無料枠</small></span></div>';
+      return '<div class="metrics-history-row"><span><strong>' + escapeHtml(formatYen(record.tenMinuteCostYen)) + '</strong><br><small>' + escapeHtml(date) + ' / ' + Math.max(0, Math.round((record.durationSeconds || 0) / 60)) + '分</small></span><span><strong>' + escapeHtml(formatYen(record.totalCostYen)) + '</strong><br><small>今回の接続管理費</small></span></div>';
     }
 
     function renderPeriodRow(label, records) {
@@ -9833,7 +9880,6 @@
 
     function renderCostHistoryChart(records) {
       if (!records.length) return '<div class="chart-empty">通話を終了すると、ここに料金の推移が表示されます。</div>';
-      if (records.length === 1) return '<div class="chart-empty">もう1回記録すると、推移を線で確認できます。<br>最新: ' + escapeHtml(formatYen(records[0].tenMinuteCostYen)) + '</div>';
       const width = 540;
       const height = 180;
       const left = 82;
@@ -9997,6 +10043,7 @@
 
     function renderMetrics() {
       if (!el.metricsOutput) return;
+      renderCurrentCallCost();
       const latest = metrics.milestones.length ? metrics.milestones[metrics.milestones.length - 1] : getMetricSnapshot("current");
       const yenPerDollar = normalizeNumberInput(el.metricsRateInput && el.metricsRateInput.value, 158);
       const reads = metrics.estimatedReads;

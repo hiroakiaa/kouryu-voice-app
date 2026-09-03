@@ -64,3 +64,10 @@
   .metrics-modal-card .cost-scenario-breakdown dd {margin-left:auto;}
 }
 
+
+.metrics-modal-card [role="tabpanel"][hidden] {display:none;}
+.cost-tabs {display:flex;gap:8px;}
+.cost-tabs button {flex:1;padding:10px;}
+.metrics-modal-card .cost-tabs [aria-selected="true"] {background:#e4f2d5;border-color:#70a64a;}
+#currentCallPanel {min-width:0;}
+#currentCallPanel .cost-scenario-breakdown dd {overflow-wrap:anywhere;}

@@ -45,7 +45,7 @@ test("終了時にlistener・timer・peer・マイクを停止する", () => {
     "stopParticipantSweep();",
     "stopLiveWatchers();",
     "Array.from(peers.keys()).forEach(closePeer);",
-    "localStream.getTracks().forEach(function(track) { track.stop(); })"
+    "localStream.getTracks().forEach(function(track){try{track.stop()}catch(_){}})"
   ]) assert.ok(rootHtml.includes(required), required);
 });
 
