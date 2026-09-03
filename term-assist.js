@@ -1,11 +1,15 @@
-import { findTermSpans } from './captions.js';
+import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
 
 // Only dictionary terms survive recognition. No transcript is stored or sent to peers.
 export function extractTerms(text) {
   if (typeof text !== 'string') return [];
   const normalized = text.slice(0, 600).normalize('NFKC')
     .replace(/エー[・ ]?ピー[・ ]?アイ/g, 'API')
-    .replace(/ウェブ[・ ]?アール[・ ]?ティー[・ ]?シー/gi, 'WebRTC');
+    .replace(/ウェブ[・ ]?アール[・ ]?ティー[・ ]?シー/gi, 'WebRTC')
+    .replace(/エス[・ ]*(?:ブイ|ヴイ|ヴィー|ビー)[・ ]*ジー/g, 'SVG')
+    .replace(/アール[・ ]*エス[・ ]*エス/g, 'RSS')
+    .replace(/(^|[^A-Za-z0-9_])S[ .・]*V[ .・]*G(?=$|[^A-Za-z0-9_])/gi, '$1SVG')
+    .replace(/(^|[^A-Za-z0-9_])R[ .・]*S[ .・]*S(?=$|[^A-Za-z0-9_])/gi, '$1RSS');
   return findTermSpans(normalized, 20).map(span => normalized.slice(span.start, span.end));
 }
 const keyOf = term => term.toLowerCase().replace(/\s+/g, ' ');

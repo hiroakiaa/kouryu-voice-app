@@ -46,7 +46,7 @@ export function findFactSpans(text) {
 
 const TERM_DICTIONARY = [
   'ICE Candidate', 'NAT Traversal', 'WebRTC', 'TURN', 'STUN', 'OAuth', 'OpenID Connect', 'API', 'SDK', 'HTTP', 'HTTPS', 'DNS', 'IPアドレス',
-  'TCP', 'UDP', 'TLS', 'VPN', 'LAN', 'NAT', 'ICE', 'P2P', 'SFU', 'WebSocket', 'WebTransport', 'Webhook', 'Firestore', 'Firebase',
+  'TCP', 'UDP', 'TLS', 'VPN', 'LAN', 'NAT', 'ICE', 'P2P', 'SFU', 'SVG', 'RSS', 'WebSocket', 'WebTransport', 'Webhook', 'Firestore', 'Firebase',
   'クラウド', 'シグナリング', 'エンドツーエンド暗号化', 'トランザクション', 'キャッシュ', 'データベース', 'アルゴリズム', '機械学習', '生成AI', 'LLM',
   '内生性', '外生性', '操作変数法', '限界効用', '機会費用', '需要曲線', '供給曲線', '回帰分析', '相関係数', '因果推論', '標準偏差', '有意水準', '帰無仮説',
   '契約不適合責任', '善管注意義務', '債務不履行', '損害賠償', '瑕疵担保責任', '成年後見制度', 'インボイス制度', '著作権', '個人情報保護法',

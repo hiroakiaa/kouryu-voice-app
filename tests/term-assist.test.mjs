@@ -27,6 +27,11 @@ test('用語候補だけを抽出し、重複と普通の文章を除外する',
  assert.deepEqual(extractTerms('明日はAPIとAPI、機械学習について話します。'),['API','機械学習']);
  assert.deepEqual(extractTerms('お昼に会いましょう。'),[]);
  assert.deepEqual(extractTerms('エーピーアイを使います。'),['API']);
+ assert.deepEqual(extractTerms('SVGとRSSを使います。'),['SVG','RSS']);
+ assert.deepEqual(extractTerms('ＳＶＧ、ｒｓｓ、S V G、R.S.S'),['SVG','RSS']);
+ assert.deepEqual(extractTerms('エスブイジーとアールエスエスです。'),['SVG','RSS']);
+ assert.deepEqual(extractTerms('エス・ヴィー・ジー、アール エス エス'),['SVG','RSS']);
+ assert.deepEqual(extractTerms('ASVGやRSSFeedという識別子'),[]);
 });
 test('認識全文を表示・送信せず、新しい語だけ共有する。ミュートと退室で停止する',()=>{
  const h=setup();h.node('toggle').click();h.result('秘密の議題はAPIとWebRTCです。');
