@@ -1,6 +1,6 @@
 import {createTermDiscovery} from './learned-terms.js?v=2026-09-03-quiet-terms';
 import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
-import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-manual-terms';
+import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-panel-polish';
 
 // Only validated terms survive recognition. No transcript is stored or sent to peers.
 export function extractTerms(text) {
@@ -24,7 +24,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   const entries=new Map(), cache=new Map();
   let enabled=false, speech=null, generation=0, failed=false, selected=null, request=null, requestId=0, timeout=null, expiry=null;
   let sequence=0,lastJoined=null;
-  const canLookup=()=>getCall().lookupAllowed??getCall().joined;
+  const canLookup=()=>getCall().joined;
   const instance=Math.random().toString(36).slice(2,10);
   const offText='';
   const discovery=createTermDiscovery({getDictionary,discoverTerms,isActive:()=>enabled&&getCall().joined,knownTerms:extractTerms,
@@ -99,7 +99,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   function clear() {closeDialog();analogies.clear();entries.clear();for(const entry of cache.values())clearTimeout(entry.timer);cache.clear();sent.clear();render()}
   function stop() {enabled=false;failed=false;stopSpeech();clear();toggle.textContent='検出を再開';toggle.hidden=true;status.textContent=offText}
   function sync() {
-    const call=getCall();toggle.disabled=!call.joined;input.disabled=false;submit.disabled=false;
+    const call=getCall();toggle.disabled=!call.joined;form.hidden=!call.joined;input.disabled=submit.disabled=!call.joined;
     if(!call.joined){if(lastJoined!==false)stop();lastJoined=false;return}
     lastJoined=true;
     enabled=true;toggle.hidden=!failed;

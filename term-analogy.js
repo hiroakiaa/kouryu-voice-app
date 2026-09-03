@@ -1,6 +1,6 @@
 // On-demand analogies; only the chosen term and genre leave this controller.
 export function createTermAnalogy({root,getTerm,getCall,getAnalogy}) {
-  const canLookup=()=>getCall().lookupAllowed??getCall().joined;
+  const canLookup=()=>getCall().joined;
   const node=name=>root.querySelector('[data-analogy-'+name+']');
   const genre=node('genre'),button=node('button'),status=node('status'),result=node('result');
   const refresh=node('refresh');let current=null;

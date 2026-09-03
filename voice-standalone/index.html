@@ -3899,6 +3899,7 @@
     .captions-card > [data-caption-list] { flex: 1 1 6rem; min-height: 6rem; max-height: 15rem; }
     .captions-card > :not([data-caption-list]):not(.term-list) { flex-shrink: 0; }
     .term-count { font-size: .8rem; font-weight: 400; margin-left: .4rem; }
+    .term-form[hidden] { display: none; }
     .term-form { display: flex; gap: .5rem; margin-top: .6rem; }
     .term-form input { flex: 1; min-width: 0; width: 0; text-align: left; font: inherit; font-size: .9rem; background: #fffef9; color: #243c24; }
     .term-form button { flex-shrink: 0; min-height: 44px; font: inherit; padding: .5rem .8rem; }
@@ -3953,10 +3954,8 @@
     .cost-scenario summary {cursor:pointer;min-height:44px;padding:10px 0;}
     #captionsPanel [data-term-status]:empty,
     #captionsPanel [data-term-discovery-status]:empty {display:none;}
-    .term-help {font-size:.85rem;line-height:1.6;}
-    .term-help summary {cursor:pointer;padding:8px 0;min-height:44px;display:list-item;}
-    .term-help p {margin:8px 0;}
   </style>
+  <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-panel-polish">
 </head>
 <body>
   <main>
@@ -4043,19 +4042,12 @@
         <button type="button" data-term-toggle hidden disabled>検出を再開</button>
       </div>
       <p class="caption-help" data-term-status role="status"></p>
-      <form class="term-form" data-term-form>
+      <form class="term-form" data-term-form hidden>
 
-        <input id="termInput" aria-label="調べたい用語" data-term-input placeholder="用語を入力して調べる" maxlength="80" required autocomplete="off">
-        <button type="submit" data-term-submit>調べる</button>
+        <input id="termInput" aria-label="調べたい用語" data-term-input placeholder="用語を入力して調べる" maxlength="80" required autocomplete="off" disabled>
+        <button type="submit" data-term-submit disabled>調べる</button>
       </form>
       <div class="term-list" data-term-list aria-label="会話に出てきた用語" tabindex="0"></div>
-      <details class="term-help">
-        <summary>使い方・AIへの送信について</summary>
-        <p>用語を押すと説明を表示します。通話への参加前でも、入力して調べられます。</p>
-        <p>通話への参加と同時に用語の検出を開始し、音声と短い認識文をAIへ送信します。一般的な専門用語と判断された語は共有辞書に保存します。音声・認識文は保存しません。</p>
-        <p>用語の追加には数秒かかり、未知の語のAI補助は最大30秒間隔です。参加者全員が自動で検出します。ミュート中は自分の検出を休止し、解除すると再開します。</p>
-        <p>一覧は最大80語。退室するとこの画面から消えます。共有辞書は残り、他の人も再利用できます。</p>
-      </details>
       <p class="caption-help" role="status" data-term-discovery-status></p>
       <dialog class="caption-dialog" data-term-dialog aria-labelledby="termDialogTitle" hidden>
         <div class="caption-dialog-header"><h3 id="termDialogTitle" data-term-title></h3><button type="button" data-term-close autofocus>閉じる</button></div>
@@ -4147,15 +4139,15 @@
       <div class="modal-head">
         <h2 id="metricsModalTitle"><i class="fa-solid fa-yen-sign"></i> 運営料金の目安</h2>
         <div class="modal-head-actions">
-          <button id="metricsHistoryOpenBtn" class="metrics-history-open-btn" type="button" aria-controls="metricsHistoryModal"><i class="fa-solid fa-chart-line"></i><span>履歴</span></button>
+          <button id="metricsHistoryOpenBtn" aria-label="料金履歴" class="metrics-history-open-btn" type="button" aria-controls="metricsHistoryModal"><i class="fa-solid fa-chart-line"></i><span>履歴</span></button>
           <button id="metricsCloseBtn" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
-      <label class="metrics-rate-row">
-        <span>1ドルあたりの円換算</span>
+      <div class="metrics-rate-row">
+        <label for="metricsRateInput">1ドルあたりの円換算</label>
         <input id="metricsRateInput" inputmode="decimal" value="158" aria-label="1ドルあたりの円換算">
         <button id="metricsRateHelpBtn" class="metrics-rate-help-btn" type="button" aria-label="為替レートの取得時刻" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
-      </label>
+      </div>
       <section class="cost-scenario" aria-labelledby="costScenarioTitle">
         <h3 id="costScenarioTitle">全機能を含む10分間の試算</h3>
         <div class="cost-scenario-inputs">
@@ -4300,7 +4292,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-manual-terms";
+    const APP_VERSION = "2026-09-03-panel-polish";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4661,8 +4653,9 @@
             getToken: function() { if (!authUser) throw new Error('auth'); return authUser.getIdToken(); }
           }),
           getExplanation: async function(term, options) {
+            if (!joined) throw new Error('not_joined');
             await ensureAnonymousAuth();
-            if (options.signal.aborted) throw new Error('aborted');
+            if (!joined || options.signal.aborted) throw new Error('aborted');
             const token = await authUser.getIdToken();
             const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/explain', {
               method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
@@ -4674,8 +4667,9 @@
             return data.explanation.slice(0, 240);
           },
           getAnalogy: async function(term, genre, options) {
+            if (!joined) throw new Error('not_joined');
             await ensureAnonymousAuth();
-            if (options.signal.aborted) throw new Error('aborted');
+            if (!joined || options.signal.aborted) throw new Error('aborted');
             const token = await authUser.getIdToken();
             const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/explain', {
               method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
@@ -4685,7 +4679,7 @@
             const data = await response.json(); return { ...data.analogy, revision: data.revision, source: data.source };
           },
           root: document.getElementById('captionsPanel'),
-          getCall: function() { return { joined: joined && !!localStream, muted, userId, lookupAllowed: true }; },
+          getCall: function() { return { joined: joined && !!localStream, muted, userId }; },
           speakerName: function(id) {
             const person = participants.find(function(item) { return item.userId === id; });
             return (person ? getDisplayName(person.userName) : (id === userId ? '自分' : '参加者')) + (person && id === userId ? '（自分）' : '');
