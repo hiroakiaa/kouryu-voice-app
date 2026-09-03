@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PcmSegmenter } from '../caption-pcm.js';
 import { encodeWav, createServerRecognition } from '../caption-server.js';
-import { handle, validWav } from '../caption-worker/src/index.js';
+import { handle, validWav, hasSpeechEnergy, cleanRecognition } from '../caption-worker/src/index.js';
 
 test('44.1/48kHzの音声を8秒以下の16kHz PCMにそろえ、先行無音を除き、無音は送らない', () => {
   for (const rate of [44100,48000]) {
@@ -16,9 +16,23 @@ test('44.1/48kHzの音声を8秒以下の16kHz PCMにそろえ、先行無音を
     segmenter.clear();assert.equal(segmenter.samples.some(x=>x!==0),false);
   }
 });
-const wav=()=>encodeWav(Int16Array.from({length:48000},(_,i)=>Math.sin(i*0.1)*10000));
+const wav=()=>encodeWav(Int16Array.from({length:48000},(_,i)=>i%8000<2000?0:Math.sin(i*0.1)*10000));
 const req=(body=wav(),headers={})=>new Request('https://caption.example/transcribe',{method:'POST',headers:{Origin:'https://hiroakiaa.github.io','Content-Type':'audio/wav',...headers},body});
 function env(){ const calls=[]; return {calls, AI:{run:async (model,input)=>{calls.push({model,input});return {text:'明日の午後3時です。'}}},USER_LIMIT:{limit:async()=>({success:true})},IP_LIMIT:{limit:async()=>({success:true})}}; }
+test('無音・DC・一定の雑音・単発クリックを認識せず、変化する音声は通す',async()=>{
+  for(const make of [()=>0,()=>4000,i=>Math.sin(i*.1)*2000,i=>i<160?10000:0]){
+    const bytes=new Uint8Array(encodeWav(Int16Array.from({length:48000},(_,i)=>make(i))));
+    assert.equal(hasSpeechEnergy(bytes),false);
+    const e=env();assert.deepEqual(await(await handle(req(bytes),e,async()=>'u')).json(),{text:''});assert.equal(e.calls.length,0);
+  }
+  assert.equal(hasSpeechEnergy(new Uint8Array(wav())),true);
+});
+test('視聴御礼だけの認識結果と無音判定結果を捨て、引用や通常の発言を変えない',()=>{
+  for(const text of ['ご視聴ありがとうございました。','ご視聴 ありがとうございました！','ご視聴ありがとうございました。ご視聴ありがとうございました。']) assert.equal(cleanRecognition({text}),'');
+  const quote='「ご視聴ありがとうございました」という字幕が出ます。';assert.equal(cleanRecognition({text:quote}),quote);
+  assert.equal(cleanRecognition({text:'ありがとうございます。'}),'ありがとうございます。');
+  assert.equal(cleanRecognition({text:'無言からの誤認識',segments:[{no_speech_prob:.9}]}),'');
+});
 test('認証・オリジン・形式・サイズ制限を満たす音声だけ認識し保存しない',async()=>{
   const e=env();
   assert.equal((await handle(req(wav(),{Origin:'https://bad.example'}),e,async()=>'u')).status,403);

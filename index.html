@@ -3877,13 +3877,26 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
-    .captions-card { margin-top: 1rem; padding: 1rem; min-width: 0; }
+    body.has-captions { overflow-y: auto; }
+    body.has-captions main {
+      display: flex; flex-direction: column;
+      height: calc(100svh - 2rem); height: calc(100dvh - 2rem);
+      min-height: 36rem; overflow-y: auto;
+    }
+    body.has-captions main > header,
+    body.has-captions main > .participants-card,
+    body.has-captions main > .controls { flex: 0 0 auto; }
+    body.has-captions .participants-card { min-height: 5rem; }
+    .captions-card { margin-top: 0; padding: .7rem; min-width: 0; min-height: 13rem; flex: 1 0 13rem; display: flex; flex-direction: column; gap: .25rem; }
     .captions-card[hidden], .captions-card [hidden] { display: none !important; }
     .caption-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
     .caption-heading h2 { margin: 0; font-size: 1rem; }
     .caption-heading button, .caption-prepare { font: inherit; font-size: .85rem; padding: .5rem .8rem; }
     .caption-help { font-size: .8rem; line-height: 1.6; margin: .65rem 0 0; }
-    .caption-list { max-height: 15rem; overflow-y: auto; overscroll-behavior: contain; margin-top: .75rem; text-align: left; }
+    .caption-list { max-height: 15rem; overflow-y: auto; overscroll-behavior: contain; margin-top: .4rem; text-align: left; padding-bottom: .65rem; overflow-anchor: none; scroll-padding-bottom: .65rem; }
+    .captions-card > [data-caption-list] { flex: 1 1 0; min-height: 6rem; max-height: none; }
+    .captions-card > :not([data-caption-list]) { flex-shrink: 0; }
+    .captions-card .caption-replay { max-height: 15rem; overflow-y: auto; }
     .caption-line { padding: .6rem .7rem; margin: .4rem 0; border-radius: .7rem; background: #f5fae9; color: #294525; overflow-wrap: anywhere; font-weight: 400; line-height: 1.65; }
     .caption-speaker { display: block; color: #4c6b43; font-size: .75rem; }
     .caption-line.is-interim { color: #58694d; border-left: 2px dotted #89a475; }
@@ -4187,7 +4200,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-captions-cloud-asr";
+    const APP_VERSION = "2026-09-03-captions-follow-silence";
     const CAPTIONS_ENABLED = true;
     const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true, terms: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
@@ -4557,6 +4570,7 @@
           }
         });
         document.getElementById('captionsPanel').hidden = false;
+        document.body.classList.add('has-captions');
       }).catch(function() { /* captions remain unavailable; phone initialization continues */ });
     }
 

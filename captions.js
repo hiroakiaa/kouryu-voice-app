@@ -98,6 +98,21 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
   let busy = false, errors = 0, runId = 0, seq = 0, lastInterim = 0, suspended = false, runTimer = null;
   const instance = Math.random().toString(36).slice(2, 12);
   const setStatus = text => { status.textContent = text; };
+  let scrollFrame = null;
+  function followLatest() {
+    const scroll = () => {
+      scrollFrame = null;
+      if (!enabled || list.hidden) return;
+      const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if (list.scrollTo) list.scrollTo({ top: list.scrollHeight, behavior: reduced ? 'auto' : 'smooth' });
+      else list.scrollTop = list.scrollHeight;
+    };
+    if (typeof requestAnimationFrame === 'function') {
+      if (scrollFrame !== null) cancelAnimationFrame(scrollFrame);
+      scrollFrame = requestAnimationFrame(scroll);
+    } else scroll();
+  }
+  const sizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(followLatest) : null;
   function annotations(row) {
     let cached = row.final && annotationCache.get(row);
     if (!cached) {
@@ -120,7 +135,6 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     const signature = JSON.stringify([factsEnabled, termsEnabled, buffer.rows.map(r => [r.speaker,r.id,r.seq,r.final,speakerName(r.speaker)])]);
     if (signature === lastSignature) { renderReplay(); renderTerm(); return; }
     lastSignature = signature;
-    const stick = list.scrollHeight - list.scrollTop - list.clientHeight < 40;
     const fragment = document.createDocumentFragment();
     for (const row of buffer.rows) {
       const line = document.createElement('p');
@@ -154,7 +168,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
       line.append(name, words); fragment.append(line);
     }
     list.replaceChildren(fragment);
-    if (stick) list.scrollTop = list.scrollHeight;
+    followLatest();
     renderReplay();
     renderTerm();
   }
@@ -191,6 +205,9 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
   }
   function disable() {
     enabled = false; suspended = false; stopRecognition();
+    sizeObserver?.disconnect();
+    if (scrollFrame !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(scrollFrame);
+    scrollFrame = null;
     closeReplay(); if (replayButton) replayButton.disabled = true;
     selectedTerm = null;
     clearInterval(timer); timer = null;
@@ -303,6 +320,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     enabled = true; suspended = false; errors = 0;
     if (replayButton) replayButton.disabled = !features.replay;
     list.hidden = false;
+    sizeObserver?.observe(list);
     button.textContent = '字幕をOFF'; button.setAttribute('aria-pressed', 'true');
     timer = setInterval(render, 1000);
     sync();
