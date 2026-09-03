@@ -3972,6 +3972,25 @@
       #audioHealth {grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:8px 12px;}
       #audioHealth .noise-guard {grid-column:1/-1;justify-self:end;font-size:12px;white-space:normal;}
     }
+
+    /* One icon row during a call; keep room only for badges and active notices. */
+    body.is-in-call .participants-card {
+      height:auto;min-height:0;grid-template-rows:auto auto auto;
+      padding:12px 16px;gap:8px;
+    }
+    body.is-in-call .participants-card .participants {
+      height:auto;min-height:0;align-items:flex-start;
+      padding:2px 2px 24px;gap:clamp(8px,2vw,16px);
+    }
+    body.is-in-call .participants .participant {
+      position:relative;inset:auto;flex:0 0 3rem;width:3rem;height:3rem;
+    }
+    body.is-in-call .participants .participant.is-self {margin-left:auto;}
+    body.is-in-call .participants-card .notice:empty {display:none;}
+    #audioHealth {grid-template-columns:auto minmax(0,1fr);min-height:54px;padding:4px 12px;gap:12px;}
+    @media(max-width:480px) {
+      body.is-in-call .participants-card {padding:10px 12px;}
+    }
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
 </head>
@@ -4047,7 +4066,6 @@
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <button id="micState" class="mic-state-toggle" type="button" disabled aria-label="マイクを解除" aria-pressed="true"><i class="fa-solid fa-microphone-lines"></i><span>マイク待ち</span></button>
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
-      <span id="noiseGuardState" class="noise-guard">ノイズ抑制中</span>
     </section>
 
     <section class="card participants-card">
@@ -4341,7 +4359,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-audio-health";
+    const APP_VERSION = "2026-09-03-compact-call";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4514,7 +4532,6 @@
       qualityTip: document.getElementById("qualityTip"),
       micState: document.getElementById("micState"),
       micLevelBar: document.getElementById("micLevelBar"),
-      noiseGuardState: document.getElementById("noiseGuardState"),
       connectionStateBadge: document.getElementById("connectionStateBadge"),
       connectionStateLabel: document.getElementById("connectionStateLabel"),
       connectionStateDetail: document.getElementById("connectionStateDetail"),
@@ -5034,6 +5051,7 @@
     }
 
     function updateDemoJoinButton() {
+      document.body.classList.toggle("is-in-call", joined);
       if (joined) {
         el.join.classList.remove("primary");
         el.join.classList.add("danger", "is-leaving");
@@ -8706,7 +8724,6 @@
         el.micState.setAttribute("aria-label", muted ? "マイクを解除" : "マイクをミュート");
         el.micState.setAttribute("aria-pressed", muted ? "true" : "false");
       }
-      if (el.noiseGuardState) el.noiseGuardState.textContent = label || "ノイズ抑制中";
     }
 
     function stopSpeakingMonitor() {
