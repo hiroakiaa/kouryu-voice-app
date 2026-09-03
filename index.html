@@ -4513,7 +4513,11 @@
           send: function(packet) {
             if (!joined || muted) return;
             peers.forEach(function(state) {
-              if (state.dataChannel && state.dataChannel.bufferedAmount < 16384) {
+              const channel = state.captionChannel;
+              if (channel && channel.readyState === 'open') {
+                if (channel.bufferedAmount >= 16384) return;
+                try { channel.send(JSON.stringify(Object.assign({ from: userId, sessionId, sentAt: Date.now() }, packet))); } catch (_) {}
+              } else if (state.dataChannel && state.dataChannel.bufferedAmount < 16384) {
                 sendPeerData(state, packet);
               }
             });
@@ -5608,7 +5612,8 @@
       };
 
       peer.ondatachannel = function(event) {
-        setupPeerDataChannel(state, event.channel);
+        if (event.channel.label === 'kouryu-captions-v1') setupCaptionChannel(state, event.channel);
+        else setupPeerDataChannel(state, event.channel);
       };
 
       peer.onicecandidate = function(event) {
@@ -5701,6 +5706,26 @@
       }
     }
 
+    function setupCaptionChannel(state, channel) {
+      if (!CAPTIONS_ENABLED || peers.get(state.id) !== state || state.captionChannel) {
+        channel.close(); return;
+      }
+      state.captionChannel = channel;
+      channel.onmessage = function(event) { handlePeerDataMessage(state, event.data); };
+      channel.onclose = function() { if (state.captionChannel === channel) state.captionChannel = null; };
+      channel.onerror = function() { /* caption transport failure must not affect audio */ };
+    }
+
+    function negotiateCaptionChannel(state, message) {
+      // Only create the extra channel after the remote explicitly advertises support.
+      // Older releases treat every new channel as presence, so never send one to them.
+      if (!CAPTIONS_ENABLED || message.captionProtocol !== 1 || message.sessionId !== state.remoteSessionId ||
+          peers.get(state.id) !== state || state.captionChannel || !shouldCreateOffer(state.id)) return;
+      try {
+        setupCaptionChannel(state, state.peer.createDataChannel('kouryu-captions-v1', { ordered: true, maxPacketLifeTime: 5000 }));
+      } catch (_) { /* the original disposable channel remains available */ }
+    }
+
     function setupPeerDataChannel(state, channel) {
       if (!state || !channel) return;
       if (state.dataChannel && state.dataChannel !== channel) {
@@ -5755,6 +5780,7 @@
         return;
       }
       if (!message || message.type !== "presence" || message.from !== state.id) return;
+      negotiateCaptionChannel(state, message);
       setRealtimeParticipantState(state.id, {
         speaking: !!message.speaking,
         muted: !!message.muted,
@@ -5806,6 +5832,7 @@
     function sendLocalRealtimeState(state) {
       return sendPeerData(state, {
         type: "presence",
+        captionProtocol: CAPTIONS_ENABLED ? 1 : 0,
         muted,
         speaking: speakingState
       });
@@ -6469,6 +6496,10 @@
       if (captionController) captionController.removePeer(remoteId);
       const state = peers.get(remoteId);
       if (!state) return;
+      if (state.captionChannel) {
+        try { state.captionChannel.close(); } catch (_) {}
+        state.captionChannel = null;
+      }
       clearReconnectTimer(state);
       clearAutoReconnectTimer(state);
       autoReconnectAttempts.delete(remoteId);
