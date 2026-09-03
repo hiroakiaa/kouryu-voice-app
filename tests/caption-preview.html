@@ -27,7 +27,7 @@ document.querySelector('#connect').onclick=async()=>{
   const left=new RTCPeerConnection(),right=new RTCPeerConnection();peers.push(left,right);
   left.onicecandidate=e=>{if(e.candidate)right.addIceCandidate(e.candidate).catch(()=>{})};
   right.onicecandidate=e=>{if(e.candidate)left.addIceCandidate(e.candidate).catch(()=>{})};
-  const ch=left.createDataChannel('captions-test',{ordered:false,maxRetransmits:0}); channels[a].push(ch);
+  const ch=left.createDataChannel('captions-test',{ordered:true,maxPacketLifeTime:5000}); channels[a].push(ch);
   ch.onmessage=e=>controllers[a].receive(states[b].userId,JSON.parse(e.data));
   opened.push(new Promise(resolve=>{ch.onopen=resolve}));
   opened.push(new Promise(resolve=>{right.ondatachannel=e=>{const remote=e.channel;channels[b].push(remote);remote.onmessage=e=>controllers[b].receive(states[a].userId,JSON.parse(e.data));remote.onopen=resolve}}));

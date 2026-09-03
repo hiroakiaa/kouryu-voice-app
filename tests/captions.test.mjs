@@ -25,7 +25,7 @@ function harness(available = async () => 'available') {
   const context = vm.createContext({ Date, Math, console, setInterval: fn => { const id = intervals.size + 1; intervals.set(id,fn); return id; },
     clearInterval: id => intervals.delete(id), setTimeout: fn => { const id = timeouts.size + 1; timeouts.set(id,fn); return id; }, clearTimeout: id => timeouts.delete(id),
     document: { createElement: () => new Element(), createDocumentFragment: () => new Element() } });
-  vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { CaptionBuffer, createCaptions };', context);
+  vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { CaptionBuffer, createCaptions, findFactSpans };', context);
   const call = { joined: true, muted: false, userId: 'self' };
   const controller = context.api.createCaptions({ root, getCall: () => call, send: packet => sent.push(packet), speakerName: id => id, Recognition });
   return { ...context.api, controller, call, instances, sent, intervals, timeouts, nodes,
@@ -92,4 +92,22 @@ test('日本語認識未対応でも4人分の受信ができ、外部認識へ�
 test('公開用字幕モジュールは同一で、永続保存や会話内容のログがない', async () => {
   assert.equal(source, await readFile(new URL('../voice-standalone/captions.js', import.meta.url), 'utf8'));
   assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB|console\.|fetch\(|setDoc\(/);
+});
+
+test('日時・金額・電話番号・数量を分類し、字幕原文を完全に保つ', () => {
+  const {findFactSpans} = harness();
+  const input='9月15日の午後3時までに12,800円を4人で用意。電話は03-1234-5678。';
+  const spans=findFactSpans(input);
+  assert.deepEqual(Array.from(spans,s=>input.slice(s.start,s.end)),['9月15日','午後3時','12,800円','4人','03-1234-5678']);
+  let cursor=0,rebuilt='';for(const span of spans){rebuilt+=input.slice(cursor,span.start)+input.slice(span.start,span.end);cursor=span.end}rebuilt+=input.slice(cursor);
+  assert.equal(rebuilt,input);
+  const full='２０２６／０９／１５の１５：３０に１２，８００円';
+  assert.deepEqual(Array.from(findFactSpans(full),s=>full.slice(s.start,s.end)),['２０２６／０９／１５','１５：３０','１２，８００円']);
+});
+test('無関係な識別子を強調せず、利用者が強調をOFFにできる', async () => {
+  const h=harness();assert.equal(h.findFactSpans('ID123人 WebRTC API v315時').length,0);
+  h.toggle();await flush();h.controller.receive('A',packet('12,800円',1,true));
+  const words=h.list.children[0].children[0].children[1];assert.equal(words.children[1].className,'caption-fact');
+  const toggle=h.nodes.get('[data-caption-facts]');toggle.checked=false;toggle.events.change();
+  assert.equal(h.list.children[0].children[0].children[1].textContent,'12,800円');h.toggle();
 });

@@ -1,0 +1,21 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><title>字幕UI検証</title>
+<style>body{font:16px sans-serif}iframe{display:block;border:1px solid #789;margin:16px 0;height:740px;max-width:100%}</style>
+<h1>字幕UI検証（固定テキスト・マイク不使用）</h1><p>本体と同じCSS・字幕マークアップ・モジュールを使用します。</p>
+<iframe id="mobile" title="スマートフォン幅の字幕" style="width:390px"></iframe>
+<iframe id="desktop" title="PC幅の字幕" style="width:900px"></iframe>
+<script type="module">
+const html=await (await fetch('../index.html')).text();
+const doc=new DOMParser().parseFromString(html,'text/html');
+const style=doc.querySelector('style').textContent;
+const panel=doc.querySelector('#captionsPanel');panel.removeAttribute('hidden');
+for(const frame of document.querySelectorAll('iframe')) {
+ const page=`<!doctype html><html lang="ja"><meta name="viewport" content="width=device-width"><style>${style}</style><body><main>${panel.outerHTML}<button id="sample">固定字幕を受信</button><button id="leave">退室テスト</button><p id="state"></p></main><script type="module">
+ import {createCaptions} from '../captions.js';
+ let joined=true;let sequence=0;
+ const controller=createCaptions({root:document.querySelector('#captionsPanel'),features:{facts:true,replay:true,terms:true},getCall:()=>({joined,muted:true,userId:'self'}),speakerName:id=>id==='self'?'自分':'匿名さんA',send:()=>{}});
+ document.querySelector('#sample').onclick=()=>{controller.receive('A',{id:'sample-'+(++sequence),seq:sequence,final:true,text:'WebRTCではICE Candidateを交換してNAT Traversalを行います。9月15日の午後3時までに12,800円を4人で用意します。'});};
+ document.querySelector('#leave').onclick=()=>{joined=false;controller.sync();document.querySelector('#state').textContent='退室しました'};
+ <\/script></body></html>`;
+ frame.srcdoc=page;
+}
+</script></html>

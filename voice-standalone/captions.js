@@ -19,11 +19,39 @@ export class CaptionBuffer {
   removeInterim(speaker) { this.rows = this.rows.filter(row => row.speaker !== speaker || row.final); }
 }
 
-export function createCaptions({ root, getCall, send, speakerName, Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
+export function findFactSpans(text) {
+  // Fullwidth digits have a one-to-one index mapping; the displayed original never changes.
+  const normalized = text.replace(/[０-９，．：／％]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
+  const patterns = [
+    ['電話番号', /(?:\+81[- ]?[1-9]\d{0,3}[- ]\d{1,4}[- ]\d{4}|0\d{1,4}[-ー]\d{1,4}[-ー]\d{3,4})/g],
+    ['日付', /(?:\d{4}年)?(?:1[0-2]|0?[1-9])月(?:3[01]|[12]\d|0?[1-9])日|\d{4}[/-](?:1[0-2]|0?[1-9])[/-](?:3[01]|[12]\d|0?[1-9])|(?:今日|明日|明後日|来週|今週|来月|今月)/g],
+    ['時刻', /(?:午前|午後)?(?:2[0-3]|[01]?\d)(?:時(?:[0-5]?\d分|半)?|:[0-5]\d)/g],
+    ['金額', /[¥￥$＄]\s*\d[\d,]*(?:\.\d+)?|\d[\d,]*(?:\.\d+)?(?:万|億|兆)?(?:円|ドル|ユーロ)|[一二三四五六七八九十百千万億兆]+円/g],
+    ['数量', /\d[\d,]*(?:\.\d+)?(?:時間|分間|秒間|か月|ヶ月|キログラム|キロメートル|ミリリットル|センチメートル|メートル|リットル|kg|km|cm|mm|mL|ml|人|個|件|回|台|枚|本|冊|名|歳|％|%)/g],
+    ['期限', /本日中|今日中|明日まで|今週中|来週まで|月末まで|締め切り|締切|期限/g]
+  ];
+  const candidates = [];
+  for (const [kind, regex] of patterns) for (const match of normalized.matchAll(regex)) {
+    // Do not highlight a suffix cut out of a longer number/identifier.
+    if (/\d/.test(match[0][0]) && /[\dA-Za-z]/.test(normalized[match.index - 1] || '')) continue;
+    candidates.push({ start: match.index, end: match.index + match[0].length, kind });
+  }
+  const selected = [];
+  candidates.sort((a,b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  for (const span of candidates) {
+    if (!selected.length || span.start >= selected.at(-1).end) selected.push(span);
+  }
+  return selected;
+}
+
+export function createCaptions({ root, getCall, send, speakerName, features = { facts: true }, Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
   const button = root.querySelector('[data-caption-toggle]');
   const status = root.querySelector('[data-caption-status]');
   const list = root.querySelector('[data-caption-list]');
   const prepare = root.querySelector('[data-caption-prepare]');
+  const factsToggle = root.querySelector('[data-caption-facts]');
+  let factsEnabled = !!features.facts;
+  if (factsToggle) { factsToggle.checked = factsEnabled; factsToggle.disabled = !features.facts; }
   const buffer = new CaptionBuffer();
   let enabled = false, recognizer = null, generation = 0, timer = null, retry = null;
   let busy = false, errors = 0, runId = 0, seq = 0, lastInterim = 0, suspended = false, runTimer = null;
@@ -40,7 +68,17 @@ export function createCaptions({ root, getCall, send, speakerName, Recognition =
       name.className = 'caption-speaker';
       name.textContent = speakerName(row.speaker) + (row.final ? '' : '（認識中）');
       const words = document.createElement('span');
-      words.textContent = row.text;
+      const spans = factsEnabled ? findFactSpans(row.text) : [];
+      if (!spans.length) words.textContent = row.text;
+      else {
+        let cursor = 0;
+        for (const span of spans) {
+          const plain = document.createElement('span'); plain.textContent = row.text.slice(cursor, span.start); words.append(plain);
+          const marked = document.createElement('mark'); marked.className = 'caption-fact'; marked.title = span.kind;
+          marked.textContent = row.text.slice(span.start, span.end); words.append(marked); cursor = span.end;
+        }
+        const tail = document.createElement('span'); tail.textContent = row.text.slice(cursor); words.append(tail);
+      }
       line.append(name, words); fragment.append(line);
     }
     list.replaceChildren(fragment);
@@ -156,6 +194,7 @@ export function createCaptions({ root, getCall, send, speakerName, Recognition =
     timer = setInterval(render, 1000);
     sync();
   });
+  factsToggle?.addEventListener('change', () => { factsEnabled = !!features.facts && factsToggle.checked; render(); });
   prepare.addEventListener('click', async () => {
     if (!enabled || !Recognition || typeof Recognition.install !== 'function') return;
     prepare.disabled = true;

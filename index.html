@@ -3887,6 +3887,10 @@
     .caption-line { padding: .6rem .7rem; margin: .4rem 0; border-radius: .7rem; background: #f5fae9; color: #294525; overflow-wrap: anywhere; font-weight: 400; line-height: 1.65; }
     .caption-speaker { display: block; color: #4c6b43; font-size: .75rem; }
     .caption-line.is-interim { color: #58694d; border-left: 2px dotted #89a475; }
+    .caption-fact { background: #e8f4ad; color: inherit; border-radius: .2rem; padding: 0 .08rem; font-weight: 400; }
+    .caption-settings { margin-top: .6rem; font-size: .8rem; text-align: left; }
+    .caption-settings label { display: flex; align-items: center; gap: .4rem; padding-top: .5rem; }
+    .caption-settings input { width: auto; }
   </style>
 </head>
 <body>
@@ -3973,6 +3977,7 @@
       </div>
       <p class="caption-help" data-caption-status role="status">自分の発言を字幕にして通話相手へ共有します。字幕は60秒で消え、保存しません。</p>
       <button type="button" class="caption-prepare" data-caption-prepare hidden>日本語音声認識をダウンロード</button>
+      <details class="caption-settings"><summary>字幕の設定</summary><label><input type="checkbox" data-caption-facts checked>日時・金額・数量などを強調</label></details>
       <div class="caption-list" data-caption-list aria-label="直近60秒の字幕" tabindex="0" hidden></div>
     </section>
 
@@ -4165,6 +4170,7 @@
 
     const APP_VERSION = "2026-09-03-captions-phase1-preview";
     const CAPTIONS_ENABLED = true;
+    const CAPTION_FEATURES = Object.freeze({ facts: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
@@ -4504,6 +4510,7 @@
       // Dynamic import is isolated: a missing caption asset cannot stop the phone.
       import('./captions.js').then(function(module) {
         captionController = module.createCaptions({
+          features: CAPTION_FEATURES,
           root: document.getElementById('captionsPanel'),
           getCall: function() { return { joined: joined && !!localStream, muted, userId }; },
           speakerName: function(id) {
