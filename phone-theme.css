@@ -1,0 +1,55 @@
+/* Phone home uses the same cream, green outlines and soft shadows as the call. */
+.header-actions .name-box{display:none;}
+body.phone-home{overflow-y:auto;align-items:start;grid-template-columns:minmax(0,1fr);}
+body.phone-home main{height:auto;max-height:none;min-width:0;overflow:visible;display:flex;flex-direction:column;}
+.phone-home .phone-home-card{flex-shrink:0;}
+#phoneNameDialog:not([open]){display:none;}
+.phone-home-card{overflow:visible;min-width:0;box-shadow:0 6px 0 #dfeecc;}
+.phone-tabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:10px;padding:4px 3px 15px;scrollbar-width:thin;scrollbar-color:#8bc85b #eef7de;}
+.phone-home-card .phone-tabs button{flex:1 0 100px;min-height:54px;padding:12px 18px;border-radius:18px;font-size:17px;font-weight:700;}
+.phone-home-card button{border:2px solid #a0cd79;background:#f4fce9;border-radius:18px;box-shadow:0 3px 0 #e0edcc;transition:background .15s,box-shadow .15s;}
+.phone-home-card button:hover{background:#eaf8d9;}
+.phone-home-card button:active{box-shadow:none;}
+.phone-home-card .phone-tabs [aria-selected="true"]{background:#ddf5bd!important;color:#376b25;border-color:#7ab94e;box-shadow:inset 0 0 0 3px #effbdc,0 3px 0 #d4e9bc;}
+.phone-home-card [role="tabpanel"]{padding:18px 2px 8px;}
+.phone-home-card h2{color:#507f3b;font-size:24px;margin:0 0 18px;}
+.phone-home-card h3{color:#507f3b;margin-top:24px;}
+.phone-home-card p{line-height:1.7;}
+.phone-home-card .phone-form-row{padding:18px;background:#f4fae9;border:1px dashed #b7d794;border-radius:20px;margin-bottom:18px;align-items:end;}
+.phone-home-card input{border:2px solid #c3e39c;border-radius:14px;background:#fffef9;min-height:48px;}
+.phone-home-card input:focus-visible{outline:2px solid #5b993d;outline-offset:2px;}
+.phone-home-card .phone-row{margin:12px 0;padding:16px;background:#f6fbeE;border:1px solid #d7e8c0;border-radius:18px;gap:10px;}
+.phone-row strong{font-size:18px;overflow-wrap:anywhere;}
+.phone-row small{line-height:1.6;}
+.phone-own{justify-content:center;flex-direction:column;margin:0 auto 22px;gap:6px;text-align:center;}
+.phone-own-label{font-size:13px;color:#687d5c;}
+.phone-own strong{font-size:25px;}
+.phone-own-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px;}
+.phone-own-actions button{font-size:14px;padding:7px 14px;}
+.phone-dialer{max-width:330px;margin:auto;text-align:center;}
+.phone-home-card .phone-dialer>label{display:block;font-size:14px;color:#607653;margin-bottom:8px;}
+.phone-number-entry{display:flex;align-items:center;margin-bottom:20px;gap:6px;}
+.phone-number-entry input{text-align:center;letter-spacing:2px;font-size:28px;width:100%;min-width:0;padding:10px 4px;}
+.phone-home-card #phoneBackspace{flex:0 0 44px;padding:6px;background:transparent;border-color:transparent;box-shadow:none;}
+.phone-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 22px;}
+.phone-home-card .phone-key{border-radius:50%;aspect-ratio:1;min-height:0;min-width:0;width:100%;padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#eff9df;border:2px solid #b4d88c;box-shadow:0 4px 0 #dcecc6;gap:0;}
+.phone-key>span{font-size:34px;line-height:1.2;font-weight:500;}
+.phone-key>small{font-size:10px;letter-spacing:2px;line-height:1.5;color:#66804f;}
+.phone-home-card .phone-call{display:flex;align-items:center;justify-content:center;width:78px;height:78px;margin:22px auto 8px;padding:0;border-radius:50%;background:#67b641;border-color:#589f36;color:white;font-size:29px;box-shadow:0 4px 0 #d2e7b7;}
+.phone-home-card .phone-call:hover{background:#559f34;}
+#phoneCancel{display:block;margin:16px auto;}
+#phoneNameDialog::backdrop{background:rgba(40,47,37,.48);}
+#phoneNameDialog label{display:block;margin:20px 0 8px;}
+#phoneNameDialog input{width:100%;box-sizing:border-box;}
+#phoneNameDialog #phoneSaveName{display:block;margin:20px 0 0 auto;}
+@media(max-width:480px){
+ .phone-home-card .phone-tabs button{flex:0 0 96px;font-size:16px;min-height:52px;}
+ .phone-home-card .phone-form-row{padding:13px;}
+ .phone-home-card .phone-form-row>label{flex-basis:100%;}
+ .phone-dialer{max-width:290px;}
+ .phone-keypad{gap:12px 20px;}
+ .phone-key>span{font-size:30px;}
+ .phone-row>button{flex:1 1 auto;}
+ .phone-row>div{flex-basis:100%;}
+ .phone-number-entry input{font-size:24px;}
+}
