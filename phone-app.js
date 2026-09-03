@@ -78,6 +78,10 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,usa
   bind('phoneCreateNumber',createNumber);bind('phoneCopy',()=>copyNumberFeedback($('phoneCopy'),own));bind('phoneCancel',()=>cancel());bind('phoneAddContact',()=>addContact());bind('phoneCreateGroup',createGroup);
   $('phoneNameOpen').onclick=()=>{$('phoneNameMessage').textContent='';$('phoneNameDialog').showModal();$('phoneName').focus();};
   $('phoneNameClose').onclick=()=>{$('phoneName').value=$('nameInput').value;$('phoneNameDialog').close();};
+  $('phoneNameDialog').addEventListener('click',e=>{if(e.target!==$('phoneNameDialog'))return;const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('phoneNameClose').click();});
+  const setOwnOpen=open=>{$('phoneOwnToggle').setAttribute('aria-expanded',String(open));$('phoneOwnDetails').classList.toggle('is-visible',open);$('phoneOwnDetails').inert=!open;$('phoneOwnDetails').setAttribute('aria-hidden',String(!open));};
+  $('phoneOwnToggle').onclick=()=>setOwnOpen($('phoneOwnToggle').getAttribute('aria-expanded')!=='true');
+  $('phoneDialPanel').addEventListener('keydown',e=>{if(e.key==='Escape'){setOwnOpen(false);$('phoneOwnToggle').focus();}});
   $('phoneNameDialog').addEventListener('cancel',()=>{$('phoneName').value=$('nameInput').value;});
   $('phoneNameForm').addEventListener('submit',async e=>{e.preventDefault();$('phoneSaveName').disabled=true;try{await saveName();}catch(_){$('phoneNameMessage').textContent='保存できませんでした。通信を確認してください。';}finally{$('phoneSaveName').disabled=false;}});
   const tabs=document.querySelector('.phone-tabs');tabs.addEventListener('wheel',e=>{if(e.ctrlKey||tabs.scrollWidth<=tabs.clientWidth)return;const before=tabs.scrollLeft;tabs.scrollLeft+=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?tabs.clientWidth:1);if(before!==tabs.scrollLeft)e.preventDefault();},{passive:false});

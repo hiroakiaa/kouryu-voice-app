@@ -149,3 +149,24 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 .phone-dial-content .phone-own:has(#phoneCreateNumber:not([hidden])) .phone-own-label{grid-row:1 / 3;align-self:center;}
 #phoneDialForm #phoneBackspace{border:0;background:transparent;box-shadow:none;}
 #phoneDialForm #phoneBackspace:hover,#phoneDialForm #phoneBackspace:active{background:transparent;box-shadow:none;}
+#phoneDialPanel{position:relative;padding-top:64px;}
+#phoneOwnToggle{position:absolute;right:4px;top:6px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;background:transparent;border:0;box-shadow:none;min-height:48px;color:#60794d;}
+#phoneOwnToggle i{font-size:22px;}
+#phoneOwnToggle span{font-size:10px;}
+#phoneOwnDetails{position:absolute;right:4px;top:65px;z-index:5;width:min(320px,calc(100% - 8px));box-sizing:border-box;display:flex;flex-direction:row;justify-content:space-between;gap:8px;padding:16px;background:#fffef8;border:1px solid #bad795;border-radius:18px;box-shadow:0 6px 20px #30462d20;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .18s,transform .18s,visibility .18s;}
+#phoneOwnDetails.is-visible{opacity:1;visibility:visible;transform:translateY(0);}
+#phoneOwnDetails .phone-own-label{flex-basis:100%;text-align:left;font-size:12px;}
+#phoneOwnDetails strong{font-size:22px;}
+#phoneOwnDetails .phone-own-actions{flex-basis:auto;}
+#phoneOwnDetails .phone-own-icon{position:relative;width:44px;height:44px;padding:0;display:grid;place-items:center;border:1px solid #d7e5c7;background:#f7faef;box-shadow:none;font-size:20px;}
+.phone-copy-note{position:absolute;bottom:calc(100% + 8px);right:0;white-space:nowrap;font-size:11px;font-weight:400;line-height:1.5;padding:5px 8px;border-radius:8px;background:#30462d;color:white;pointer-events:none;z-index:6;}
+#phoneDialForm .phone-number-entry,#phoneDialForm .phone-number-entry input{background:transparent;border:0;box-shadow:none;}
+#phoneDialForm .phone-number-entry input{font-size:clamp(30px,10cqw,40px);padding:8px;text-align:center;line-height:1.2;}
+#phoneNameDialog{position:fixed;inset:0;margin:auto;width:min(36rem,calc(100% - 32px));max-height:88dvh;height:auto;overflow-y:auto;transform:none;transition:none;box-sizing:border-box;}
+#phoneNameDialog[open]{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;align-content:start;min-height:0;height:fit-content;padding:20px;gap:12px;opacity:1;pointer-events:auto;}
+#phoneNameDialog::backdrop{background:rgba(30,35,38,.58);}
+#phoneNameClose{flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;border:1px solid #cad8b9;border-radius:10px;background:#fffef8;color:#30462d;font-size:14px;box-shadow:none!important;}
+#phoneNameClose::before,#phoneNameClose::after{display:none;}
+#phoneNameDialog input{box-sizing:border-box;width:100%;min-height:48px;padding:10px;border:2px solid #c3e39c;border-radius:14px;background:#fffef9;color:#30462d;font-size:18px;}
+@media(prefers-reduced-motion:reduce){#phoneOwnDetails{transition:none;}}
+@media(max-height:640px){#phoneDialPanel{padding-top:52px;padding-bottom:2px;}#phoneOwnToggle{top:2px;}}

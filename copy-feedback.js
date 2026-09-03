@@ -11,10 +11,20 @@ export async function copyNumberFeedback(button, value, write = text => navigato
   icon.className = 'fa-solid fa-check';
   button.setAttribute('aria-label', 'コピー済み');
   button.title = 'コピー済み';
+  let note = button.querySelector('.phone-copy-note');
+  if (!note) {
+    note = document.createElement('span');
+    note.className = 'phone-copy-note';
+    note.setAttribute('role', 'status');
+    button.append(note);
+  }
+  note.textContent = '自分の番号をコピーしました。';
+  note.hidden = false;
   resets.set(button, setTimeout(() => {
     icon.className = 'fa-regular fa-copy';
     button.setAttribute('aria-label', '自分の番号をコピー');
     button.title = '自分の番号をコピー';
+    note.hidden = true;
     resets.delete(button);
   }, 2500));
 }
