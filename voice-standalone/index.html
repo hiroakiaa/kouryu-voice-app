@@ -3897,7 +3897,17 @@
     .caption-help { font-size: .8rem; line-height: 1.6; margin: .65rem 0 0; }
     .caption-list { max-height: 15rem; overflow-y: auto; overscroll-behavior: contain; margin-top: .4rem; text-align: left; padding-bottom: .65rem; overflow-anchor: none; scroll-padding-bottom: .65rem; }
     .captions-card > [data-caption-list] { flex: 1 1 6rem; min-height: 6rem; max-height: 15rem; }
-    .captions-card > :not([data-caption-list]) { flex-shrink: 0; }
+    .captions-card > :not([data-caption-list]):not(.term-list) { flex-shrink: 0; }
+    .term-count { font-size: .8rem; font-weight: 400; margin-left: .4rem; }
+    .term-form { display: flex; gap: .5rem; margin-top: .6rem; }
+    .term-form input { flex: 1; min-width: 0; width: 0; text-align: left; font: inherit; font-size: .9rem; background: #fffef9; color: #243c24; }
+    .term-form button { flex-shrink: 0; min-height: 44px; font: inherit; padding: .5rem .8rem; }
+    .term-list { display: flex; flex-wrap: wrap; align-content: flex-start; gap: .6rem; flex: 1 1 12rem; min-height: 12rem; max-height: 20rem; overflow-y: auto; overscroll-behavior: contain; padding: .5rem .2rem; margin-top: .6rem; }
+    .term-list .term-item { display: flex; flex-direction: column; align-items: flex-start; gap: .3rem; min-height: 64px; max-width: 100%; height: auto; padding: .65rem 1rem; border: 1px solid #9cc377; border-radius: .8rem; background: #f3f9e9; color: #294525; box-shadow: none; font: inherit; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+    .term-item::before,.term-item::after { content: none; }
+    .term-item span { font-size: .75rem; color: #52684a; }
+    .term-empty { color: #52684a; font-size: .9rem; line-height: 1.8; }
+    .term-answer { font-size: 1.1rem; line-height: 1.85; }
     .caption-line { padding: .6rem .7rem; margin: .4rem 0; border-radius: .7rem; background: #f5fae9; color: #294525; overflow-wrap: anywhere; font-weight: 400; line-height: 1.65; }
     .caption-speaker { display: block; color: #4c6b43; font-size: .75rem; }
     .caption-line.is-interim { color: #58694d; border-left: 2px dotted #89a475; }
@@ -3983,9 +3993,9 @@
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。字幕ON時は自分の音声をCloudflareの音声認識へ送信して一時処理します。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。用語の自動検出ON時は自分の音声をCloudflareの音声認識へ送信して一時処理します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、参加端末数を含めた通話全体のFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、通話全体の10分で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる目安です。字幕・用語解説のAI利用料は別です。</span></span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のヘッドホンアイコン内の「料金目安」で、参加端末数を含めた通話全体のFirestoreとCloudflare TURNの状況を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">現在、通話全体の10分で、約 <strong id="tipsTenMinuteCost" class="tip-cost-number">0.017円</strong></span><span class="tip-cost-line">一日10分通話を <strong id="tipsDailyFreeCalls" class="tip-cost-number">300〜400回</strong> までは毎日の無料分でカバーできる目安です。用語検出・解説のAI利用料は別です。</span></span></span></span>
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>電話帳から電話</strong><span>最初に登録URLを相手へ送り、相手が「この相手を登録する」を押します。次回からは電話帳の「電話する」だけで呼び出せます。着信側が「応答して通話を始める」を押すと、双方が自動で通話へ参加します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
@@ -4004,27 +4014,24 @@
     </section>
 
     <section id="captionsPanel" class="card captions-card" aria-labelledby="captionsTitle" hidden>
-      <div class="caption-heading"><h2 id="captionsTitle">字幕（試用）</h2>
-        <button type="button" data-caption-toggle aria-pressed="false" disabled>字幕をON</button>
-        <button type="button" data-caption-replay-button aria-expanded="false" aria-controls="captionReplay" disabled>聞き逃した</button>
+      <div class="caption-heading"><h2 id="captionsTitle">会話の用語 <span class="term-count" data-term-count>0語</span></h2>
+        <button type="button" data-term-toggle aria-pressed="false" disabled>自動検出をON</button>
       </div>
-      <p class="caption-help" data-caption-status role="status">字幕をONにすると、自分のマイク音声をCloudflareの音声認識へ送信し、字幕を通話相手に共有します。音声・字幕を保存せず、字幕は60秒で消えます。</p>
-      <button type="button" class="caption-prepare" data-caption-prepare hidden>日本語音声認識をダウンロード</button>
-      <details class="caption-settings"><summary>字幕の設定</summary><label><input type="checkbox" data-caption-facts checked>日時・金額・数量などを強調</label><label><input type="checkbox" data-caption-terms checked>専門用語の候補に下線</label></details>
-      <p class="caption-help">下線の語を押すと、その語だけをAIへ送り、自分向けの短い解説を表示します。</p>
-      <div class="caption-list" data-caption-list aria-label="直近60秒の字幕" tabindex="0" hidden></div>
-      <dialog id="captionTermCard" class="caption-dialog" data-caption-term-panel aria-labelledby="captionTermTitle" hidden>
-        <div class="caption-dialog-header"><h3 id="captionTermTitle" data-caption-term-title></h3><button type="button" data-caption-term-close autofocus>閉じる</button></div>
+      <p class="caption-help" data-term-status role="status">自動検出ON中は自分の音声をCloudflareへ送り、専門用語だけを相手と共有します。音声・会話全文は保存しません。</p>
+      <p class="caption-help">気になる用語を押すと、自分だけに短い説明を表示します。一覧は最大80語で、自動検出OFF・退室で消えます。辞書にない語や聞き取れない語は、手入力できます。</p>
+      <form class="term-form" data-term-form>
+
+        <input id="termInput" aria-label="調べたい用語" data-term-input placeholder="用語を入力して調べる" maxlength="80" required autocomplete="off" disabled>
+        <button type="submit" data-term-submit disabled>調べる</button>
+      </form>
+      <div class="term-list" data-term-list aria-label="会話に出てきた用語" tabindex="0"></div>
+      <p class="caption-help">自動検出は数秒遅れて追加されます。音声は無音を除いて処理し、説明は押した語だけをAIへ送信します。会話全体の要約はしません。</p>
+      <dialog class="caption-dialog" data-term-dialog aria-labelledby="termDialogTitle" hidden>
+        <div class="caption-dialog-header"><h3 id="termDialogTitle" data-term-title></h3><button type="button" data-term-close autofocus>閉じる</button></div>
         <div class="caption-dialog-body" tabindex="0">
-        <div data-caption-explanation-panel hidden><h3>ひとことで</h3><p data-caption-explanation role="status"></p><button type="button" data-caption-explanation-retry hidden>もう一度取得</button><p class="caption-help">AIによる一般的な説明です。選んだ語だけを送信し、説明は自分だけに表示します。</p></div>
-        <p class="caption-help">字幕の原文</p><p class="caption-term-context" data-caption-term-context></p>
-        </div>
-      </dialog>
-      <dialog id="captionReplay" class="caption-dialog" data-caption-replay-panel aria-labelledby="captionReplayTitle" hidden>
-        <div class="caption-dialog-header"><h3 id="captionReplayTitle">直前の字幕</h3><button type="button" data-caption-replay-close autofocus>閉じる</button></div>
-        <div class="caption-dialog-body" tabindex="0">
-        <p class="caption-help">開いた時点の確定字幕です。60秒を過ぎた発言は消えます。</p>
-        <div class="caption-list" data-caption-replay-list></div>
+          <h3>ひとことで</h3><p class="term-answer" data-term-answer role="status"></p>
+          <button type="button" data-term-retry hidden>もう一度取得</button>
+          <p class="caption-help">AIによる一般的な説明です。文脈によって意味が異なることがあります。説明は自分だけに表示し、60秒で消去します。</p>
         </div>
       </dialog>
     </section>
@@ -4136,7 +4143,7 @@
       </div>
       <pre id="metricsOutput" class="metrics-output"></pre>
       <div id="metricsNotePopover" class="metrics-note-popover" role="tooltip" aria-hidden="true">
-        参加端末数を含めた通話全体の料金です。この端末で確認した推定reads / writes / deletesを参加端末数で換算するため、実際の請求額とは差が出る場合があります。字幕・用語解説のAI利用料は、この概算には含まれません。
+        参加端末数を含めた通話全体の料金です。この端末で確認した推定reads / writes / deletesを参加端末数で換算するため、実際の請求額とは差が出る場合があります。用語検出・解説のAI利用料は、この概算には含まれません。
       </div>
       <div id="metricsRateTooltip" class="metrics-rate-popover" role="tooltip" aria-hidden="true"></div>
     </div>
@@ -4216,9 +4223,8 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-readable-caption-dialogs";
+    const APP_VERSION = "2026-09-03-term-assist-economy";
     const CAPTIONS_ENABLED = true;
-    const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true, terms: true, explanations: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
@@ -4556,16 +4562,14 @@
     let captionController = null;
     if (CAPTIONS_ENABLED) {
       // Dynamic import is isolated: a missing caption asset cannot stop the phone.
-      Promise.all([import('./captions.js?v=' + APP_VERSION), import('./caption-stream.js?v=' + APP_VERSION)]).then(function(modules) {
+      Promise.all([import('./term-assist.js?v=' + APP_VERSION), import('./caption-server.js?v=' + APP_VERSION)]).then(function(modules) {
         const module = modules[0];
-        captionController = module.createCaptions({
-          recognitionMode: 'server',
-          Recognition: modules[1].createStreamingRecognition({
-            endpoint: 'wss://kouryu-captions.allinone-hiroakiaa.workers.dev/stream',
+        captionController = module.createTermAssist({
+          Recognition: modules[1].createServerRecognition({
+            endpoint: 'https://kouryu-captions.allinone-hiroakiaa.workers.dev/transcribe',
             getStream: function() { return localStream; },
             getToken: function() { if (!authUser) throw new Error('auth'); return authUser.getIdToken(); }
           }),
-          features: CAPTION_FEATURES,
           getExplanation: async function(term, options) {
             if (!authUser || !joined) throw new Error('auth');
             const token = await authUser.getIdToken();
@@ -5842,7 +5846,7 @@
       } catch (error) {
         return;
       }
-      if (message && message.type === 'caption') {
+      if (message && (message.type === 'caption' || message.type === 'terms')) {
         if (!joined || !captionController || peers.get(state.id) !== state ||
             message.from !== state.id || message.sessionId !== state.remoteSessionId ||
             !Number.isFinite(message.sentAt) || Math.abs(Date.now() - message.sentAt) > 10000) return;
