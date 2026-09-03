@@ -3954,6 +3954,24 @@
     .cost-scenario summary {cursor:pointer;min-height:44px;padding:10px 0;}
     #captionsPanel [data-term-status]:empty,
     #captionsPanel [data-term-discovery-status]:empty {display:none;}
+
+    /* Keep the audio meter's intrinsic height when the call column overflows. */
+    #audioHealth {
+      flex: 0 0 auto; min-height: 60px; height: auto; box-sizing: border-box;
+      grid-template-columns: auto minmax(0,1fr) auto;
+      align-items: center; align-content: center; gap: 12px;
+      padding: 8px 16px; line-height: 1.4;
+    }
+    #audioHealth .mic-state-toggle {
+      min-height: 44px; height: auto; margin: 0; padding: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    #audioHealth .mic-level {min-width:0;align-self:center;}
+    #audioHealth .noise-guard {grid-column:auto;align-self:center;}
+    @media(max-width:480px) {
+      #audioHealth {grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:8px 12px;}
+      #audioHealth .noise-guard {grid-column:1/-1;justify-self:end;font-size:12px;white-space:normal;}
+    }
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
 </head>
@@ -4323,7 +4341,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-faster-terms";
+    const APP_VERSION = "2026-09-03-audio-health";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
