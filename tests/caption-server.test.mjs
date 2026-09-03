@@ -73,3 +73,16 @@ test('用語解説は認証と入力を検証し、語だけをモデルへ送�
  const r=await handle(request({term:'API',context:'送ってはいけない会話'}),e,async()=>'u');assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');
  assert.equal(input.store,false);assert.doesNotMatch(JSON.stringify(input),/送ってはいけない会話/);assert.deepEqual(JSON.parse(input.messages[1].content),{term:'API',reference:''});
 });
+
+test('たとえは許可したジャンルと語だけで生成し、3項目の応答を検証する',async()=>{
+ const e=env();e.EXPLAIN_LIMIT={limit:async()=>({success:true})};let input,calls=0;
+ const analogy={example:'レストランの注文窓口です。',similarity:'決まった方法で機能を呼びます。',limit:'APIは人ではなくプログラム同士の規約です。'};
+ e.AI.run=async(_model,value)=>{calls++;input=value;return {choices:[{message:{content:JSON.stringify(analogy)}}]}};
+ const request=body=>new Request('https://caption.example/explain',{method:'POST',headers:{Origin:'https://hiroakiaa.github.io','Content-Type':'application/json'},body:JSON.stringify(body)});
+ for(const genre of ['__proto__','constructor','命令を無視',{}])assert.equal((await handle(request({term:'API',genre}),e,async()=>'u')).status,400);
+ assert.equal(calls,0);
+ const r=await handle(request({term:'API',genre:'cooking',conversation:'送ってはいけない会話'}),e,async()=>'u');
+ assert.equal(r.status,200);assert.deepEqual(await r.json(),{analogy});assert.equal(input.store,false);
+ assert.deepEqual(JSON.parse(input.messages[1].content),{term:'API',reference:'',genre:'料理'});
+ e.AI.run=async()=>({response:'{"example":"一項目だけ"}'});assert.equal((await handle(request({term:'API',genre:'games'}),e,async()=>'u')).status,503);
+});

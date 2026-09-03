@@ -1,4 +1,5 @@
 import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
+import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-ai-analogies';
 
 // Only dictionary terms survive recognition. No transcript is stored or sent to peers.
 export function extractTerms(text) {
@@ -14,7 +15,7 @@ export function extractTerms(text) {
 }
 const keyOf = term => term.toLowerCase().replace(/\s+/g, ' ');
 
-export function createTermAssist({root, getCall, send, speakerName, Recognition, getExplanation}) {
+export function createTermAssist({root, getCall, send, speakerName, Recognition, getExplanation, getAnalogy}) {
   const node = name => root.querySelector('[data-term-' + name + ']');
   const toggle=node('toggle'), status=node('status'), list=node('list'), count=node('count');
   const dialog=node('dialog'), title=node('title'), answer=node('answer'), close=node('close'), retry=node('retry');
@@ -24,11 +25,13 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   let sequence=0;
   const instance=Math.random().toString(36).slice(2,10);
   const offText='自動検出ON中は自分の音声をCloudflareへ送り、専門用語だけを相手と共有します。音声・会話全文は保存しません。';
+  const analogies=createTermAnalogy({root,getTerm:()=>entries.get(selected)?.term,getCall,getAnalogy});
 
   function cancelRequest() {
     requestId++;request?.abort();request=null;clearTimeout(timeout);clearTimeout(expiry);timeout=null;expiry=null;
   }
   function closeDialog() {
+    analogies.reset();
     cancelRequest();selected=null;answer.textContent='';retry.hidden=true;
     if(dialog.open)dialog.close();dialog.hidden=true;
   }
@@ -66,6 +69,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   const sent=new Set();
   async function explain(key) {
     if(!getCall().joined||!entries.has(key))return;
+    analogies.reset();
     cancelRequest();selected=key;title.textContent=entries.get(key).term;answer.textContent='調べています…';retry.hidden=true;
     dialog.hidden=false;if(!dialog.open)dialog.showModal();close.focus?.();
     const saved=cache.get(key);
@@ -85,7 +89,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     }catch(_){if(id===requestId&&!controller.signal.aborted){answer.textContent='説明を取得できませんでした。時間をおいてお試しください。';retry.hidden=false}}
     finally{if(id===requestId){clearTimeout(timeout);request=null}}
   }
-  function clear() {closeDialog();entries.clear();for(const entry of cache.values())clearTimeout(entry.timer);cache.clear();sent.clear();render()}
+  function clear() {closeDialog();analogies.clear();entries.clear();for(const entry of cache.values())clearTimeout(entry.timer);cache.clear();sent.clear();render()}
   function stop() {enabled=false;failed=false;stopSpeech();clear();toggle.textContent='自動検出をON';toggle.setAttribute('aria-pressed','false');status.textContent=offText}
   function sync() {
     const call=getCall();toggle.disabled=!call.joined;input.disabled=submit.disabled=!call.joined;
