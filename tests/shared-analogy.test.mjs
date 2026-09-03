@@ -13,18 +13,14 @@ test('different users and equivalent terms share one generation, including concu
  const data=await Promise.all(responses.map(r=>r.json()));assert.equal(calls,1);assert.equal(new Set(data.map(d=>d.revision)).size,1);assert.equal(data.filter(d=>d.source==='generated').length,1);
  await handle(req({term:'API',genre:'games'}),e,async()=>'user');assert.equal(calls,2);
 });
-test('persistent answer survives object restart; stale refreshes do not regenerate; reports quarantine failed answers',async()=>{
- let value,calls=0,fail=false;const storage={get:async()=>structuredClone(value),put:async(_key,next)=>{value=structuredClone(next)}};
- const env={AI:{run:async()=>{calls++;if(fail)throw Error('failure');return {response:JSON.stringify(analogy)}}}};
+test('persistent answers survive restart and rebuild requests are rejected without AI calls',async()=>{
+ let value,calls=0;const storage={get:async()=>structuredClone(value),put:async(_key,next)=>{value=structuredClone(next)}};
+ const env={IP_LIMIT:{limit:async()=>({success:true})},EXPLAIN_LIMIT:{limit:async()=>({success:true})},AI:{run:async()=>{calls++;return {response:JSON.stringify(analogy)}}}};
  const request=(extra={})=>new Request('https://cache',{method:'POST',body:JSON.stringify({term:'api',genre:'cooking',...extra})});
  let object=new AnalogyCache({storage},env);const first=await (await object.fetch(request())).json();object=new AnalogyCache({storage},env);
- assert.equal((await (await object.fetch(request())).json()).revision,first.revision);assert.equal(calls,1);
- const second=await (await object.fetch(request({action:'refresh',revision:first.revision}))).json();assert.notEqual(second.revision,first.revision);
- await object.fetch(request({action:'refresh',revision:first.revision}));assert.equal(calls,2);
- assert.equal((await object.fetch(request({action:'refresh',revision:second.revision}))).status,429);
- value.refreshedAt=Date.now()-300001;fail=true;
- assert.equal((await object.fetch(request({action:'refresh',revision:second.revision}))).status,503);assert.equal(value.reported,true);
- assert.equal((await object.fetch(request())).status,429);fail=false;value.attemptAt=Date.now()-30001;
- assert.equal((await object.fetch(request())).status,200);assert.equal(value.reported,undefined);
- assert.deepEqual(Object.keys(value).sort(),['analogy','createdAt','genre','refreshedAt','revision','term']);
+ assert.equal((await (await object.fetch(request())).json()).revision,first.revision);
+ assert.equal((await object.fetch(request({action:'refresh',revision:first.revision}))).status,400);
+ assert.equal((await handle(req({term:'api',genre:'cooking',action:'refresh',revision:first.revision}),env,async()=>'user')).status,400);
+ assert.equal(calls,1);assert.equal(value.reported,undefined);
+ assert.equal((await (await object.fetch(request())).json()).revision,first.revision);
 });

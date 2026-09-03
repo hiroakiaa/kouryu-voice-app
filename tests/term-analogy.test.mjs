@@ -15,11 +15,6 @@ test('参加前はたとえの取得要求を送らない',async()=>{
  h.node('button').events.click();await tick();assert.equal(calls,0);assert.equal(h.node('result').hidden,true);h.api.clear();
 });
 
-test('報告して作り直す操作はローカルキャッシュを使わず表示中の版を送る',async()=>{
- const calls=[];const h=setup(async(_term,_genre,options)=>{calls.push(options);return {...value,revision:'r'+calls.length,source:calls.length===1?'shared':'generated'}});
- h.node('button').events.click();await tick();assert.match(h.node('status').textContent,/共有済み/);
- h.node('refresh').events.click();await tick();assert.equal(calls.length,2);assert.equal(calls[1].action,'refresh');assert.equal(calls[1].revision,'r1');assert.match(h.node('status').textContent,/保存しました/);h.api.clear();
-});
 test('ジャンル変更では呼び出さず、押した時だけ生成し、同じ語とジャンルは60秒キャッシュする',async()=>{
  const calls=[];const h=setup(async(...args)=>{calls.push(args);return value});
  h.node('genre').value='cooking';h.node('genre').events.change();assert.equal(calls.length,0);

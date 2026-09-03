@@ -1,6 +1,6 @@
 import {createTermDiscovery} from './learned-terms.js?v=2026-09-03-quiet-terms';
 import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
-import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-panel-polish';
+import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-no-rebuild';
 
 // Only validated terms survive recognition. No transcript is stored or sent to peers.
 export function extractTerms(text) {

@@ -196,18 +196,17 @@ export async function explainTerm(request,env,verify=authenticatedUid) {
     if(!request.body)return reply({error:'format'},400);
     const reader=request.body.getReader();let raw='',size=0;const decoder=new TextDecoder();
     try{while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>1024){await reader.cancel();return reply({error:'size'},413)}raw+=decoder.decode(value,{stream:true})}raw+=decoder.decode()}finally{reader.releaseLock()}
-    const {term,genre,action,revision}=JSON.parse(raw);
+    const {term,genre,action}=JSON.parse(raw);
     if(typeof term!=='string'||term.length<1||term.length>80||! /^[\p{L}\p{N} .+／/ー_-]+$/u.test(term))return reply({error:'term'},400);
     const genres={daily:'日常生活',cooking:'料理',games:'ゲーム',sports:'スポーツ',music:'音楽',shopping:'買い物',travel:'旅行'};
     if(genre!==undefined&&(typeof genre!=='string'||!Object.hasOwn(genres,genre)))return reply({error:'genre'},400);
-    if(action!==undefined&&action!=='refresh')return reply({error:'action'},400);
-    if(action&&(genre===undefined||typeof revision!=='string'||revision.length>80))return reply({error:'revision'},400);
+    if(action!==undefined)return reply({error:'action'},400);
     if(genre!==undefined){
       if(!env.ANALOGIES)return reply({error:'unavailable'},503);
       const normalized=term.normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
       if(!normalized)return reply({error:'term'},400);
       const id=env.ANALOGIES.idFromName(JSON.stringify(['v1',normalized,genre]));
-      return await env.ANALOGIES.get(id).fetch(new Request('https://cache/analogy',{method:'POST',body:JSON.stringify({term:normalized,genre,action,revision})}));
+      return await env.ANALOGIES.get(id).fetch(new Request('https://cache/analogy',{method:'POST',body:JSON.stringify({term:normalized,genre})}));
     }
     return await generateExplanation(term,genre,env);
   }catch(_){return reply({error:'unavailable'},503)}
@@ -256,20 +255,16 @@ export class AnalogyCache {
    this.queue=job.catch(()=>{});
    try{return await job}catch(_){return reply({error:'unavailable'},503)}
  }
- async resolve({term,genre,action,revision}){
+ async resolve({term,genre,action}){
+   if(action!==undefined)return reply({error:'action'},400);
    let record=await this.storage.get('answer');
-   if(record&&action==='refresh'&&revision===record.revision){
-     if(record.refreshedAt&&Date.now()-record.refreshedAt<300000)return reply({error:'cooldown'},429);
-     // Retain the report if replacement fails; never serve the reported answer again.
-     record={...record,reported:true};await this.storage.put('answer',record);
-   }
    if(record&&!record.reported)return reply({analogy:record.analogy,revision:record.revision,source:'shared'});
    if(record?.attemptAt&&Date.now()-record.attemptAt<30000)return reply({error:'cooldown'},429);
    if(record){record={...record,attemptAt:Date.now()};await this.storage.put('answer',record)}
    const response=await generateExplanation(term,genre,this.env);
    if(!response.ok)return response;
    const {analogy}=await response.json();
-   const next={term,genre,analogy,revision:crypto.randomUUID(),createdAt:Date.now(),refreshedAt:record?Date.now():0};
+   const next={term,genre,analogy,revision:crypto.randomUUID(),createdAt:Date.now()};
    await this.storage.put('answer',next);
    return reply({analogy,revision:next.revision,source:'generated'});
  }
