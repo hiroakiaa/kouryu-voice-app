@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 const source = await readFile(new URL('../captions.js', import.meta.url), 'utf8');
-function harness(available = async () => 'available') {
+function harness(available = async () => 'available', clock = Date) {
   class Element {
     constructor() { this.children = []; this.events = {}; this.hidden = false; this.textContent = ''; }
     append(...nodes) { this.children.push(...nodes); }
@@ -22,7 +22,7 @@ function harness(available = async () => 'available') {
     start() { assert.equal(this.processLocally, true); this.started = true; }
     abort() { this.aborted = true; }
   }
-  const context = vm.createContext({ Date, Math, console, setInterval: fn => { const id = intervals.size + 1; intervals.set(id,fn); return id; },
+  const context = vm.createContext({ Date: clock, Math, console, setInterval: fn => { const id = intervals.size + 1; intervals.set(id,fn); return id; },
     clearInterval: id => intervals.delete(id), setTimeout: fn => { const id = timeouts.size + 1; timeouts.set(id,fn); return id; }, clearTimeout: id => timeouts.delete(id),
     document: { createElement: () => new Element(), createDocumentFragment: () => new Element() } });
   vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { CaptionBuffer, createCaptions, findFactSpans };', context);
@@ -110,4 +110,21 @@ test('無関係な識別子を強調せず、利用者が強調をOFFにでき�
   const words=h.list.children[0].children[0].children[1];assert.equal(words.children[1].className,'caption-fact');
   const toggle=h.nodes.get('[data-caption-facts]');toggle.checked=false;toggle.events.change();
   assert.equal(h.list.children[0].children[0].children[1].textContent,'12,800円');h.toggle();
+});
+
+test('聞き逃しは確定原文のみ・追加通知なし・開いた後も60秒で消える', async () => {
+  let now=100000;class Clock extends Date { static now(){return now} }
+  const h=harness(undefined,Clock);h.toggle();await flush();
+  h.controller.receive('A',packet('直前の確定原文。',1,true));
+  h.controller.receive('B',packet('未確定の発言',1,false));
+  const replay=h.nodes.get('[data-caption-replay-list]');
+  const flatten=node=>node.textContent+node.children.map(flatten).join('');
+  h.nodes.get('[data-caption-replay-button]').click();
+  assert.match(flatten(replay),/直前の確定原文。/);assert.doesNotMatch(flatten(replay),/未確定/);
+  h.controller.receive('C',packet('開いた後の発言',1,true));
+  assert.doesNotMatch(flatten(replay),/開いた後/);assert.equal(h.sent.length,0);
+  now+=60001;for(const fn of h.intervals.values())fn();
+  assert.doesNotMatch(flatten(replay),/直前の確定原文/);
+  assert.match(flatten(replay),/確定字幕はありません/);
+  h.call.joined=false;h.controller.sync();assert.equal(flatten(replay),'');assert.equal(h.intervals.size,0);
 });

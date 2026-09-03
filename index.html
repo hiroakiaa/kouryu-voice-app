@@ -3891,6 +3891,10 @@
     .caption-settings { margin-top: .6rem; font-size: .8rem; text-align: left; }
     .caption-settings label { display: flex; align-items: center; gap: .4rem; padding-top: .5rem; }
     .caption-settings input { width: auto; }
+    .caption-replay { border-top: 1px dashed #a6bf80; margin-top: .75rem; padding-top: .6rem; text-align: left; }
+    .caption-replay-header { display: flex; align-items: center; justify-content: space-between; gap: .4rem; flex-wrap: wrap; }
+    .caption-replay h3 { font-size: .9rem; margin: 0; }
+    .caption-replay button { font: inherit; font-size: .8rem; padding: .4rem .7rem; }
   </style>
 </head>
 <body>
@@ -3974,11 +3978,17 @@
     <section id="captionsPanel" class="card captions-card" aria-labelledby="captionsTitle" hidden>
       <div class="caption-heading"><h2 id="captionsTitle">字幕（試用）</h2>
         <button type="button" data-caption-toggle aria-pressed="false" disabled>字幕をON</button>
+        <button type="button" data-caption-replay-button aria-expanded="false" aria-controls="captionReplay" disabled>聞き逃した</button>
       </div>
       <p class="caption-help" data-caption-status role="status">自分の発言を字幕にして通話相手へ共有します。字幕は60秒で消え、保存しません。</p>
       <button type="button" class="caption-prepare" data-caption-prepare hidden>日本語音声認識をダウンロード</button>
       <details class="caption-settings"><summary>字幕の設定</summary><label><input type="checkbox" data-caption-facts checked>日時・金額・数量などを強調</label></details>
       <div class="caption-list" data-caption-list aria-label="直近60秒の字幕" tabindex="0" hidden></div>
+      <section id="captionReplay" class="caption-replay" data-caption-replay-panel aria-label="聞き逃した発言" tabindex="-1" hidden>
+        <div class="caption-replay-header"><h3>直前の字幕</h3><button type="button" data-caption-replay-close>閉じる</button></div>
+        <p class="caption-help">開いた時点の確定字幕です。60秒を過ぎた発言は消えます。</p>
+        <div class="caption-list" data-caption-replay-list tabindex="0"></div>
+      </section>
     </section>
 
     <div class="controls">
@@ -4170,7 +4180,7 @@
 
     const APP_VERSION = "2026-09-03-captions-phase1-preview";
     const CAPTIONS_ENABLED = true;
-    const CAPTION_FEATURES = Object.freeze({ facts: true });
+    const CAPTION_FEATURES = Object.freeze({ facts: true, replay: true });
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];

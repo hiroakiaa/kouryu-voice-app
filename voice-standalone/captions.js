@@ -44,12 +44,18 @@ export function findFactSpans(text) {
   return selected;
 }
 
-export function createCaptions({ root, getCall, send, speakerName, features = { facts: true }, Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
+export function createCaptions({ root, getCall, send, speakerName, features = { facts: true, replay: true }, Recognition = window.SpeechRecognition || window.webkitSpeechRecognition }) {
   const button = root.querySelector('[data-caption-toggle]');
   const status = root.querySelector('[data-caption-status]');
   const list = root.querySelector('[data-caption-list]');
   const prepare = root.querySelector('[data-caption-prepare]');
   const factsToggle = root.querySelector('[data-caption-facts]');
+  const replayButton = root.querySelector('[data-caption-replay-button]');
+  const replayPanel = root.querySelector('[data-caption-replay-panel]');
+  const replayList = root.querySelector('[data-caption-replay-list]');
+  const replayClose = root.querySelector('[data-caption-replay-close]');
+  let replayKeys = null;
+  if (replayButton) { replayButton.hidden = !features.replay; replayButton.disabled = true; }
   let factsEnabled = !!features.facts;
   if (factsToggle) { factsToggle.checked = factsEnabled; factsToggle.disabled = !features.facts; }
   const buffer = new CaptionBuffer();
@@ -83,6 +89,26 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     }
     list.replaceChildren(fragment);
     if (stick) list.scrollTop = list.scrollHeight;
+    renderReplay();
+  }
+  function renderReplay() {
+    if (!replayPanel || !replayList) return;
+    replayPanel.hidden = !replayKeys;
+    if (!replayKeys) { replayList.replaceChildren(); return; }
+    const fragment = document.createDocumentFragment();
+    const rows = buffer.rows.filter(row => row.final && replayKeys.has(JSON.stringify([row.speaker, row.id])));
+    for (const row of rows) {
+      const line = document.createElement('p'); line.className = 'caption-line';
+      const name = document.createElement('span'); name.className = 'caption-speaker'; name.textContent = speakerName(row.speaker);
+      const words = document.createElement('span'); words.textContent = row.text;
+      line.append(name, words); fragment.append(line);
+    }
+    if (!rows.length) { const empty = document.createElement('p'); empty.textContent = '直近60秒の確定字幕はありません。'; fragment.append(empty); }
+    replayList.replaceChildren(fragment);
+  }
+  function closeReplay() {
+    replayKeys = null;
+    replayButton?.setAttribute('aria-expanded', 'false'); renderReplay();
   }
   function stopRecognition() {
     generation++;
@@ -98,6 +124,7 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
   }
   function disable() {
     enabled = false; suspended = false; stopRecognition();
+    closeReplay(); if (replayButton) replayButton.disabled = true;
     clearInterval(timer); timer = null;
     buffer.clear(); render();
     list.hidden = true; prepare.hidden = true;
@@ -189,12 +216,24 @@ export function createCaptions({ root, getCall, send, speakerName, features = { 
     if (enabled) { disable(); return; }
     if (!getCall().joined) return;
     enabled = true; suspended = false; errors = 0;
+    if (replayButton) replayButton.disabled = !features.replay;
     list.hidden = false;
     button.textContent = '字幕をOFF'; button.setAttribute('aria-pressed', 'true');
     timer = setInterval(render, 1000);
     sync();
   });
   factsToggle?.addEventListener('change', () => { factsEnabled = !!features.facts && factsToggle.checked; render(); });
+  replayButton?.addEventListener('click', () => {
+    if (!enabled || !features.replay) return;
+    if (replayKeys) { closeReplay(); return; }
+    buffer.prune();
+    // Keep identifiers only, so opening the panel never extends text retention.
+    replayKeys = new Set(buffer.rows.filter(row => row.final).map(row => JSON.stringify([row.speaker, row.id])));
+    replayButton.setAttribute('aria-expanded', 'true'); renderReplay();
+    replayPanel?.focus?.();
+  });
+  replayClose?.addEventListener('click', () => { closeReplay(); replayButton?.focus?.(); });
+  replayPanel?.addEventListener('keydown', event => { if (event.key === 'Escape') { closeReplay(); replayButton?.focus?.(); } });
   prepare.addEventListener('click', async () => {
     if (!enabled || !Recognition || typeof Recognition.install !== 'function') return;
     prepare.disabled = true;
