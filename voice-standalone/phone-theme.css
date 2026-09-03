@@ -175,3 +175,8 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneOwnToggle{position:static;align-self:flex-end;flex:0 0 auto;margin:0 6px 0 0;}
 #phoneOwnDetails{right:6px;top:58px;}
 @media(max-height:640px){#phoneDialPanel{padding:0;}.phone-dial-content{gap:0;}#phoneOwnToggle{margin-bottom:2px;}}
+#phoneDialPanel{--own-inset:clamp(12px,4cqw,24px);padding-top:72px;}
+.phone-dial-content{position:static;}
+#phoneOwnToggle{position:absolute;top:var(--own-inset);right:var(--own-inset);margin:0;}
+#phoneOwnDetails{right:var(--own-inset);top:calc(var(--own-inset) + 52px);}
+@media(max-height:640px){#phoneDialPanel{--own-inset:10px;padding-top:56px;}}
