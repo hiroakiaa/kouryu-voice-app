@@ -1,4 +1,4 @@
-import {createTermDiscovery} from './learned-terms.js?v=2026-09-03-quiet-terms';
+import {createTermDiscovery} from './learned-terms.js?v=2026-09-03-faster-terms';
 import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
 import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-no-rebuild';
 

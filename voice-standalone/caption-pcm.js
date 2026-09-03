@@ -1,8 +1,8 @@
-// Shared by the AudioWorklet and tests. Audio lives only in an eight-second buffer.
+// Shared by the AudioWorklet and tests. Audio lives only in a three-second buffer.
 export class PcmSegmenter {
   constructor(rate, emit) {
     this.rate = rate; this.emit = emit;
-    this.samples = new Int16Array(128000); this.length = 0;
+    this.samples = new Int16Array(48000); this.length = 0;
     this.preroll = new Int16Array(4000); this.preIndex = 0; this.started = false;
     this.phase = 0; this.sum = 0; this.count = 0;
     this.voiced = 0; this.silence = 0;
@@ -22,9 +22,11 @@ export class PcmSegmenter {
       }
       this.samples[this.length++] = pcm;
       if (Math.abs(sample) > 0.006) { this.voiced++; this.silence = 0; } else this.silence++;
-      if (this.length === 128000 || (this.length >= 48000 && this.silence >= 9600)) {
+      if (this.length === 48000 || (this.length >= 44000 && this.silence >= 7200)) {
         if (this.voiced >= 1600) this.emit(this.samples.slice(0, this.length));
+        const overlap=this.length===48000?this.samples.slice(this.length-4000,this.length):null;
         this.samples.fill(0); this.length = 0; this.voiced = 0; this.silence = 0; this.started = false;
+        if(overlap)this.preroll.set(overlap);
       }
     }
   }

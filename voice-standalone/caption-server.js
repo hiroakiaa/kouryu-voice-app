@@ -29,7 +29,7 @@ export function createServerRecognition({ endpoint, getStream, getToken, fetcher
     async prepare(stream, resumed) {
       try {
         await resumed;
-        await this.context.audioWorklet.addModule(new URL('./caption-pcm.js', import.meta.url));
+        await this.context.audioWorklet.addModule(new URL('./caption-pcm.js?v=2026-09-03-faster-terms', import.meta.url));
         if (!this.active) return;
         this.source = this.context.createMediaStreamSource(stream);
         this.node = new Worklet(this.context, 'caption-pcm');

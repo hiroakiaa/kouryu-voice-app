@@ -20,7 +20,7 @@
       "name": "IP_LIMIT",
       "namespace_id": "903002",
       "simple": {
-        "limit": 120,
+        "limit": 240,
         "period": 60
       }
     },
@@ -36,7 +36,7 @@
       "name": "DISCOVERY_LIMIT",
       "namespace_id": "903004",
       "simple": {
-        "limit": 2,
+        "limit": 10,
         "period": 60
       }
     }

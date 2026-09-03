@@ -36,10 +36,19 @@ test('共有語はローカル一致し、認識文を蓄積せず、停止後�
  let resolve,active=true;const emitted=[],calls=[];
  const controller=createTermDiscovery({getDictionary:async()=>['冪等性'],discoverTerms:(text,{signal})=>{calls.push({text,signal});return new Promise(r=>resolve=r)},isActive:()=>active,onTerms:t=>emitted.push(t),onStatus:()=>{},knownTerms:()=>[]});
  controller.start();await new Promise(r=>setImmediate(r));assert.deepEqual(controller.match('冪等性です'),['冪等性']);
- controller.observe('古い断片');controller.observe('最新の専門用語');await new Promise(r=>setTimeout(r,5));assert.equal(calls.length,1);assert.equal(calls[0].text,'最新の専門用語');
+ controller.observe('古い断片');controller.observe('最新の専門用語');await new Promise(r=>setTimeout(r,5));assert.equal(calls.length,1);assert.equal(calls[0].text,'古い断片 最新の専門用語');
  controller.observe('次の断片');controller.stop();active=false;assert.equal(calls[0].signal.aborted,true);resolve(['gRPC']);await new Promise(r=>setImmediate(r));assert.equal(emitted.length,0);
 });
 test('相手が勝手に送った語は共有辞書の確認が取れるまで表示しない',async()=>{
  const emitted=[];const c=createTermDiscovery({getDictionary:async()=>['冪等性'],isActive:()=>true,onTerms:(terms,share,speaker)=>emitted.push({terms,share,speaker}),onStatus:()=>{},knownTerms:()=>[]});
  await c.receive(['冪等性','勝手な語'],'speaker');assert.deepEqual(emitted,[{terms:['冪等性'],share:false,speaker:'speaker'}]);c.stop();
+});
+test('未知語の待機は6秒で、待機中の断片を300文字以内にまとめて送り退室で消す',async()=>{
+ let time=0,id=0;const timers=new Map(),calls=[];
+ const c=createTermDiscovery({isActive:()=>true,knownTerms:()=>[],onTerms(){},onStatus(){},now:()=>time,setTimer:(fn,delay)=>{timers.set(++id,{fn,at:time+delay});return id},clearTimer:id=>timers.delete(id),discoverTerms:async text=>{calls.push(text);return []}});
+ const advance=async ms=>{time+=ms;for(const [id,t] of [...timers])if(t.at<=time){timers.delete(id);t.fn()}await new Promise(r=>setImmediate(r))};
+ c.observe('最初の専門語');await advance(0);assert.equal(calls.length,1);
+ c.observe('途中の専門語');c.observe('最後の専門語');await advance(5999);assert.equal(calls.length,1);await advance(1);assert.equal(calls.length,2);assert.match(calls[1],/途中.*最後/);
+ c.observe('長い断片'.repeat(200));await advance(6000);assert.ok(calls[2].length<=300);
+ c.observe('消える語');c.stop();await advance(6000);assert.equal(calls.length,3);
 });

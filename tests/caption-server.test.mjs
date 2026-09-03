@@ -5,15 +5,15 @@ import { PcmSegmenter } from '../caption-pcm.js';
 import { encodeWav, createServerRecognition } from '../caption-server.js';
 import { handle, validWav, hasSpeechEnergy, cleanRecognition } from '../caption-worker/src/index.js';
 
-test('44.1/48kHzの音声を8秒以下の16kHz PCMにそろえ、先行無音を除き、無音は送らない', () => {
+test('44.1/48kHzの音声を3秒以下の16kHz PCMにそろえ、先行無音を除き、無音は送らない', () => {
   for (const rate of [44100,48000]) {
     const chunks=[]; const segmenter=new PcmSegmenter(rate, x=>chunks.push(x));
     segmenter.push(new Float32Array(rate*10));assert.equal(chunks.length,0);
     const input=Float32Array.from({length:rate*7.75+128},(_,i)=>Math.sin(i*0.1)*0.2);
     for(let i=0;i<input.length;i+=128) segmenter.push(input.subarray(i,i+128));
-    assert.equal(chunks.length,1);assert.equal(chunks[0].length,128000);
+    assert.equal(chunks.length,2);assert.equal(chunks[0].length,48000);assert.deepEqual(chunks[1].slice(0,4000),chunks[0].slice(-4000));
     assert.equal(validWav(new Uint8Array(encodeWav(chunks[0]))),true);
-    segmenter.push(new Float32Array(rate*9));assert.equal(chunks.length,1);
+    segmenter.push(new Float32Array(rate*9));assert.equal(chunks.length,3);assert.ok(chunks.every(c=>c.length<=48000));
     segmenter.clear();assert.equal(segmenter.samples.some(x=>x!==0),false);
   }
 });
