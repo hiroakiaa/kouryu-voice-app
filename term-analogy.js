@@ -1,5 +1,6 @@
 // On-demand analogies; only the chosen term and genre leave this controller.
 export function createTermAnalogy({root,getTerm,getCall,getAnalogy}) {
+  const canLookup=()=>getCall().lookupAllowed??getCall().joined;
   const node=name=>root.querySelector('[data-analogy-'+name+']');
   const genre=node('genre'),button=node('button'),status=node('status'),result=node('result');
   const refresh=node('refresh');let current=null;
@@ -22,7 +23,7 @@ export function createTermAnalogy({root,getTerm,getCall,getAnalogy}) {
     displayTimer=setTimeout(()=>{blank();status.textContent='たとえの表示期限が過ぎました。もう一度取得できます。'},Math.max(0,until-Date.now()));
   }
   async function generate(action,revision){
-    const term=getTerm();if(!term||!getCall().joined||!getAnalogy)return;
+    const term=getTerm();if(!term||!canLookup()||!getAnalogy)return;
     reset();const id=generation,chosen=genre.value||'daily',key=JSON.stringify([term.toLowerCase(),chosen]);
     const saved=cache.get(key);if(!action&&saved&&saved.until>Date.now()){show(saved.value,saved.until);return}
     if(saved){clearTimeout(saved.timer);cache.delete(key)}
@@ -33,7 +34,7 @@ export function createTermAnalogy({root,getTerm,getCall,getAnalogy}) {
     },20000);
     try{
       const value=await getAnalogy(term,chosen,{signal:controller.signal,action,revision});
-      if(id!==generation||controller.signal.aborted||!getCall().joined)return;
+      if(id!==generation||controller.signal.aborted||!canLookup())return;
       if(!['example','similarity','limit'].every(k=>typeof value?.[k]==='string'&&value[k].trim()&&value[k].length<=240))throw Error('format');
       const until=Date.now()+60000;
       if(cache.size>=30){const oldest=cache.keys().next().value;clearTimeout(cache.get(oldest).timer);cache.delete(oldest)}

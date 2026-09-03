@@ -4045,13 +4045,13 @@
       <p class="caption-help" data-term-status role="status"></p>
       <form class="term-form" data-term-form>
 
-        <input id="termInput" aria-label="調べたい用語" data-term-input placeholder="用語を入力して調べる" maxlength="80" required autocomplete="off" disabled>
-        <button type="submit" data-term-submit disabled>調べる</button>
+        <input id="termInput" aria-label="調べたい用語" data-term-input placeholder="用語を入力して調べる" maxlength="80" required autocomplete="off">
+        <button type="submit" data-term-submit>調べる</button>
       </form>
       <div class="term-list" data-term-list aria-label="会話に出てきた用語" tabindex="0"></div>
       <details class="term-help">
         <summary>使い方・AIへの送信について</summary>
-        <p>用語を押すと説明を表示します。見つからない語は入力して調べられます。</p>
+        <p>用語を押すと説明を表示します。通話への参加前でも、入力して調べられます。</p>
         <p>通話への参加と同時に用語の検出を開始し、音声と短い認識文をAIへ送信します。一般的な専門用語と判断された語は共有辞書に保存します。音声・認識文は保存しません。</p>
         <p>用語の追加には数秒かかり、未知の語のAI補助は最大30秒間隔です。参加者全員が自動で検出します。ミュート中は自分の検出を休止し、解除すると再開します。</p>
         <p>一覧は最大80語。退室するとこの画面から消えます。共有辞書は残り、他の人も再利用できます。</p>
@@ -4300,7 +4300,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-auto-terms";
+    const APP_VERSION = "2026-09-03-manual-terms";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4661,7 +4661,8 @@
             getToken: function() { if (!authUser) throw new Error('auth'); return authUser.getIdToken(); }
           }),
           getExplanation: async function(term, options) {
-            if (!authUser || !joined) throw new Error('auth');
+            await ensureAnonymousAuth();
+            if (options.signal.aborted) throw new Error('aborted');
             const token = await authUser.getIdToken();
             const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/explain', {
               method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
@@ -4673,7 +4674,8 @@
             return data.explanation.slice(0, 240);
           },
           getAnalogy: async function(term, genre, options) {
-            if (!authUser || !joined) throw new Error('auth');
+            await ensureAnonymousAuth();
+            if (options.signal.aborted) throw new Error('aborted');
             const token = await authUser.getIdToken();
             const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/explain', {
               method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
@@ -4683,7 +4685,7 @@
             const data = await response.json(); return { ...data.analogy, revision: data.revision, source: data.source };
           },
           root: document.getElementById('captionsPanel'),
-          getCall: function() { return { joined: joined && !!localStream, muted, userId }; },
+          getCall: function() { return { joined: joined && !!localStream, muted, userId, lookupAllowed: true }; },
           speakerName: function(id) {
             const person = participants.find(function(item) { return item.userId === id; });
             return (person ? getDisplayName(person.userName) : (id === userId ? '自分' : '参加者')) + (person && id === userId ? '（自分）' : '');

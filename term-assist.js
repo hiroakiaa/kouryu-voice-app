@@ -1,6 +1,6 @@
 import {createTermDiscovery} from './learned-terms.js?v=2026-09-03-quiet-terms';
 import { findTermSpans } from './captions.js?v=2026-09-03-svg-rss';
-import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-shared-analogies';
+import { createTermAnalogy } from './term-analogy.js?v=2026-09-03-manual-terms';
 
 // Only validated terms survive recognition. No transcript is stored or sent to peers.
 export function extractTerms(text) {
@@ -23,7 +23,8 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   const form=node('form'), input=node('input'), submit=node('submit');
   const entries=new Map(), cache=new Map();
   let enabled=false, speech=null, generation=0, failed=false, selected=null, request=null, requestId=0, timeout=null, expiry=null;
-  let sequence=0;
+  let sequence=0,lastJoined=null;
+  const canLookup=()=>getCall().lookupAllowed??getCall().joined;
   const instance=Math.random().toString(36).slice(2,10);
   const offText='';
   const discovery=createTermDiscovery({getDictionary,discoverTerms,isActive:()=>enabled&&getCall().joined,knownTerms:extractTerms,
@@ -74,7 +75,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   function publish(text){publishTerms([...extractTerms(text),...discovery.match(text)]);discovery.observe(text)}
   const sent=new Set();
   async function explain(key) {
-    if(!getCall().joined||!entries.has(key))return;
+    if(!canLookup()||!entries.has(key))return;
     analogies.reset();
     cancelRequest();selected=key;title.textContent=entries.get(key).term;answer.textContent='調べています…';retry.hidden=true;
     dialog.hidden=false;if(!dialog.open)dialog.showModal();close.focus?.();
@@ -87,7 +88,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     timeout=setTimeout(()=>{if(id!==requestId)return;controller.abort();requestId++;answer.textContent='取得に時間がかかっています。もう一度お試しください。';retry.hidden=false},15000);
     try{
       const result=await getExplanation(entries.get(key).term,{signal:controller.signal});
-      if(id!==requestId||controller.signal.aborted||!getCall().joined)return;
+      if(id!==requestId||controller.signal.aborted||!canLookup())return;
       if(typeof result!=='string'||!result.trim())throw Error('empty');
       const text=result.trim().slice(0,240);answer.textContent=text;
       cache.set(key,{text,until:Date.now()+60000,timer:setTimeout(()=>cache.delete(key),60000)});
@@ -98,8 +99,9 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   function clear() {closeDialog();analogies.clear();entries.clear();for(const entry of cache.values())clearTimeout(entry.timer);cache.clear();sent.clear();render()}
   function stop() {enabled=false;failed=false;stopSpeech();clear();toggle.textContent='検出を再開';toggle.hidden=true;status.textContent=offText}
   function sync() {
-    const call=getCall();toggle.disabled=!call.joined;input.disabled=submit.disabled=!call.joined;
-    if(!call.joined){stop();return}
+    const call=getCall();toggle.disabled=!call.joined;input.disabled=false;submit.disabled=false;
+    if(!call.joined){if(lastJoined!==false)stop();lastJoined=false;return}
+    lastJoined=true;
     enabled=true;toggle.hidden=!failed;
     if(call.muted){stopSpeech();failed=false;toggle.hidden=true;status.textContent='マイクOFF・相手の用語は受信中';return}
     if(speech||failed)return;
@@ -121,7 +123,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     failed=false;toggle.hidden=true;sync();
   });
   form.addEventListener('submit',event=>{
-    event.preventDefault();if(!getCall().joined)return;
+    event.preventDefault();if(!canLookup())return;
     const term=input.value.trim().normalize('NFKC');
     if(!/^[\p{L}\p{N} .+／/ー_-]{1,80}$/u.test(term)){input.setCustomValidity?.('用語を80文字以内で入力してください。');input.reportValidity?.();return}
     input.setCustomValidity?.('');const key=add(term,getCall().userId,true);input.value='';render();void explain(key);

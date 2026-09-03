@@ -23,6 +23,15 @@ function setup(getExplanation=async()=> '短い解説',extra={},callState={}) {
 }
 const tick=()=>new Promise(r=>setImmediate(r));
 
+test('参加前の手入力で説明を取得でき、状態更新で消えず、音声認識は開始しない',async()=>{
+ const calls=[];const h=setup(async term=>{calls.push(term);return '手入力の説明'}, {},{joined:false,lookupAllowed:true});
+ assert.equal(h.node('input').disabled,false);assert.equal(h.node('submit').disabled,false);
+ h.node('input').value='相対性理論';h.node('form').events.submit({preventDefault(){}});await tick();
+ assert.deepEqual(calls,['相対性理論']);assert.equal(h.node('answer').textContent,'手入力の説明');assert.equal(h.instances.length,0);assert.equal(h.sent.length,0);
+ h.api.sync();assert.equal(h.node('dialog').open,true);assert.equal(h.node('count').textContent,'1語');
+ h.call.joined=true;h.api.sync();h.call.joined=false;h.api.sync();assert.equal(h.node('dialog').open,false);h.api.stop();
+});
+
 test('参加時に一度だけ自動開始し、ミュート中も受信、解除で再開、退室と再参加に追従する',()=>{
  const h=setup(undefined,{}, {joined:false});assert.equal(h.instances.length,0);
  h.call.joined=true;h.api.sync();assert.equal(h.instances.length,1);assert.equal(h.node('toggle').hidden,true);

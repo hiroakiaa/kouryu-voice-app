@@ -10,6 +10,11 @@ function setup(getAnalogy){
 }
 const value={example:'注文窓口',similarity:'決まった方法で依頼する',limit:'人ではなくプログラム'};
 
+test('参加前の手入力用語でもたとえを表示できる',async()=>{
+ const h=setup(async()=>value);h.call.joined=false;h.call.lookupAllowed=true;
+ h.node('button').events.click();await tick();assert.equal(h.node('example').textContent,value.example);h.api.clear();
+});
+
 test('報告して作り直す操作はローカルキャッシュを使わず表示中の版を送る',async()=>{
  const calls=[];const h=setup(async(_term,_genre,options)=>{calls.push(options);return {...value,revision:'r'+calls.length,source:calls.length===1?'shared':'generated'}});
  h.node('button').events.click();await tick();assert.match(h.node('status').textContent,/共有済み/);
