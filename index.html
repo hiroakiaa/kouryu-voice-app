@@ -3991,6 +3991,18 @@
     @media(max-width:480px) {
       body.is-in-call .participants-card {padding:10px 12px;}
     }
+
+    #callTips {position:fixed;inset:0;margin:auto;width:min(36rem,calc(100% - 32px));max-height:88dvh;height:auto;overflow-y:auto;transform:none;transition:none;box-sizing:border-box;}
+    #callTips:not([open]) {display:none;}
+    #callTips[open] {display:grid;opacity:1;pointer-events:auto;}
+    #callTips::backdrop {background:rgba(30,35,38,.58);}
+    .tips-modal-head {grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:2;background:var(--panel);padding:8px 0 12px;border-bottom:1px solid #cad8b9;}
+    .tips-modal-head h2 {margin:0;font-size:18px;}
+    #tipsCloseBtn {flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;border:1px solid #cad8b9;border-radius:10px;background:#fffef8;color:#30462d;font-size:14px;box-shadow:none !important;outline:none;transform:none;}
+    #tipsCloseBtn::before,#tipsCloseBtn::after {display:none;}
+    #tipsCloseBtn:focus-visible {outline:2px solid #548d3c;outline-offset:3px;}
+    #audioHealth {grid-template-columns:auto minmax(0,1fr) auto;gap:10px;}
+    #callElapsed {font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;line-height:1.4;min-width:3.5em;text-align:right;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
 </head>
@@ -4049,7 +4061,8 @@
       </section>
     </dialog>
 
-    <section id="callTips" class="card call-tips" aria-live="polite" aria-hidden="true">
+    <dialog id="callTips" class="card call-tips" aria-labelledby="callTipsTitle" aria-hidden="true">
+      <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
       <span class="tip-item"><i class="fa-solid fa-link"></i><span><strong>同じURLで参加</strong><span>URLを開いた人だけが同じ通話に入れます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>参加で開始</strong><span>表示名を入れてから参加すると相手に名前が伝わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
@@ -4061,11 +4074,12 @@
       <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>新規URL</strong><span>現在の通話を安全に終了してから、同じタブで新しい通話へ移動します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>電話帳から電話</strong><span>最初に登録URLを相手へ送り、相手が「この相手を登録する」を押します。次回からは電話帳の「電話する」だけで呼び出せます。着信側が「応答して通話を始める」を押すと、双方が自動で通話へ参加します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
-    </section>
+    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <button id="micState" class="mic-state-toggle" type="button" disabled aria-label="マイクを解除" aria-pressed="true"><i class="fa-solid fa-microphone-lines"></i><span>マイク待ち</span></button>
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
+      <span id="callElapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span>
     </section>
 
     <section class="card participants-card">
@@ -4359,7 +4373,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-03-compact-call";
+    const APP_VERSION = "2026-09-03-tips-clock";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4859,6 +4873,12 @@
         if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)hideAppInfoTooltip();
       });
       el.tipsToggle.addEventListener("click", toggleCallTips);
+      document.getElementById('tipsCloseBtn').addEventListener('click',hideCallTips);
+      el.callTips.addEventListener('cancel',function(event){event.preventDefault();hideCallTips()});
+      el.callTips.addEventListener('click',function(event){
+        if(event.target!==el.callTips)return;const box=el.callTips.getBoundingClientRect();
+        if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)hideCallTips();
+      });
       if (el.metricsToggle) el.metricsToggle.addEventListener("click", toggleMetricsModal);
       if (el.metricsClose) el.metricsClose.addEventListener("click", closeMetricsModal);
       if (el.metricsCopy) el.metricsCopy.addEventListener("click", copyMetricsOutput);
@@ -8707,7 +8727,15 @@
       }
     }
 
+    function renderCallElapsed() {
+      const clock=document.getElementById('callElapsed');if(!clock)return;
+      const seconds=joined && metrics.connectedAt ? Math.max(0,Math.floor((Date.now()-metrics.connectedAt)/1000)) : null;
+      const text=seconds===null?'接続待ち':String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+      if(clock.textContent!==text)clock.textContent=text;
+    }
+
     function updateAudioHealth(rms, isSpeaking, label) {
+      renderCallElapsed();
       if (!el.audioHealth) return;
       el.audioHealth.hidden = !joined && label !== "テスト中";
       const meterMuted = muted || (!joined && label !== "テスト中");
@@ -8795,6 +8823,7 @@
         hideAppInfoTooltip();
         closeMetricsModal();
       }
+      if(isOpen)el.callTips.showModal();else el.callTips.close();
       el.callTips.setAttribute("aria-hidden", isOpen ? "false" : "true");
       el.tipsToggle.classList.toggle("is-open", isOpen);
       el.tipsToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
@@ -8802,6 +8831,7 @@
 
     function hideCallTips() {
       if (!el.callTips || !el.tipsToggle) return;
+      if(el.callTips.open)el.callTips.close();
       el.callTips.classList.remove("is-open");
       el.callTips.setAttribute("aria-hidden", "true");
       el.tipsToggle.classList.remove("is-open");
@@ -9357,6 +9387,7 @@
       callCost.start();endedCostExtras=null;turnUsage={relayActive:false,bytes:0};
       Object.assign(metrics, createMetrics());
       metrics.startedAt = Date.now();
+      renderCallElapsed();
       lastCleanupSummary = "";
       connectionRemoteSeenIds = new Set();
       clearMetricTimers();
@@ -9459,6 +9490,7 @@
     function markConnectedOnce() {
       if (metrics.connectedAt) return;
       metrics.connectedAt = Date.now();
+      renderCallElapsed();
       recordConnectionStep("接続完了", "ここから音声はWebRTCで直接通信します。", "connected");
       setCallPhase("connected", "\u901a\u8a71\u304c\u5b89\u5b9a\u3057\u3066\u3064\u306a\u304c\u308a\u307e\u3057\u305f\u3002");
       pushDiagnostic("info", "\u63a5\u7d9a\u5b8c\u4e86", "\u3053\u3053\u304b\u3089\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u901a\u4fe1\u3057\u307e\u3059\u3002");
