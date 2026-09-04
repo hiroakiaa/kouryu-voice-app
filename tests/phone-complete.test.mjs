@@ -64,8 +64,29 @@ test('QR読み取りはBarcodeDetector非対応ブラウザでもjsQRを使う',
 test('お気に入りを保存でき、ルールは任意のbooleanだけを許可する',()=>{
  assert.match(app,/data-favorite/);
  assert.match(app,/favorite:!c\?\.favorite/);
- assert.match(rules,/\['name','number','uid','favorite'\]/);
+ assert.match(rules,/\['name','number','uid','favorite','reading'\]/);
  assert.match(rules,/favorite is bool/);
+});
+
+test('履歴の検索と電話帳追加フォームはアイコンから滑らかに開閉する',()=>{
+ for(const id of ['phoneHistoryToolsToggle','phoneHistoryTools','phoneContactAddToggle','phoneContactForm']) assert.match(html,new RegExp(`id="${id}"`));
+ assert.match(app,/const setCollapsible=/);
+ assert.match(html,/class="phone-list-tools phone-collapsible" inert aria-hidden="true"/);
+ assert.match(html,/class="phone-form-row phone-collapsible" inert aria-hidden="true"/);
+});
+
+test('履歴は人物アイコンとよく使う3件を表示し登録済みなら登録ボタンを省く',()=>{
+ assert.match(html,/id="phoneFrequent"/);
+ assert.match(app,/frequentHistoryTargets\(historyItems,contacts\)/);
+ assert.match(app,/registered=contacts\.some/);
+ assert.match(app,/fa-solid fa-user/);
+});
+
+test('電話帳はよみがな対応の行見出しで並べる',()=>{
+ assert.match(html,/id="phoneContactReading"/);
+ assert.match(app,/groupContacts\(shown\)/);
+ assert.match(app,/contact-section/);
+ assert.match(rules,/reading is string/);
 });
 
 test('公開用の追加ファイルも同一',()=>{

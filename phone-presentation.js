@@ -4,4 +4,12 @@ export function groupHistory(items=[]){const sorted=[...items].sort((a,b)=>(b.at
 
 export function preferredHistoryName(item={},contacts=[]){const contact=contacts.find(entry=>entry.number===item.number);return contact?.name||item.name||item.number||'相手';}
 
-export function filterPhoneItems(items=[],query=''){const q=String(query).normalize('NFKC').trim().toLocaleLowerCase('ja');if(!q)return items;return items.filter(item=>[item.name,item.number,item.status].some(value=>String(value||'').normalize('NFKC').toLocaleLowerCase('ja').includes(q)));}
+export function formatHistoryDate(value){const date=new Date(Number(value)||Date.now());return `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;}
+
+export function frequentHistoryTargets(items=[],contacts=[],limit=3){const byNumber=new Map();for(const item of items){if(!item?.number)continue;const current=byNumber.get(item.number)||{number:item.number,count:0,at:0,name:''};current.count++;current.at=Math.max(current.at,Number(item.at)||0);current.name=preferredHistoryName(item,contacts);byNumber.set(item.number,current);}return [...byNumber.values()].sort((a,b)=>b.count-a.count||b.at-a.at).slice(0,limit);}
+
+const kanaSections=[['あ','あいうえお'],['か','かきくけこがぎぐげご'],['さ','さしすせそざじずぜぞ'],['た','たちつてとだぢづでど'],['な','なにぬねの'],['は','はひふへほばびぶべぼぱぴぷぺぽ'],['ま','まみむめも'],['や','やゆよ'],['ら','らりるれろ'],['わ','わをん']];
+export function contactSection(contact={}){const source=String(contact.reading||contact.name||'').normalize('NFKC').trim(),first=source[0]||'';const hira=/[ァ-ヶ]/.test(first)?String.fromCharCode(first.charCodeAt(0)-0x60):first;for(let i=0;i<kanaSections.length;i++)if(kanaSections[i][1].includes(hira))return {label:kanaSections[i][0]+'行',order:i};if(/[A-Za-z]/.test(first))return {label:first.toUpperCase(),order:100+first.toUpperCase().charCodeAt(0)};if(/[0-9]/.test(first))return {label:'数字',order:200};return {label:'その他',order:201};}
+export function groupContacts(items=[]){const collator=new Intl.Collator('ja',{sensitivity:'base',numeric:true}),groups=new Map();for(const item of items){const section=contactSection(item),key=section.order+':'+section.label;if(!groups.has(key))groups.set(key,{...section,items:[]});groups.get(key).items.push(item);}return [...groups.values()].sort((a,b)=>a.order-b.order).map(group=>({...group,items:group.items.sort((a,b)=>collator.compare(a.reading||a.name||'',b.reading||b.name||''))}));}
+
+export function filterPhoneItems(items=[],query=''){const q=String(query).normalize('NFKC').trim().toLocaleLowerCase('ja');if(!q)return items;return items.filter(item=>[item.name,item.reading,item.number,item.status].some(value=>String(value||'').normalize('NFKC').toLocaleLowerCase('ja').includes(q)));}

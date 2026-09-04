@@ -11,9 +11,10 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']) && shortName(request.resource.data.name);
       match /contacts/{number} {
         allow read, delete: if request.auth != null && request.auth.uid == uid;
-        allow create, update: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['name','number','uid','favorite'])
+        allow create, update: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['name','number','uid','favorite','reading'])
           && number.matches('^[0-9]{8}$') && request.resource.data.number == number && shortName(request.resource.data.name)
           && (!('favorite' in request.resource.data) || request.resource.data.favorite is bool)
+          && (!('reading' in request.resource.data) || (request.resource.data.reading is string && request.resource.data.reading.size() <= 40))
           && get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.resource.data.uid;
       }
       match /history/{id} {
