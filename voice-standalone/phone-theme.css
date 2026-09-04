@@ -264,3 +264,13 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneSettingsPanel>h3{margin-top:32px!important;margin-bottom:12px!important}
 #phoneSettingsPanel>.account-fields{margin-top:14px}
 @media(max-width:480px){#phoneSettingsPanel>.account-help-head,#phoneSettingsPanel>.setting-subtitle-row,#phoneSettingsPanel>h3{margin-top:28px!important}}
+
+#phoneContactTools.is-visible{display:flex;padding:14px!important;margin-bottom:14px!important}
+#phoneGroupsPanel{position:relative;padding-bottom:86px!important}
+#phoneGroupsPanel .phone-add-fab{position:absolute;right:14px;bottom:14px}
+.phone-empty-state button{min-height:42px!important;padding:8px 14px!important;border-radius:14px!important}
+.history-details>p{margin:6px 0;color:#64725e;font-size:12px;overflow-wrap:anywhere}
+#phoneSettingsPanel{display:flex;flex-direction:column}
+#phoneSettingsPanel>.support-mode-picker,#phoneSettingsPanel>.account-fields,#phoneSettingsPanel>.phone-form-row,#phoneSettingsPanel>.phone-setting-check,#phoneSettingsPanel>#phoneBlocks{border:1px solid #d6e6c8!important;background:#f7fbef;box-shadow:0 2px 0 #e7efdf}
+#phoneSettingsPanel>.support-mode-picker{padding:12px!important;border-radius:16px}
+.number-head button i{font-size:18px;line-height:1}

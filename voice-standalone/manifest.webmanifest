@@ -1,12 +1,12 @@
 {
-  "name": "共通電話",
-  "short_name": "共通電話",
+  "name": "わかる電話",
+  "short_name": "わかる電話",
   "description": "URLでつながる音声通話アプリ",
   "start_url": "./?call=main-room",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#03101a",
-  "theme_color": "#03101a",
+  "background_color": "#f4ffe4",
+  "theme_color": "#f4ffe4",
   "icons": [
     {
       "src": "./app-icon.svg",

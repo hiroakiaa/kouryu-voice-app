@@ -51,6 +51,27 @@ test('設定項目のタイトル間には判別できる余白を置く',()=>{
  assert.match(css,/#phoneSettingsPanel>h3\{margin-top:32px!important;margin-bottom:12px!important\}/);
 });
 
+test('アプリ名とPWA名はわかる電話に統一する',()=>{
+ const manifest=JSON.parse(fs.readFileSync(new URL('../manifest.webmanifest',import.meta.url),'utf8'));
+ assert.match(html,/<title>わかる電話<\/title>/);
+ assert.match(html,/<h1>わかる電話<\/h1>/);
+ assert.equal(manifest.name,'わかる電話');
+ assert.equal(manifest.short_name,'わかる電話');
+});
+
+test('電話帳検索とグループ作成は必要なときだけ開く',()=>{
+ for(const id of ['phoneContactToolsToggle','phoneContactTools','phoneGroupAddToggle','phoneGroupCreateDialog','phoneGroupCreateClose'])assert.match(html,new RegExp(`id="${id}"`));
+ assert.match(app,/setCollapsible\('phoneContactToolsToggle','phoneContactTools'/);
+ assert.match(app,/const openGroupCreate=/);
+});
+
+test('空表示から次の操作へ進めて履歴詳細は折りたためる',()=>{
+ assert.match(app,/data-empty-add-contact/);
+ assert.match(app,/data-empty-add-group/);
+ assert.match(app,/data-empty-dial/);
+ assert.match(app,/<summary>詳細<\/summary>/);
+});
+
 test('発信確認は背景だけで画面を塞がず、連続操作でも二重に開かない',()=>{
  assert.match(html,/\.number-modal\.incoming-call\[open\]\s*\{[^}]*display:block/);
  assert.match(app,/if\(!dialog\.open\)dialog\.showModal\(\)/);
