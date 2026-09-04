@@ -29,6 +29,11 @@ test('通話終了通知はレイアウト外でフェード表示する',()=>{
  assert.match(html,/friendly === "通話が終了しました。" \? 2200 : 3500/);
 });
 
+test('ボタン操作でテキスト入力カーソルや文字選択を出さない',()=>{
+ assert.match(html,/button,button \*,\[role="button"\],\[role="button"\] \*,summary,summary \* \{[^}]*user-select:none[^}]*caret-color:transparent/);
+ assert.match(html,/button,\[role="button"\],summary \{cursor:pointer;touch-action:manipulation/);
+});
+
 test('QR読み取りはBarcodeDetector非対応ブラウザでもjsQRを使う',()=>{
  assert.match(html,/jsQR\.js/);
  assert.match(html,/id="phoneQrCanvas"/);

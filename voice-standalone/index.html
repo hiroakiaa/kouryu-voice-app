@@ -4012,6 +4012,8 @@
     .number-head {justify-content:space-between;}.number-head h2{margin:0;font-size:22px;}
     .number-modal button{padding:10px 14px;min-height:44px;border:1px solid #a4ce83;border-radius:12px;background:#f1fbdc;color:#30462d;box-shadow:none;outline:none;}
     .number-modal button::before,.number-modal button::after{display:none;}.number-modal button[hidden]{display:none;}
+    button,button *,[role="button"],[role="button"] *,summary,summary * {-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent;}
+    button,[role="button"],summary {cursor:pointer;touch-action:manipulation;}
     .action-confirm-message {margin:18px 0;line-height:1.7;color:#596b51;}
     .action-confirm-actions {display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     .action-confirm-actions .is-danger {background:#dc5364;color:#fff;border-color:#c43d50;}
@@ -4046,7 +4048,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-unified-confirm-modal">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-button-caret-fix">
 </head>
 <body class="phone-home">
   <main>
@@ -4397,12 +4399,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-04-unified-confirm-modal"></script>
-  <script src="./jsQR.js?v=2026-09-04-unified-confirm-modal"></script>
+  <script src="./qrcode-generator.js?v=2026-09-04-button-caret-fix"></script>
+  <script src="./jsQR.js?v=2026-09-04-button-caret-fix"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-unified-confirm-modal";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-button-caret-fix";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-unified-confirm-modal";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-button-caret-fix";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4444,7 +4446,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-04-unified-confirm-modal";
+    const APP_VERSION = "2026-09-04-button-caret-fix";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
