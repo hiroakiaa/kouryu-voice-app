@@ -124,6 +124,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,not
   $('phoneOwnToggle').onclick=()=>setOwnOpen($('phoneOwnToggle').getAttribute('aria-expanded')!=='true');
   const setCollapsible=(buttonId,panelId,open)=>{const button=$(buttonId),panel=$(panelId);button.setAttribute('aria-expanded',String(open));panel.classList.toggle('is-visible',open);panel.inert=!open;panel.setAttribute('aria-hidden',String(!open));};
   $('accountHelpToggle').onclick=()=>setCollapsible('accountHelpToggle','accountHelpPanel',$('accountHelpToggle').getAttribute('aria-expanded')!=='true');
+  $('defaultModeHelpToggle').onclick=()=>setCollapsible('defaultModeHelpToggle','defaultModeHelpPanel',$('defaultModeHelpToggle').getAttribute('aria-expanded')!=='true');
   for(const input of [$('phoneEmail'),$('phonePassword')])input.addEventListener('input',syncAccountActions);syncAccountActions();
   $('phoneHistoryToolsToggle').onclick=()=>setCollapsible('phoneHistoryToolsToggle','phoneHistoryTools',$('phoneHistoryToolsToggle').getAttribute('aria-expanded')!=='true');
   $('phoneContactAddToggle').onclick=openContactForm;

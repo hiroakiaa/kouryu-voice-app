@@ -13,6 +13,13 @@ test('通知・発信確認を設定画面から利用し、廃止した費用�
  assert.doesNotMatch(app,/kouryu-monthly-budget-yen-v1|kouryu-cost-budget-yen-v1/);
 });
 
+test('説明を普段は隠し必要なときだけ開ける',()=>{
+ assert.match(html,/id="defaultModeHelpToggle"/);
+ assert.match(html,/id="defaultModeHelpPanel" class="setting-help-panel phone-collapsible" inert aria-hidden="true"/);
+ assert.match(app,/setCollapsible\('defaultModeHelpToggle','defaultModeHelpPanel'/);
+ assert.doesNotMatch(html,/最後に選んだ種類も次回の初期選択になります/);
+});
+
 test('発信確認は背景だけで画面を塞がず、連続操作でも二重に開かない',()=>{
  assert.match(html,/\.number-modal\.incoming-call\[open\]\s*\{[^}]*display:block/);
  assert.match(app,/if\(!dialog\.open\)dialog\.showModal\(\)/);
