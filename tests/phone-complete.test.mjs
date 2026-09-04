@@ -29,6 +29,15 @@ test('通話終了通知はレイアウト外でフェード表示する',()=>{
  assert.match(html,/friendly === "通話が終了しました。" \? 2200 : 3500/);
 });
 
+test('電話画面のメッセージは配置を動かさず4秒後に消える',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/messageTimer=setTimeout/);
+ assert.match(app,/classList\.remove\('is-visible'\)/);
+ assert.match(app,/\},4000\)/);
+ assert.match(css,/#phoneMessage\{position:absolute/);
+ assert.match(css,/#phoneMessage\.is-visible/);
+});
+
 test('ボタン操作でテキスト入力カーソルや文字選択を出さない',()=>{
  assert.match(html,/button,button \*,\[role="button"\],\[role="button"\] \*,summary,summary \* \{[^}]*user-select:none[^}]*caret-color:transparent/);
  assert.match(html,/button,\[role="button"\],summary \{cursor:pointer;touch-action:manipulation/);

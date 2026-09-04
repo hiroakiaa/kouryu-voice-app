@@ -60,7 +60,7 @@ body.phone-home main>header{flex:0 0 auto;}
 body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:hidden;}
 .phone-tabs{flex:0 0 auto;}
 .phone-home-card [role="tabpanel"]{flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain;}
-#phoneMessage{flex:0 0 auto;max-height:3.5em;overflow-y:auto;margin:6px 0;font-size:13px;}
+#phoneMessage{position:absolute;z-index:8;top:104px;left:50%;width:max-content;max-width:calc(100% - 32px);max-height:3.5em;overflow:hidden;margin:0;font-size:13px;pointer-events:none;opacity:0;transform:translate(-50%,-5px);transition:opacity .22s ease,transform .22s ease;box-shadow:0 5px 18px rgba(50,85,36,.14)}#phoneMessage.is-visible{opacity:1;transform:translate(-50%,0)}
 #phoneDialPanel{display:flex;flex-direction:column;gap:8px;}
 .phone-own{flex:0 0 auto;margin:0;gap:3px;}
 .phone-own-actions{margin:0;}

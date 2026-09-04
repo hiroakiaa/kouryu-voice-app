@@ -9,7 +9,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,not
  const $=id=>document.getElementById(id),uid=user.uid,auth=getAuth(db.app),params=new URLSearchParams(location.search);
  const ref=(c,id)=>doc(db,c,id),profile=ref('numberProfiles',uid),busyRef=id=>ref('phoneBusy',id),requestRef=id=>ref('numberInvitations',id);
  let own='',contacts=[],historyItems=[],groups=[],incoming=null,outgoing=false,outgoingTargetUid='',outgoingPushId='',outgoingNumber='',outgoingName='',outgoingMode='support',ringOff=null,ringTimer=null,incomingTimer=null,busy=false,currentRoom=null,selectedGroup=null,usage={reads:0,writes:0};
- let ringAudio=null,ringAudioTimer=null,costWarned=false;
+ let ringAudio=null,ringAudioTimer=null,costWarned=false,messageTimer=null,messageClearTimer=null;
  let confirmationResolve=null;
  const queue=new Set();let roomOff=null,groupPeopleOff=null,groupDetailOff=null,groupInvites=[],activeHistory=null;
  try{usage=JSON.parse(sessionStorage.getItem('number-call-setup:'+state().callId)||'null')||usage;sessionStorage.removeItem('number-call-setup:'+state().callId);}catch(_){}
@@ -20,7 +20,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,not
  async function remove(r){await deleteDoc(r);count(0,1);}
  function watch(r,fn){return onSnapshot(r,s=>{if(!s.metadata.fromCache)count(s.docChanges?Math.max(1,s.docChanges().length):1);fn(s);},e=>msg('接続を確認して、再読み込みしてください。'));}
  async function tx(fn){let writes=0;const value=await runTransaction(db,async t=>{writes=0;return fn({get:async r=>{const s=await t.get(r);count(1);return s;},set:(...a)=>{writes++;t.set(...a);},update:(...a)=>{writes++;t.update(...a);},delete:(...a)=>{writes++;t.delete(...a);}});});count(0,writes);return value;}
- function msg(t){$('phoneMessage').textContent=t;notice(t);}
+ function msg(t){const box=$('phoneMessage');clearTimeout(messageTimer);clearTimeout(messageClearTimer);box.textContent=t;box.classList.add('is-visible');messageTimer=setTimeout(()=>{box.classList.remove('is-visible');messageClearTimer=setTimeout(()=>{if(!box.classList.contains('is-visible'))box.textContent='';},260);},4000);notice(t);}
  function closeConfirmation(answer=false){const dialog=$('phoneConfirmDialog');if(dialog.open)dialog.close();const resolve=confirmationResolve;confirmationResolve=null;if(resolve)resolve(answer);}
  function askConfirmation(message,{title='確認',confirmLabel='続ける',danger=false}={}){closeConfirmation(false);$('phoneConfirmTitle').textContent=title;$('phoneConfirmMessage').textContent=message;$('phoneConfirmOk').textContent=confirmLabel;$('phoneConfirmOk').classList.toggle('is-danger',danger);const dialog=$('phoneConfirmDialog');dialog.showModal();return new Promise(resolve=>{confirmationResolve=resolve;});}
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
