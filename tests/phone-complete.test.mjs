@@ -105,6 +105,11 @@ test('電話帳追加ボタンはphoneHome内の右下固定で、よく使う�
  assert.match(css,/\.frequent-card>i\{font-size:52px\}/);
 });
 
+test('グループ画面に不要な説明文を表示しない',()=>{
+ assert.doesNotMatch(html,/同じテーマで話す、最大4人の場所です/);
+ assert.doesNotMatch(app,/同じテーマで話すグループを作れます/);
+});
+
 test('公開用の追加ファイルも同一',()=>{
  for(const name of ['index.html','phone-app.js','phone-theme.css','jsQR.js','jsQR.LICENSE']) assert.equal(fs.readFileSync(new URL('../'+name,import.meta.url),'utf8'),fs.readFileSync(new URL('../voice-standalone/'+name,import.meta.url),'utf8'),name);
 });
