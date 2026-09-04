@@ -259,3 +259,8 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 
 #phoneSettingsPanel h2,#phoneSettingsPanel h3{margin-top:0;font-size:20px!important;line-height:1.35;font-weight:700;letter-spacing:0}
 #phoneSettingsPanel>h3,.setting-subtitle-row h3{margin-bottom:0}
+
+#phoneSettingsPanel>.account-help-head,#phoneSettingsPanel>.setting-subtitle-row{margin-top:32px}
+#phoneSettingsPanel>h3{margin-top:32px!important;margin-bottom:12px!important}
+#phoneSettingsPanel>.account-fields{margin-top:14px}
+@media(max-width:480px){#phoneSettingsPanel>.account-help-head,#phoneSettingsPanel>.setting-subtitle-row,#phoneSettingsPanel>h3{margin-top:28px!important}}

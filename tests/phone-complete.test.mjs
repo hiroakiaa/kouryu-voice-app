@@ -45,6 +45,12 @@ test('設定内のタイトルは同じフォントサイズで表示する',()=
  assert.match(css,/#phoneSettingsPanel h2,#phoneSettingsPanel h3\{[^}]*font-size:20px!important[^}]*line-height:1\.35/);
 });
 
+test('設定項目のタイトル間には判別できる余白を置く',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/#phoneSettingsPanel>\.account-help-head,#phoneSettingsPanel>\.setting-subtitle-row\{margin-top:32px\}/);
+ assert.match(css,/#phoneSettingsPanel>h3\{margin-top:32px!important;margin-bottom:12px!important\}/);
+});
+
 test('発信確認は背景だけで画面を塞がず、連続操作でも二重に開かない',()=>{
  assert.match(html,/\.number-modal\.incoming-call\[open\]\s*\{[^}]*display:block/);
  assert.match(app,/if\(!dialog\.open\)dialog\.showModal\(\)/);
