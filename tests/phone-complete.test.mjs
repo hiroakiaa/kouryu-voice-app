@@ -65,6 +65,15 @@ test('電話帳検索とグループ作成は必要なときだけ開く',()=>{
  assert.match(app,/const openGroupCreate=/);
 });
 
+test('グループ作成後にモーダルを連続表示せず一覧の操作状態へ戻す',()=>{
+ const create=app.match(/async function createGroup\(\)\{([\s\S]*?)\n function renderInvites/)[1];
+ assert.match(create,/close\(\);tab\('groups'\);/);
+ assert.match(create,/msg\('グループを作成しました。一覧のカードから開けます。'\)/);
+ assert.doesNotMatch(create,/await openGroup/);
+ assert.match(app,/phoneContactAddToggle'\)\.focus\?\.\(\)/);
+ assert.match(app,/phoneGroupAddToggle'\)\.focus\?\.\(\)/);
+});
+
 test('空表示から次の操作へ進めて履歴詳細は折りたためる',()=>{
  assert.match(app,/data-empty-add-contact/);
  assert.match(app,/data-empty-add-group/);
