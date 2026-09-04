@@ -60,7 +60,7 @@ test('履歴は最新の電話帳名、番号、個別の詳細を表示する',
  assert.match(app,/preferredHistoryName\(h,contacts\)/);
  assert.match(app,/history-details/);
  assert.match(app,/h\.entries\.map/);
- assert.match(html,/保存した番号・電話帳・履歴・グループが同じアカウントの端末に同期/);
+ assert.match(html,/番号・電話帳・履歴・グループが引き継がれます/);
 });
 
 test('QR読み取りはBarcodeDetector非対応ブラウザでもjsQRを使う',()=>{
@@ -137,6 +137,16 @@ test('前回の通話種類を保存し、履歴と再発信で同じ種類を�
  assert.match(app,/data-dial-mode/);
  assert.match(app,/dial\(d\.dial,d\.dialName,d\.dialMode\|\|null\)/);
  assert.match(app,/dialog\.dataset\.mode=mode\(supportMode\)/);
+});
+
+test('番号引き継ぎの説明を開閉し、両方の入力後だけ操作を表示する',()=>{
+ assert.match(html,/id="accountHelpToggle"/);
+ assert.match(html,/id="accountHelpPanel" class="account-help-panel phone-collapsible" inert aria-hidden="true"/);
+ assert.match(html,/id="accountActions" class="phone-form-row" hidden/);
+ assert.match(html,/この端末の番号を保存する/);
+ assert.match(html,/別の端末で使う/);
+ assert.match(app,/phoneEmail'\)\.value\.length>0&&\$\('phonePassword'\)\.value\.length>0/);
+ assert.match(app,/accountHelpToggle'\)\.onclick/);
 });
 
 test('通話中のグループ種類変更を止め、古いURLの異なる種類を拒否する',()=>{

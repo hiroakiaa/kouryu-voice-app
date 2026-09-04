@@ -21,6 +21,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,not
  function watch(r,fn){return onSnapshot(r,s=>{if(!s.metadata.fromCache)count(s.docChanges?Math.max(1,s.docChanges().length):1);fn(s);},e=>msg('接続を確認して、再読み込みしてください。'));}
  async function tx(fn){let writes=0;const value=await runTransaction(db,async t=>{writes=0;return fn({get:async r=>{const s=await t.get(r);count(1);return s;},set:(...a)=>{writes++;t.set(...a);},update:(...a)=>{writes++;t.update(...a);},delete:(...a)=>{writes++;t.delete(...a);}});});count(0,writes);return value;}
  function msg(t){const box=$('phoneMessage');clearTimeout(messageTimer);clearTimeout(messageClearTimer);box.textContent=t;box.classList.add('is-visible');messageTimer=setTimeout(()=>{box.classList.remove('is-visible');messageClearTimer=setTimeout(()=>{if(!box.classList.contains('is-visible'))box.textContent='';},260);},4000);notice(t);}
+ function syncAccountActions(){const actions=$('accountActions'),ready=$('phoneEmail').value.length>0&&$('phonePassword').value.length>0;actions.hidden=!ready;}
  function closeConfirmation(answer=false){const dialog=$('phoneConfirmDialog');if(dialog.open)dialog.close();const resolve=confirmationResolve;confirmationResolve=null;if(resolve)resolve(answer);}
  function askConfirmation(message,{title='確認',confirmLabel='続ける',danger=false}={}){closeConfirmation(false);$('phoneConfirmTitle').textContent=title;$('phoneConfirmMessage').textContent=message;$('phoneConfirmOk').textContent=confirmLabel;$('phoneConfirmOk').classList.toggle('is-danger',danger);const dialog=$('phoneConfirmDialog');dialog.showModal();return new Promise(resolve=>{confirmationResolve=resolve;});}
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -126,6 +127,8 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,not
   const setOwnOpen=open=>{$('phoneOwnToggle').setAttribute('aria-expanded',String(open));$('phoneOwnDetails').classList.toggle('is-visible',open);$('phoneOwnDetails').inert=!open;$('phoneOwnDetails').setAttribute('aria-hidden',String(!open));};
   $('phoneOwnToggle').onclick=()=>setOwnOpen($('phoneOwnToggle').getAttribute('aria-expanded')!=='true');
   const setCollapsible=(buttonId,panelId,open)=>{const button=$(buttonId),panel=$(panelId);button.setAttribute('aria-expanded',String(open));panel.classList.toggle('is-visible',open);panel.inert=!open;panel.setAttribute('aria-hidden',String(!open));};
+  $('accountHelpToggle').onclick=()=>setCollapsible('accountHelpToggle','accountHelpPanel',$('accountHelpToggle').getAttribute('aria-expanded')!=='true');
+  for(const input of [$('phoneEmail'),$('phonePassword')])input.addEventListener('input',syncAccountActions);syncAccountActions();
   $('phoneHistoryToolsToggle').onclick=()=>setCollapsible('phoneHistoryToolsToggle','phoneHistoryTools',$('phoneHistoryToolsToggle').getAttribute('aria-expanded')!=='true');
   $('phoneContactAddToggle').onclick=openContactForm;
   $('phoneDialPanel').addEventListener('keydown',e=>{if(e.key==='Escape'){setOwnOpen(false);$('phoneOwnToggle').focus();}});
