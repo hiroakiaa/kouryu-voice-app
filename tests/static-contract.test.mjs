@@ -8,6 +8,7 @@ const firestoreRules = await readFile(new URL("../firestore.rules", import.meta.
 const turnWorker = await readFile(new URL("../cloudflare-turn-worker/src/index.js", import.meta.url), "utf8");
 const serviceWorker = await readFile(new URL("../service-worker.js", import.meta.url), "utf8");
 const phoneApp = await readFile(new URL("../phone-app.js", import.meta.url), "utf8");
+const termAssist = await readFile(new URL("../term-assist.js", import.meta.url), "utf8");
 
 test("アプリのJavaScript構文が有効", () => {
   const scripts = [...rootHtml.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)];
@@ -127,6 +128,13 @@ test("callTipsで利用者への請求がないことと通常の通信量を案
   assert.match(rootHtml, /通常のデータ通信量は使用します/);
   assert.match(rootHtml, /理解サポートあり/);
   assert.match(rootHtml, /音声認識・用語検出・説明・たとえのAI処理は行いません/);
+});
+
+test("用語の手入力は参加後に検索アイコンから開く", () => {
+  assert.match(rootHtml, /data-term-search-toggle hidden disabled/);
+  assert.match(termAssist, /searchOpen=false/);
+  assert.match(termAssist, /searchToggle\.addEventListener\('click'/);
+  assert.match(termAssist, /form\.hidden=!call\.joined\|\|!searchOpen/);
 });
 
 test("料金推移グラフに軸名と数値目盛りがある", () => {

@@ -20,10 +20,10 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   const node = name => root.querySelector('[data-term-' + name + ']');
   const toggle=node('toggle'), status=node('status'), list=node('list'), count=node('count');
   const dialog=node('dialog'), title=node('title'), answer=node('answer'), close=node('close'), retry=node('retry');
-  const form=node('form'), input=node('input'), submit=node('submit');
+  const form=node('form'), input=node('input'), submit=node('submit'), searchToggle=node('search-toggle');
   const entries=new Map(), cache=new Map();
   let enabled=false, speech=null, generation=0, failed=false, selected=null, request=null, requestId=0, timeout=null, expiry=null;
-  let sequence=0,lastJoined=null;
+  let sequence=0,lastJoined=null,searchOpen=false;
   const canLookup=()=>getCall().joined;
   const instance=Math.random().toString(36).slice(2,10);
   const offText='';
@@ -97,9 +97,9 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     finally{if(id===requestId){clearTimeout(timeout);request=null}}
   }
   function clear() {closeDialog();analogies.clear();entries.clear();for(const entry of cache.values())clearTimeout(entry.timer);cache.clear();sent.clear();render()}
-  function stop() {enabled=false;failed=false;stopSpeech();clear();toggle.textContent='検出を再開';toggle.hidden=true;status.textContent=offText}
+  function stop() {enabled=false;failed=false;searchOpen=false;searchToggle.setAttribute('aria-expanded','false');stopSpeech();clear();toggle.textContent='検出を再開';toggle.hidden=true;status.textContent=offText}
   function sync() {
-    const call=getCall();toggle.disabled=!call.joined;form.hidden=!call.joined;input.disabled=submit.disabled=!call.joined;
+    const call=getCall();toggle.disabled=!call.joined;searchToggle.disabled=!call.joined;searchToggle.hidden=!call.joined;form.hidden=!call.joined||!searchOpen;input.disabled=submit.disabled=!call.joined;
     if(!call.joined){if(lastJoined!==false)stop();lastJoined=false;return}
     lastJoined=true;
     enabled=true;toggle.hidden=!failed;
@@ -122,6 +122,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     if(!getCall().joined||!failed)return;
     failed=false;toggle.hidden=true;sync();
   });
+  searchToggle.addEventListener('click',()=>{searchOpen=!searchOpen;searchToggle.setAttribute('aria-expanded',String(searchOpen));form.hidden=!searchOpen;if(searchOpen)input.focus?.()});
   form.addEventListener('submit',event=>{
     event.preventDefault();if(!canLookup())return;
     const term=input.value.trim().normalize('NFKC');
@@ -131,6 +132,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   input.addEventListener('input',()=>input.setCustomValidity?.(''));
   close.addEventListener('click',()=>{closeDialog();list.focus?.()});
   dialog.addEventListener('cancel',event=>{event.preventDefault();closeDialog();list.focus?.()});
+  dialog.addEventListener('click',event=>{if(event.target===dialog)closeDialog()});
   retry.addEventListener('click',()=>{if(selected)void explain(selected)});
   sync();render();
   return {sync,stop,removePeer(){},receive(speaker,packet){

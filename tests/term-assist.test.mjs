@@ -28,7 +28,8 @@ test('手入力は参加前に非表示で要求を送らず、参加中だけ�
  assert.equal(h.node('form').hidden,true);assert.equal(h.node('input').disabled,true);assert.equal(h.node('submit').disabled,true);
  h.node('input').value='相対性理論';h.node('form').events.submit({preventDefault(){}});await tick();
  assert.deepEqual(calls,[]);assert.equal(h.instances.length,0);
- h.call.joined=true;h.api.sync();assert.equal(h.node('form').hidden,false);assert.equal(h.node('input').disabled,false);
+ h.call.joined=true;h.api.sync();assert.equal(h.node('search-toggle').hidden,false);assert.equal(h.node('form').hidden,true);assert.equal(h.node('input').disabled,false);
+ h.node('search-toggle').click();assert.equal(h.node('form').hidden,false);assert.equal(h.node('search-toggle')['aria-expanded'],'true');
  h.node('form').events.submit({preventDefault(){}});await tick();assert.deepEqual(calls,['相対性理論']);assert.equal(h.node('answer').textContent,'手入力の説明');
  h.call.muted=true;h.api.sync();assert.equal(h.node('form').hidden,false);
  h.call.joined=false;h.api.sync();assert.equal(h.node('dialog').open,false);assert.equal(h.node('form').hidden,true);h.api.stop();

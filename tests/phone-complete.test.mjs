@@ -20,6 +20,14 @@ test('説明を普段は隠し必要なときだけ開ける',()=>{
  assert.doesNotMatch(html,/最後に選んだ種類も次回の初期選択になります/);
 });
 
+test('通知説明と空表示を共通デザインで扱う',()=>{
+ assert.match(html,/id="notificationHelpToggle"/);
+ assert.match(app,/setCollapsible\('notificationHelpToggle','notificationHelpPanel'/);
+ assert.match(app,/function emptyState/);
+ assert.match(app,/電話帳はまだ空です/);
+ assert.match(app,/グループはまだありません/);
+});
+
 test('発信確認は背景だけで画面を塞がず、連続操作でも二重に開かない',()=>{
  assert.match(html,/\.number-modal\.incoming-call\[open\]\s*\{[^}]*display:block/);
  assert.match(app,/if\(!dialog\.open\)dialog\.showModal\(\)/);
