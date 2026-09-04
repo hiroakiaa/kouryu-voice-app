@@ -163,7 +163,7 @@ test('履歴は人物アイコンとよく使う3件を表示し登録済みな�
  assert.match(html,/id="phoneFrequent"/);
  assert.match(app,/frequentHistoryTargets\(historyItems,contacts\)/);
  assert.match(app,/registered=contacts\.some/);
- assert.match(app,/fa-solid fa-user/);
+ assert.match(app,/fa-solid fa-circle-user/);
 });
 
 test('電話帳はよみがな対応の行見出しで並べる',()=>{
@@ -202,6 +202,19 @@ test('グループ詳細は状態・通話・メンバー・管理操作を分�
  assert.match(html,/class="group-danger-actions"/);
  assert.match(css,/\.group-detail-dialog\{width:min\(570px/);
  assert.match(css,/@media\(max-width:480px\)\{\.group-detail-dialog/);
+});
+
+test('グループは招待状態・参加状況・履歴からの再参加を扱う',()=>{
+ assert.match(html,/id="groupPendingInvites"/);
+ assert.match(html,/id="groupManageToggle"/);
+ assert.match(app,/groupOutgoingInvites/);
+ assert.match(app,/data-cancel-group-invite/);
+ assert.match(app,/この相手には招待済みです/);
+ assert.match(app,/activeGroupMembers=new Set/);
+ assert.match(app,/data-join-group/);
+ assert.match(app,/callType:'group'/);
+ assert.match(rules,/request\.resource\.data\.status == 'cancelled'/);
+ assert.match(rules,/'groupId','callType','participantCount'/);
 });
 
 test('発信前に理解サポートありと通話だけを選び、着信・履歴・グループへ引き継ぐ',()=>{

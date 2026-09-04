@@ -20,13 +20,16 @@ service cloud.firestore {
       match /history/{id} {
         allow read, delete: if request.auth != null && request.auth.uid == uid;
         allow create, update: if request.auth != null && request.auth.uid == uid
-           && request.resource.data.keys().hasOnly(['number','name','status','direction','at','startedAt','endedAt','durationSeconds','supportMode']) && shortName(request.resource.data.name)
+           && request.resource.data.keys().hasOnly(['number','name','status','direction','at','startedAt','endedAt','durationSeconds','supportMode','groupId','callType','participantCount']) && shortName(request.resource.data.name)
           && request.resource.data.number is string && request.resource.data.number.size() <= 8
           && request.resource.data.status in ['ringing','accepted','declined','cancelled','busy','missed']
           && request.resource.data.direction in ['incoming','outgoing'] && request.resource.data.at is number
           && (!('startedAt' in request.resource.data) || request.resource.data.startedAt is number)
            && (!('endedAt' in request.resource.data) || request.resource.data.endedAt is number)
-           && (!('supportMode' in request.resource.data) || request.resource.data.supportMode in ['support','plain'])
+          && (!('supportMode' in request.resource.data) || request.resource.data.supportMode in ['support','plain'])
+          && (!('groupId' in request.resource.data) || (request.resource.data.groupId is string && request.resource.data.groupId.matches('^g_[a-f0-9]{32}$')))
+          && (!('callType' in request.resource.data) || request.resource.data.callType == 'group')
+          && (!('participantCount' in request.resource.data) || (request.resource.data.participantCount is number && request.resource.data.participantCount >= 1 && request.resource.data.participantCount <= 4))
           && (!('durationSeconds' in request.resource.data) || (request.resource.data.durationSeconds is number && request.resource.data.durationSeconds >= 0 && request.resource.data.durationSeconds <= 86400));
       }
     }
@@ -153,9 +156,18 @@ service cloud.firestore {
     }
     match /phoneGroupInvites/{id} {
       allow read: if request.auth != null && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
-      allow create, update: if request.auth != null && request.resource.data.keys().hasOnly(['groupId','to','from','name','status'])
+      allow create, update: if request.auth != null && request.resource.data.keys().hasOnly(['groupId','to','from','fromName','name','memberCount','supportMode','status','createdAt','expiresAt'])
         && groupMember(request.resource.data.groupId) && request.resource.data.from == request.auth.uid
-        && id == request.resource.data.groupId + '_' + request.resource.data.to && shortName(request.resource.data.name) && request.resource.data.status == 'invited';
+        && id == request.resource.data.groupId + '_' + request.resource.data.to && shortName(request.resource.data.name)
+        && (!('fromName' in request.resource.data) || shortName(request.resource.data.fromName))
+        && (!('memberCount' in request.resource.data) || (request.resource.data.memberCount is number && request.resource.data.memberCount >= 1 && request.resource.data.memberCount <= 4))
+        && (!('supportMode' in request.resource.data) || request.resource.data.supportMode in ['support','plain'])
+        && (!('createdAt' in request.resource.data) || request.resource.data.createdAt is number)
+        && (!('expiresAt' in request.resource.data) || request.resource.data.expiresAt is number)
+        && request.resource.data.status == 'invited';
+      allow update: if request.auth != null && resource.data.from == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && resource.data.status == 'invited' && request.resource.data.status == 'cancelled';
       allow update: if request.auth != null && resource.data.to == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
         && resource.data.status == 'invited' && request.resource.data.status in ['accepted','declined'];
