@@ -3986,7 +3986,9 @@
       position:relative;inset:auto;flex:0 0 3rem;width:3rem;height:3rem;
     }
     body.is-in-call .participants .participant.is-self {margin-left:auto;}
-    body.is-in-call .participants-card .notice:empty {display:none;}
+    .participants-card {position:relative;}
+    .participants-card .notice {display:block;position:absolute;z-index:6;left:50%;bottom:10px;width:max-content;max-width:calc(100% - 24px);min-height:0;max-height:none;box-sizing:border-box;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,254,248,.96);box-shadow:0 6px 20px rgba(52,69,47,.14);opacity:0;transform:translate(-50%,8px);transition:opacity .22s ease,transform .22s ease;pointer-events:none;white-space:normal;}
+    .participants-card .notice.is-visible {opacity:1;transform:translate(-50%,0);}
     #audioHealth {grid-template-columns:auto minmax(0,1fr);min-height:54px;padding:4px 12px;gap:12px;}
     @media(max-width:480px) {
       body.is-in-call .participants-card {padding:10px 12px;}
@@ -4010,6 +4012,9 @@
     .number-head {justify-content:space-between;}.number-head h2{margin:0;font-size:22px;}
     .number-modal button{padding:10px 14px;min-height:44px;border:1px solid #a4ce83;border-radius:12px;background:#f1fbdc;color:#30462d;box-shadow:none;outline:none;}
     .number-modal button::before,.number-modal button::after{display:none;}.number-modal button[hidden]{display:none;}
+    .action-confirm-message {margin:18px 0;line-height:1.7;color:#596b51;}
+    .action-confirm-actions {display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .action-confirm-actions .is-danger {background:#dc5364;color:#fff;border-color:#c43d50;}
     .number-modal input {min-width:0;flex:1;width:160px;font-size:20px;padding:10px;border:1px solid #a4ce83;border-radius:12px;background:white;color:#30462d;}
     .number-own strong{font-size:28px;letter-spacing:2px;font-variant-numeric:tabular-nums;}.number-note{font-size:13px;line-height:1.6;color:#596b51;}.number-dial{margin-top:8px;}
     #numberAccept{background:#ccefaa;} .number-modal :focus-visible{outline:2px solid #548d3c;outline-offset:3px;}
@@ -4041,7 +4046,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-instant-ring-state">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-unified-confirm-modal">
 </head>
 <body class="phone-home">
   <main>
@@ -4080,6 +4085,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
 
     <dialog id="phoneDialConfirm" class="number-modal incoming-call" aria-labelledby="phoneDialConfirmTitle"><div class="number-head"><h2 id="phoneDialConfirmTitle">この相手に電話しますか？</h2><button id="phoneDialConfirmClose" aria-label="閉じる">×</button></div><strong id="phoneDialConfirmName"></strong><span id="phoneDialConfirmNumber"></span><div class="incoming-actions"><button id="phoneDialConfirmCancel" type="button"><i class="fa-solid fa-xmark"></i>やめる</button><button id="phoneDialConfirmCall" type="button"><i class="fa-solid fa-phone"></i>電話する</button></div></dialog><dialog id="phoneQrScanDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrScanTitle"><div class="number-head"><h2 id="phoneQrScanTitle">QRコードを読み取る</h2><button id="phoneQrScanClose" aria-label="閉じる">×</button></div><video id="phoneQrVideo" playsinline muted></video><canvas id="phoneQrCanvas" hidden></canvas><p id="phoneQrScanStatus">カメラをQRコードへ向けてください。</p></dialog>
+    <dialog id="phoneConfirmDialog" class="number-modal action-confirm" aria-labelledby="phoneConfirmTitle"><div class="number-head"><h2 id="phoneConfirmTitle">確認</h2><button id="phoneConfirmClose" type="button" aria-label="閉じる">×</button></div><p id="phoneConfirmMessage" class="action-confirm-message"></p><div class="action-confirm-actions"><button id="phoneConfirmCancel" type="button">やめる</button><button id="phoneConfirmOk" type="button">続ける</button></div></dialog>
     <dialog id="phoneQrDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrTitle"><div class="number-head"><h2 id="phoneQrTitle">番号を交換</h2><button id="phoneQrClose" aria-label="閉じる">×</button></div><p>相手のカメラで読み取ると、電話帳の登録画面が開きます。</p><div id="phoneQrImage" class="phone-qr-image"></div><strong id="phoneQrNumber"></strong></dialog>
     <dialog id="appInfoTooltip" class="app-info-tooltip metrics-modal-card" aria-labelledby="appInfoTitle" aria-hidden="true">
       <div class="modal-head">
@@ -4391,12 +4397,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-04-instant-ring-state"></script>
-  <script src="./jsQR.js?v=2026-09-04-instant-ring-state"></script>
+  <script src="./qrcode-generator.js?v=2026-09-04-unified-confirm-modal"></script>
+  <script src="./jsQR.js?v=2026-09-04-unified-confirm-modal"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-instant-ring-state";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-unified-confirm-modal";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-instant-ring-state";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-unified-confirm-modal";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4438,7 +4444,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-04-instant-ring-state";
+    const APP_VERSION = "2026-09-04-unified-confirm-modal";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -10345,14 +10351,18 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function setNotice(text, important) {
       const friendly = getFriendlyNotice(text);
+      window.clearTimeout(el.notice.hideTimer);
+      window.clearTimeout(el.notice.clearTimer);
       el.notice.textContent = friendly || "";
       el.notice.classList.toggle("is-important", !!important && !!friendly);
+      el.notice.classList.toggle("is-visible", !!friendly);
       if (!friendly) return;
-      window.clearTimeout(el.notice.hideTimer);
+      const visibleMs = friendly === "通話が終了しました。" ? 2200 : 3500;
       el.notice.hideTimer = window.setTimeout(function() {
-        el.notice.textContent = "";
+        el.notice.classList.remove("is-visible");
         el.notice.classList.remove("is-important");
-      }, 3500);
+        el.notice.clearTimer = window.setTimeout(function() { el.notice.textContent = ""; }, 240);
+      }, visibleMs);
     }
 
     function getStoredTurnBytesForDate(dateKey) {

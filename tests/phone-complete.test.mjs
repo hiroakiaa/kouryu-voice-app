@@ -17,6 +17,18 @@ test('発信確認は背景だけで画面を塞がず、連続操作でも二�
  assert.match(app,/if\(!dialog\.open\)dialog\.showModal\(\)/);
 });
 
+test('削除などの確認は統一モーダルを使いブラウザ標準confirmを使わない',()=>{
+ for(const id of ['phoneConfirmDialog','phoneConfirmTitle','phoneConfirmMessage','phoneConfirmCancel','phoneConfirmOk']) assert.match(html,new RegExp(`id="${id}"`));
+ assert.match(app,/function askConfirmation/);
+ assert.doesNotMatch(app,/\bconfirm\s*\(/);
+});
+
+test('通話終了通知はレイアウト外でフェード表示する',()=>{
+ assert.match(html,/\.participants-card \.notice \{[^}]*position:absolute/);
+ assert.match(html,/\.notice\.is-visible/);
+ assert.match(html,/friendly === "通話が終了しました。" \? 2200 : 3500/);
+});
+
 test('QR読み取りはBarcodeDetector非対応ブラウザでもjsQRを使う',()=>{
  assert.match(html,/jsQR\.js/);
  assert.match(html,/id="phoneQrCanvas"/);
