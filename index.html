@@ -4041,7 +4041,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-call-dialog-fix">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-early-audio-fix">
 </head>
 <body class="phone-home">
   <main>
@@ -4391,12 +4391,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-04-call-dialog-fix"></script>
-  <script src="./jsQR.js?v=2026-09-04-call-dialog-fix"></script>
+  <script src="./qrcode-generator.js?v=2026-09-04-early-audio-fix"></script>
+  <script src="./jsQR.js?v=2026-09-04-early-audio-fix"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-call-dialog-fix";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-early-audio-fix";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-call-dialog-fix";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-early-audio-fix";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4438,7 +4438,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-04-call-dialog-fix";
+    const APP_VERSION = "2026-09-04-early-audio-fix";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -5461,7 +5461,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         recordConnectionStep("マイク確認OK", "音声トラックを取得しました。", "mic-done");
         setJoinBusy(false);
         tuneLocalAudioTrack(rawLocalStream);
-        localStream = createCleanAudioStream(rawLocalStream);
+        // WebKit can start a newly-created AudioContext late after navigation. Sending
+        // the captured track directly prevents the first words from being lost on iPhone.
+        localStream = isIosDevice() ? rawLocalStream : createCleanAudioStream(rawLocalStream);
         applyMuteState(false);
         startSpeakingMonitor();
         showEarphoneReminderOnce();
@@ -5964,6 +5966,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         state.audio.srcObject = event.streams[0];
         setRemoteAudioVolume(state.audio);
         state.audio.play().catch(function() {});
+        markConnectedOnce();
         clearAutoReconnectTimer(state);
         autoReconnectAttempts.delete(remoteId);
         clearConnectionStuckTimer();
@@ -6003,12 +6006,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       peer.onconnectionstatechange = function() {
         if (isPeerConnected(peer)) {
           recordConnectionStep("Peer接続完了", "端末同士の直接接続が成立しました。", "peer-connected:" + remoteId + ":" + remoteSessionId);
-          markConnectedOnce();
           clearReconnectTimer(state);
           clearAutoReconnectTimer(state);
           autoReconnectAttempts.delete(remoteId);
           clearConnectionStuckTimer();
-          setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
+          setCallPhase("connecting", "\u97f3\u58f0\u30c8\u30e9\u30c3\u30af\u306e\u5230\u7740\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
           startStatsMonitor();
           scheduleNoRemoteAudioCheck("peer-connected");
           sendLocalRealtimeState(state);
@@ -6024,12 +6026,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       peer.oniceconnectionstatechange = function() {
         if (isPeerConnected(peer)) {
           recordConnectionStep("ICE接続完了", "音声の通信経路が決まりました。", "ice-connected:" + remoteId + ":" + remoteSessionId);
-          markConnectedOnce();
           clearReconnectTimer(state);
           clearAutoReconnectTimer(state);
           autoReconnectAttempts.delete(remoteId);
           clearConnectionStuckTimer();
-          setCallPhase("connected", "\u97f3\u58f0\u306fWebRTC\u3067\u76f4\u63a5\u3064\u306a\u304c\u3063\u3066\u3044\u307e\u3059\u3002");
+          setCallPhase("connecting", "\u97f3\u58f0\u30c8\u30e9\u30c3\u30af\u306e\u5230\u7740\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u3002");
           startStatsMonitor();
           scheduleNoRemoteAudioCheck("ice-connected");
         }
@@ -6661,7 +6662,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!joined) return;
       const others = participants.filter(function(item) { return item.userId && item.userId !== userId; });
       const connected = Array.from(peers.values()).some(function(item) {
-        return isPeerConnected(item.peer);
+        return isPeerConnected(item.peer) && item.remoteTrackReceived;
       });
       const unstable = Array.from(peers.values()).some(function(item) {
         return isPeerUnstable(item.peer);
@@ -6691,7 +6692,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     function updateParticipantConnection() {
       if (!joined) return;
       const connected = Array.from(peers.values()).some(function(item) {
-        return isPeerConnected(item.peer);
+        return isPeerConnected(item.peer) && item.remoteTrackReceived;
       });
       const unstable = Array.from(peers.values()).some(function(item) {
         return isPeerUnstable(item.peer);

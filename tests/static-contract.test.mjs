@@ -262,3 +262,10 @@ test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () 
   assert.match(turnWorker, /duplicate: true/);
   assert.match(turnWorker, /expirationTtl: 120/);
 });
+
+test("音声到着前を通話中と表示せずiPhoneは低遅延のマイク経路を使う", () => {
+  assert.match(rootHtml, /localStream = isIosDevice\(\) \? rawLocalStream : createCleanAudioStream\(rawLocalStream\)/);
+  assert.match(rootHtml, /peer\.ontrack = function\(event\)[\s\S]*?markConnectedOnce\(\)/);
+  assert.doesNotMatch(rootHtml, /onconnectionstatechange[\s\S]{0,800}markConnectedOnce\(\)/);
+  assert.match(rootHtml, /isPeerConnected\(item\.peer\) && item\.remoteTrackReceived/);
+});
