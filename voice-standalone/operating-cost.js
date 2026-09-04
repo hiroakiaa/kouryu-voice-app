@@ -36,6 +36,7 @@ export function createCostEstimator(root,getRate,getSnapshot=()=>null){
   for(const key of ['speech','explanation','discovery','analogy','firestore'])text('cost-'+key,money(c[key]));
   text('cost-turn','0円〜'+money(c.turn));
   text('costAssumptions',c.participants+'端末すべてで10分間発話（区切りの重複を含む送信音声約10.91分）、説明は全体で10回。'+(mode.value==='cached'?'AI補助0回、たとえはすべて再利用。':'AI補助は各端末100回、毎回抽出と審査を実行。たとえは'+(mode.value==='new'?'全体で10回新規生成。':'すべて再利用。'))+' 番号・電話帳・グループ・通話中の状態管理の余裕分として全体で120 reads・60 writesを含みます。1ドル＝'+c.rate.toFixed(2)+'円。');
+  root.defaultView?.dispatchEvent(new root.defaultView.CustomEvent('kouryu-cost-estimate',{detail:{low:c.low,high:c.high,projected:projected?.total??null}}));
  }
  people?.addEventListener('change',render);mode?.addEventListener('change',render);
  return {render};

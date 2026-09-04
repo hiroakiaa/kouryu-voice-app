@@ -6,8 +6,7 @@ service cloud.firestore {
     match /numberProfiles/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['number','name'])
-        && request.resource.data.number.matches('^[0-9]{8}$') && (!('name' in request.resource.data) || shortName(request.resource.data.name))
-        && getAfter(/databases/$(database)/documents/voiceNumbers/$(request.resource.data.number)).data.ownerUid == uid;
+        && request.resource.data.number.matches('^[0-9]{8}$') && (!('name' in request.resource.data) || shortName(request.resource.data.name));
       allow update: if request.auth != null && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']) && shortName(request.resource.data.name);
       match /contacts/{number} {

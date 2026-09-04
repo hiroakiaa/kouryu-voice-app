@@ -1,3 +1,5 @@
 export const historyLabels={ringing:'呼び出し中',accepted:'通話',declined:'応答なし',cancelled:'取消',busy:'通話中',missed:'不在着信'};
 export function formatDuration(seconds=0){const s=Math.max(0,Math.floor(Number(seconds)||0));if(s<60)return `${s}秒`;const m=Math.floor(s/60),rest=s%60;return rest?`${m}分${rest}秒`:`${m}分`;}
 export function groupHistory(items=[]){const sorted=[...items].sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,40),groups=[];for(const item of sorted){const prev=groups.at(-1),day=new Date(item.at||0).toDateString();if(prev&&prev.number===item.number&&prev.direction===item.direction&&prev.day===day){prev.count++;continue;}groups.push({...item,count:1,day});}return groups.slice(0,20);}
+
+export function filterPhoneItems(items=[],query=''){const q=String(query).normalize('NFKC').trim().toLocaleLowerCase('ja');if(!q)return items;return items.filter(item=>[item.name,item.number,item.status].some(value=>String(value||'').normalize('NFKC').toLocaleLowerCase('ja').includes(q)));}
