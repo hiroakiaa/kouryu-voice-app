@@ -265,6 +265,15 @@ test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () 
   assert.match(turnWorker, /expirationTtl: 120/);
 });
 
+test("料金履歴は通話種類・1対1かグループか・全機能の内訳を保存する", () => {
+  assert.match(rootHtml, /supportMode: ACTIVE_SUPPORT_MODE/);
+  assert.match(rootHtml, /callType: callId\.startsWith\("g_"\)/);
+  assert.match(rootHtml, /speechCostYen: roundCostValue\(fullCost\.speech\)/);
+  assert.match(rootHtml, /今回の全機能/);
+  assert.match(rootHtml, /id="currentSupportProof"/);
+  assert.match(rootHtml, /AI処理なし：音声認識0秒/);
+});
+
 test("着信と発信取消をPush経由で開いている画面へ即時反映する", () => {
   assert.match(serviceWorker, /client\.postMessage\(\{ type: "kouryu-phone-state", action, callerUid \}\)/);
   assert.match(serviceWorker, /if \(action === "cancel"\)/);

@@ -36,7 +36,7 @@ test('ボタン操作でテキスト入力カーソルや文字選択を出さ�
 
 test('履歴からの再発信は応答なしになっても保存済みの相手名を保持する',()=>{
  assert.match(app,/data-dial-name="\$\{esc\(displayName\)\}"/);
- assert.match(app,/if\(d\.dial\)dial\(d\.dial,d\.dialName\)/);
+ assert.match(app,/if\(d\.dial\)dial\(d\.dial,d\.dialName,d\.dialMode\|\|null\)/);
  assert.match(app,/const targetName=contacts\.find\(c=>c\.number===number\)\?\.name\|\|savedName\|\|formatNumber\(number\)/);
  assert.match(app,/history\(id,\{number,name:targetName,status:r\.status,direction:'outgoing',supportMode\}\)/);
 });
@@ -44,7 +44,7 @@ test('履歴からの再発信は応答なしになっても保存済みの相�
 test('応答なし画面から再発信・登録・履歴へ移動できる',()=>{
  for(const id of ['phoneCallResultDialog','phoneCallResultName','phoneCallResultNumber','phoneCallResultHistory','phoneCallResultRegister','phoneCallResultRedial']) assert.match(html,new RegExp(`id="${id}"`));
  assert.match(app,/function showCallResult/);
- assert.match(app,/showCallResult\('応答なし',targetName,number\)/);
+ assert.match(app,/showCallResult\('応答なし',targetName,number,supportMode\)/);
 });
 
 test('履歴は最新の電話帳名、番号、個別の詳細を表示する',()=>{
@@ -118,6 +118,23 @@ test('発信前に理解サポートありと通話だけを選び、着信・�
  assert.match(app,/1対1・'\+modeLabel\(supportMode\)/);
  assert.match(app,/navigate\(id,selected\)/);
  assert.match(rules,/supportMode.*\['support','plain'\]/);
+});
+
+test('前回の通話種類を保存し、履歴と再発信で同じ種類を初期選択する',()=>{
+ assert.match(html,/name="phoneDefaultMode" value="support"/);
+ assert.match(html,/name="phoneDefaultMode" value="plain"/);
+ assert.match(app,/kouryu-default-support-mode-v1/);
+ assert.match(app,/localStorage\.setItem\(defaultModeKey,supportMode\)/);
+ assert.match(app,/data-dial-mode/);
+ assert.match(app,/dial\(d\.dial,d\.dialName,d\.dialMode\|\|null\)/);
+ assert.match(app,/dialog\.dataset\.mode=mode\(supportMode\)/);
+});
+
+test('通話中のグループ種類変更を止め、古いURLの異なる種類を拒否する',()=>{
+ assert.match(app,/通話中は種類を変更できません/);
+ assert.match(app,/lastSeenAt\?\.toMillis/);
+ assert.match(app,/mode\(currentRoom\.supportMode\)===mode\(state\(\)\.supportMode\)/);
+ assert.match(app,/mode\(g\.supportMode\)===mode\(state\(\)\.supportMode\)/);
 });
 
 test('公開用の追加ファイルも同一',()=>{

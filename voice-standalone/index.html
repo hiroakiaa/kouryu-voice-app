@@ -4048,7 +4048,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-call-modes">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-call-mode-history">
 </head>
 <body class="phone-home">
   <main>
@@ -4081,7 +4081,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
  <section id="phoneContactsPanel" role="tabpanel" hidden><h2>電話帳</h2><div class="phone-list-tools"><input id="phoneContactSearch" type="search" placeholder="名前・番号で検索" aria-label="電話帳を検索"><button id="phoneQrScan" type="button"><i class="fa-solid fa-camera"></i> QRを読む</button></div><div id="phoneContacts"></div><details id="legacyPhonebook" hidden><summary>以前の電話帳から登録する</summary><p>相手の8桁の番号を確認して登録してください。</p><div id="legacyPhoneContacts"></div></details></section>
  <button id="phoneContactAddToggle" class="phone-add-fab" type="button" aria-label="電話帳に追加" aria-controls="phoneContactForm" aria-expanded="false"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
  <section id="phoneGroupsPanel" role="tabpanel" hidden><h2>グループ</h2><div class="phone-form-row"><input id="phoneGroupName" aria-label="新しいグループ名" placeholder="家族、旅行の相談 など" maxlength="40"><button id="phoneCreateGroup">グループを作る</button></div><div id="phoneGroupInvites"></div><div id="phoneGroups"></div></section>
- <section id="phoneSettingsPanel" role="tabpanel" hidden><h2>番号の引き継ぎ</h2><div id="accountSafety" class="account-safety" role="status"></div><p id="accountStatus" role="status"></p><div class="phone-form-row"><label>メールアドレス<input id="phoneEmail" type="email" autocomplete="email"></label><label>パスワード<input id="phonePassword" type="password" minlength="6" autocomplete="current-password"></label></div><div class="phone-form-row"><button id="account-save">この番号を保存</button><button id="account-login">ログイン</button><button id="account-reset">パスワードを再設定</button><button id="account-logout">ログアウト</button></div><p class="phone-note">初めての端末では番号を作る前にログインしてください。保存した番号・電話帳・履歴・グループが同じアカウントの端末に同期されます。</p><h3>着信通知</h3><div class="phone-form-row"><button id="phoneNotificationEnable" type="button">通知を有効にする</button><button id="phoneNotificationTest" type="button">通知をテスト</button></div><p id="phoneNotificationStatus" class="phone-note"></p><h3>着信音</h3><label class="phone-setting-check"><input id="phoneRingtone" type="checkbox" checked> 着信時に音を鳴らす</label><h3>10分間の費用通知</h3><div class="phone-form-row"><label>通知する金額（円）<input id="phoneBudgetYen" type="number" min="0.1" step="0.1" placeholder="例：5"></label><button id="phoneBudgetSave" type="button">保存</button></div><p id="phoneBudgetStatus" class="phone-note">空欄にすると通知しません。無料枠適用前の試算です。</p><h3>今月の運営費</h3><div class="phone-form-row"><label>月の予算（円）<input id="phoneMonthlyBudget" type="number" min="1" step="1" placeholder="例：1000"></label><label>Cloudflare画面の実費（円）<input id="phoneCloudflareActual" type="number" min="0" step="0.01" placeholder="例：0"></label><button id="phoneMonthlySave" type="button">保存</button></div><div id="phoneMonthlyStatus" class="account-safety"></div><h3>ブロックした相手</h3><div id="phoneBlocks"></div></section>
+ <section id="phoneSettingsPanel" role="tabpanel" hidden><h2>いつも使う通話</h2><fieldset class="support-mode-picker phone-default-mode"><legend>発信時の初期選択</legend><label><input type="radio" name="phoneDefaultMode" value="support"><span><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> 理解サポートあり</span></label><label><input type="radio" name="phoneDefaultMode" value="plain"><span><i class="fa-solid fa-phone" aria-hidden="true"></i> 通話だけ</span></label></fieldset><p class="phone-note">発信前にいつでも変更できます。最後に選んだ種類も次回の初期選択になります。</p><h2>番号の引き継ぎ</h2><div id="accountSafety" class="account-safety" role="status"></div><p id="accountStatus" role="status"></p><div class="phone-form-row"><label>メールアドレス<input id="phoneEmail" type="email" autocomplete="email"></label><label>パスワード<input id="phonePassword" type="password" minlength="6" autocomplete="current-password"></label></div><div class="phone-form-row"><button id="account-save">この番号を保存</button><button id="account-login">ログイン</button><button id="account-reset">パスワードを再設定</button><button id="account-logout">ログアウト</button></div><p class="phone-note">初めての端末では番号を作る前にログインしてください。保存した番号・電話帳・履歴・グループが同じアカウントの端末に同期されます。</p><h3>着信通知</h3><div class="phone-form-row"><button id="phoneNotificationEnable" type="button">通知を有効にする</button><button id="phoneNotificationTest" type="button">通知をテスト</button></div><p id="phoneNotificationStatus" class="phone-note"></p><h3>着信音</h3><label class="phone-setting-check"><input id="phoneRingtone" type="checkbox" checked> 着信時に音を鳴らす</label><h3>10分間の費用通知</h3><div class="phone-form-row"><label>通知する金額（円）<input id="phoneBudgetYen" type="number" min="0.1" step="0.1" placeholder="例：5"></label><button id="phoneBudgetSave" type="button">保存</button></div><p id="phoneBudgetStatus" class="phone-note">空欄にすると通知しません。無料枠適用前の試算です。</p><h3>今月の運営費</h3><div class="phone-form-row"><label>月の予算（円）<input id="phoneMonthlyBudget" type="number" min="1" step="1" placeholder="例：1000"></label><label>Cloudflare画面の実費（円）<input id="phoneCloudflareActual" type="number" min="0" step="0.01" placeholder="例：0"></label><button id="phoneMonthlySave" type="button">保存</button></div><div id="phoneMonthlyStatus" class="account-safety"></div><h3>ブロックした相手</h3><div id="phoneBlocks"></div></section>
 </section>
 <dialog id="phoneContactForm" class="number-modal contact-form-dialog" aria-labelledby="phoneContactFormTitle"><div class="number-head"><h2 id="phoneContactFormTitle">電話帳に追加</h2><button id="phoneContactFormClose" type="button" aria-label="閉じる">×</button></div><div class="phone-form-row"><label>8桁の番号<input id="phoneContactNumber" inputmode="numeric" maxlength="20" placeholder="1234 5678"></label><label>登録する名前<input id="phoneContactName" maxlength="40" placeholder="お母さん、田中さん など"></label><label>よみがな<input id="phoneContactReading" maxlength="40" placeholder="たなか など"></label></div><button id="phoneAddContact" type="button"><i class="fa-solid fa-address-book" aria-hidden="true"></i> 登録・更新</button></dialog>
 <dialog id="phoneNameDialog" class="card call-tips" aria-labelledby="phoneNameTitle"><div class="tips-modal-head"><h2 id="phoneNameTitle">名前を編集</h2><button id="phoneNameClose" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><form id="phoneNameForm"><label for="phoneName">相手に表示する名前（8文字まで）</label><input id="phoneName" maxlength="8" autocomplete="nickname" required><p id="phoneNameMessage" role="status"></p><button id="phoneSaveName" type="submit">保存する</button></form></dialog>
@@ -4310,7 +4310,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       </section>
       <section id="currentCallPanel" role="tabpanel" aria-labelledby="currentCallTab">
         <h3>今回の通話の概算</h3><p id="currentCallTotal" class="metrics-value">約0.000円</p>
-        <p><span id="currentCallDuration">0分0秒</span> · <span id="currentCallCoverage"></span></p>
+        <p><span id="currentCallDuration">0分0秒</span> · <span id="currentCallCoverage"></span></p><p id="currentSupportProof" class="support-proof" role="status"></p>
         <dl class="cost-scenario-breakdown">
 <div><dt>音声認識</dt><dd id="current-speech"></dd></div>
 <div><dt>用語のAI補助</dt><dd id="current-discovery"></dd></div>
@@ -4401,12 +4401,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-04-call-modes"></script>
-  <script src="./jsQR.js?v=2026-09-04-call-modes"></script>
+  <script src="./qrcode-generator.js?v=2026-09-05-call-mode-history"></script>
+  <script src="./jsQR.js?v=2026-09-05-call-mode-history"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-call-modes";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-call-mode-history";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-call-modes";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-call-mode-history";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4448,7 +4448,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-04-call-modes";
+    const APP_VERSION = "2026-09-05-call-mode-history";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4791,6 +4791,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const count={speech:(data.values.speechSeconds||0).toFixed(1)+'秒',discovery:discoveryProcesses+'処理',explanation:Math.max(0,(data.values.explanation||0)-(data.values.sharedExplanation||0))+'回',analogy:Math.max(0,(data.values.analogy||0)-(data.values.shared||0))+'回',firestore:'read '+(data.values.reads||0)+' / write '+(data.values.writes||0)+' / delete '+(data.values.deletes||0),turn:((data.values.turnBytes||0)/1e6).toFixed(3)+' MB'};
       for(const key of Object.keys(count))text('current-'+key,c[key].toFixed(4)+'円（'+count[key]+'）');
       text('current-shared',((data.values.shared||0)+(data.values.sharedExplanation||0))+'回（生成費0円）');
+      text('currentSupportProof',CAPTIONS_ENABLED?'理解サポートの利用量を通話中に集計しています。':'AI処理なし：音声認識0秒・用語AI補助0回・説明0回・たとえ0回');
     }
     const costEstimator = createCostEstimator(document, getYenPerDollar, () => callCost.snapshot(currentCostExtras()));
     if (!CAPTIONS_ENABLED) {
@@ -9860,6 +9861,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (metrics.historySaved) return;
       const data = getMetricsCostEstimate(snapshot);
       if (!data.durationSeconds && !data.reads && !data.writes && !data.deletes) return;
+      const usageSnapshot = callCost.snapshot(currentCostExtras());
+      const fullCost = estimateCallCost(usageSnapshot.values || {}, data.yenPerDollar);
+      const tenMinuteFullCost = data.durationSeconds >= 30 ? fullCost.total * 600 / data.durationSeconds : data.tenMinuteCostYen;
       metrics.historySaved = true;
       const endedAt = Date.now();
       const date = new Date(endedAt);
@@ -9871,9 +9875,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         weekKey: getWeekKey(date),
         monthKey: getMonthKey(date),
         durationSeconds: data.durationSeconds,
-        tenMinuteCostYen: roundCostValue(data.tenMinuteCostYen),
+        tenMinuteCostYen: roundCostValue(tenMinuteFullCost),
         freeTenMinuteCalls: data.freeTenMinuteCalls,
-        totalCostYen: roundCostValue(data.totalCostYen),
+        totalCostYen: roundCostValue(fullCost.total),
         minuteCostYen: roundCostValue(data.minuteCostYen),
         reads: data.reads,
         writes: data.writes,
@@ -9884,6 +9888,14 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         deletesPerMinute: data.deletesPerMinute,
         yenPerDollar: data.yenPerDollar,
         participantCount: data.participantCount,
+        supportMode: ACTIVE_SUPPORT_MODE,
+        callType: callId.startsWith("g_") ? "group" : "direct",
+        speechCostYen: roundCostValue(fullCost.speech),
+        discoveryCostYen: roundCostValue(fullCost.discovery),
+        explanationCostYen: roundCostValue(fullCost.explanation),
+        analogyCostYen: roundCostValue(fullCost.analogy),
+        firestoreCostYen: roundCostValue(fullCost.firestore),
+        turnCostYen: roundCostValue(fullCost.turn),
         connectionMethod: turnUsage.relayActive ? "TURN中継" : "直接接続",
         turnBytes: Math.round(turnUsage.bytes)
       };
@@ -10021,6 +10033,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const weekRecords = records.filter(function(item) { return item.weekKey === weekKey; });
       const monthRecords = records.filter(function(item) { return item.monthKey === monthKey; });
       const turnRecords = records.filter(function(item) { return item.connectionMethod === "TURN中継"; });
+      const plainRecords = records.filter(function(item) { return item.supportMode === "plain"; });
+      const groupRecords = records.filter(function(item) { return item.callType === "group"; });
       const stats = {
         average: costAverage(tenMinuteCosts),
         median: costMedian(tenMinuteCosts),
@@ -10037,6 +10051,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           renderHistoryStat("直近10回 平均", formatYen(stats.recentAverage), "最近の傾向") +
           renderHistoryStat("今週", weekRecords.length + "回", "合計 " + formatYen(sumBy(weekRecords, "totalCostYen"))) +
           renderHistoryStat("今月", monthRecords.length + "回", "合計 " + formatYen(sumBy(monthRecords, "totalCostYen"))) +
+          renderHistoryStat("通話の種類", "通話だけ " + plainRecords.length + "回", "サポートあり " + (records.length - plainRecords.length) + "回") +
+          renderHistoryStat("通話相手", "1対1 " + (records.length - groupRecords.length) + "回", "グループ " + groupRecords.length + "回") +
           renderHistoryStat("接続方式", "中継 " + turnRecords.length + "回", "直接 " + (records.length - turnRecords.length) + "回") +
           renderHistoryStat("保存方法", "軽量", "Firestoreには保存しません");
       }
@@ -10061,7 +10077,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function renderCostHistoryRow(record) {
       const date = formatLocalDateTime(record.endedAt);
-      return '<div class="metrics-history-row"><span><strong>' + escapeHtml(formatYen(record.tenMinuteCostYen)) + '</strong><br><small>' + escapeHtml(date) + ' / ' + Math.max(0, Math.round((record.durationSeconds || 0) / 60)) + '分</small></span><span><strong>' + escapeHtml(formatYen(record.totalCostYen)) + '</strong><br><small>今回の接続管理費</small></span></div>';
+      const modeName = record.supportMode === "plain" ? "通話だけ" : "理解サポートあり";
+      const callName = record.callType === "group" ? "グループ" : "1対1";
+      return '<div class="metrics-history-row"><span><strong>' + escapeHtml(formatYen(record.tenMinuteCostYen)) + '</strong><br><small>' + escapeHtml(date) + ' / ' + Math.max(0, Math.round((record.durationSeconds || 0) / 60)) + '分 / ' + escapeHtml(callName) + ' / ' + escapeHtml(modeName) + '</small></span><span><strong>' + escapeHtml(formatYen(record.totalCostYen)) + '</strong><br><small>今回の全機能</small></span></div>';
     }
 
     function renderPeriodRow(label, records) {
@@ -10114,7 +10132,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const dots = points.map(function(point, index) {
         const fromLatest = records.length - 1 - index;
         const position = fromLatest === 0 ? "最新" : "最新から" + fromLatest + "つ前";
-        const detail = position + " / 縦軸: " + formatYen(point.value) + " / " + formatLocalDateTime(point.record.endedAt) + " / " + Math.max(0, Math.round((point.record.durationSeconds || 0) / 60)) + "分 / " + (point.record.connectionMethod || "直接接続") + " / " + Math.max(1, Number(point.record.participantCount) || 1) + "端末分の概算";
+        const modeName = point.record.supportMode === "plain" ? "通話だけ" : "理解サポートあり";
+        const callName = point.record.callType === "group" ? "グループ" : "1対1";
+        const detail = position + " / 縦軸: " + formatYen(point.value) + " / " + formatLocalDateTime(point.record.endedAt) + " / " + Math.max(0, Math.round((point.record.durationSeconds || 0) / 60)) + "分 / " + callName + " / " + modeName + " / " + (point.record.connectionMethod || "直接接続") + " / " + Math.max(1, Number(point.record.participantCount) || 1) + "端末分の概算";
         return '<circle class="chart-dot" tabindex="0" role="button" data-chart-detail="' + escapeHtml(detail) + '" data-chart-position="' + escapeHtml(position) + '" data-chart-cost="' + escapeHtml(formatYen(point.value)) + '" data-chart-date="' + escapeHtml(formatLocalDateTime(point.record.endedAt)) + '" data-chart-duration="' + escapeHtml(Math.max(0, Math.round((point.record.durationSeconds || 0) / 60)) + "分") + '" data-chart-method="' + escapeHtml(point.record.connectionMethod || "直接接続") + '" data-chart-participants="' + escapeHtml(Math.max(1, Number(point.record.participantCount) || 1) + "端末分") + '" aria-label="' + escapeHtml(detail) + '" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="3.6"><title>' + escapeHtml(detail) + '</title></circle>';
       }).join("");
       return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="縦軸は10分通話の概算料金（円）、横軸は古い順の通話記録">' +
@@ -10465,7 +10485,3 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 <!-- kouryu voice standalone deploy marker 2026-08-07-001 -->
 </body>
 </html>
-
-
-
-
