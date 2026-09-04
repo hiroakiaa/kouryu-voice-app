@@ -273,4 +273,5 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneSettingsPanel{display:flex;flex-direction:column}
 #phoneSettingsPanel>.support-mode-picker,#phoneSettingsPanel>.account-fields,#phoneSettingsPanel>.phone-form-row,#phoneSettingsPanel>.phone-setting-check,#phoneSettingsPanel>#phoneBlocks{border:1px solid #d6e6c8!important;background:#f7fbef;box-shadow:0 2px 0 #e7efdf}
 #phoneSettingsPanel>.support-mode-picker{padding:12px!important;border-radius:16px}
+#phoneSettingsPanel>.phone-setting-check{flex:0 0 auto;min-height:54px}
 .number-head button i{font-size:18px;line-height:1}

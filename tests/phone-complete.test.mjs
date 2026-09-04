@@ -74,6 +74,11 @@ test('グループ作成後にモーダルを連続表示せず一覧の操作�
  assert.match(app,/phoneGroupAddToggle'\)\.focus\?\.\(\)/);
 });
 
+test('設定の着信音カードは縦方向へ引き伸ばさない',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/#phoneSettingsPanel>\.phone-setting-check\{flex:0 0 auto;min-height:54px\}/);
+});
+
 test('空表示から次の操作へ進めて履歴詳細は折りたためる',()=>{
  assert.match(app,/data-empty-add-contact/);
  assert.match(app,/data-empty-add-group/);
