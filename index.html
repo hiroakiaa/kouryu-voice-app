@@ -4041,7 +4041,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-early-audio-fix">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-instant-ring-state">
 </head>
 <body class="phone-home">
   <main>
@@ -4391,12 +4391,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-04-early-audio-fix"></script>
-  <script src="./jsQR.js?v=2026-09-04-early-audio-fix"></script>
+  <script src="./qrcode-generator.js?v=2026-09-04-instant-ring-state"></script>
+  <script src="./jsQR.js?v=2026-09-04-instant-ring-state"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-early-audio-fix";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-instant-ring-state";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-early-audio-fix";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-instant-ring-state";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4438,7 +4438,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-04-early-audio-fix";
+    const APP_VERSION = "2026-09-04-instant-ring-state";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -5023,9 +5023,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       try {
         await ensureAnonymousAuth();
         if(/^n_|^g_/.test(callId)) userId=authUser.uid;
-        numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId}),name:displayNameForContact,push:(callee,id)=>sendClosedAppCallNotification({uid:callee},'main-room',id+Date.now()),notifications:{enable:enableCallNotifications,status:notificationStatusText,test:testCallNotification},stop:()=>stopLocalCall(true),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
+        numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,status:notificationStatusText,test:testCallNotification},stop:()=>stopLocalCall(true),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
           navigate:id=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('autoJoin','1');location.assign(u.toString());}});
         await numberCalls.start();
+        if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", function(event) { numberCalls?.handlePushState(event.data); });
         // The number phonebook replaces the old registration-link flow.
         renderCallHistory();
         refreshClosedAppNotifications();
@@ -7462,13 +7463,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       try { await registerClosedAppNotifications(); } catch (_) {}
     }
 
-    async function sendClosedAppCallNotification(contact, nextCallId, invitationId) {
+    async function sendClosedAppCallNotification(contact, nextCallId, invitationId, action) {
       if (!authUser || !PUSH_ENDPOINT) return;
       const token = await authUser.getIdToken();
       const response = await fetch(PUSH_ENDPOINT + "/push/notify", {
         method: "POST",
         headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
-        body: JSON.stringify({ calleeUid: contact.uid, callerName: displayNameForContact(), callId: nextCallId, invitationId })
+        body: JSON.stringify({ calleeUid: contact.uid, callerName: displayNameForContact(), callId: nextCallId, invitationId, action: action === "cancel" ? "cancel" : "ring" })
       });
       if (!response.ok) throw new Error("push_delivery_failed_" + response.status);
     }

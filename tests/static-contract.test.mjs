@@ -6,6 +6,8 @@ const rootHtml = await readFile(new URL("../index.html", import.meta.url), "utf8
 const standaloneHtml = await readFile(new URL("../voice-standalone/index.html", import.meta.url), "utf8");
 const firestoreRules = await readFile(new URL("../firestore.rules", import.meta.url), "utf8");
 const turnWorker = await readFile(new URL("../cloudflare-turn-worker/src/index.js", import.meta.url), "utf8");
+const serviceWorker = await readFile(new URL("../service-worker.js", import.meta.url), "utf8");
+const phoneApp = await readFile(new URL("../phone-app.js", import.meta.url), "utf8");
 
 test("アプリのJavaScript構文が有効", () => {
   const scripts = [...rootHtml.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)];
@@ -261,6 +263,16 @@ test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () 
   assert.match(turnWorker, /const deliveryKey = "push-sent:" \+ uid \+ ":" \+ invitationId/);
   assert.match(turnWorker, /duplicate: true/);
   assert.match(turnWorker, /expirationTtl: 120/);
+});
+
+test("着信と発信取消をPush経由で開いている画面へ即時反映する", () => {
+  assert.match(serviceWorker, /client\.postMessage\(\{ type: "kouryu-phone-state", action, callerUid \}\)/);
+  assert.match(serviceWorker, /if \(action === "cancel"\)/);
+  assert.match(turnWorker, /invitationId \+ ":" \+ action/);
+  assert.match(turnWorker, /callerUid: uid, action/);
+  assert.match(rootHtml, /navigator\.serviceWorker\.addEventListener\("message"/);
+  assert.match(phoneApp, /data\.action==='cancel'/);
+  assert.match(phoneApp, /Promise\.allSettled\(tasks\)/);
 });
 
 test("音声到着前を通話中と表示せずiPhoneは低遅延のマイク経路を使う", () => {

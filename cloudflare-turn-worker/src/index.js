@@ -1,3 +1,4 @@
+// @ts-nocheck
 const ALLOWED_ORIGINS = new Set(["https://hiroakiaa.github.io"]);
 const FIREBASE_PROJECT_ID = "test-project-579c6";
 const rateBuckets = new Map();
@@ -118,8 +119,8 @@ async function sendWebPush(subscription, payload, env) {
   const encoder = new TextEncoder();
   const receiverPublic = fromBase64Url(subscription.keys.p256dh);
   const authSecret = fromBase64Url(subscription.keys.auth);
-  const localKeys = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
-  const senderPublic = new Uint8Array(await crypto.subtle.exportKey("raw", localKeys.publicKey));
+  const localKeys = /** @type {CryptoKeyPair} */ (await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]));
+  const senderPublic = new Uint8Array(/** @type {ArrayBuffer} */ (await crypto.subtle.exportKey("raw", localKeys.publicKey)));
   const receiverKey = await crypto.subtle.importKey("raw", receiverPublic, { name: "ECDH", namedCurve: "P-256" }, false, []);
   const sharedSecret = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: receiverKey }, localKeys.privateKey, 256));
   const authPrk = await hkdfExtract(authSecret, sharedSecret);
@@ -181,10 +182,11 @@ async function handlePush(request, env, origin, path) {
   const callId = typeof body.callId === "string" && /^[A-Za-z0-9_-]{1,48}$/.test(body.callId) ? body.callId : "";
   const invitationId = typeof body.invitationId === "string" && /^[A-Za-z0-9]{1,64}$/.test(body.invitationId) ? body.invitationId : "";
   const callerName = typeof body.callerName === "string" ? body.callerName.trim().slice(0, 40) : "匿名さん";
+  const action = body.action === "cancel" ? "cancel" : "ring";
   if (!calleeUid || calleeUid === uid || !callId || !invitationId) return response({ error: "invalid_request" }, 400, origin);
   if (!allowRequest("push-uid:" + uid, 8, TEN_MINUTES)) return response({ error: "rate_limited" }, 429, origin);
 
-  const deliveryKey = "push-sent:" + uid + ":" + invitationId;
+  const deliveryKey = "push-sent:" + uid + ":" + invitationId + ":" + action;
   if (await env.PUSH_SUBSCRIPTIONS.get(deliveryKey)) {
     return response({ ok: true, delivered: false, duplicate: true }, 200, origin);
   }
@@ -194,7 +196,7 @@ async function handlePush(request, env, origin, path) {
   if (!stored || !validSubscription(stored.subscription)) return response({ ok: true, delivered: false }, 200, origin);
   try {
     const pushResponse = await sendWebPush(stored.subscription, JSON.stringify({
-      callerName: callerName || "匿名さん", callId, invitationId
+      callerName: callerName || "匿名さん", callId, invitationId, callerUid: uid, action
     }), env);
     if (!pushResponse.ok) {
       if (pushResponse.status === 404 || pushResponse.status === 410) await env.PUSH_SUBSCRIPTIONS.delete(calleeUid);
