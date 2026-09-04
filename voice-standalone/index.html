@@ -4004,6 +4004,7 @@
     #audioHealth {grid-template-columns:auto minmax(0,1fr) auto;gap:10px;}
     #callElapsed {font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;line-height:1.4;min-width:3.5em;text-align:right;}
     .number-modal {position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(460px,calc(100% - 32px));max-height:88dvh;overflow:auto;padding:20px;border:2px solid #8bc85b;border-radius:24px;background:#fffef8;color:#30462d;}
+    .number-modal.incoming-call[open] {display:block;left:0;bottom:0;transform:none;margin:auto;}
     .number-modal::backdrop {background:rgba(30,35,38,.58);}
     .number-head,.number-own,.number-dial,.number-actions {display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
     .number-head {justify-content:space-between;}.number-head h2{margin:0;font-size:22px;}
@@ -4040,7 +4041,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-phone-complete">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-call-dialog-fix">
 </head>
 <body class="phone-home">
   <main>
@@ -4390,12 +4391,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-04-phone-complete"></script>
-  <script src="./jsQR.js?v=2026-09-04-phone-complete"></script>
+  <script src="./qrcode-generator.js?v=2026-09-04-call-dialog-fix"></script>
+  <script src="./jsQR.js?v=2026-09-04-call-dialog-fix"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-phone-complete";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-call-dialog-fix";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-phone-complete";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-call-dialog-fix";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4437,7 +4438,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-04-phone-complete";
+    const APP_VERSION = "2026-09-04-call-dialog-fix";
     const CAPTIONS_ENABLED = true;
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;

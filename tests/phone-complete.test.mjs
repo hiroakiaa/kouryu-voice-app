@@ -12,6 +12,11 @@ test('通知・月間費用・発信確認を設定画面から利用できる',
  assert.match(app,/kouryu-monthly-budget-yen-v1/);
 });
 
+test('発信確認は背景だけで画面を塞がず、連続操作でも二重に開かない',()=>{
+ assert.match(html,/\.number-modal\.incoming-call\[open\]\s*\{[^}]*display:block/);
+ assert.match(app,/if\(!dialog\.open\)dialog\.showModal\(\)/);
+});
+
 test('QR読み取りはBarcodeDetector非対応ブラウザでもjsQRを使う',()=>{
  assert.match(html,/jsQR\.js/);
  assert.match(html,/id="phoneQrCanvas"/);
