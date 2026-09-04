@@ -34,6 +34,13 @@ test('ボタン操作でテキスト入力カーソルや文字選択を出さ�
  assert.match(html,/button,\[role="button"\],summary \{cursor:pointer;touch-action:manipulation/);
 });
 
+test('履歴からの再発信は応答なしになっても保存済みの相手名を保持する',()=>{
+ assert.match(app,/data-dial-name="\$\{esc\(h\.name\)\}"/);
+ assert.match(app,/if\(d\.dial\)dial\(d\.dial,d\.dialName\)/);
+ assert.match(app,/const targetName=contacts\.find\(c=>c\.number===number\)\?\.name\|\|savedName\|\|formatNumber\(number\)/);
+ assert.match(app,/history\(id,\{number,name:targetName,status:r\.status,direction:'outgoing'\}\)/);
+});
+
 test('QR読み取りはBarcodeDetector非対応ブラウザでもjsQRを使う',()=>{
  assert.match(html,/jsQR\.js/);
  assert.match(html,/id="phoneQrCanvas"/);
