@@ -68,11 +68,12 @@ test('お気に入りを保存でき、ルールは任意のbooleanだけを許�
  assert.match(rules,/favorite is bool/);
 });
 
-test('履歴の検索と電話帳追加フォームはアイコンから滑らかに開閉する',()=>{
+test('履歴の検索はアイコンから滑らかに開閉し電話帳追加は統一モーダルを使う',()=>{
  for(const id of ['phoneHistoryToolsToggle','phoneHistoryTools','phoneContactAddToggle','phoneContactForm']) assert.match(html,new RegExp(`id="${id}"`));
  assert.match(app,/const setCollapsible=/);
  assert.match(html,/class="phone-list-tools phone-collapsible" inert aria-hidden="true"/);
- assert.match(html,/class="phone-form-row phone-collapsible" inert aria-hidden="true"/);
+ assert.match(html,/<dialog id="phoneContactForm" class="number-modal contact-form-dialog"/);
+ assert.match(app,/if\(e\.target===\$\('phoneContactForm'\)\)closeContactForm\(\)/);
 });
 
 test('履歴は人物アイコンとよく使う3件を表示し登録済みなら登録ボタンを省く',()=>{
@@ -87,6 +88,19 @@ test('電話帳はよみがな対応の行見出しで並べる',()=>{
  assert.match(app,/groupContacts\(shown\)/);
  assert.match(app,/contact-section/);
  assert.match(rules,/reading is string/);
+});
+
+test('履歴操作は登録・削除・電話の順でアイコンを持ち狭い画面では文字を隠す',()=>{
+ const register=app.indexOf('fa-address-book'),remove=app.indexOf('fa-trash-can'),dial=app.indexOf('data-dial="${esc(h.number)}"');
+ assert.ok(register>=0&&register<remove&&remove<dial);
+ assert.match(html,/phone-theme\.css/);
+ assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/@media\(max-width:540px\)\{\.history-row>button span\{display:none\}/);
+});
+
+test('電話帳追加ボタンは右下固定で、よく使う人物アイコンを拡大する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.phone-home-card \.phone-add-fab\{position:fixed/);
+ assert.match(css,/\.frequent-card>i\{font-size:52px\}/);
 });
 
 test('公開用の追加ファイルも同一',()=>{
