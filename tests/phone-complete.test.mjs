@@ -28,6 +28,13 @@ test('通知説明と空表示を共通デザインで扱う',()=>{
  assert.match(app,/グループはまだありません/);
 });
 
+test('670px以下ではタブ以外のパネルを横スクロールさせない',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/@media\(max-width:670px\)/);
+ assert.match(css,/\.phone-home-card \[role="tabpanel"\][^{]*\{[^}]*overflow-x:hidden/);
+ assert.match(css,/\.phone-home-card \.phone-tabs\{[^}]*overflow-x:auto/);
+});
+
 test('発信確認は背景だけで画面を塞がず、連続操作でも二重に開かない',()=>{
  assert.match(html,/\.number-modal\.incoming-call\[open\]\s*\{[^}]*display:block/);
  assert.match(app,/if\(!dialog\.open\)dialog\.showModal\(\)/);

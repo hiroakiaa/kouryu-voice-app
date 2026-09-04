@@ -226,3 +226,28 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 .phone-home-card input,.phone-home-card select,.number-modal input,.number-modal select,.caption-dialog input,.caption-dialog select{border-color:#c7dfa9;background:#fffef9;color:var(--phone-ink)}
 .phone-home-card button,.number-modal button,.caption-dialog button,.call-tips button{font-family:inherit}
 @media(max-width:480px){.phone-empty-state{min-height:96px}.caption-heading-actions{gap:6px}.panel-icon-button{width:40px;height:40px;min-height:40px}}
+
+/* Below tablet width only the tab strip may scroll sideways. Panel content wraps vertically. */
+@media(max-width:670px){
+ html,body,body.phone-home{max-width:100%;overflow-x:hidden}
+ body.phone-home main,.phone-home .phone-home-card{width:100%;max-width:100%;min-width:0}
+ .phone-home-card [role="tabpanel"]{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+ .phone-home-card [role="tabpanel"] *{box-sizing:border-box;max-width:100%}
+ .phone-home-card .phone-tabs{max-width:100%;overflow-x:auto}
+ .phone-home-card .phone-row{width:100%;min-width:0;align-items:center}
+ .phone-home-card .phone-row>div,.phone-home-card .phone-row>span{min-width:0;overflow-wrap:anywhere}
+ .phone-home-card .phone-form-row,.phone-home-card .phone-list-tools{width:100%;min-width:0;flex-wrap:wrap}
+ .phone-home-card .phone-form-row>label,.phone-home-card .phone-list-tools>input{min-width:0;flex:1 1 100%}
+ .phone-home-card .account-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+ .phone-home-card #accountActions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+ .phone-home-card #accountActions[hidden]{display:none!important}
+ .history-details summary{width:auto;max-width:100%;overflow-wrap:anywhere}
+ .history-details>div{flex-wrap:wrap}
+ .number-modal,.call-tips,.app-info-tooltip,.metrics-modal-card,.caption-dialog{width:calc(100% - 24px);max-width:calc(100% - 24px);overflow-x:hidden}
+ .number-modal .phone-form-row,.number-modal #groupInviteArea,.caption-dialog .analogy-controls{min-width:0;flex-wrap:wrap}
+ .number-modal input,.number-modal select,.caption-dialog input,.caption-dialog select{width:100%;min-width:0}
+ .metrics-modal-card *{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+ .metrics-modal-card dl>div{grid-template-columns:minmax(0,1fr);gap:4px}
+ .metrics-modal-card dd{text-align:left!important;white-space:normal!important}
+}
+@media(max-width:420px){.phone-home-card #accountActions{grid-template-columns:minmax(0,1fr)}.phone-home-card .phone-row>button{flex:1 1 44px}.phone-home-card .phone-primary-form{grid-template-columns:minmax(0,1fr) auto}}
