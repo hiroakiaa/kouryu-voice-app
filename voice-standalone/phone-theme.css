@@ -190,3 +190,5 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 
 .phone-list-tools{display:flex;gap:10px;align-items:center;margin:0 0 14px}.phone-list-tools input{flex:1 1 220px}.phone-list-tools button{min-height:46px}.phone-setting-check{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:15px;background:#f4fae9}.phone-setting-check input{min-height:22px;width:22px}
 @media(max-width:480px){.phone-list-tools{flex-wrap:wrap}.phone-list-tools button{width:100%}}
+#phoneQrVideo{display:block;width:min(360px,80vw);aspect-ratio:1;object-fit:cover;margin:14px auto;border:2px solid #9acb72;border-radius:18px;background:#172018}#phoneDialConfirmName,#phoneDialConfirmNumber{display:block;margin:8px auto;font-size:22px}#phoneDialConfirmNumber{letter-spacing:3px}.contact-row [data-favorite]{flex:0 0 46px;color:#bb8b18}.phone-home-card #phoneMonthlyStatus{background:#f5faeb;border-color:#b9d992}
+#phoneDialConfirmCancel{background:#d5535e!important}#phoneDialConfirmCall{background:#61b43d!important}
