@@ -6,9 +6,9 @@ import {createCallCost,estimateCallCost} from '../call-cost.js';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const fn=name=>{const found=html.match(new RegExp('    function '+name+'\\([^]*?\\n    }'));assert.ok(found,name);return found[0]};
 test('current-call totals track usage, reuse, duplicate packets, departed peers and reset',()=>{
- const a=createCallCost(),b=createCallCost();a.start();b.start();a.add('speechSeconds',60);a.add('analogy');a.add('shared');b.add('explanation',2);
+ const a=createCallCost(),b=createCallCost();a.start();b.start();a.add('speechSeconds',60);a.add('analogy');a.add('shared');b.add('explanation',2);b.add('sharedExplanation');
  assert.equal(a.receive('b',b.packet({reads:10})),true);a.receive('b',b.packet({reads:10}));
- const snapshot=a.snapshot({reads:5});assert.equal(snapshot.values.reads,15);assert.equal(snapshot.devices,2);assert.equal(estimateCallCost(snapshot.values,150).analogy,0);assert.ok(Math.abs(estimateCallCost(snapshot.values,150).speech-.0769395)<1e-9);
+ const snapshot=a.snapshot({reads:5});assert.equal(snapshot.values.reads,15);assert.equal(snapshot.devices,2);assert.equal(estimateCallCost(snapshot.values,150).analogy,0);assert.ok(estimateCallCost(snapshot.values,150).explanation>0);assert.ok(Math.abs(estimateCallCost(snapshot.values,150).speech-.0769395)<1e-9);
  assert.equal(a.receive('bad',{epoch:'x',values:{speechSeconds:-1}}),false);
  a.end();a.add('explanation',100);assert.equal(a.snapshot().values.explanation,2);a.start();assert.equal(a.snapshot().values.explanation,undefined);
 });

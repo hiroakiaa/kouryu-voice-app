@@ -4,19 +4,26 @@ import {handle,TermDictionary} from '../caption-worker/src/index.js';
 import {createTermDiscovery,matchLearned,sanitizeFragment} from '../learned-terms.js';
 const request=(path,body)=>new Request('https://caption.example/'+path,{method:'POST',headers:{Origin:'https://hiroakiaa.github.io','Content-Type':'application/json'},body:JSON.stringify(body)});
 function setup(){
- const persisted=new Map(),calls=[];let stage=0;
+ const persisted=new Map(),stores=new Map([['general-v1',persisted]]),objects=new Map(),calls=[];let stage=0;
  const env={IP_LIMIT:{limit:async()=>({success:true})},DISCOVERY_LIMIT:{limit:async()=>({success:true})},AI:{run:async(_model,input)=>{calls.push(input);return {response:JSON.stringify(++stage%2?{terms:['冪等性','山田さん','捏造語']}: {accepted:[{term:'冪等性',definition:'同じ操作を繰り返しても結果が変わらない性質'}]})}}}};
- const object=new TermDictionary({storage:{get:async key=>persisted.get(key),put:async(key,value)=>persisted.set(key,structuredClone(value))}});
- env.TERM_DICTIONARY={idFromName:k=>k,get:()=>object};return {env,persisted,calls};
+ env.TERM_DICTIONARY={idFromName:k=>k,get:id=>{if(!objects.has(id)){const store=stores.get(id)||new Map();stores.set(id,store);objects.set(id,new TermDictionary({storage:{get:async key=>store.get(key),put:async(key,value)=>store.set(key,structuredClone(value))}},env))}return objects.get(id)}};return {env,persisted,calls};
 }
 test('AI候補は原文との一致と語だけの再審査を経て保存、会話と利用者は保存しない',async()=>{
  const h=setup();const r=await handle(request('discover',{text:'山田さんと冪等性について話す。連絡先 a@example.com、090-1234-5678'}),h.env,async()=>'secret-user');
- assert.equal(r.status,200);assert.deepEqual(await r.json(),{terms:['冪等性']});assert.equal(h.calls.length,2);
+ assert.equal(r.status,200);assert.deepEqual(await r.json(),{terms:['冪等性'],usage:{extract:1,review:1},source:'generated'});assert.equal(h.calls.length,2);
  assert.doesNotMatch(h.calls[0].messages[1].content,/example.com|090-1234/);
  assert.deepEqual(JSON.parse(h.calls[1].messages[1].content),{terms:['冪等性']});
  assert.deepEqual([...h.persisted.values()],[['冪等性']]);
  assert.deepEqual(await (await handle(request('dictionary',{}),h.env,async()=>'other-user')).json(),{terms:['冪等性']});
  assert.ok(h.calls.every(c=>c.store===false));
+});
+test('同じ認識文の同時要求はWorker側で一度だけAI判定する',async()=>{
+ const h=setup();const [a,b]=await Promise.all([
+  handle(request('discover',{text:'冪等性について話す。'}),h.env,async()=>'a'),
+  handle(request('discover',{text:'冪等性について話す。'}),h.env,async()=>'b')]);
+ assert.equal(a.status,200);assert.equal(b.status,200);assert.equal(h.calls.length,2);
+ const results=[await a.json(),await b.json()];assert.deepEqual(results[0].terms,results[1].terms);
+ assert.equal(results.filter(x=>x.source==='generated').length,1);assert.equal(results.filter(x=>x.source==='shared').length,1);
 });
 test('認証・頻度・サイズ・モデル失敗で辞書を汚さない',async()=>{
  const h=setup();assert.equal((await handle(request('discover',{text:'冪等性'}),h.env,async()=>{throw Error()})).status,401);
@@ -43,12 +50,12 @@ test('相手が勝手に送った語は共有辞書の確認が取れるまで�
  const emitted=[];const c=createTermDiscovery({getDictionary:async()=>['冪等性'],isActive:()=>true,onTerms:(terms,share,speaker)=>emitted.push({terms,share,speaker}),onStatus:()=>{},knownTerms:()=>[]});
  await c.receive(['冪等性','勝手な語'],'speaker');assert.deepEqual(emitted,[{terms:['冪等性'],share:false,speaker:'speaker'}]);c.stop();
 });
-test('未知語の待機は6秒で、待機中の断片を300文字以内にまとめて送り退室で消す',async()=>{
+test('未知語の待機は15秒で、待機中の断片を300文字以内にまとめて送り退室で消す',async()=>{
  let time=0,id=0;const timers=new Map(),calls=[];
  const c=createTermDiscovery({isActive:()=>true,knownTerms:()=>[],onTerms(){},onStatus(){},now:()=>time,setTimer:(fn,delay)=>{timers.set(++id,{fn,at:time+delay});return id},clearTimer:id=>timers.delete(id),discoverTerms:async text=>{calls.push(text);return []}});
  const advance=async ms=>{time+=ms;for(const [id,t] of [...timers])if(t.at<=time){timers.delete(id);t.fn()}await new Promise(r=>setImmediate(r))};
  c.observe('最初の専門語');await advance(0);assert.equal(calls.length,1);
- c.observe('途中の専門語');c.observe('最後の専門語');await advance(5999);assert.equal(calls.length,1);await advance(1);assert.equal(calls.length,2);assert.match(calls[1],/途中.*最後/);
- c.observe('長い断片'.repeat(200));await advance(6000);assert.ok(calls[2].length<=300);
- c.observe('消える語');c.stop();await advance(6000);assert.equal(calls.length,3);
+ c.observe('途中の専門語');c.observe('最後の専門語');await advance(14999);assert.equal(calls.length,1);await advance(1);assert.equal(calls.length,2);assert.match(calls[1],/途中.*最後/);
+ c.observe('長い断片'.repeat(200));await advance(15000);assert.ok(calls[2].length<=300);
+ c.observe('消える語');c.stop();await advance(15000);assert.equal(calls.length,3);
 });

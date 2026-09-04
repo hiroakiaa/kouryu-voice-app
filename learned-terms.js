@@ -1,5 +1,7 @@
 // Only a bounded pending fragment is retained until its next request; no persistence.
-export const DISCOVERY_INTERVAL_MS=6000;
+// Unknown fragments are combined before AI review. Known terms still appear
+// immediately from the local dictionary.
+export const DISCOVERY_INTERVAL_MS=15000;
 export const termKey=term=>term.normalize('NFKC').trim().toLowerCase();
 export const validLearnedTerm=term=>typeof term==='string'&&/^[\p{L}][\p{L}\p{N} +・／/_-]{1,39}$/u.test(term)&&!/[0-9]{4}|(?:さん|様|先生|株式会社|有限会社)$/.test(term);
 export function sanitizeFragment(text){return String(text||'').normalize('NFKC').slice(0,600)
@@ -38,8 +40,8 @@ export function createTermDiscovery({getDictionary,discoverTerms,isActive,onTerm
   finally{clearTimer(timeout);text='';if(id===epoch){request=null;if(pending)schedule()}}
  }
  function schedule(){if(!timer&&!request)timer=setTimer(()=>{void flush()},Math.max(0,nextAt-now()))}
- return {
-  start(){void refresh()},match:text=>matchLearned(text,dictionary),
+  return {
+  start(){void refresh()},match:text=>matchLearned(text,dictionary),terms:()=>dictionary.slice(),
   observe(text){if(!discoverTerms||!isActive())return;pending=sanitizeFragment([pending,sanitizeFragment(text)].filter(Boolean).join(" ").slice(-300));schedule()},
   async receive(terms,speaker){await refresh();if(isActive())onTerms(terms.filter(t=>dictionary.some(d=>termKey(d)===termKey(t))),false,speaker)},
   stop(){epoch++;request?.abort();loading?.controller.abort();request=loading=null;clearTimer(timer);timer=null;pending='';dictionary=[];nextAt=0;onStatus('')}

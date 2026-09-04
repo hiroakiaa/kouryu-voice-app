@@ -1,7 +1,8 @@
 // Per-call numeric telemetry only. Token-dependent costs use the existing model assumptions.
-const keys=['speechSeconds','discovery','explanation','analogy','shared','reads','writes','deletes','turnBytes'];
+const keys=['speechSeconds','discovery','discoveryExtract','discoveryReview','explanation','sharedExplanation','analogy','shared','reads','writes','deletes','turnBytes'];
 export function estimateCallCost(u={},rate=150){
- const money={speech:(u.speechSeconds||0)/60*46.63*.011/1000,discovery:(u.discovery||0)*.00032,explanation:(u.explanation||0)*.00011,analogy:Math.max(0,(u.analogy||0)-(u.shared||0))*.00026,firestore:((u.reads||0)*.03+(u.writes||0)*.09+(u.deletes||0)*.01)/100000,turn:(u.turnBytes||0)/1e9*.05};
+ const discovery=(u.discoveryExtract||0)*.00014+(u.discoveryReview||0)*.00018+(u.discovery||0)*.00032;
+ const money={speech:(u.speechSeconds||0)/60*46.63*.011/1000,discovery,explanation:Math.max(0,(u.explanation||0)-(u.sharedExplanation||0))*.00011,analogy:Math.max(0,(u.analogy||0)-(u.shared||0))*.00026,firestore:((u.reads||0)*.03+(u.writes||0)*.09+(u.deletes||0)*.01)/100000,turn:(u.turnBytes||0)/1e9*.05};
  for(const k in money)money[k]*=rate;return {...money,total:Object.values(money).reduce((a,b)=>a+b,0)};
 }
 export function createCallCost(){

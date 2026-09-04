@@ -4287,7 +4287,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <h4>条件を指定して比較</h4>
         <div class="cost-scenario-inputs">
           <label>参加人数<select id="costParticipants"><option value="1">1人</option><option value="2" selected>2人</option><option value="3">3人</option><option value="4">4人</option></select></label>
-          <label>利用条件<select id="costScenario"><option value="cached">登録済み中心・たとえ再利用</option><option value="reuse">AI補助多め・たとえ再利用</option><option value="new" selected>AI補助多め・たとえ新規10回</option></select></label>
+          <label>利用条件<select id="costScenario"><option value="cached">登録済み中心・たとえ再利用</option><option value="reuse">未登録候補あり・たとえ再利用</option><option value="new" selected>未登録候補あり・たとえ新規2回</option></select></label>
         </div>
         <p id="costScenarioTotal" class="metrics-value" role="status"></p>
         <p class="caption-help">無料枠を差し引く前の利用相当額です。現在の通話の実測額や請求額ではありません。</p>
@@ -4302,8 +4302,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         </dl>
         <p id="costAssumptions" class="caption-help"></p>
         <details><summary>計算条件と無料枠について</summary>
-          <p class="caption-help">実際は無音の長さ、AIの出力、検出回数、中継の有無で変わります。高速検出では未知の語を最短6秒間隔で調べます。新しい用語が多い場合のAI補助は1端末あたり抽出100回・審査100回で計算しています。</p>
-          <p class="caption-help">接続管理は全体で読み取り1,000回・書き込み200回・削除20回。中継は直接接続の0円から、片方向64kbpsで全組み合わせを両端中継する場合まで。共有保存とWorkers実行は無料枠内を仮定しています。</p>
+          <p class="caption-help">実際は発話時間、AIの出力、検出回数、中継の有無で変わります。登録済み用語は端末内ですぐ照合し、未知の候補だけを15秒単位でまとめてAIへ送ります。説明とたとえは共有済みなら再利用します。</p>
+          <p class="caption-help">接続管理は全体で読み取り1,000回・書き込み200回・削除20回。中継は直接接続の0円から、片方向64kbpsで全組み合わせを両端中継する場合まで。Whisperには発話区間だけを送り、共有保存とWorkers実行は無料枠内を仮定しています。</p>
           <p class="caption-help">AIはアカウント全体で1日10,000ニューロンの無料枠を共有します。現在のWorkers Freeでは超過時にAI処理が停止します。ほかのサービスには別の無料枠があります。残り枠や請求額は取得していません。携帯回線の通信料は含みません。</p>
           <p class="caption-help">単価確認：2026年9月3日。<a href="https://developers.cloudflare.com/workers-ai/platform/pricing/" target="_blank" rel="noopener noreferrer">AI料金表</a> · <a href="https://developers.cloudflare.com/durable-objects/platform/pricing/" target="_blank" rel="noopener noreferrer">共有保存料金表</a></p>
         </details>
@@ -4786,9 +4786,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       text('appInfoCostSummary','約'+c.total.toFixed(3)+'円');text('currentCallTotal','約'+c.total.toFixed(3)+'円');
       text('currentCallDuration',Math.floor(data.seconds/60)+'分'+Math.floor(data.seconds%60)+'秒');
       text('currentCallCoverage',data.started ? data.devices+'参加分の受信済み集計' : '通話前');
-      const count={speech:(data.values.speechSeconds||0).toFixed(1)+'秒',discovery:(data.values.discovery||0)+'回',explanation:(data.values.explanation||0)+'回',analogy:Math.max(0,(data.values.analogy||0)-(data.values.shared||0))+'回',firestore:'read '+(data.values.reads||0)+' / write '+(data.values.writes||0)+' / delete '+(data.values.deletes||0),turn:((data.values.turnBytes||0)/1e6).toFixed(3)+' MB'};
+      const discoveryProcesses=(data.values.discoveryExtract||0)+(data.values.discoveryReview||0)+(data.values.discovery||0)*2;
+      const count={speech:(data.values.speechSeconds||0).toFixed(1)+'秒',discovery:discoveryProcesses+'処理',explanation:Math.max(0,(data.values.explanation||0)-(data.values.sharedExplanation||0))+'回',analogy:Math.max(0,(data.values.analogy||0)-(data.values.shared||0))+'回',firestore:'read '+(data.values.reads||0)+' / write '+(data.values.writes||0)+' / delete '+(data.values.deletes||0),turn:((data.values.turnBytes||0)/1e6).toFixed(3)+' MB'};
       for(const key of Object.keys(count))text('current-'+key,c[key].toFixed(4)+'円（'+count[key]+'）');
-      text('current-shared',(data.values.shared||0)+'回（生成費0円）');
+      text('current-shared',((data.values.shared||0)+(data.values.sharedExplanation||0))+'回（生成費0円）');
     }
     const costEstimator = createCostEstimator(document, getYenPerDollar, () => callCost.snapshot(currentCostExtras()));
     const metrics = createMetrics();
@@ -4808,13 +4809,17 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         async function termRequest(path, body, options) {
           if (!authUser || !joined) throw new Error('auth');
           const token = await authUser.getIdToken();
-          if(path==='discover')trackCallUsage('discovery');
           const response = await fetch('https://kouryu-captions.allinone-hiroakiaa.workers.dev/' + path, {
             method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
             body:JSON.stringify(body),signal:options.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'
           });
           if (!response.ok) throw new Error('unavailable');
-          return (await response.json()).terms;
+          const data=await response.json();
+          if(path==='discover'){
+            trackCallUsage('discoveryExtract',Number(data.usage?.extract)||0);
+            trackCallUsage('discoveryReview',Number(data.usage?.review)||0);
+          }
+          return data.terms;
         }
         captionController = module.createTermAssist({
           getDictionary: options => termRequest('dictionary', {}, options),
@@ -4838,6 +4843,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
             if (!response.ok) throw new Error('unavailable');
             const data = await response.json();
             if (typeof data.explanation !== 'string') throw new Error('unavailable');
+            if (data.source === 'shared') callCost.add('sharedExplanation');
             return data.explanation.slice(0, 240);
           },
           getAnalogy: async function(term, genre, options) {

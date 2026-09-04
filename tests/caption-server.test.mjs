@@ -5,15 +5,15 @@ import { PcmSegmenter } from '../caption-pcm.js';
 import { encodeWav, createServerRecognition } from '../caption-server.js';
 import { handle, validWav, hasSpeechEnergy, cleanRecognition } from '../caption-worker/src/index.js';
 
-test('44.1/48kHzの音声を3秒以下の16kHz PCMにそろえ、先行無音を除き、無音は送らない', () => {
+test('44.1/48kHzの音声を発話単位・8秒以下の16kHz PCMにそろえ、無音は送らない', () => {
   for (const rate of [44100,48000]) {
     const chunks=[]; const segmenter=new PcmSegmenter(rate, x=>chunks.push(x));
     segmenter.push(new Float32Array(rate*10));assert.equal(chunks.length,0);
-    const input=Float32Array.from({length:rate*7.75+128},(_,i)=>Math.sin(i*0.1)*0.2);
+    const input=Float32Array.from({length:rate*16.25+128},(_,i)=>Math.sin(i*0.1)*0.2);
     for(let i=0;i<input.length;i+=128) segmenter.push(input.subarray(i,i+128));
-    assert.equal(chunks.length,2);assert.equal(chunks[0].length,48000);assert.deepEqual(chunks[1].slice(0,4000),chunks[0].slice(-4000));
+    assert.equal(chunks.length,2);assert.equal(chunks[0].length,128000);assert.deepEqual(chunks[1].slice(0,6400),chunks[0].slice(-6400));
     assert.equal(validWav(new Uint8Array(encodeWav(chunks[0]))),true);
-    segmenter.push(new Float32Array(rate*9));assert.equal(chunks.length,3);assert.ok(chunks.every(c=>c.length<=48000));
+    segmenter.push(new Float32Array(rate*9));assert.equal(chunks.length,3);assert.ok(chunks.every(c=>c.length<=128000));
     segmenter.clear();assert.equal(segmenter.samples.some(x=>x!==0),false);
   }
 });
@@ -38,12 +38,13 @@ test('認証・オリジン・形式・サイズ制限を満たす音声だけ�
   const e=env();
   assert.equal((await handle(req(wav(),{Origin:'https://bad.example'}),e,async()=>'u')).status,403);
   assert.equal((await handle(req(),e,async()=>{throw Error('auth')})).status,401);
-  assert.equal((await handle(req(new Uint8Array(256046)),e,async()=>'u')).status,413);
+  assert.equal((await handle(req(new Uint8Array(512046)),e,async()=>'u')).status,413);
   assert.equal((await handle(req(new Uint8Array(16044)),e,async()=>'u')).status,400);
   assert.equal(e.calls.length,0);
-  const r=await handle(req(),e,async()=>'u');assert.equal(r.status,200);
+  const r=await handle(req(wav(),{'X-Term-Hints':'API,S V G,<script>'}),e,async()=>'u');assert.equal(r.status,200);
   assert.equal(r.headers.get('cache-control'),'no-store');assert.equal((await r.json()).text,'明日の午後3時です。');
   assert.equal(e.calls[0].input.language,'ja');assert.equal(e.calls[0].input.task,'transcribe');
+  assert.match(e.calls[0].input.initial_prompt,/API、S V G/);assert.doesNotMatch(e.calls[0].input.initial_prompt,/script/);
 });
 test('無音・レート上限ではモデルを実行せず、認識失敗は内容を返さない',async()=>{
   const e=env();const silence=encodeWav(new Int16Array(48000));
@@ -62,7 +63,7 @@ test('字幕停止は処理中リクエストを中断し、遅い字幕を表�
   await new Promise(r=>setImmediate(r));node.port.onmessage({data:new Int16Array(48000)});
   await new Promise(r=>setImmediate(r));recognizer.abort();assert.equal(signal.aborted,true);assert.equal(sentSeconds,3);
   resolveFetch(new Response(JSON.stringify({text:'遅い字幕'})));await new Promise(r=>setImmediate(r));
-  assert.equal(results,0);assert.equal(stopped,0);assert.equal(recognizer.pending,null);
+  assert.equal(results,0);assert.equal(stopped,0);assert.deepEqual(recognizer.queue,[]);
 });
 
 test('用語解説は認証と入力を検証し、語だけをモデルへ送り、保存を無効にする',async()=>{
@@ -73,6 +74,13 @@ test('用語解説は認証と入力を検証し、語だけをモデルへ送�
  assert.equal((await handle(request({term:'<script>'}),e,async()=>'u')).status,400);assert.equal(input,undefined);
  const r=await handle(request({term:'API',context:'送ってはいけない会話'}),e,async()=>'u');assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');
  assert.equal(input.store,false);assert.doesNotMatch(JSON.stringify(input),/送ってはいけない会話/);assert.deepEqual(JSON.parse(input.messages[1].content),{term:'API',reference:''});
+});
+test('通常の用語説明も利用者間で共有し、同じ語は一度だけ生成する',async()=>{
+ const e=env();e.EXPLAIN_LIMIT={limit:async()=>({success:true})};e.ANALOGIES=namespace(e);let calls=0;
+ e.AI.run=async()=>{calls++;return {choices:[{message:{content:'機能を利用するための窓口です。'}}]}};
+ const make=()=>new Request('https://caption.example/explain',{method:'POST',headers:{Origin:'https://hiroakiaa.github.io','Content-Type':'application/json'},body:JSON.stringify({term:'API'})});
+ const first=await (await handle(make(),e,async()=>'a')).json(),second=await (await handle(make(),e,async()=>'b')).json();
+ assert.equal(calls,1);assert.equal(first.source,'generated');assert.equal(second.source,'shared');assert.equal(second.explanation,first.explanation);
 });
 
 test('たとえは許可したジャンルと語だけで生成し、3項目の応答を検証する',async()=>{

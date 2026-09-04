@@ -108,7 +108,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     discovery.start();
     const token=++generation;
     try{
-      const current=new Recognition();speech=current;status.textContent='準備中…';
+      const current=new Recognition();current.setHints?.(()=>discovery.terms());speech=current;status.textContent='準備中…';
       current.onstart=()=>{if(token===generation)status.textContent='検出中'};
       current.onresult=event=>{
         if(token!==generation||!enabled||!getCall().joined||getCall().muted)return;
