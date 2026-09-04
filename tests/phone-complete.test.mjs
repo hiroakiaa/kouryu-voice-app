@@ -97,9 +97,11 @@ test('履歴操作は登録・削除・電話の順でアイコンを持ち狭�
  assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/@media\(max-width:540px\)\{\.history-row>button span\{display:none\}/);
 });
 
-test('電話帳追加ボタンは右下固定で、よく使う人物アイコンを拡大する',()=>{
+test('電話帳追加ボタンはphoneHome内の右下固定で、よく使う人物アイコンを拡大する',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
- assert.match(css,/\.phone-home-card \.phone-add-fab\{position:fixed/);
+ assert.match(css,/\.phone-home-card\{position:relative/);
+ assert.match(css,/\.phone-home-card \.phone-add-fab\{position:absolute;right:18px;bottom:18px/);
+ assert.match(app,/addButton\.hidden=id!==\'contacts\'/);
  assert.match(css,/\.frequent-card>i\{font-size:52px\}/);
 });
 
