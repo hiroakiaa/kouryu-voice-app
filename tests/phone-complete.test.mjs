@@ -193,6 +193,17 @@ test('グループ画面に不要な説明文を表示しない',()=>{
  assert.doesNotMatch(app,/同じテーマで話すグループを作れます/);
 });
 
+test('グループ詳細は状態・通話・メンバー・管理操作を分けて表示する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(html,/class="number-modal group-detail-dialog"/);
+ assert.match(html,/class="group-call-status"/);
+ assert.match(html,/class="group-dialog-section"><h3><i class="fa-solid fa-phone"/);
+ assert.match(html,/class="group-dialog-section"><h3><i class="fa-solid fa-users"/);
+ assert.match(html,/class="group-danger-actions"/);
+ assert.match(css,/\.group-detail-dialog\{width:min\(570px/);
+ assert.match(css,/@media\(max-width:480px\)\{\.group-detail-dialog/);
+});
+
 test('発信前に理解サポートありと通話だけを選び、着信・履歴・グループへ引き継ぐ',()=>{
  assert.match(html,/name="phoneSupportMode" value="support"/);
  assert.match(html,/name="phoneSupportMode" value="plain"/);
