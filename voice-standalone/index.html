@@ -4048,7 +4048,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-group-guidance">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-04-call-modes">
 </head>
 <body class="phone-home">
   <main>
@@ -4085,10 +4085,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 </section>
 <dialog id="phoneContactForm" class="number-modal contact-form-dialog" aria-labelledby="phoneContactFormTitle"><div class="number-head"><h2 id="phoneContactFormTitle">電話帳に追加</h2><button id="phoneContactFormClose" type="button" aria-label="閉じる">×</button></div><div class="phone-form-row"><label>8桁の番号<input id="phoneContactNumber" inputmode="numeric" maxlength="20" placeholder="1234 5678"></label><label>登録する名前<input id="phoneContactName" maxlength="40" placeholder="お母さん、田中さん など"></label><label>よみがな<input id="phoneContactReading" maxlength="40" placeholder="たなか など"></label></div><button id="phoneAddContact" type="button"><i class="fa-solid fa-address-book" aria-hidden="true"></i> 登録・更新</button></dialog>
 <dialog id="phoneNameDialog" class="card call-tips" aria-labelledby="phoneNameTitle"><div class="tips-modal-head"><h2 id="phoneNameTitle">名前を編集</h2><button id="phoneNameClose" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><form id="phoneNameForm"><label for="phoneName">相手に表示する名前（8文字まで）</label><input id="phoneName" maxlength="8" autocomplete="nickname" required><p id="phoneNameMessage" role="status"></p><button id="phoneSaveName" type="submit">保存する</button></form></dialog>
-<dialog id="groupDialog" class="number-modal" aria-labelledby="groupTitle"><div class="number-head"><h2 id="groupTitle">グループ</h2><button id="groupClose" aria-label="閉じる">×</button></div><p id="groupMembers"></p><div id="groupMemberList" class="group-member-list"></div><p id="groupPeople"></p><div id="groupOwnerTools" class="phone-form-row" hidden><label>グループ名<input id="groupRename" maxlength="40"></label><button id="groupRenameSave">名前を変更</button></div><div class="phone-form-row"><button id="groupAcceptInvite">承認する</button><button id="groupDeclineInvite">辞退する</button><button id="groupJoin">通話に参加</button><button id="groupShare">招待リンクをコピー</button></div><div id="groupInviteArea"><label for="groupInviteContact">電話帳から招待</label><select id="groupInviteContact"></select><button id="groupInviteSend">招待する</button></div><div class="phone-form-row"><button id="groupQuit">グループを退出</button><button id="groupDelete">グループを削除</button></div></dialog>
+<dialog id="groupDialog" class="number-modal" aria-labelledby="groupTitle"><div class="number-head"><h2 id="groupTitle">グループ</h2><button id="groupClose" aria-label="閉じる">×</button></div><p id="groupMembers"></p><fieldset id="groupSupportPicker" class="support-mode-picker"><legend>通話の種類</legend><label><input type="radio" name="groupSupportMode" value="support" checked><span><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> 理解サポートあり</span></label><label><input type="radio" name="groupSupportMode" value="plain"><span><i class="fa-solid fa-phone" aria-hidden="true"></i> 通話だけ</span></label></fieldset><div id="groupMemberList" class="group-member-list"></div><p id="groupPeople"></p><div id="groupOwnerTools" class="phone-form-row" hidden><label>グループ名<input id="groupRename" maxlength="40"></label><button id="groupRenameSave">名前を変更</button></div><div class="phone-form-row"><button id="groupAcceptInvite">承認する</button><button id="groupDeclineInvite">辞退する</button><button id="groupJoin">通話に参加</button><button id="groupShare">招待リンクをコピー</button></div><div id="groupInviteArea"><label for="groupInviteContact">電話帳から招待</label><select id="groupInviteContact"></select><button id="groupInviteSend">招待する</button></div><div class="phone-form-row"><button id="groupQuit">グループを退出</button><button id="groupDelete">グループを削除</button></div></dialog>
 
 
-    <dialog id="phoneDialConfirm" class="number-modal incoming-call" aria-labelledby="phoneDialConfirmTitle"><div class="number-head"><h2 id="phoneDialConfirmTitle">この相手に電話しますか？</h2><button id="phoneDialConfirmClose" aria-label="閉じる">×</button></div><strong id="phoneDialConfirmName"></strong><span id="phoneDialConfirmNumber"></span><div class="incoming-actions"><button id="phoneDialConfirmCancel" type="button"><i class="fa-solid fa-xmark"></i>やめる</button><button id="phoneDialConfirmCall" type="button"><i class="fa-solid fa-phone"></i>電話する</button></div></dialog><dialog id="phoneCallResultDialog" class="number-modal incoming-call call-result-dialog" aria-labelledby="phoneCallResultStatus"><div class="number-head"><h2 id="phoneCallResultStatus">応答なし</h2><button id="phoneCallResultClose" aria-label="閉じる">×</button></div><strong id="phoneCallResultName"></strong><span id="phoneCallResultNumber"></span><div class="call-result-actions"><button id="phoneCallResultHistory" type="button"><i class="fa-solid fa-clock-rotate-left"></i> 履歴へ戻る</button><button id="phoneCallResultRegister" type="button"><i class="fa-solid fa-address-book"></i> 電話帳に登録</button><button id="phoneCallResultRedial" type="button"><i class="fa-solid fa-phone"></i> もう一度かける</button></div></dialog><dialog id="phoneQrScanDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrScanTitle"><div class="number-head"><h2 id="phoneQrScanTitle">QRコードを読み取る</h2><button id="phoneQrScanClose" aria-label="閉じる">×</button></div><video id="phoneQrVideo" playsinline muted></video><canvas id="phoneQrCanvas" hidden></canvas><p id="phoneQrScanStatus">カメラをQRコードへ向けてください。</p></dialog>
+    <dialog id="phoneDialConfirm" class="number-modal incoming-call" aria-labelledby="phoneDialConfirmTitle"><div class="number-head"><h2 id="phoneDialConfirmTitle">この相手に電話しますか？</h2><button id="phoneDialConfirmClose" aria-label="閉じる">×</button></div><strong id="phoneDialConfirmName"></strong><span id="phoneDialConfirmNumber"></span><fieldset class="support-mode-picker"><legend>通話の種類</legend><label><input type="radio" name="phoneSupportMode" value="support" checked><span><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> 理解サポートあり</span></label><label><input type="radio" name="phoneSupportMode" value="plain"><span><i class="fa-solid fa-phone" aria-hidden="true"></i> 通話だけ</span></label></fieldset><div class="incoming-actions"><button id="phoneDialConfirmCancel" type="button"><i class="fa-solid fa-xmark"></i>やめる</button><button id="phoneDialConfirmCall" type="button"><i class="fa-solid fa-phone"></i>電話する</button></div></dialog><dialog id="phoneCallResultDialog" class="number-modal incoming-call call-result-dialog" aria-labelledby="phoneCallResultStatus"><div class="number-head"><h2 id="phoneCallResultStatus">応答なし</h2><button id="phoneCallResultClose" aria-label="閉じる">×</button></div><strong id="phoneCallResultName"></strong><span id="phoneCallResultNumber"></span><div class="call-result-actions"><button id="phoneCallResultHistory" type="button"><i class="fa-solid fa-clock-rotate-left"></i> 履歴へ戻る</button><button id="phoneCallResultRegister" type="button"><i class="fa-solid fa-address-book"></i> 電話帳に登録</button><button id="phoneCallResultRedial" type="button"><i class="fa-solid fa-phone"></i> もう一度かける</button></div></dialog><dialog id="phoneQrScanDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrScanTitle"><div class="number-head"><h2 id="phoneQrScanTitle">QRコードを読み取る</h2><button id="phoneQrScanClose" aria-label="閉じる">×</button></div><video id="phoneQrVideo" playsinline muted></video><canvas id="phoneQrCanvas" hidden></canvas><p id="phoneQrScanStatus">カメラをQRコードへ向けてください。</p></dialog>
     <dialog id="phoneConfirmDialog" class="number-modal action-confirm" aria-labelledby="phoneConfirmTitle"><div class="number-head"><h2 id="phoneConfirmTitle">確認</h2><button id="phoneConfirmClose" type="button" aria-label="閉じる">×</button></div><p id="phoneConfirmMessage" class="action-confirm-message"></p><div class="action-confirm-actions"><button id="phoneConfirmCancel" type="button">やめる</button><button id="phoneConfirmOk" type="button">続ける</button></div></dialog>
     <dialog id="phoneQrDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrTitle"><div class="number-head"><h2 id="phoneQrTitle">番号を交換</h2><button id="phoneQrClose" aria-label="閉じる">×</button></div><p>相手のカメラで読み取ると、電話帳の登録画面が開きます。</p><div id="phoneQrImage" class="phone-qr-image"></div><strong id="phoneQrNumber"></strong></dialog>
     <dialog id="appInfoTooltip" class="app-info-tooltip metrics-modal-card" aria-labelledby="appInfoTitle" aria-hidden="true">
@@ -4141,7 +4141,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <button id="micState" class="mic-state-toggle" type="button" disabled aria-label="マイクを解除" aria-pressed="true"><i class="fa-solid fa-microphone-lines"></i><span>マイク待ち</span></button>
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
-      <span id="callElapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span>
+      <span id="callElapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span><span id="activeSupportMode" class="active-support-mode"></span>
     </section>
 
     <section class="card participants-card">
@@ -4272,7 +4272,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <button id="costScenarioTab" role="tab" data-cost-tab aria-controls="costScenarioPanel" aria-selected="false" tabindex="-1" type="button">10分間の試算</button>
       </div>
       <section id="costScenarioPanel" role="tabpanel" aria-labelledby="costScenarioTab" hidden class="cost-scenario" aria-labelledby="costScenarioTitle">
-        <h3 id="costScenarioTitle">全機能を含む10分間の試算</h3>
+        <h3 id="costScenarioTitle">10分間の料金試算</h3>
         <h4>今回の利用ペースで10分使うと</h4>
         <p id="costLiveTotal" class="metrics-value" role="status"></p>
         <p id="costLiveConditions" class="caption-help"></p>
@@ -4287,7 +4287,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <h4>条件を指定して比較</h4>
         <div class="cost-scenario-inputs">
           <label>参加人数<select id="costParticipants"><option value="1">1人</option><option value="2" selected>2人</option><option value="3">3人</option><option value="4">4人</option></select></label>
-          <label>利用条件<select id="costScenario"><option value="cached">登録済み中心・たとえ再利用</option><option value="reuse">未登録候補あり・たとえ再利用</option><option value="new" selected>未登録候補あり・たとえ新規2回</option></select></label>
+          <label>利用条件<select id="costScenario"><option value="plain">通話だけ</option><option value="cached">登録済み中心・たとえ再利用</option><option value="reuse">未登録候補あり・たとえ再利用</option><option value="new" selected>未登録候補あり・たとえ新規2回</option></select></label>
         </div>
         <p id="costScenarioTotal" class="metrics-value" role="status"></p>
         <p class="caption-help">無料枠を差し引く前の利用相当額です。現在の通話の実測額や請求額ではありません。</p>
@@ -4401,12 +4401,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-04-group-guidance"></script>
-  <script src="./jsQR.js?v=2026-09-04-group-guidance"></script>
+  <script src="./qrcode-generator.js?v=2026-09-04-call-modes"></script>
+  <script src="./jsQR.js?v=2026-09-04-call-modes"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-group-guidance";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-04-call-modes";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-group-guidance";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-04-call-modes";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4448,8 +4448,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-04-group-guidance";
-    const CAPTIONS_ENABLED = true;
+    const APP_VERSION = "2026-09-04-call-modes";
+    const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
@@ -4571,6 +4571,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let userId = deviceId + "-" + sessionId.slice(-12);
     const callId = ensureCallId(params.get("call"));
     const isDefaultCall = callId === DEFAULT_CALL_ID;
+    const ACTIVE_SUPPORT_MODE = CAPTIONS_ENABLED ? "support" : "plain";
     normalizeCallUrl();
 
     const el = {
@@ -4785,13 +4786,17 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const text=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t};
       text('appInfoCostSummary','約'+c.total.toFixed(3)+'円');text('currentCallTotal','約'+c.total.toFixed(3)+'円');
       text('currentCallDuration',Math.floor(data.seconds/60)+'分'+Math.floor(data.seconds%60)+'秒');
-      text('currentCallCoverage',data.started ? data.devices+'参加分の受信済み集計' : '通話前');
+      text('currentCallCoverage',data.started ? data.devices+'参加分・'+(CAPTIONS_ENABLED?'理解サポートあり':'通話だけ') : '通話前・'+(CAPTIONS_ENABLED?'理解サポートあり':'通話だけ'));
       const discoveryProcesses=(data.values.discoveryExtract||0)+(data.values.discoveryReview||0)+(data.values.discovery||0)*2;
       const count={speech:(data.values.speechSeconds||0).toFixed(1)+'秒',discovery:discoveryProcesses+'処理',explanation:Math.max(0,(data.values.explanation||0)-(data.values.sharedExplanation||0))+'回',analogy:Math.max(0,(data.values.analogy||0)-(data.values.shared||0))+'回',firestore:'read '+(data.values.reads||0)+' / write '+(data.values.writes||0)+' / delete '+(data.values.deletes||0),turn:((data.values.turnBytes||0)/1e6).toFixed(3)+' MB'};
       for(const key of Object.keys(count))text('current-'+key,c[key].toFixed(4)+'円（'+count[key]+'）');
       text('current-shared',((data.values.shared||0)+(data.values.sharedExplanation||0))+'回（生成費0円）');
     }
     const costEstimator = createCostEstimator(document, getYenPerDollar, () => callCost.snapshot(currentCostExtras()));
+    if (!CAPTIONS_ENABLED) {
+      document.getElementById('costScenario').value = 'plain';
+      costEstimator.render();
+    }
     const metrics = createMetrics();
     window.voiceFirestoreMetrics = metrics;
     window.kouryuVoiceAppVersion = APP_VERSION;
@@ -4800,6 +4805,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     setVersionLabel();
     renderMetrics();
     setReadyStatus();
+    document.getElementById('activeSupportMode').textContent = CAPTIONS_ENABLED ? 'サポートあり' : '通話だけ';
 
     let captionController = null;
     if (CAPTIONS_ENABLED) {
@@ -5039,8 +5045,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       try {
         await ensureAnonymousAuth();
         if(/^n_|^g_/.test(callId)) userId=authUser.uid;
-        numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,status:notificationStatusText,test:testCallNotification},stop:()=>stopLocalCall(true),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
-          navigate:id=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('autoJoin','1');location.assign(u.toString());}});
+        numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId,supportMode:ACTIVE_SUPPORT_MODE}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,status:notificationStatusText,test:testCallNotification},stop:()=>stopLocalCall(true),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
+          navigate:(id,supportMode)=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('support',supportMode==='plain'?'plain':'support');u.searchParams.set('autoJoin','1');location.assign(u.toString());}});
         await numberCalls.start();
         if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", function(event) { numberCalls?.handlePushState(event.data); });
         // The number phonebook replaces the old registration-link flow.

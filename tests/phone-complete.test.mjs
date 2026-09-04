@@ -38,7 +38,7 @@ test('履歴からの再発信は応答なしになっても保存済みの相�
  assert.match(app,/data-dial-name="\$\{esc\(displayName\)\}"/);
  assert.match(app,/if\(d\.dial\)dial\(d\.dial,d\.dialName\)/);
  assert.match(app,/const targetName=contacts\.find\(c=>c\.number===number\)\?\.name\|\|savedName\|\|formatNumber\(number\)/);
- assert.match(app,/history\(id,\{number,name:targetName,status:r\.status,direction:'outgoing'\}\)/);
+ assert.match(app,/history\(id,\{number,name:targetName,status:r\.status,direction:'outgoing',supportMode\}\)/);
 });
 
 test('応答なし画面から再発信・登録・履歴へ移動できる',()=>{
@@ -108,6 +108,16 @@ test('電話帳追加ボタンはphoneHome内の右下固定で、よく使う�
 test('グループ画面に不要な説明文を表示しない',()=>{
  assert.doesNotMatch(html,/同じテーマで話す、最大4人の場所です/);
  assert.doesNotMatch(app,/同じテーマで話すグループを作れます/);
+});
+
+test('発信前に理解サポートありと通話だけを選び、着信・履歴・グループへ引き継ぐ',()=>{
+ assert.match(html,/name="phoneSupportMode" value="support"/);
+ assert.match(html,/name="phoneSupportMode" value="plain"/);
+ assert.match(html,/name="groupSupportMode"/);
+ assert.match(app,/supportMode,status:'ringing'/);
+ assert.match(app,/1対1・'\+modeLabel\(supportMode\)/);
+ assert.match(app,/navigate\(id,selected\)/);
+ assert.match(rules,/supportMode.*\['support','plain'\]/);
 });
 
 test('公開用の追加ファイルも同一',()=>{

@@ -4,14 +4,15 @@ import {DISCOVERY_INTERVAL_MS} from './learned-terms.js?v=2026-09-03-faster-term
 export function estimateOperatingCost({participants=2,rate=150,mode='new'}={}){
  const n=Math.min(4,Math.max(1,Math.round(Number(participants)||2)));
  const yen=Number.isFinite(Number(rate))&&Number(rate)>0?Number(rate):150;
+ const plain=mode==='plain';
  const busy=mode!=='cached',fresh=mode==='new';
  // With local VAD, a ten-minute conversation normally contains 7-9 total
  // billable speech minutes across the room rather than ten minutes per mic.
  const speechMinutes=Math.min(n*10,Math.max(7,5+n));
- const speech=46.63*.011/1000*speechMinutes*yen;
- const explanation=(500*.1+200*.3)/1e6*5*yen;
- const discovery=busy?((800*.1+200*.3)+(600*.1+400*.3))/1e6*Math.ceil(600000/DISCOVERY_INTERVAL_MS*.3)*yen:0;
- const analogy=fresh?(800*.1+600*.3)/1e6*2*yen:0;
+ const speech=plain?0:46.63*.011/1000*speechMinutes*yen;
+ const explanation=plain?0:(500*.1+200*.3)/1e6*5*yen;
+ const discovery=!plain&&busy?((800*.1+200*.3)+(600*.1+400*.3))/1e6*Math.ceil(600000/DISCOVERY_INTERVAL_MS*.3)*yen:0;
+ const analogy=!plain&&fresh?(800*.1+600*.3)/1e6*2*yen:0;
  const firestore=(1120*.03+260*.09+20*.01)/100000*yen;
  const turn=64000/8*600*n*(n-1)*2/1e9*.05*yen;
  const low=speech+explanation+discovery+analogy+firestore;
@@ -29,7 +30,7 @@ export function createCostEstimator(root,getRate,getSnapshot=()=>null){
   const projected=projectCallCost(getSnapshot(),getRate());
   const c=estimateOperatingCost({participants:people.value,mode:mode.value,rate:getRate()});
   const money=n=>n.toFixed(2)+'円',range=money(c.low)+'〜'+money(c.high);
-  const conditions=mode.value==='cached'?'登録済み中心・たとえ再利用':mode.value==='reuse'?'未登録候補あり・たとえ再利用':'未登録候補あり・たとえ新規2回';
+  const conditions=mode.value==='plain'?'通話だけ':mode.value==='cached'?'登録済み中心・たとえ再利用':mode.value==='reuse'?'未登録候補あり・たとえ再利用':'未登録候補あり・たとえ新規2回';
   const text=(id,value)=>{const el=node(id);if(el)el.textContent=value};
   text('costScenarioTotal',range);
   text('costLiveTotal',projected?'約'+projected.total.toFixed(3)+'円':'通話開始から30秒以降に表示');
@@ -38,7 +39,7 @@ export function createCostEstimator(root,getRate,getSnapshot=()=>null){
   text('tipsTenMinuteCost',range);text('tipsCostConditions',c.participants+'人・'+conditions+'の試算。実際の請求額ではありません。');
   for(const key of ['speech','explanation','discovery','analogy','firestore'])text('cost-'+key,money(c[key]));
   text('cost-turn','0円〜'+money(c.turn));
-  text('costAssumptions',c.participants+'人・発話区間だけをWhisperへ送信（通話全体で約'+Math.min(c.participants*10,Math.max(7,5+c.participants))+'分）、説明は全体で5回。'+(mode.value==='cached'?'登録済み用語を端末内で検出し、AI補助0回・たとえは再利用。':'未登録候補を15秒単位でまとめ、AI補助は通話全体で最大12回。たとえは'+(mode.value==='new'?'全体で2回新規生成。':'すべて再利用。'))+' 番号・電話帳・グループ・通話中の状態管理の余裕分として全体で120 reads・60 writesを含みます。1ドル＝'+c.rate.toFixed(2)+'円。');
+  text('costAssumptions',c.participants+'人・'+(mode.value==='plain'?'音声認識、用語検出、説明、たとえを使わない通話です。':('発話区間だけをWhisperへ送信（通話全体で約'+Math.min(c.participants*10,Math.max(7,5+c.participants))+'分）、説明は全体で5回。'+(mode.value==='cached'?'登録済み用語を端末内で検出し、AI補助0回・たとえは再利用。':'未登録候補を15秒単位でまとめ、AI補助は通話全体で最大12回。たとえは'+(mode.value==='new'?'全体で2回新規生成。':'すべて再利用。'))))+' 番号・電話帳・グループ・通話中の状態管理の余裕分として全体で120 reads・60 writesを含みます。1ドル＝'+c.rate.toFixed(2)+'円。');
   root.defaultView?.dispatchEvent(new root.defaultView.CustomEvent('kouryu-cost-estimate',{detail:{low:c.low,high:c.high,projected:projected?.total??null}}));
  }
  people?.addEventListener('change',render);mode?.addEventListener('change',render);

@@ -8,6 +8,7 @@ test('全機能の試算は人数・為替・共有たとえの再利用を反�
  const cached=estimateOperatingCost({participants:2,rate:150,mode:'cached'});assert.equal(cached.discovery,0);assert.equal(cached.analogy,0);
  assert.equal(estimateOperatingCost({participants:2,rate:300}).low,two.low*2);
  assert.equal(estimateOperatingCost({participants:1}).turn,0);
+ const plain=estimateOperatingCost({participants:2,rate:150,mode:'plain'});assert.equal(plain.speech,0);assert.equal(plain.discovery,0);assert.equal(plain.explanation,0);assert.equal(plain.analogy,0);assert.ok(plain.low>0);
 });
 test('人数と利用条件を変えると料金画面・ヒントを同じ試算に更新する',()=>{
  const nodes=new Map();const root={querySelector:key=>{if(!nodes.has(key))nodes.set(key,{value:key==='#costParticipants'?'2':'new',addEventListener(event,fn){this[event]=fn}});return nodes.get(key)}};

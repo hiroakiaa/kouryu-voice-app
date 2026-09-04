@@ -24,6 +24,7 @@ const KOURYU_VOICE_APP_URL = 'https://example.com/voice/';
 - `FOUR_PERSON_TEST.md`: 4台実機での通話確認手順
 - `OPERATIONS.md`: 料金監視と予算アラートの設定
 - `WHISPER-TERM-OPTIMIZATION.md`: 発話区間だけのWhisper認識、共有用語AI、料金計測
+- `TWO-CALL-MODES.md`: 「理解サポートあり」と「通話だけ」の選択、引き継ぎ、料金
 - `firestore.rules`: 通話データの項目と型を限定するFirestore Rules
 
 ## つながらない場合
