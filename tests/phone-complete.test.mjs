@@ -6,10 +6,11 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../phone-app.js',import.meta.url),'utf8');
 const rules=fs.readFileSync(new URL('../firestore.rules',import.meta.url),'utf8');
 
-test('通知・月間費用・発信確認を設定画面から利用できる',()=>{
- for(const id of ['phoneNotificationEnable','phoneNotificationTest','phoneNotificationStatus','phoneMonthlyBudget','phoneCloudflareActual','phoneMonthlySave','phoneMonthlyStatus','phoneDialConfirm']) assert.match(html,new RegExp(`id="${id}"`));
+test('通知・発信確認を設定画面から利用し、廃止した費用設定を表示しない',()=>{
+ for(const id of ['phoneNotificationEnable','phoneNotificationTest','phoneNotificationStatus','phoneDialConfirm']) assert.match(html,new RegExp(`id="${id}"`));
  assert.match(app,/showNotification|notifications\.test/);
- assert.match(app,/kouryu-monthly-budget-yen-v1/);
+ for(const id of ['phoneBudgetYen','phoneMonthlyBudget','phoneCloudflareActual','phoneMonthlyStatus']) assert.doesNotMatch(html,new RegExp(`id="${id}"`));
+ assert.doesNotMatch(app,/kouryu-monthly-budget-yen-v1|kouryu-cost-budget-yen-v1/);
 });
 
 test('発信確認は背景だけで画面を塞がず、連続操作でも二重に開かない',()=>{

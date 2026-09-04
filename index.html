@@ -4048,7 +4048,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-account-help">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-settings-tips">
 </head>
 <body class="phone-home">
   <main>
@@ -4081,7 +4081,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
  <section id="phoneContactsPanel" role="tabpanel" hidden><h2>電話帳</h2><div class="phone-list-tools"><input id="phoneContactSearch" type="search" placeholder="名前・番号で検索" aria-label="電話帳を検索"><button id="phoneQrScan" type="button"><i class="fa-solid fa-camera"></i> QRを読む</button></div><div id="phoneContacts"></div><details id="legacyPhonebook" hidden><summary>以前の電話帳から登録する</summary><p>相手の8桁の番号を確認して登録してください。</p><div id="legacyPhoneContacts"></div></details></section>
  <button id="phoneContactAddToggle" class="phone-add-fab" type="button" aria-label="電話帳に追加" aria-controls="phoneContactForm" aria-expanded="false"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
  <section id="phoneGroupsPanel" role="tabpanel" hidden><h2>グループ</h2><div class="phone-form-row"><input id="phoneGroupName" aria-label="新しいグループ名" placeholder="家族、旅行の相談 など" maxlength="40"><button id="phoneCreateGroup">グループを作る</button></div><div id="phoneGroupInvites"></div><div id="phoneGroups"></div></section>
- <section id="phoneSettingsPanel" role="tabpanel" hidden><h2>いつも使う通話</h2><fieldset class="support-mode-picker phone-default-mode"><legend>発信時の初期選択</legend><label><input type="radio" name="phoneDefaultMode" value="support"><span><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> 理解サポートあり</span></label><label><input type="radio" name="phoneDefaultMode" value="plain"><span><i class="fa-solid fa-phone" aria-hidden="true"></i> 通話だけ</span></label></fieldset><p class="phone-note">発信前にいつでも変更できます。最後に選んだ種類も次回の初期選択になります。</p><div class="account-help-head"><h2>番号の引き継ぎ</h2><button id="accountHelpToggle" class="phone-panel-icon" type="button" aria-label="番号の引き継ぎについて" aria-controls="accountHelpPanel" aria-expanded="false"><i class="fa-solid fa-circle-question" aria-hidden="true"></i></button></div><div id="accountHelpPanel" class="account-help-panel phone-collapsible" inert aria-hidden="true"><div id="accountSafety" class="account-safety" role="status"></div><p id="accountStatus" role="status"></p><p class="phone-note"><strong>この端末の番号を保存する：</strong>メールアドレスと6文字以上のパスワードを入力し、「この番号を保存」を押します。</p><p class="phone-note"><strong>別の端末で使う：</strong>保存に使ったメールアドレスとパスワードを入力し、「ログイン」を押します。番号・電話帳・履歴・グループが引き継がれます。</p><p class="phone-note">パスワードを忘れた場合は「パスワードを再設定」を押してください。</p></div><div class="phone-form-row account-fields"><label>メールアドレス<input id="phoneEmail" type="email" autocomplete="email"></label><label>パスワード<input id="phonePassword" type="password" minlength="6" autocomplete="current-password"></label></div><div id="accountActions" class="phone-form-row" hidden><button id="account-save">この番号を保存</button><button id="account-login">ログイン</button><button id="account-reset">パスワードを再設定</button><button id="account-logout">ログアウト</button></div><h3>着信通知</h3><div class="phone-form-row"><button id="phoneNotificationEnable" type="button">通知を有効にする</button><button id="phoneNotificationTest" type="button">通知をテスト</button></div><p id="phoneNotificationStatus" class="phone-note"></p><h3>着信音</h3><label class="phone-setting-check"><input id="phoneRingtone" type="checkbox" checked> 着信時に音を鳴らす</label><h3>10分間の費用通知</h3><div class="phone-form-row"><label>通知する金額（円）<input id="phoneBudgetYen" type="number" min="0.1" step="0.1" placeholder="例：5"></label><button id="phoneBudgetSave" type="button">保存</button></div><p id="phoneBudgetStatus" class="phone-note">空欄にすると通知しません。無料枠適用前の試算です。</p><h3>今月の運営費</h3><div class="phone-form-row"><label>月の予算（円）<input id="phoneMonthlyBudget" type="number" min="1" step="1" placeholder="例：1000"></label><label>Cloudflare画面の実費（円）<input id="phoneCloudflareActual" type="number" min="0" step="0.01" placeholder="例：0"></label><button id="phoneMonthlySave" type="button">保存</button></div><div id="phoneMonthlyStatus" class="account-safety"></div><h3>ブロックした相手</h3><div id="phoneBlocks"></div></section>
+ <section id="phoneSettingsPanel" role="tabpanel" hidden><h2>いつも使う通話</h2><fieldset class="support-mode-picker phone-default-mode"><legend>発信時の初期選択</legend><label><input type="radio" name="phoneDefaultMode" value="support"><span><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> 理解サポートあり</span></label><label><input type="radio" name="phoneDefaultMode" value="plain"><span><i class="fa-solid fa-phone" aria-hidden="true"></i> 通話だけ</span></label></fieldset><p class="phone-note">発信前にいつでも変更できます。最後に選んだ種類も次回の初期選択になります。</p><div class="account-help-head"><h2>番号の引き継ぎ</h2><button id="accountHelpToggle" class="phone-panel-icon" type="button" aria-label="番号の引き継ぎについて" aria-controls="accountHelpPanel" aria-expanded="false"><i class="fa-solid fa-circle-question" aria-hidden="true"></i></button></div><div id="accountHelpPanel" class="account-help-panel phone-collapsible" inert aria-hidden="true"><div id="accountSafety" class="account-safety" role="status"></div><p id="accountStatus" role="status"></p><p class="phone-note"><strong>この端末の番号を保存する：</strong>メールアドレスと6文字以上のパスワードを入力し、「この番号を保存」を押します。</p><p class="phone-note"><strong>別の端末で使う：</strong>保存に使ったメールアドレスとパスワードを入力し、「ログイン」を押します。番号・電話帳・履歴・グループが引き継がれます。</p><p class="phone-note">パスワードを忘れた場合は「パスワードを再設定」を押してください。</p></div><div class="phone-form-row account-fields"><label>メールアドレス<input id="phoneEmail" type="email" autocomplete="email"></label><label>パスワード<input id="phonePassword" type="password" minlength="6" autocomplete="current-password"></label></div><div id="accountActions" class="phone-form-row" hidden><button id="account-save">この番号を保存</button><button id="account-login">ログイン</button><button id="account-reset">パスワードを再設定</button><button id="account-logout">ログアウト</button></div><h3>着信通知</h3><div class="phone-form-row"><button id="phoneNotificationEnable" type="button">通知を有効にする</button><button id="phoneNotificationTest" type="button">通知をテスト</button></div><p id="phoneNotificationStatus" class="phone-note"></p><h3>着信音</h3><label class="phone-setting-check"><input id="phoneRingtone" type="checkbox" checked> 着信時に音を鳴らす</label><h3>ブロックした相手</h3><div id="phoneBlocks"></div></section>
 </section>
 <dialog id="phoneContactForm" class="number-modal contact-form-dialog" aria-labelledby="phoneContactFormTitle"><div class="number-head"><h2 id="phoneContactFormTitle">電話帳に追加</h2><button id="phoneContactFormClose" type="button" aria-label="閉じる">×</button></div><div class="phone-form-row"><label>8桁の番号<input id="phoneContactNumber" inputmode="numeric" maxlength="20" placeholder="1234 5678"></label><label>登録する名前<input id="phoneContactName" maxlength="40" placeholder="お母さん、田中さん など"></label><label>よみがな<input id="phoneContactReading" maxlength="40" placeholder="たなか など"></label></div><button id="phoneAddContact" type="button"><i class="fa-solid fa-address-book" aria-hidden="true"></i> 登録・更新</button></dialog>
 <dialog id="phoneNameDialog" class="card call-tips" aria-labelledby="phoneNameTitle"><div class="tips-modal-head"><h2 id="phoneNameTitle">名前を編集</h2><button id="phoneNameClose" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><form id="phoneNameForm"><label for="phoneName">相手に表示する名前（8文字まで）</label><input id="phoneName" maxlength="8" autocomplete="nickname" required><p id="phoneNameMessage" role="status"></p><button id="phoneSaveName" type="submit">保存する</button></form></dialog>
@@ -4124,19 +4124,17 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     </dialog>
 
     <dialog id="callTips" class="card call-tips" aria-labelledby="callTipsTitle" aria-hidden="true">
-      <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
-      <span class="tip-item"><i class="fa-solid fa-link"></i><span><strong>番号で電話</strong><span>相手の8桁の番号に発信し、相手が応答すると1対1で話せます。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>参加で開始</strong><span>表示名を入れてから参加すると相手に名前が伝わります。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近いとノイズやハウリングが出やすくなります。</span></span></span>
-      <span id="deviceTip" class="tip-item"><i class="fa-solid fa-mobile-screen-button"></i><span><strong>端末音量は控えめ</strong><span>最初は小さめにして、聞こえ方を確認してください。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>音声は端末同士</strong><span>Firestoreは接続準備に使い、声そのものは保存しません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-user-shield"></i><span><strong>プライバシー</strong><span>音声は録音・保存しません。接続環境によっては通話を成立させるためCloudflare TURNを経由します。通話中は自分の音声と短い認識文をCloudflareのAIへ送信し、用語を自動検出します。ミュート中・退室後は停止します。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-circle-check"></i><span><strong>利用者の料金は0円</strong><span>このアプリの通話料金や利用料金が、参加者に請求されることはありません。通信会社の通常のデータ通信量は使用します。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-chart-line"></i><span><strong>運営費の目安</strong><span>左上のアプリ情報→「料金目安」で、音声認識・用語AI補助・説明・たとえを含む費用を確認できます。</span><span class="tip-cost-estimate"><span class="tip-cost-line">通話全体の10分で <strong id="tipsTenMinuteCost" class="tip-cost-number">計算中</strong></span><span id="tipsCostConditions" class="tip-cost-line"></span><span class="tip-cost-line">無料枠内の追加請求は0円。残りの無料枠はこの画面では取得していません。</span></span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-plus"></i><span><strong>グループ</strong><span>同じテーマで話す場所を作り、招待を承認した最大4人で繰り返し使えます。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>電話帳から電話</strong><span>相手の番号と自分がわかりやすい名前を登録します。履歴や共有リンクからも登録できます。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>
-    </dialog>
+<div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
+      <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」タブで相手の8桁の番号を入力します。発信前に通話の種類を選べます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>理解サポートあり</strong><span>会話から用語を見つけます。表示された用語を押すと短い説明を確認でき、必要なときだけ「たとえを見る」を使えます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-phone-volume"></i><span><strong>通話だけ</strong><span>音声通話だけを使い、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-clock-rotate-left"></i><span><strong>履歴と電話帳</strong><span>履歴からかけ直したり、相手を電話帳へ登録したりできます。よく使う相手は履歴の上に表示されます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ通話</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。通話の種類は管理者が選びます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>設定</strong><span>いつも使う通話の種類、番号の引き継ぎ、着信通知、着信音、ブロックした相手を確認できます。</span></span></span>
+      <span id="deviceTip" class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近い場合は、ハウリングを避けるためイヤホンを使い、最初は端末音量を控えめにしてください。</span></span></span>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>声は保存しません</strong><span>声はWebRTCで端末間を移動し、接続環境によってCloudflare TURNを経由します。録音はしません。理解サポートありの場合だけ、発話部分を用語検出へ送ります。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-yen-sign"></i><span><strong>料金を確認</strong><span>左上のアプリ情報から、今回の通話と10分間の概算を確認できます。参加者へアプリ利用料金は請求されませんが、通常のデータ通信量は使用します。</span><span class="tip-cost-estimate"><span class="tip-cost-line">通話全体の10分で <strong id="tipsTenMinuteCost" class="tip-cost-number">計算中</strong></span><span id="tipsCostConditions" class="tip-cost-line"></span><span class="tip-cost-line">表示額は無料枠適用前の利用相当額です。</span></span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <button id="micState" class="mic-state-toggle" type="button" disabled aria-label="マイクを解除" aria-pressed="true"><i class="fa-solid fa-microphone-lines"></i><span>マイク待ち</span></button>
@@ -4401,12 +4399,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-05-account-help"></script>
-  <script src="./jsQR.js?v=2026-09-05-account-help"></script>
+  <script src="./qrcode-generator.js?v=2026-09-05-settings-tips"></script>
+  <script src="./jsQR.js?v=2026-09-05-settings-tips"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-account-help";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-settings-tips";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-account-help";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-settings-tips";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4448,7 +4446,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-account-help";
+    const APP_VERSION = "2026-09-05-settings-tips";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
