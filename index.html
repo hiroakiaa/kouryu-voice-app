@@ -4048,7 +4048,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-no-panel-xscroll">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-round-help-icons">
 </head>
 <body class="phone-home">
   <main>
@@ -4400,12 +4400,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-05-no-panel-xscroll"></script>
-  <script src="./jsQR.js?v=2026-09-05-no-panel-xscroll"></script>
+  <script src="./qrcode-generator.js?v=2026-09-05-round-help-icons"></script>
+  <script src="./jsQR.js?v=2026-09-05-round-help-icons"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-no-panel-xscroll";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-round-help-icons";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-no-panel-xscroll";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-round-help-icons";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4447,7 +4447,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-no-panel-xscroll";
+    const APP_VERSION = "2026-09-05-round-help-icons";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;

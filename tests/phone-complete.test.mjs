@@ -35,6 +35,11 @@ test('670px以下ではタブ以外のパネルを横スクロールさせない
  assert.match(css,/\.phone-home-card \.phone-tabs\{[^}]*overflow-x:auto/);
 });
 
+test('設定のはてなアイコンは狭い画面でも真円を保つ',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.phone-help-icon,\.phone-home-card \.account-help-head \.phone-panel-icon\{[^}]*width:40px!important[^}]*height:40px!important[^}]*min-width:40px!important[^}]*aspect-ratio:1\/1[^}]*border-radius:50%!important/);
+});
+
 test('発信確認は背景だけで画面を塞がず、連続操作でも二重に開かない',()=>{
  assert.match(html,/\.number-modal\.incoming-call\[open\]\s*\{[^}]*display:block/);
  assert.match(app,/if\(!dialog\.open\)dialog\.showModal\(\)/);

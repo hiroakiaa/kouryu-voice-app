@@ -251,3 +251,8 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
  .metrics-modal-card dd{text-align:left!important;white-space:normal!important}
 }
 @media(max-width:420px){.phone-home-card #accountActions{grid-template-columns:minmax(0,1fr)}.phone-home-card .phone-row>button{flex:1 1 44px}.phone-home-card .phone-primary-form{grid-template-columns:minmax(0,1fr) auto}}
+
+/* Keep every settings help control perfectly circular, even in a shrinking flex row. */
+.phone-help-icon,.phone-home-card .account-help-head .phone-panel-icon{display:grid!important;place-items:center;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex:0 0 40px!important;aspect-ratio:1/1;box-sizing:border-box;padding:0!important;border:2px solid #9fc982!important;border-radius:50%!important;line-height:1;box-shadow:0 3px 0 #dceaca!important}
+.phone-help-icon i,.account-help-head .phone-panel-icon i{display:block;width:1em;height:1em;line-height:1;text-align:center}
+.phone-help-icon[aria-expanded="true"],.account-help-head .phone-panel-icon[aria-expanded="true"]{border-color:#71ae4e!important;background:#def2c7}
