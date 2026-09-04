@@ -35,10 +35,23 @@ test('ボタン操作でテキスト入力カーソルや文字選択を出さ�
 });
 
 test('履歴からの再発信は応答なしになっても保存済みの相手名を保持する',()=>{
- assert.match(app,/data-dial-name="\$\{esc\(h\.name\)\}"/);
+ assert.match(app,/data-dial-name="\$\{esc\(displayName\)\}"/);
  assert.match(app,/if\(d\.dial\)dial\(d\.dial,d\.dialName\)/);
  assert.match(app,/const targetName=contacts\.find\(c=>c\.number===number\)\?\.name\|\|savedName\|\|formatNumber\(number\)/);
  assert.match(app,/history\(id,\{number,name:targetName,status:r\.status,direction:'outgoing'\}\)/);
+});
+
+test('応答なし画面から再発信・登録・履歴へ移動できる',()=>{
+ for(const id of ['phoneCallResultDialog','phoneCallResultName','phoneCallResultNumber','phoneCallResultHistory','phoneCallResultRegister','phoneCallResultRedial']) assert.match(html,new RegExp(`id="${id}"`));
+ assert.match(app,/function showCallResult/);
+ assert.match(app,/showCallResult\('応答なし',targetName,number\)/);
+});
+
+test('履歴は最新の電話帳名、番号、個別の詳細を表示する',()=>{
+ assert.match(app,/preferredHistoryName\(h,contacts\)/);
+ assert.match(app,/history-details/);
+ assert.match(app,/h\.entries\.map/);
+ assert.match(html,/保存した番号・電話帳・履歴・グループが同じアカウントの端末に同期/);
 });
 
 test('QR読み取りはBarcodeDetector非対応ブラウザでもjsQRを使う',()=>{
