@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="turn-credentials-endpoint" content="https://kouryu-turn-credentials.allinone-hiroakiaa.workers.dev/">
   <meta name="push-endpoint" content="https://kouryu-call-notifications.allinone-hiroakiaa.workers.dev">
-  <meta name="push-vapid-public-key" content="BE2-Tk29DXccuqUnn8Mu9emNPGMMQBSlxV5SCJ05i8Ba2rab35DzvkmgQZyra5YmDlkhH3q0FQdC96pGzAQyxH4">
+  <meta name="push-vapid-public-key" content="BJOf_Q32-t3dIpn9BKy4Q2lOJ0c2QYd-hIjBa9y9CZBW42Paceydoh_w2mb0-GkVXGvm2PK3fZygnXrFeKfPNEs">
   <meta name="firebase-app-check-site-key" content="6LeJtoEtAAAAABNV7YMtZBvBbhhh7hfT9l5cWxsp">
   <meta name="theme-color" content="#f4ffe4">
   <link rel="manifest" href="./manifest.webmanifest">
@@ -4103,7 +4103,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-push-rejection-detail">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-vapid-rotation">
 </head>
 <body class="phone-home">
   <main>
@@ -4459,7 +4459,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-push-rejection-detail";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-vapid-rotation";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4504,7 +4504,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-push-rejection-detail";
+    const APP_VERSION = "2026-09-05-vapid-rotation";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -7644,10 +7644,17 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const registration = await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
+      const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
+      const currentKey = subscription && subscription.options ? subscription.options.applicationServerKey : null;
+      if (subscription && currentKey) {
+        const currentBytes = new Uint8Array(currentKey);
+        const keyMatches = currentBytes.length === expectedKey.length && currentBytes.every(function(byte, index) { return byte === expectedKey[index]; });
+        if (!keyMatches) { await subscription.unsubscribe(); subscription = null; }
+      }
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY)
+          applicationServerKey: expectedKey
         });
       }
       const token = await authUser.getIdToken();
