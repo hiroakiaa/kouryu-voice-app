@@ -222,6 +222,12 @@ test('グループは招待状態・参加状況・履歴からの再参加を�
  assert.match(rules,/request\.resource\.data\.status == 'cancelled'/);
  assert.match(rules,/'groupId','callType','participantCount'/);
 });
+test('グループカードの操作ボタンは常に右端へ寄せる',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.group-row>div:first-child\{flex:1 1 auto;min-width:0\}/);
+ assert.match(css,/\.group-row-actions\{[^}]*justify-content:flex-end;[^}]*margin-left:auto/);
+ assert.doesNotMatch(css,/\.group-row-actions\{width:100%\}/);
+});
 
 test('着信応答では元画面を通話画面に見せず通話URLへ確実に移動する',()=>{
  assert.match(app,/function prepareCallNavigation\(\)/);
