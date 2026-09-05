@@ -300,6 +300,7 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 .phone-home-card>[role="tabpanel"]{order:1}
 .phone-home-card>.phone-add-fab{bottom:86px}
 @media(max-width:540px){.phone-home-card>.phone-tabs{padding:7px 2px 3px}.phone-home-card>.phone-add-fab{bottom:72px}}
+@media(min-width:640px){body.phone-home .phone-home-card{padding-bottom:4px}.phone-home-card>.phone-tabs{padding-bottom:2px}}
 
 /* Keep every settings help control perfectly circular, even in a shrinking flex row. */
 .phone-help-icon,.phone-home-card .account-help-head .phone-panel-icon{display:grid!important;place-items:center;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex:0 0 40px!important;aspect-ratio:1/1;box-sizing:border-box;padding:0!important;border:2px solid #9fc982!important;border-radius:50%!important;line-height:1;box-shadow:0 3px 0 #dceaca!important}
