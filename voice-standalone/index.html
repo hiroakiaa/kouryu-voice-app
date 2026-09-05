@@ -3992,6 +3992,44 @@
       position:relative;inset:auto;flex:0 0 3rem;width:3rem;height:3rem;
     }
     body.is-in-call .participants .participant.is-self {margin-left:auto;}
+    body.is-in-call .participants .participant {
+      border:2px solid #acd587;
+      border-radius:50%;
+      background:linear-gradient(145deg,#fffef8 0%,#edf8df 100%);
+      color:#304d2c;
+      box-shadow:0 4px 0 rgba(129,181,84,.22);
+      overflow:visible;
+    }
+    body.is-in-call .participants .participant::before {
+      inset:4px;
+      border:1px dashed rgba(102,166,67,.55);
+      border-radius:50%;
+    }
+    body.is-in-call .participants .participant.is-self {
+      border-color:#79bd50;
+      background:linear-gradient(145deg,#f8ffe9 0%,#dff4bf 100%);
+      color:#284727;
+    }
+    body.is-in-call .participants .participant .avatar-initial {
+      position:relative;
+      z-index:1;
+      font-size:1.05rem;
+      line-height:1;
+    }
+    body.is-in-call .participants .participant-state-badge,
+    body.is-in-call .participants .participant.is-self .participant-state-badge {
+      left:50%;right:auto;top:calc(100% + 7px);bottom:auto;
+      transform:translateX(-50%);
+      gap:4px;max-width:none;padding:3px 8px;
+      border:1px solid #b7d99a;border-radius:999px;
+      background:#fffef8;color:#486640;
+      box-shadow:0 2px 0 rgba(129,181,84,.14);
+      font-size:11px;line-height:1.25;letter-spacing:.01em;
+    }
+    body.is-in-call .participants .participant-state-badge.is-waiting {background:#f4f9e9;color:#5d7354;}
+    body.is-in-call .participants .participant-state-badge.is-connected {background:#e8f7d8;color:#356b2d;border-color:#94c96d;}
+    body.is-in-call .participants .participant-state-badge.is-speaking {background:#def5cf;color:#276227;border-color:#72bd52;}
+    body.is-in-call .participants .participant-state-badge.is-muted {background:#f1f1e9;color:#667060;border-color:#c5cfb9;}
     .participants-card {position:relative;}
     .participants-card .notice {display:block;position:absolute;z-index:6;left:50%;bottom:10px;width:max-content;max-width:calc(100% - 24px);min-height:0;max-height:none;box-sizing:border-box;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,254,248,.96);box-shadow:0 6px 20px rgba(52,69,47,.14);opacity:0;transform:translate(-50%,8px);transition:opacity .22s ease,transform .22s ease;pointer-events:none;white-space:normal;}
     .participants-card .notice.is-visible {opacity:1;transform:translate(-50%,0);}
@@ -4065,7 +4103,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-group-join-button-style">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-participant-style">
 </head>
 <body class="phone-home">
   <main>
@@ -4420,7 +4458,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-group-join-button-style";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-participant-style";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4464,7 +4502,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-group-join-button-style";
+    const APP_VERSION = "2026-09-05-participant-style";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -6578,7 +6616,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     function getParticipantStatusMeta(item, isSelf) {
       if (item.muted) {
         return {
-          label: isSelf ? "自分 OFF" : "ミュート",
+          label: isSelf ? "自分・マイクOFF" : "ミュート中",
           detail: isSelf ? "自分はミュート中です" : "ミュート中です",
           className: "is-muted",
           icon: "fa-microphone-slash"
@@ -6586,7 +6624,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
       if (item.speaking) {
         return {
-          label: isSelf ? "自分が会話中" : "会話中",
+          label: isSelf ? "自分・会話中" : "会話中",
           detail: isSelf ? "自分が話しています" : "話しています",
           className: "is-speaking",
           icon: "fa-volume-high"
@@ -6598,14 +6636,14 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
       if (item.connected) {
         return {
-          label: isSelf ? "自分 接続済み" : "接続済み",
+          label: isSelf ? "自分・接続中" : "接続中",
           detail: isSelf ? "自分は接続済みです" : "接続済みです",
           className: "is-connected",
           icon: "fa-phone-volume"
         };
       }
       return {
-        label: isSelf ? "自分 待機" : "待機",
+        label: isSelf ? "自分・待機中" : "待機中",
         detail: isSelf ? "自分は待機中です" : "待機中です",
         className: "is-waiting",
         icon: "fa-user-clock"
