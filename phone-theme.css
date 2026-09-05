@@ -360,3 +360,23 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 #phoneDialConfirmCall span,#phoneDialConfirmCall i{position:relative;z-index:1;color:#31582a!important}
 #phoneDialConfirmCall i{font-size:28px}
 @media(max-width:420px){.dial-confirm-dialog{padding:30px 18px 22px}.dial-confirm-person{padding-inline:42px}#phoneDialConfirmName{font-size:29px!important}.dial-mode-toggle span{padding-inline:9px;font-size:11px}#phoneDialConfirmCall{min-height:66px}}
+
+.group-detail-dialog .group-mode-toggle{
+ width:min(340px,100%);min-inline-size:0;margin:2px auto 16px;
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;padding:3px;
+ border:1px solid #cbdcb9;border-radius:999px;background:#edf5e4;
+}
+.group-detail-dialog .group-mode-toggle label{display:flex;align-items:stretch;margin:0;padding:0;}
+.group-detail-dialog .group-mode-toggle span{
+ width:100%;height:42px;min-height:42px;padding:6px 10px;
+ border:0;border-radius:999px;background:transparent;color:#62705c;
+ font-size:13px;font-weight:700;white-space:nowrap;box-shadow:none!important;
+}
+.group-detail-dialog .group-mode-toggle input:checked+span{
+ border:0;background:#fffef8;color:#365d2b;
+ box-shadow:0 1px 7px rgba(47,77,43,.16)!important;
+}
+.group-detail-dialog .group-mode-toggle input:disabled+span{opacity:.7;cursor:default;}
+@media(max-width:390px){
+ .group-detail-dialog .group-mode-toggle span{gap:5px;padding-inline:7px;font-size:12px;}
+}
