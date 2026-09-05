@@ -299,5 +299,8 @@ test('発信確認は名前と電話操作を主役にし、通話種類を控�
  assert.match(html,/通常電話/);
  assert.match(css,/#phoneDialConfirmName\{[^}]*font-size:32px/);
  assert.match(css,/#phoneDialConfirmCall\{[^}]*min-height:70px/);
- assert.match(css,/#phoneDialConfirmCancel\{[^}]*min-height:40px/);
+ assert.doesNotMatch(html,/id="phoneDialConfirmCancel"/);
+ assert.match(html,/id="phoneSupportHelpToggle"[^>]*aria-controls="phoneSupportHelpPanel"/);
+ assert.match(css,/\.dial-mode-toggle\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/#phoneDialConfirmCall\{[^}]*color:#fff!important/);
 });

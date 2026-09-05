@@ -297,19 +297,23 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #numberIncoming .incoming-block:hover,#numberIncoming .incoming-block:focus-visible{background:#f0f6e8!important;color:#384d33!important;text-decoration:underline}
 @media(max-width:420px){#numberIncoming{padding:26px 20px 22px}#numberIncoming .incoming-actions{gap:38px;margin-top:26px}#numberIncoming #numberCaller{font-size:28px}}
 
-.dial-confirm-dialog{position:relative;width:min(390px,calc(100% - 28px));padding:34px 28px 26px;text-align:center}
+.dial-confirm-dialog{position:relative;width:min(390px,calc(100% - 28px));padding:34px 28px 28px;text-align:center;border:3px solid #78b952;background:linear-gradient(180deg,#fffef9 0%,#fbfdf5 100%);box-shadow:0 20px 70px #13200f55,inset 0 0 0 7px #f1f8e7}
 .dial-confirm-close{position:absolute;top:16px;right:16px;display:grid;place-items:center;width:42px;height:42px;min-height:42px;padding:0;border:1px solid #c5dda9;border-radius:50%;background:#f3fae8;color:#3d5836;box-shadow:none!important}
 .dial-confirm-person{padding:16px 48px 4px}
 #phoneDialConfirmName{display:block;margin:0!important;color:#2f4d2b;font-size:32px!important;line-height:1.25;font-weight:800;overflow-wrap:anywhere}
 #phoneDialConfirmNumber{display:block;margin:8px 0 0!important;color:#71806a;font-size:17px!important;line-height:1.3;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.08em!important}
-.dial-mode-toggle{display:inline-grid;grid-template-columns:1fr 1fr;width:auto;max-width:100%;gap:3px;margin:22px auto 24px;padding:3px;border:1px solid #cbdcb9;border-radius:999px;background:#edf5e4}
+.dial-mode-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:22px auto 24px}
+.dial-mode-toggle{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:min(268px,calc(100% - 44px));gap:3px;margin:0;padding:3px;border:1px solid #cbdcb9;border-radius:999px;background:#edf5e4;box-sizing:border-box}
 .dial-mode-toggle label{min-width:0}
 .dial-mode-toggle span{min-height:36px;padding:5px 11px;border:0;border-radius:999px;background:transparent;color:#62705c;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:none!important}
 .dial-mode-toggle input:checked+span{border:0;background:#fffef8;color:#365d2b;box-shadow:0 2px 7px rgba(47,77,43,.14)!important}
+.dial-support-help{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;min-height:36px;padding:0;border:2px solid #9fc982;border-radius:50%;background:#f6fbe9;color:#44633a;font-size:13px;box-shadow:0 2px 0 #dceaca!important}
+.dial-support-help[aria-expanded="true"]{background:#def2c7}
+.dial-support-help-panel{width:min(310px,100%);box-sizing:border-box;text-align:left;color:#4a6042;background:#f3f8eb;border:1px solid #cfdfc0;border-radius:14px}
+.dial-support-help-panel.is-visible{max-height:150px!important;margin:-12px auto 22px!important;padding:12px 14px!important;border-width:1px!important}
+.dial-support-help-panel strong{display:block;margin-bottom:4px;font-size:13px;color:#36552f}
+.dial-support-help-panel p{margin:0;font-size:12px;line-height:1.55}
 .dial-confirm-actions{display:flex;flex-direction:column;align-items:center;gap:12px}
-#phoneDialConfirmCall{display:flex;align-items:center;justify-content:center;gap:12px;width:min(280px,100%);min-height:70px;padding:14px 24px;border:2px solid #55a536;border-radius:24px;background:#61b83d!important;color:#fff;font-size:20px;font-weight:800;box-shadow:0 5px 0 #d1e8bc,0 10px 24px rgba(53,92,41,.18)!important}
+#phoneDialConfirmCall{display:flex;align-items:center;justify-content:center;gap:12px;width:min(280px,100%);min-height:70px;padding:14px 24px;border:2px solid #55a536;border-radius:24px;background:#61b83d!important;color:#fff!important;font-size:20px;font-weight:800;box-shadow:0 5px 0 #d1e8bc,0 10px 24px rgba(53,92,41,.18)!important}
 #phoneDialConfirmCall i{font-size:28px}
-#phoneDialConfirmCancel{display:flex;align-items:center;justify-content:center;gap:6px;width:auto;min-height:40px;padding:7px 14px;border:0!important;border-radius:12px;background:transparent!important;color:#687463;font-size:13px;font-weight:600;box-shadow:none!important}
-#phoneDialConfirmCancel i{font-size:13px}
-#phoneDialConfirmCancel:hover,#phoneDialConfirmCancel:focus-visible{background:#f0f5e9!important;color:#394d34}
 @media(max-width:420px){.dial-confirm-dialog{padding:30px 18px 22px}.dial-confirm-person{padding-inline:42px}#phoneDialConfirmName{font-size:29px!important}.dial-mode-toggle span{padding-inline:9px;font-size:11px}#phoneDialConfirmCall{min-height:66px}}
