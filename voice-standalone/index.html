@@ -4103,7 +4103,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-notification-event-fix">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-remote-push-test">
 </head>
 <body class="phone-home">
   <main>
@@ -4459,7 +4459,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-notification-event-fix";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-remote-push-test";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4504,7 +4504,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-notification-event-fix";
+    const APP_VERSION = "2026-09-05-remote-push-test";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -7606,8 +7606,17 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     async function testCallNotification() {
       if (!("Notification" in window) || Notification.permission !== "granted") await enableCallNotifications();
       if (Notification.permission !== "granted") throw new Error("通知を先に許可してください。");
-      const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification("わかる電話のテスト通知", { body: "着信通知を受け取れる状態です。", icon: "./app-icon.svg", badge: "./app-icon.svg", tag: "kouryu-notification-test" });
+      await registerClosedAppNotifications();
+      const token = await authUser.getIdToken();
+      const response = await fetch(PUSH_ENDPOINT + "/push/test", { method: "POST", headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" }, body: "{}" });
+      let result = {};
+      try { result = await response.json(); } catch (_) {}
+      if (!response.ok || !result.delivered) {
+        localStorage.setItem("kouryu-closed-app-notifications", "disabled");
+        if (result.error === "subscription_missing") throw new Error("通知先の登録がありません。通知を一度OFFにしてからONにしてください。");
+        if (result.error === "push_rejected") throw new Error("iPhoneが通知を受け付けませんでした。通知を一度OFFにしてからONにしてください。");
+        throw new Error("通知サーバーから送信できませんでした。少し待ってからもう一度お試しください。");
+      }
     }
 
     function isIosDevice() {

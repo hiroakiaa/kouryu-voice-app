@@ -1,4 +1,4 @@
-const CACHE_NAME = "kouryu-voice-shell-v3";
+const CACHE_NAME = "kouryu-voice-shell-v4";
 const APP_SCOPE_URL = new URL("./", self.location.href).toString();
 
 self.addEventListener("install", function(event) {
@@ -16,26 +16,27 @@ self.addEventListener("activate", function(event) {
 self.addEventListener("push", function(event) {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (_) {}
+  const isTest = data.kind === "test";
   const callerName = String(data.callerName || "匿名さん").slice(0, 40);
   const callId = String(data.callId || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 48);
   const invitationId = String(data.invitationId || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 64);
   const callerUid = String(data.callerUid || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 128);
-  const action = data.action === "cancel" ? "cancel" : "ring";
+  const action = isTest ? "test" : data.action === "cancel" ? "cancel" : "ring";
   const target = new URL("./", APP_SCOPE_URL);
   if (callId) target.searchParams.set("call", callId);
   if (invitationId) target.searchParams.set("incomingInvite", invitationId);
   target.searchParams.set("fromPush", "1");
   event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(windows) {
-    windows.forEach(function(client) { client.postMessage({ type: "kouryu-phone-state", action, callerUid }); });
+    if (!isTest) windows.forEach(function(client) { client.postMessage({ type: "kouryu-phone-state", action, callerUid }); });
     if (action === "cancel") {
       return self.registration.getNotifications({ tag: "kouryu-call-" + (invitationId || callId || "incoming") })
         .then(function(items) { items.forEach(function(item) { item.close(); }); });
     }
-    return self.registration.showNotification(callerName + "さんから着信です", {
-    body: "タップして応答画面を開きます。",
+    return self.registration.showNotification(isTest ? "わかる電話のテスト通知" : callerName + "さんから着信です", {
+    body: isTest ? "アプリを閉じていても通知を受け取れる状態です。" : "タップして応答画面を開きます。",
     icon: "./app-icon.svg",
     badge: "./app-icon.svg",
-    tag: "kouryu-call-" + (invitationId || callId || "incoming"),
+    tag: isTest ? "kouryu-notification-test" : "kouryu-call-" + (invitationId || callId || "incoming"),
     renotify: true,
     requireInteraction: true,
     data: { url: target.toString() }

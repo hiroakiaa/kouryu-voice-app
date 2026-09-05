@@ -348,6 +348,9 @@ test("着信通知は端末ごとにON・OFFでき、iPhoneにも暗号化した
   assert.match(rootHtml, /\/push\/unregister/);
   assert.doesNotMatch(turnWorker, /hostname\.endsWith\("push\.apple\.com"\)/);
   assert.match(turnWorker, /Content-Encoding": "aes128gcm"/);
+  assert.match(rootHtml, /PUSH_ENDPOINT \+ "\/push\/test"/);
+  assert.match(turnWorker, /path === "\/push\/test"/);
+  assert.match(serviceWorker, /isTest \? "わかる電話のテスト通知"/);
 });
 
 test("接続診断は通話状態・マイク・音声接続・再接続・通信経路をまとめる", () => {

@@ -166,6 +166,20 @@ async function handlePush(request, env, origin, path) {
     await env.PUSH_SUBSCRIPTIONS.delete(uid);
     return response({ ok: true }, 200, origin);
   }
+  if (path === "/push/test") {
+    const stored = await env.PUSH_SUBSCRIPTIONS.get(uid, "json");
+    if (!stored || !validSubscription(stored.subscription)) return response({ ok: false, error: "subscription_missing" }, 404, origin);
+    try {
+      const pushResponse = await sendWebPush(stored.subscription, JSON.stringify({ kind: "test" }), env);
+      if (!pushResponse.ok) {
+        if (pushResponse.status === 404 || pushResponse.status === 410) await env.PUSH_SUBSCRIPTIONS.delete(uid);
+        return response({ ok: false, error: "push_rejected", pushStatus: pushResponse.status }, 502, origin);
+      }
+      return response({ ok: true, delivered: true }, 200, origin);
+    } catch (_) {
+      return response({ ok: false, error: "push_failed" }, 502, origin);
+    }
+  }
   if (path !== "/push/notify") return response({ error: "not_found" }, 404, origin);
 
   const calleeUid = typeof body.calleeUid === "string" ? body.calleeUid : "";
