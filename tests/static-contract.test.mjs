@@ -110,10 +110,19 @@ test("匿名Firebase Authentication完了後だけFirestoreを使う", () => {
 test("Cloudflare TURN uses short-lived credentials with a STUN fallback", () => {
   assert.match(rootHtml, /stun:stun\.cloudflare\.com:3478/);
   assert.match(rootHtml, /function ensureTurnConfiguration/);
-  assert.match(rootHtml, /ensureTurnConfiguration\(\)\.catch/);
+  assert.match(rootHtml, /await ensureTurnConfiguration\(\)/);
   assert.match(turnWorker, /TURN_KEY_API_TOKEN/);
   assert.match(turnWorker, /ttl: 7200/);
   assert.match(turnWorker, /https:\/\/hiroakiaa\.github\.io/);
+});
+
+test("電話参加前にTURN設定を待ってからWebRTC接続を作る", () => {
+  const joinStart = rootHtml.indexOf("async function joinCall()");
+  const turnReady = rootHtml.indexOf("await ensureTurnConfiguration();", joinStart);
+  const acquire = rootHtml.indexOf("numberCalls.acquire()", joinStart);
+  const peerCreate = rootHtml.indexOf("new RTCPeerConnection(rtcConfig)");
+  assert.ok(joinStart >= 0 && turnReady > joinStart && turnReady < acquire);
+  assert.ok(peerCreate > turnReady);
 });
 
 test("料金画面にCloudflare TURNの通話中継量だけを表示する", () => {
@@ -220,7 +229,7 @@ test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
   assert.match(rootHtml, /マイクはONです。そのまま話せます。/);
   assert.match(rootHtml, /setJoinBusy\(true, "自動参加中"\)/);
   assert.match(rootHtml, /if \(joined && localStream\)/);
-  assert.doesNotMatch(rootHtml, /await ensureTurnConfiguration\(\)/);
+  assert.match(rootHtml, /await ensureTurnConfiguration\(\)/);
   assert.doesNotMatch(rootHtml, /callFlowStatus|CallFlowStatus|call-flow-status|showCallFlowStatus/);
   assert.match(rootHtml, /setNotice\(\(data\.calleeName \|\| "相手"\) \+ "さんが応答しました。音声を接続しています。"\)/);
   assert.match(rootHtml, /応答中…/);

@@ -4048,7 +4048,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-immediate-redial">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-turn-before-join">
 </head>
 <body class="phone-home">
   <main>
@@ -4401,12 +4401,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-05-immediate-redial"></script>
-  <script src="./jsQR.js?v=2026-09-05-immediate-redial"></script>
+  <script src="./qrcode-generator.js?v=2026-09-05-turn-before-join"></script>
+  <script src="./jsQR.js?v=2026-09-05-turn-before-join"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-immediate-redial";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-turn-before-join";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-immediate-redial";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-turn-before-join";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4448,7 +4448,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-immediate-redial";
+    const APP_VERSION = "2026-09-05-turn-before-join";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -5068,10 +5068,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if(/^n_|^g_/.test(callId)&&!(await numberCalls.allowed())){setNotice('番号から電話し、持ち主の承認を受けてください。',true);return;}
       if(!/^n_|^g_/.test(callId))return;
       ensureParticipantWatcher();
+      await ensureTurnConfiguration();
       maybeAutoJoinCall();
-      ensureTurnConfiguration().catch(function(error) {
-        pushDiagnostic("warn", "TURN準備に時間がかかっています", error && error.message ? error.message : "", "STUNで接続を続けます。");
-      });
     }
 
     async function ensureAnonymousAuth() {
@@ -5356,6 +5354,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
         return;
       }
+      setJoinBusy(true, "通信経路を準備中");
+      updateJoinButton();
+      await ensureTurnConfiguration();
+      setJoinBusy(false);
+      updateJoinButton();
       try{if(numberCalls && !(await numberCalls.acquire())){setNotice('電話への応答、またはグループへの登録が必要です。',true);return;}}catch(error){setNotice(error.message||'参加できませんでした。',true);return;}
       const activeOtherParticipants = participants.filter(function(person) {
         return person && person.userId && person.userId !== userId && !isSameDeviceParticipant(person) && person.left !== true && isParticipantActive(person);
