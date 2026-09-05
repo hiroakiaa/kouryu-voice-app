@@ -58,6 +58,12 @@ test('アプリ名とPWA名はわかる電話に統一する',()=>{
  assert.equal(manifest.name,'わかる電話');
  assert.equal(manifest.short_name,'わかる電話');
 });
+test('本文は丸文字にし、タイトルとアプリ名の書体は維持する',()=>{
+ assert.match(html,/family=Zen\+Maru\+Gothic:wght@400;500;700/);
+ assert.match(html,/body,\s*button,\s*input,\s*select,\s*textarea \{\s*font-family: "Zen Maru Gothic"/);
+ assert.match(html,/h1,\s*h2,\s*h3 \{\s*font-family: "FOT-ロダン Pro M"/);
+ assert.match(html,/\.brand h1,[\s\S]*?font-family: "Mochiy Pop One"/);
+});
 
 test('電話帳検索とグループ作成は必要なときだけ開く',()=>{
  for(const id of ['phoneContactToolsToggle','phoneContactTools','phoneGroupAddToggle','phoneGroupCreateDialog','phoneGroupCreateClose'])assert.match(html,new RegExp(`id="${id}"`));
