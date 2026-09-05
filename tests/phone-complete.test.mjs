@@ -311,3 +311,11 @@ test('発信確認は名前と電話操作を主役にし、通話種類を控�
  assert.match(css,/\.dial-mode-toggle span\{[^}]*height:38px;min-height:38px/);
  assert.match(css,/#phoneDialConfirmCall span,#phoneDialConfirmCall i\{[^}]*color:#31582a!important/);
 });
+
+test('まとめた履歴カードは含まれる全履歴を削除し、失敗時は表示を戻す',()=>{
+ assert.match(app,/async function deleteHistoryCard\(id\)/);
+ assert.match(app,/card\?\.entries/);
+ assert.match(app,/await Promise\.all\(ids\.map\(historyId=>remove/);
+ assert.match(app,/historyItems=before;renderHistory\(\)/);
+ assert.match(app,/await deleteHistoryCard\(d\.removeHistory\)/);
+});
