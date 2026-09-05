@@ -12,6 +12,7 @@ test('通知・発信確認を設定画面から利用し、廃止した費用�
  assert.match(app,/notifications\.disable/);
  assert.match(app,/const toggle=event\.currentTarget;toggle\.disabled=true/);
  assert.doesNotMatch(app,/finally\{event\.currentTarget\.disabled=false/);
+ assert.match(app,/addEventListener\('click',async event=>[\s\S]*?await fn\(event\)/);
  assert.match(html,/\/push\/unregister/);
  for(const id of ['phoneBudgetYen','phoneMonthlyBudget','phoneCloudflareActual','phoneMonthlyStatus']) assert.doesNotMatch(html,new RegExp(`id="${id}"`));
  assert.doesNotMatch(app,/kouryu-monthly-budget-yen-v1|kouryu-cost-budget-yen-v1/);
