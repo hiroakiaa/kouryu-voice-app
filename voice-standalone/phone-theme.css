@@ -230,6 +230,46 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 .phone-home-card button,.number-modal button,.caption-dialog button,.call-tips button{font-family:inherit}
 @media(max-width:480px){.phone-empty-state{min-height:96px}.caption-heading-actions{gap:6px}.panel-icon-button{width:40px;height:40px;min-height:40px}}
 
+/* Keep the group call action as bright and inviting as the main join action. */
+.group-primary-actions #groupJoin{
+ position:relative;isolation:isolate;width:100%;min-height:62px;flex-basis:100%;
+ border:2px solid #79b94f;border-radius:18px;
+ background:linear-gradient(135deg,#edffcb 0%,#dff5b5 100%);
+ color:#355c2d;font-size:18px;font-weight:800;
+ box-shadow:0 4px 0 #cee5ae;
+}
+.group-primary-actions #groupJoin::before{
+ content:"";display:block!important;position:absolute;z-index:-1;inset:5px;
+ border:1px dashed rgba(83,143,54,.58);border-radius:12px;pointer-events:none;
+}
+.group-primary-actions #groupJoin:hover{background:linear-gradient(135deg,#e5fac0 0%,#d4efaa 100%);}
+.group-primary-actions #groupJoin:disabled{opacity:.58;box-shadow:none;}
+
+/* Self identity uses the same light surfaces as the rest of the application. */
+body.is-in-call .participants .participant.is-self,
+body.is-one-to-one.is-in-call .participants .participant.is-self{
+ flex-basis:7rem;width:7rem;height:4.35rem;margin-left:auto;
+ border:2px solid #76b955;border-radius:1.35rem;
+ background:linear-gradient(145deg,#efffd0 0%,#d9f3ad 100%);
+ color:#32702d;box-shadow:0 4px 0 #d4e8b8;
+}
+body.is-one-to-one.is-in-call .participants .participant.is-self{margin-left:0;}
+body.is-in-call .participants .participant.is-self::before{border-radius:.95rem;border-color:rgba(91,153,57,.55);}
+body.is-in-call .participants .participant.is-self .avatar-initial{font-size:1.25rem;color:#2f7130;}
+body.is-in-call .participants .participant.is-self .participant-state-badge{
+ left:0;right:0;top:calc(100% + 7px);width:100%;max-width:none;
+ transform:none;box-sizing:border-box;justify-content:center;
+ border:1px solid #9bc879;background:#f4fbe8;color:#41663a;
+ box-shadow:0 2px 0 #dfebcf;font-size:11px;
+}
+body.is-in-call .participants .participant.is-self .participant-state-badge.is-connected,
+body.is-in-call .participants .participant.is-self .participant-state-badge.is-speaking{
+ background:#e5f7cf;color:#31652d;border-color:#82bd5e;
+}
+body.is-in-call .participants .participant.is-self .participant-state-badge.is-muted{
+ background:#f4f5ed;color:#64705d;border-color:#c7d2ba;
+}
+
 /* Below tablet width only the tab strip may scroll sideways. Panel content wraps vertically. */
 @media(max-width:670px){
  html,body,body.phone-home{max-width:100%;overflow-x:hidden}
