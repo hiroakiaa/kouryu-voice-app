@@ -40,3 +40,13 @@ export function bindDialInput(input) {
   });
   return edit;
 }
+
+export function bindDialDisplay(output, maxLength = 8) {
+  output.value = formatDial(output.value || '');
+  return function edit(key) {
+    const raw = compact(output.value || '');
+    const next = key === null ? raw.slice(0, -1) : raw + (key || '');
+    if (next.length > maxLength) return;
+    output.value = formatDial(next);
+  };
+}

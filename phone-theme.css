@@ -29,7 +29,7 @@ body.phone-home main{height:auto;max-height:none;min-width:0;overflow:visible;di
 .phone-dialer{max-width:330px;margin:auto;text-align:center;}
 .phone-home-card .phone-dialer>label{display:block;font-size:14px;color:#607653;margin-bottom:8px;}
 .phone-number-entry{display:flex;align-items:center;margin-bottom:20px;gap:6px;}
-.phone-number-entry input{text-align:center;letter-spacing:2px;font-size:28px;width:100%;min-width:0;padding:10px 4px;}
+.phone-number-entry #phoneDialNumber{text-align:center;letter-spacing:2px;font-size:28px;width:100%;min-width:0;padding:10px 4px;}
 .phone-home-card #phoneBackspace{flex:0 0 44px;padding:6px;background:transparent;border-color:transparent;box-shadow:none;}
 .phone-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 22px;}
 .phone-home-card .phone-key{border-radius:50%;aspect-ratio:1;min-height:0;min-width:0;width:100%;padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#eff9df;border:2px solid #b4d88c;box-shadow:0 4px 0 #dcecc6;gap:0;}
@@ -51,7 +51,7 @@ body.phone-home main{height:auto;max-height:none;min-width:0;overflow:visible;di
  .phone-key>span{font-size:30px;}
  .phone-row>button{flex:1 1 auto;}
  .phone-row>div{flex-basis:100%;}
- .phone-number-entry input{font-size:24px;}
+ .phone-number-entry #phoneDialNumber{font-size:24px;}
 }
 /* Keep the app shell still; only the selected tab owns overflow. */
 body.phone-home{height:100dvh;min-height:0;overflow:hidden;box-sizing:border-box;}
@@ -67,7 +67,7 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 .phone-dialer{flex:1 0 290px;min-height:290px;width:100%;max-width:310px;display:grid;grid-template-rows:18px 44px minmax(176px,1fr) 48px;gap:8px;margin:0 auto;}
 .phone-home-card .phone-dialer>label{margin:0;}
 .phone-number-entry{margin:0;}
-.phone-number-entry input{min-height:44px;height:44px;padding:4px;}
+.phone-number-entry #phoneDialNumber{min-height:44px;height:44px;padding:4px;}
 .phone-keypad{min-height:0;grid-template-rows:repeat(4,minmax(44px,1fr));gap:6px 18px;}
 .phone-home-card .phone-key{height:100%;max-height:80px;width:auto;max-width:100%;justify-self:center;align-self:center;box-sizing:border-box;padding:0;}
 .phone-home-card .phone-call{width:48px;height:48px;margin:0 auto;font-size:22px;}
@@ -102,7 +102,7 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneDialForm>*{--dial-gap:clamp(4px,1.5cqh,14px);--dial-key:clamp(44px,min(calc((100cqw - 48px) / 3),calc((100cqh - 76px - 3 * var(--dial-gap)) / 5)),80px);flex-shrink:0;}
 .phone-number-entry{position:relative;width:100%;height:52px;}
 .phone-number-entry label{position:absolute;left:12px;top:5px;display:block;min-width:0;font-size:10px;line-height:14px;color:#617650;pointer-events:none;}
-.phone-home-card .phone-number-entry input{height:52px;min-height:52px;padding:18px 8px 2px;font-size:25px;line-height:28px;}
+.phone-home-card .phone-number-entry #phoneDialNumber{height:52px;min-height:52px;padding:18px 8px 2px;font-size:25px;line-height:28px;}
 #phoneDialForm .phone-keypad{grid-template-rows:repeat(4,var(--dial-key));grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--dial-gap) 22px;width:calc(3 * var(--dial-key) + 44px);align-self:center;}
 #phoneDialForm .phone-key{width:var(--dial-key);height:var(--dial-key);max-height:none;}
 #phoneDialForm .phone-key>span{font-size:clamp(24px,calc(var(--dial-key) * .45),31px);}
@@ -121,7 +121,7 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneDialForm>*{--dial-key:clamp(44px,min(calc((100cqw - 48px) / 3),calc((100cqh - 104px - 3 * var(--dial-gap)) / 5)),80px);}
 .phone-number-entry{height:64px;}
 .phone-number-entry label{left:16px;top:7px;font-size:11px;}
-.phone-home-card .phone-number-entry input{height:64px;min-height:64px;padding:24px 16px 8px;font-size:25px;line-height:28px;}
+.phone-home-card .phone-number-entry #phoneDialNumber{height:64px;min-height:64px;padding:24px 16px 8px;font-size:25px;line-height:28px;}
 @media(max-height:640px){
  #phoneDialPanel{gap:4px;padding-top:6px;padding-bottom:2px;}
  .phone-own{gap:2px 8px;}
@@ -132,7 +132,7 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
  #phoneDialForm>*{--dial-gap:4px;--dial-key:clamp(44px,min(calc((100cqw - 48px) / 3),calc((100cqh - 84px - 3 * var(--dial-gap)) / 5)),80px);}
  .phone-number-entry{height:56px;}
  .phone-number-entry label{top:5px;font-size:10px;}
- .phone-home-card .phone-number-entry input{height:56px;min-height:56px;padding:20px 14px 6px;font-size:22px;line-height:26px;}
+ .phone-home-card .phone-number-entry #phoneDialNumber{height:56px;min-height:56px;padding:20px 14px 6px;font-size:22px;line-height:26px;}
  body.phone-home main{gap:6px;padding-top:6px;padding-bottom:6px;}
 }
 #phoneDialPanel{container-type:size;align-items:center;gap:0;padding:8px 0;}
@@ -160,8 +160,8 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneOwnDetails .phone-own-actions{flex-basis:auto;}
 #phoneOwnDetails .phone-own-icon{position:relative;width:44px;height:44px;padding:0;display:grid;place-items:center;border:1px solid #d7e5c7;background:#f7faef;box-shadow:none;font-size:20px;}
 .phone-copy-note{position:absolute;bottom:calc(100% + 8px);right:0;white-space:nowrap;font-size:11px;font-weight:400;line-height:1.5;padding:5px 8px;border-radius:8px;background:#30462d;color:white;pointer-events:none;z-index:6;}
-#phoneDialForm .phone-number-entry,#phoneDialForm .phone-number-entry input{background:transparent;border:0;box-shadow:none;}
-#phoneDialForm .phone-number-entry input{font-size:clamp(30px,10cqw,40px);padding:8px;text-align:center;line-height:1.2;}
+#phoneDialForm .phone-number-entry,#phoneDialForm .phone-number-entry #phoneDialNumber{background:transparent;border:0;box-shadow:none;}
+#phoneDialForm .phone-number-entry #phoneDialNumber{font-size:clamp(30px,10cqw,40px);padding:8px;text-align:center;line-height:1.2;}
 #phoneNameDialog{position:fixed;inset:0;margin:auto;width:min(36rem,calc(100% - 32px));max-height:88dvh;height:auto;overflow-y:auto;transform:none;transition:none;box-sizing:border-box;}
 #phoneNameDialog[open]{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;align-content:start;min-height:0;height:fit-content;padding:20px;gap:12px;opacity:1;pointer-events:auto;}
 #phoneNameDialog::backdrop{background:rgba(30,35,38,.58);}
@@ -296,10 +296,10 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 @media(max-width:420px){.phone-home-card #accountActions{grid-template-columns:minmax(0,1fr)}.phone-home-card .phone-row>button{flex:1 1 44px}.phone-home-card .phone-primary-form{grid-template-columns:minmax(0,1fr) auto}}
 
 /* Bottom navigation: the active panel scrolls above a thumb-friendly fixed tab row. */
-.phone-home-card>.phone-tabs{order:3;position:relative;z-index:12;width:100%;margin-top:auto;padding:10px 2px max(8px,env(safe-area-inset-bottom));border-top:1px solid #cad8b9;border-bottom:0;background:#fffef8;box-sizing:border-box}
+.phone-home-card>.phone-tabs{order:3;position:relative;z-index:12;width:100%;margin-top:auto;padding:9px 2px 4px;border-top:1px solid #cad8b9;border-bottom:0;background:#fffef8;box-sizing:border-box}
 .phone-home-card>[role="tabpanel"]{order:1}
 .phone-home-card>.phone-add-fab{bottom:86px}
-@media(max-width:540px){.phone-home-card>.phone-tabs{padding-top:8px}.phone-home-card>.phone-add-fab{bottom:76px}}
+@media(max-width:540px){.phone-home-card>.phone-tabs{padding:7px 2px 3px}.phone-home-card>.phone-add-fab{bottom:72px}}
 
 /* Keep every settings help control perfectly circular, even in a shrinking flex row. */
 .phone-help-icon,.phone-home-card .account-help-head .phone-panel-icon{display:grid!important;place-items:center;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex:0 0 40px!important;aspect-ratio:1/1;box-sizing:border-box;padding:0!important;border:2px solid #9fc982!important;border-radius:50%!important;line-height:1;box-shadow:0 3px 0 #dceaca!important}
@@ -495,3 +495,6 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 
 .outgoing-call-dialog{width:min(390px,calc(100% - 28px));padding:34px 26px 28px;border:3px solid #78b952;border-radius:30px;background:linear-gradient(180deg,#fffef9,#f8fcec);color:#34542f;text-align:center;box-shadow:0 20px 70px #13200f55,inset 0 0 0 7px #f0f8e6}
 .outgoing-call-dialog::backdrop{background:rgba(30,38,28,.58);backdrop-filter:blur(2px)}.outgoing-call-pulse{display:grid;place-items:center;width:78px;height:78px;margin:0 auto 14px;border-radius:50%;background:#def3c4;color:#4b9634;font-size:30px;box-shadow:0 0 0 8px #f3fae9;animation:outgoingPulse 1.5s ease-in-out infinite}.outgoing-call-dialog>p{margin:0;color:#718268;font-size:14px;font-weight:700;letter-spacing:.08em}.outgoing-call-dialog h2{margin:8px 0 4px;color:#2f4d2b;font-size:30px;line-height:1.25;overflow-wrap:anywhere}.outgoing-call-dialog>strong{display:block;color:#687764;font-size:18px;font-variant-numeric:tabular-nums;letter-spacing:.08em}.outgoing-call-wave{display:flex;justify-content:center;align-items:center;gap:6px;height:24px;margin:18px 0}.outgoing-call-wave i{display:block;width:7px;height:7px;border-radius:50%;background:#7dbb59;animation:outgoingDot 1.05s ease-in-out infinite}.outgoing-call-wave i:nth-child(2){animation-delay:.15s}.outgoing-call-wave i:nth-child(3){animation-delay:.3s}.outgoing-call-dialog #phoneCancel{display:flex;align-items:center;justify-content:center;gap:10px;width:min(280px,100%);min-height:58px;margin:6px auto 0;padding:12px 18px;border:2px solid #d86d73;border-radius:20px;background:#fff1ee;color:#a83e49;font-size:16px;font-weight:800;box-shadow:0 4px 0 #efd0cc}.outgoing-call-dialog #phoneCancel i{font-size:20px}@keyframes outgoingPulse{50%{transform:scale(1.07);box-shadow:0 0 0 13px #e5f5d5}}@keyframes outgoingDot{0%,70%,100%{transform:translateY(0);opacity:.45}35%{transform:translateY(-6px);opacity:1}}@media(prefers-reduced-motion:reduce){.outgoing-call-pulse,.outgoing-call-wave i{animation:none}}
+
+#phoneDialNumber{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;color:#30462d;letter-spacing:clamp(2px,1.2vw,7px);font-variant-numeric:tabular-nums;-webkit-user-select:none;user-select:none;cursor:default}
+#phoneDialNumber:empty::before{content:'番号を入力';color:#9aaa91;font-size:14px;letter-spacing:.08em;font-weight:500}

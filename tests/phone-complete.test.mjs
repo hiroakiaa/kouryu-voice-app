@@ -277,8 +277,18 @@ test('自分の番号は外側のクリックで閉じ、電話タブは各画�
  assert.ok(settings>=0&&tabs>settings);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*order:3;[^}]*margin-top:auto;[^}]*border-top:/);
+ assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*padding:9px 2px 4px/);
  assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:1\}/);
  assert.match(css,/\.phone-home-card>\.phone-add-fab\{bottom:86px\}/);
+});
+
+test('電話番号は直接編集できない表示専用エリアにする',()=>{
+ assert.match(html,/<output id="phoneDialNumber"[^>]*aria-live="polite"><\/output>/);
+ assert.doesNotMatch(html,/<input id="phoneDialNumber"/);
+ assert.match(app,/import \{bindDialDisplay\} from '\.\/dial-input\.js'/);
+ assert.match(app,/const editDial=bindDialDisplay\(\$\('phoneDialNumber'\)\)/);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/#phoneDialNumber\{[^}]*cursor:default/);
 });
 
 test('グループ詳細の共通開閉処理は詳細ボタンから参照できる範囲に置く',()=>{
