@@ -341,6 +341,15 @@ test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () 
   assert.match(turnWorker, /expirationTtl: 120/);
 });
 
+test("着信通知は端末ごとにON・OFFでき、iPhoneにも暗号化した着信内容を送る", () => {
+  assert.match(rootHtml, /id="phoneNotificationToggle"/);
+  assert.match(rootHtml, /async function disableCallNotifications/);
+  assert.match(rootHtml, /pushManager\?\.getSubscription\(\)/);
+  assert.match(rootHtml, /\/push\/unregister/);
+  assert.doesNotMatch(turnWorker, /hostname\.endsWith\("push\.apple\.com"\)/);
+  assert.match(turnWorker, /Content-Encoding": "aes128gcm"/);
+});
+
 test("接続診断は通話状態・マイク・音声接続・再接続・通信経路をまとめる", () => {
   assert.match(rootHtml, /class="diagnostic-live-summary"/);
   for (const label of ["状態", "マイク", "音声接続", "再接続", "経路"]) assert.match(rootHtml, new RegExp(label));
