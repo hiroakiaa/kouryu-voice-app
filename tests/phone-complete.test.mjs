@@ -376,3 +376,12 @@ test('発着信の各段階を匿名で診断し、復帰時に着信を再確�
  assert.match(app,/window\.addEventListener\('online'/);
  assert.match(app,/activeHistory=null;currentRoom=null;incoming=null;finishRing\(\);stopRingtone\(\)/);
 });
+
+test('4種類の着信音を試聴・保存し、実際の着信に使用する',()=>{
+ for(const tone of ['gentle','sunny','drop','classic']) assert.match(html,new RegExp('data-ringtone-preview="'+tone+'"'));
+ assert.match(app,/ringtonePatterns=\{gentle:/);
+ assert.match(app,/localStorage\.setItem\(ringtoneToneKey,radio\.value\)/);
+ assert.match(app,/function previewRingtone\(key,button\)/);
+ assert.match(app,/playRingtonePattern\(ringAudio,selectedRingtone\(\)\)/);
+ assert.match(app,/if\(!\$\('phoneRingtone'\)\.checked\|\|ringAudioTimer\)return/);
+});
