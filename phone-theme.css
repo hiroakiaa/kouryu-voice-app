@@ -304,6 +304,13 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 .phone-home-card>.phone-add-fab{bottom:86px}
 @media(max-width:540px){.phone-home-card>.phone-tabs{padding:7px 2px 3px}.phone-home-card>.phone-add-fab{bottom:72px}}
 @media(min-width:640px){body.phone-home .phone-home-card{padding-bottom:0}.phone-home-card>.phone-tabs{padding:9px 2px}}
+.admin-login-dialog{width:min(430px,calc(100% - 28px))}
+.admin-login-dialog .modal-head h2{display:flex;align-items:center;gap:10px}
+.admin-login-form{display:grid;gap:10px;padding-top:18px}
+.admin-login-form label{text-align:left;font-size:14px;font-weight:800;color:#4e6942}
+.admin-login-form input{box-sizing:border-box;width:100%;min-height:52px;padding:11px 14px;border:2px solid #bedc9e;border-radius:15px;background:#fffef9;color:#30462d;font:inherit;font-size:18px}
+.admin-login-form button{min-height:56px;margin-top:4px;border:2px solid #7fba57;border-radius:17px;background:#dcf4c1;color:#2f5923;font-size:18px;font-weight:800;box-shadow:0 4px 0 #c8e3ad}
+.admin-login-form p{min-height:20px;margin:2px 0 0;text-align:center;color:#b33f4e;font-size:13px}
 
 /* Keep every settings help control perfectly circular, even in a shrinking flex row. */
 .phone-help-icon,.phone-home-card .account-help-head .phone-panel-icon{display:grid!important;place-items:center;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex:0 0 40px!important;aspect-ratio:1/1;box-sizing:border-box;padding:0!important;border:2px solid #9fc982!important;border-radius:50%!important;line-height:1;box-shadow:0 3px 0 #dceaca!important}

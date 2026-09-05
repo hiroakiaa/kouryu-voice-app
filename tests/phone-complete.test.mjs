@@ -289,6 +289,19 @@ test('アプリ情報から接続診断と通話品質パネルを廃止する',
  assert.doesNotMatch(html,/id="callReliabilityPanel"/);
 });
 
+test('管理者パスワードの照合後だけ料金詳細を開く',()=>{
+ assert.match(html,/id="appInfoTitle"[^>]*>[\s\S]*?管理者メニュー/);
+ assert.match(html,/id="adminLoginForm"/);
+ assert.match(html,/id="adminPassword" type="password"/);
+ assert.doesNotMatch(html,/id="metricsToggleBtn"/);
+ assert.match(html,/const ADMIN_PASSWORD_SHA256 = "[a-f0-9]{64}"/);
+ assert.doesNotMatch(html,/Wakaru!7284/);
+ assert.match(html,/crypto\.subtle\.digest\('SHA-256'/);
+ assert.match(html,/hash!==ADMIN_PASSWORD_SHA256/);
+ assert.match(html,/hideAppInfoTooltip\(\);openMetricsModal\(\)/);
+ assert.match(html,/function openMetricsModal\(\)[\s\S]*?renderMetrics\(\)/);
+});
+
 test('電話番号は直接編集できない表示専用エリアにする',()=>{
  assert.match(html,/<output id="phoneDialNumber"[^>]*aria-live="polite"><\/output>/);
  assert.doesNotMatch(html,/<input id="phoneDialNumber"/);

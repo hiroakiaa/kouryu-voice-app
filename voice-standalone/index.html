@@ -4107,12 +4107,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-clean-actions">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-admin-cost-gate">
 </head>
 <body class="phone-home">
   <main>
     <header>
-      <button id="appInfoToggleBtn" class="app-icon" type="button" aria-controls="appInfoTooltip" aria-expanded="false" aria-label="アプリ情報">
+      <button id="appInfoToggleBtn" class="app-icon" type="button" aria-controls="appInfoTooltip" aria-expanded="false" aria-label="管理者メニュー">
         <i class="fa-solid fa-headphones-simple"></i>
       </button>
       <div class="brand">
@@ -4151,19 +4151,17 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     <dialog id="phoneConfirmDialog" class="number-modal action-confirm" aria-labelledby="phoneConfirmTitle"><div class="number-head"><h2 id="phoneConfirmTitle">確認</h2><button id="phoneConfirmClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><p id="phoneConfirmMessage" class="action-confirm-message"></p><div class="action-confirm-actions"><button id="phoneConfirmCancel" type="button">やめる</button><button id="phoneConfirmOk" type="button">続ける</button></div></dialog>
     <dialog id="remoteEndedDialog" class="remote-ended-dialog" aria-labelledby="remoteEndedTitle" aria-describedby="remoteEndedMessage"><div class="remote-ended-icon" aria-hidden="true"><i class="fa-solid fa-phone-slash"></i></div><h2 id="remoteEndedTitle">通話が終了しました</h2><p id="remoteEndedMessage"></p></dialog>
     <dialog id="phoneQrDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrTitle"><div class="number-head"><h2 id="phoneQrTitle">番号を交換</h2><button id="phoneQrClose" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><p>相手のカメラで読み取ると、電話帳の登録画面が開きます。</p><div id="phoneQrImage" class="phone-qr-image"></div><strong id="phoneQrNumber"></strong></dialog>
-    <dialog id="appInfoTooltip" class="app-info-tooltip metrics-modal-card" aria-labelledby="appInfoTitle" aria-hidden="true">
+    <dialog id="appInfoTooltip" class="app-info-tooltip metrics-modal-card admin-login-dialog" aria-labelledby="appInfoTitle" aria-hidden="true">
       <div class="modal-head">
-        <h2 id="appInfoTitle">アプリ情報</h2>
+        <h2 id="appInfoTitle"><i class="fa-solid fa-lock" aria-hidden="true"></i> 管理者メニュー</h2>
         <button id="appInfoCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p id="appInfoCostSummary" class="caption-help"></p>
-      
-      <div id="appInfoCallReport" class="app-info-call-report" role="status" aria-live="polite"></div>
-      <div class="app-info-actions" aria-label="詳しい情報">
-        <button id="metricsToggleBtn" class="app-info-action" type="button" aria-controls="metricsModal" aria-expanded="false" aria-label="全機能の料金目安">
-          <i class="fa-solid fa-yen-sign"></i><span>料金目安</span>
-        </button>
-      </div>
+      <form id="adminLoginForm" class="admin-login-form">
+        <label for="adminPassword">管理者パスワード</label>
+        <input id="adminPassword" type="password" autocomplete="current-password" required>
+        <button id="adminLoginSubmit" type="submit"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i> 送信</button>
+        <p id="adminLoginMessage" role="status" aria-live="polite"></p>
+      </form>
     </dialog>
 
     <dialog id="deviceCheckDialog" class="number-modal device-check-dialog" aria-labelledby="deviceCheckTitle">
@@ -4460,7 +4458,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-clean-actions";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-admin-cost-gate";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4505,7 +4503,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-clean-actions";
+    const APP_VERSION = "2026-09-05-admin-cost-gate";
+    const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -5038,6 +5037,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       el.name.addEventListener("blur", saveName);
       el.participants.addEventListener("click", handleParticipantClick);
       if (el.appInfoToggle) el.appInfoToggle.addEventListener("click", toggleAppInfoTooltip);
+      document.getElementById('adminLoginForm')?.addEventListener('submit',verifyAdminPassword);
       document.getElementById('appInfoCloseBtn').addEventListener('click',hideAppInfoTooltip);
       el.appInfoTooltip.addEventListener('cancel',function(event){event.preventDefault();hideAppInfoTooltip()});
       el.appInfoTooltip.addEventListener('click',function(event){
@@ -9216,6 +9216,21 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       el.appInfoTooltip.setAttribute("aria-hidden", isOpen ? "false" : "true");
       el.appInfoToggle.classList.toggle("is-open", isOpen);
       el.appInfoToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      if(isOpen){document.getElementById('adminLoginMessage').textContent='';window.setTimeout(()=>document.getElementById('adminPassword')?.focus(),0);}
+    }
+
+    async function verifyAdminPassword(event) {
+      event.preventDefault();
+      const input=document.getElementById('adminPassword'),message=document.getElementById('adminLoginMessage'),submit=document.getElementById('adminLoginSubmit');
+      if(!input||!message||!submit)return;
+      submit.disabled=true;message.textContent='確認しています…';
+      try{
+        const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(input.value));
+        const hash=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');
+        if(hash!==ADMIN_PASSWORD_SHA256){message.textContent='パスワードが違います。';input.select();return;}
+        input.value='';message.textContent='';hideAppInfoTooltip();openMetricsModal();
+      }catch(_){message.textContent='確認できませんでした。もう一度お試しください。';}
+      finally{submit.disabled=false;}
     }
 
     function hideAppInfoTooltip() {
@@ -9252,7 +9267,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function toggleMetricsModal(event) {
       event.stopPropagation();
-      if (!el.metricsModal || !el.metricsToggle) return;
+      if (!el.metricsModal) return;
       const isOpen = !el.metricsModal.classList.contains("is-open");
       if (isOpen) {
         hideCallTips();
@@ -9261,16 +9276,23 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
       el.metricsModal.classList.toggle("is-open", isOpen);
       el.metricsModal.setAttribute("aria-hidden", isOpen ? "false" : "true");
-      el.metricsToggle.classList.toggle("is-open", isOpen);
-      el.metricsToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      el.metricsToggle?.classList.toggle("is-open", isOpen);
+      el.metricsToggle?.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function openMetricsModal() {
+      if(!el.metricsModal)return;
+      hideCallTips();renderMetrics();
+      el.metricsModal.classList.add('is-open');
+      el.metricsModal.setAttribute('aria-hidden','false');
     }
 
     function closeMetricsModal() {
-      if (!el.metricsModal || !el.metricsToggle) return;
+      if (!el.metricsModal) return;
       el.metricsModal.classList.remove("is-open");
       el.metricsModal.setAttribute("aria-hidden", "true");
-      el.metricsToggle.classList.remove("is-open");
-      el.metricsToggle.setAttribute("aria-expanded", "false");
+      el.metricsToggle?.classList.remove("is-open");
+      el.metricsToggle?.setAttribute("aria-expanded", "false");
       hideMetricsNote();
       hideMetricsRateTooltip();
     }
