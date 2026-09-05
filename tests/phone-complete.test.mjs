@@ -291,3 +291,13 @@ test('着信画面は名前を主役にし、拒否と応答を円形アイコ�
  assert.match(css,/#numberIncoming #numberDecline i\{background:#d95761\}/);
  assert.match(css,/#numberIncoming #numberAccept i\{background:#60b83d\}/);
 });
+
+test('発信確認は名前と電話操作を主役にし、通話種類を控えめなトグルにする',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.doesNotMatch(html,/この相手に電話しますか？/);
+ assert.match(html,/class="support-mode-picker dial-mode-toggle"/);
+ assert.match(html,/通常電話/);
+ assert.match(css,/#phoneDialConfirmName\{[^}]*font-size:32px/);
+ assert.match(css,/#phoneDialConfirmCall\{[^}]*min-height:70px/);
+ assert.match(css,/#phoneDialConfirmCancel\{[^}]*min-height:40px/);
+});
