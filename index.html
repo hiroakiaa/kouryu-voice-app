@@ -4506,7 +4506,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-incoming-autojoin";
+    const APP_VERSION = "2026-09-05-incoming-autojoin-retry";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -5461,7 +5461,26 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       updateJoinButton();
       await ensureTurnConfiguration();
       setJoinBusy(true, "参加枠を確認中…");
-      try{if(numberCalls && !(await numberCalls.acquire())){setJoinBusy(false);setNotice('電話への応答、またはグループへの登録が必要です。',true);return;}}catch(error){setJoinBusy(false);setNotice(error.message||'参加できませんでした。',true);return;}
+      try{
+        if (numberCalls) {
+          let acquired = false;
+          const automatic = params.get("autoJoin") === "1";
+          const waits = automatic ? [0, 300, 500, 800, 1200, 1600] : [0];
+          for (const waitMs of waits) {
+            if (waitMs) {
+              setJoinBusy(true, "通話を接続中…");
+              await new Promise(function(resolve) { window.setTimeout(resolve, waitMs); });
+            }
+            acquired = await numberCalls.acquire();
+            if (acquired) break;
+          }
+          if (!acquired) {
+            setJoinBusy(false);
+            setNotice('着信情報を確認できませんでした。もう一度お試しください。', true);
+            return;
+          }
+        }
+      }catch(error){setJoinBusy(false);setNotice(error.message||'参加できませんでした。',true);return;}
       const activeOtherParticipants = participants.filter(function(person) {
         return person && person.userId && person.userId !== userId && !isSameDeviceParticipant(person) && person.left !== true && isParticipantActive(person);
       });

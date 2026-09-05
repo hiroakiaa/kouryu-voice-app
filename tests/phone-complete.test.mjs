@@ -344,7 +344,8 @@ test('着信応答では元画面を通話画面に見せず通話URLへ確実�
 test('着信応答後は初期化中からローディングを表示し参加権限は参加処理内で確認する',()=>{
  assert.match(html,/params\.get\("autoJoin"\) === "1"[\s\S]*?応答を準備中…[\s\S]*?el\.join\.disabled = true/);
  assert.doesNotMatch(html,/numberCalls\.allowed\(\)\)\s*\{?setNotice/);
- assert.match(html,/numberCalls && !\(await numberCalls\.acquire\(\)\)/);
+ assert.match(html,/const waits = automatic \? \[0, 300, 500, 800, 1200, 1600\] : \[0\]/);
+ assert.match(html,/acquired = await numberCalls\.acquire\(\)[\s\S]*?if \(acquired\) break/);
 });
 
 test('発信側はリアルタイム通知が止まっても応答済みルームへ直ちに参加する',()=>{
