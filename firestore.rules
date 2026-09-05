@@ -79,7 +79,7 @@ service cloud.firestore {
       allow get: if request.auth != null && (uid == request.auth.uid || resource.data.to == request.auth.uid);
       allow list: if request.auth != null && resource.data.to == request.auth.uid;
       allow create: if validNumberRequest(uid);
-      allow update: if validNumberRequest(uid) && resource.data.createdAt + duration.value(30,'s') <= request.time
+      allow update: if validNumberRequest(uid)
         && (resource.data.status != 'ringing' || resource.data.expiresAt <= request.time);
       allow update: if request.auth != null && resource.data.status == 'ringing'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])

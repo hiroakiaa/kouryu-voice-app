@@ -235,6 +235,12 @@ test('発信側はリアルタイム通知が止まっても応答済みルー�
  assert.match(app,/clearInterval\(ringPollTimer\);ringPollTimer=null/);
 });
 
+test('通話終了後は30秒待たずにすぐ再発信できる',()=>{
+ assert.doesNotMatch(rules,/resource\.data\.createdAt \+ duration\.value\(30,'s'\) <= request\.time/);
+ assert.match(rules,/allow update: if validNumberRequest\(uid\)\s*&& \(resource\.data\.status != 'ringing' \|\| resource\.data\.expiresAt <= request\.time\)/);
+ assert.doesNotMatch(app,/連続発信の場合は30秒以上待ってください/);
+});
+
 test('発信前に理解サポートありと通話だけを選び、着信・履歴・グループへ引き継ぐ',()=>{
  assert.match(html,/name="phoneSupportMode" value="support"/);
  assert.match(html,/name="phoneSupportMode" value="plain"/);
