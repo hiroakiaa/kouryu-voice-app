@@ -4175,6 +4175,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     <dialog id="phoneOnboarding" class="number-modal onboarding-dialog" aria-labelledby="phoneOnboardingTitle">
       <div class="number-head"><h2 id="phoneOnboardingTitle">電話を始めましょう</h2><button id="phoneOnboardingClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div>
       <div class="onboarding-steps"><div><b>1</b><i class="fa-solid fa-address-card"></i><strong>自分の番号を確認</strong></div><div><b>2</b><i class="fa-solid fa-keyboard"></i><strong>相手の番号を入力</strong></div><div><b>3</b><i class="fa-solid fa-phone"></i><strong>電話する</strong></div></div>
+      <p>このアプリの利用者同士で話す電話です。一般の電話番号や緊急通報には発信できません。通話前に「サポートあり」または音声だけの「通常通話」を選べます。</p>
       <p>詳しい説明は、右上の「？」からいつでも確認できます。</p>
       <button id="phoneOnboardingStart" class="phone-primary" type="button">使い始める</button>
     </dialog>
@@ -4313,6 +4314,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <h2 id="metricsModalTitle"><i class="fa-solid fa-yen-sign"></i> 運営料金の目安</h2>
         <div class="modal-head-actions">
           <button id="metricsHistoryOpenBtn" aria-label="料金履歴" class="metrics-history-open-btn" type="button" aria-controls="metricsHistoryModal"><i class="fa-solid fa-chart-line"></i><span>履歴</span></button>
+          <button id="adminLogoutBtn" aria-label="この端末の管理者認証を解除" class="metrics-history-open-btn" type="button"><i class="fa-solid fa-lock-open"></i><span>認証解除</span></button>
           <button id="metricsCloseBtn" class="modal-close" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
@@ -4321,6 +4323,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <input id="metricsRateInput" inputmode="decimal" value="158" aria-label="1ドルあたりの円換算">
         <button id="metricsRateHelpBtn" class="metrics-rate-help-btn" type="button" aria-label="為替レートの取得時刻" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
       </div>
+      <div class="admin-budget-row"><label for="adminBudgetInput">月の目安上限（円）</label><input id="adminBudgetInput" type="number" inputmode="decimal" min="0" step="100" value="500"><p id="adminBudgetStatus" role="status" aria-live="polite"></p></div>
       <div class="cost-tabs" role="tablist" aria-label="料金の表示">
         <button id="currentCallTab" role="tab" data-cost-tab aria-controls="currentCallPanel" aria-selected="true" type="button">今回の通話</button>
         <button id="costScenarioTab" role="tab" data-cost-tab aria-controls="costScenarioPanel" aria-selected="false" tabindex="-1" type="button">10分間の試算</button>
@@ -4503,9 +4506,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-remember-admin";
+    const APP_VERSION = "2026-09-05-admin-reliability";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
+    const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -5057,6 +5061,15 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (el.metricsClose) el.metricsClose.addEventListener("click", closeMetricsModal);
       if (el.metricsCopy) el.metricsCopy.addEventListener("click", copyMetricsOutput);
       if (el.metricsHistoryOpen) el.metricsHistoryOpen.addEventListener("click", openMetricsHistoryModal);
+      document.getElementById("adminLogoutBtn")?.addEventListener("click", clearAdminAccess);
+      const adminBudgetInput = document.getElementById("adminBudgetInput");
+      if (adminBudgetInput) {
+        adminBudgetInput.value = localStorage.getItem(ADMIN_BUDGET_KEY) || "500";
+        adminBudgetInput.addEventListener("input", function() {
+          localStorage.setItem(ADMIN_BUDGET_KEY, adminBudgetInput.value);
+          renderAdminBudgetStatus();
+        });
+      }
       if (el.metricsHistoryClose) el.metricsHistoryClose.addEventListener("click", closeMetricsHistoryModal);
       if (el.metricsHistoryChart) {
         el.metricsHistoryChart.addEventListener("click", handleChartPointSelect);
@@ -9236,6 +9249,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       finally{submit.disabled=false;}
     }
 
+    function clearAdminAccess() {
+      localStorage.removeItem(ADMIN_ACCESS_KEY);
+      closeMetricsModal();
+      setNotice("この端末の管理者認証を解除しました。");
+    }
+
     function hideAppInfoTooltip() {
       if (!el.appInfoToggle || !el.appInfoTooltip) return;
       if(el.appInfoTooltip.open)el.appInfoTooltip.close();
@@ -10328,9 +10347,23 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       return copy.getFullYear() + "-W" + String(week).padStart(2, "0");
     }
 
+    function renderAdminBudgetStatus(history) {
+      const input = document.getElementById("adminBudgetInput");
+      const status = document.getElementById("adminBudgetStatus");
+      if (!input || !status) return;
+      const limit = Math.max(0, Number(input.value) || 0);
+      const records = (history || loadCostHistory()).records || [];
+      const monthKey = getMonthKey(new Date());
+      const used = sumBy(records.filter(function(item) { return item.monthKey === monthKey; }), "totalCostYen");
+      const remaining = Math.max(0, limit - used);
+      status.textContent = limit ? "今月の端末内記録 約" + used.toFixed(3) + "円／残り目安 " + remaining.toFixed(3) + "円" : "上限は設定されていません。";
+      status.classList.toggle("is-over", !!limit && used >= limit);
+    }
+
     function renderMetricsHistory() {
       if (!el.metricsHistorySummary && !el.metricsHistoryChart) return;
       const history = loadCostHistory();
+      if (typeof renderAdminBudgetStatus === "function") renderAdminBudgetStatus(history);
       const records = history.records || [];
       if (!records.length) {
         if (el.metricsHistorySummary) {

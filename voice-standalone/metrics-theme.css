@@ -79,3 +79,8 @@
 #appInfoTooltip::backdrop {background:rgba(30,35,38,.58);}
 #appInfoTooltip .version-pill {justify-self:start;}
 #appInfoTooltip #appInfoCostSummary {font-size:24px;font-weight:700;margin:0;}
+.admin-budget-row{display:grid;grid-template-columns:minmax(0,1fr) 120px;align-items:center;gap:8px 12px;padding:12px 14px;border:1px solid var(--metrics-border);border-radius:14px;background:var(--metrics-soft)}
+.admin-budget-row label{font-size:13px;font-weight:700}.admin-budget-row p{grid-column:1/-1;margin:0;color:var(--metrics-muted);font-size:12px}.admin-budget-row p.is-over{color:#b22d3b;font-weight:700}
+@media(max-width:540px){.modal-head-actions{gap:6px}.modal-head-actions .metrics-history-open-btn span{display:none}.admin-budget-row{grid-template-columns:minmax(0,1fr) 100px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media(forced-colors:active){button,input,select,dialog,.card{border:1px solid ButtonText!important}.phone-primary,.accept,#phoneDialCall{forced-color-adjust:auto}}
