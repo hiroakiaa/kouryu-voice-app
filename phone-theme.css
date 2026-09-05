@@ -380,3 +380,25 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 @media(max-width:390px){
  .group-detail-dialog .group-mode-toggle span{gap:5px;padding-inline:7px;font-size:12px;}
 }
+
+body.is-in-call .participants-card{position:relative;}
+body.is-in-call .participants-card .participants{min-height:6.25rem;padding-right:6.4rem;}
+body.is-in-call .participants .participant.is-self,
+body.is-one-to-one.is-in-call .participants .participant.is-self{
+ position:absolute;left:auto;right:16px;top:auto;bottom:32px;
+ flex-basis:5rem;width:5rem;height:5rem;margin:0;
+ border-radius:1.3rem;
+}
+body.is-in-call .participants .participant.is-self::before{border-radius:.92rem;}
+body.is-in-call .participants .participant.is-self .self-avatar-icon{
+ color:#4f9d3d;font-size:1.7rem;
+}
+body.is-in-call .participants .participant.is-self .participant-state-badge{
+ width:5rem;min-width:5rem;padding-inline:3px;font-size:10px;white-space:nowrap;
+}
+@media(max-width:480px){
+ body.is-in-call .participants-card .participants{min-height:5.9rem;padding-right:5.8rem;}
+ body.is-in-call .participants .participant.is-self,
+ body.is-one-to-one.is-in-call .participants .participant.is-self{right:12px;bottom:30px;width:4.6rem;height:4.6rem;flex-basis:4.6rem;}
+ body.is-in-call .participants .participant.is-self .participant-state-badge{width:4.6rem;min-width:4.6rem;font-size:9px;}
+}
