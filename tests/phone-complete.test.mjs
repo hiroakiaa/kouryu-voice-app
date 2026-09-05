@@ -302,10 +302,12 @@ test('発信確認は名前と電話操作を主役にし、通話種類を控�
  assert.doesNotMatch(html,/id="phoneDialConfirmCancel"/);
  assert.match(html,/id="phoneSupportHelpToggle"[^>]*aria-controls="phoneSupportHelpPanel"/);
  assert.match(css,/\.dial-mode-toggle\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(css,/#phoneDialConfirmCall\{[^}]*color:#fff!important/);
+ assert.match(css,/#phoneDialConfirmCall\{[^}]*background:linear-gradient\(135deg,#efffd3,#dff8bd\)!important/);
  assert.match(css,/\.dial-mode-row\{[^}]*width:min\(280px,100%\)/);
  assert.match(css,/#phoneDialConfirmCall\{[^}]*width:min\(280px,100%\)/);
  assert.match(css,/\.dial-support-help\{[^}]*border-radius:50%!important/);
  assert.match(css,/#phoneDialConfirmCall::after\{[^}]*border:2px dashed/);
- assert.match(css,/#phoneDialConfirmCall span,#phoneDialConfirmCall i\{[^}]*color:#fff!important/);
+ assert.match(css,/\.dial-mode-toggle label\{[^}]*display:flex;align-items:stretch/);
+ assert.match(css,/\.dial-mode-toggle span\{[^}]*height:38px;min-height:38px/);
+ assert.match(css,/#phoneDialConfirmCall span,#phoneDialConfirmCall i\{[^}]*color:#31582a!important/);
 });
