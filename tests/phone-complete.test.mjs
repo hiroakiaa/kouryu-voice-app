@@ -300,6 +300,9 @@ test('管理者パスワードの照合後だけ料金詳細を開く',()=>{
  assert.match(html,/hash!==ADMIN_PASSWORD_SHA256/);
  assert.match(html,/hideAppInfoTooltip\(\);openMetricsModal\(\)/);
  assert.match(html,/function openMetricsModal\(\)[\s\S]*?renderMetrics\(\)/);
+ assert.match(html,/const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1"/);
+ assert.match(html,/localStorage\.setItem\(ADMIN_ACCESS_KEY,ADMIN_PASSWORD_SHA256\)/);
+ assert.match(html,/localStorage\.getItem\(ADMIN_ACCESS_KEY\)===ADMIN_PASSWORD_SHA256\)\{openMetricsModal\(\);return;\}/);
 });
 
 test('電話番号は直接編集できない表示専用エリアにする',()=>{

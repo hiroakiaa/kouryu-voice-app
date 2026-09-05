@@ -4107,7 +4107,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-admin-cost-gate">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-remember-admin">
 </head>
 <body class="phone-home">
   <main>
@@ -4458,7 +4458,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-admin-cost-gate";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-remember-admin";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4503,8 +4503,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-admin-cost-gate";
+    const APP_VERSION = "2026-09-05-remember-admin";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
+    const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -9205,6 +9206,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     function toggleAppInfoTooltip(event) {
       event.stopPropagation();
       if (!el.appInfoToggle || !el.appInfoTooltip) return;
+      if(localStorage.getItem(ADMIN_ACCESS_KEY)===ADMIN_PASSWORD_SHA256){openMetricsModal();return;}
       const isOpen = !el.appInfoTooltip.classList.contains("is-open");
       if (isOpen) {
         hideCallTips();
@@ -9228,6 +9230,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(input.value));
         const hash=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');
         if(hash!==ADMIN_PASSWORD_SHA256){message.textContent='パスワードが違います。';input.select();return;}
+        localStorage.setItem(ADMIN_ACCESS_KEY,ADMIN_PASSWORD_SHA256);
         input.value='';message.textContent='';hideAppInfoTooltip();openMetricsModal();
       }catch(_){message.textContent='確認できませんでした。もう一度お試しください。';}
       finally{submit.disabled=false;}
