@@ -150,7 +150,7 @@ body.phone-home .phone-home-card{display:flex;flex-direction:column;flex:1 1 0;m
 #phoneDialForm #phoneBackspace{border:0;background:transparent;box-shadow:none;}
 #phoneDialForm #phoneBackspace:hover,#phoneDialForm #phoneBackspace:active{background:transparent;box-shadow:none;}
 #phoneDialForm #phoneBackspace{position:relative;overflow:visible;}
-#phoneDialForm #phoneBackspace small{position:absolute;top:calc(100% + 3px);left:50%;display:flex;flex-direction:column;align-items:center;transform:translateX(-50%);font-size:9px;font-weight:700;line-height:1.15;white-space:nowrap;color:#718663;pointer-events:none;}
+#phoneDialForm #phoneBackspace small{position:absolute;top:calc(50% + 15px);left:50%;display:flex;flex-direction:column;align-items:center;transform:translateX(-50%);font-size:9px;font-weight:700;line-height:1.15;white-space:nowrap;color:#718663;pointer-events:none;}
 #phoneDialForm .phone-dial-actions{height:calc(var(--dial-key) + 34px);align-items:start;}
 #phoneDialPanel{position:relative;padding-top:64px;}
 #phoneOwnToggle{position:absolute;right:4px;top:6px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;background:transparent;border:0;box-shadow:none;min-height:48px;color:#60794d;}
