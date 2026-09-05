@@ -125,6 +125,13 @@ test("電話参加前にTURN設定を待ってからWebRTC接続を作る", () =
   assert.ok(peerCreate > turnReady);
 });
 
+test("通話だけモードでも料金計測を先に初期化して起動を止めない", () => {
+  const metricsInit = rootHtml.indexOf("const metrics = createMetrics();");
+  const plainRender = rootHtml.indexOf("if (!CAPTIONS_ENABLED)");
+  const costRender = rootHtml.indexOf("costEstimator.render();", plainRender);
+  assert.ok(metricsInit >= 0 && plainRender > metricsInit && costRender > metricsInit);
+});
+
 test("料金画面にCloudflare TURNの通話中継量だけを表示する", () => {
   assert.doesNotMatch(rootHtml, /Cloudflare無料枠|月1,000 GB/);
   assert.match(rootHtml, /id="turnUsageStatus"/);
