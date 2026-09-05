@@ -336,9 +336,16 @@ test('着信応答ではアプリを再読み込みせず同じ画面で通話�
  assert.match(html,/navigate:enterPhoneCallWithoutReload/);
  assert.match(html,/function enterPhoneCallWithoutReload\(id, supportMode, role\)/);
  assert.match(html,/history\.pushState\(\{ callId: nextCallId \}, "", url\)/);
- assert.match(html,/numberCalls\?\.enterCall\(\);[\s\S]*?maybeAutoJoinCall\(\)/);
+ assert.match(html,/numberCalls\?\.enterCall\(\);[\s\S]*?maybeAutoJoinCall\(true\)/);
  const transition=html.slice(html.indexOf('function enterPhoneCallWithoutReload'),html.indexOf('async function ensureAnonymousAuth'));
  assert.doesNotMatch(transition,/location\.assign|location\.href\s*=/);
+});
+
+test('着信応答は手動参加の連打制限に止められず必ず自動参加する',()=>{
+ assert.match(html,/const automaticJoin = params\.get\("autoJoin"\) === "1"/);
+ assert.match(html,/if \(!automaticJoin && !allowLocalAction\(JOIN_RATE_LIMIT\)\)/);
+ assert.match(html,/maybeAutoJoinCall\(true\)/);
+ assert.match(html,/if \(force && joinBusy\) setJoinBusy\(false\)/);
 });
 
 test('着信応答後は初期化中からローディングを表示し参加権限は参加処理内で確認する',()=>{

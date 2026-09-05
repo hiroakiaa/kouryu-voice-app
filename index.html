@@ -4558,7 +4558,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-06-no-reload-answer";
+    const APP_VERSION = "2026-09-06-forced-auto-join";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -5260,7 +5260,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       ensureParticipantWatcher();
       ensureTurnConfiguration();
       try { if (captionController) captionController.sync(); } catch (_) {}
-      maybeAutoJoinCall();
+      maybeAutoJoinCall(true);
     }
 
     async function ensureAnonymousAuth() {
@@ -5541,7 +5541,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     async function joinCall() {
       if (joined) return;
       if(!/^n_|^g_/.test(callId)){setNotice("電話番号から発信するか、グループを選んでください。",true);return;}
-      if (!allowLocalAction(JOIN_RATE_LIMIT)) {
+      const automaticJoin = params.get("autoJoin") === "1";
+      if (!automaticJoin && !allowLocalAction(JOIN_RATE_LIMIT)) {
         setNotice("短時間に参加操作が繰り返されました。10分ほど待ってからお試しください。", true);
         return;
       }
@@ -7991,8 +7992,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       } catch (_) {}
     }
 
-    function maybeAutoJoinCall() {
-      if (autoJoinStarted || params.get("autoJoin") !== "1" || joined || joinBusy) return;
+    function maybeAutoJoinCall(force = false) {
+      if (autoJoinStarted || joined || (!force && (params.get("autoJoin") !== "1" || joinBusy))) return;
+      if (force && joinBusy) setJoinBusy(false);
       autoJoinStarted = true;
       const role = params.get("callRole");
       const contactName = getDisplayName(params.get("contactName")) || "相手";
