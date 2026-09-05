@@ -25,3 +25,8 @@ test('初回案内と通知の最終配信確認を保存する',()=>{
   assert.match(html,/NOTIFICATION_VERIFIED_KEY/);
   assert.match(html,/最終確認：/);
 });
+
+test('操作要素では入力カーソルを隠し、入力欄では表示する',()=>{
+  assert.match(html,/body \{caret-color:transparent;\}/);
+  assert.match(html,/input,textarea,\[contenteditable="true"\][^{]*\{[^}]*caret-color:auto!important/);
+});

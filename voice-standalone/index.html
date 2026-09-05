@@ -4067,8 +4067,11 @@
     .number-head {justify-content:space-between;}.number-head h2{margin:0;font-size:22px;}
     .number-modal button{padding:10px 14px;min-height:44px;border:1px solid #a4ce83;border-radius:12px;background:#f1fbdc;color:#30462d;box-shadow:none;outline:none;}
     .number-modal button::before,.number-modal button::after{display:none;}.number-modal button[hidden]{display:none;}
-    button,button *,[role="button"],[role="button"] *,summary,summary * {-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent;}
+    body {caret-color:transparent;}
+    button,button *,[role="button"],[role="button"] *,summary,summary *,label:has(input),label:has(select) {-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent;}
     button,[role="button"],summary {cursor:pointer;touch-action:manipulation;}
+    input,textarea,[contenteditable="true"] {-webkit-user-select:text!important;user-select:text!important;caret-color:auto!important;cursor:text;}
+    select {caret-color:auto;cursor:pointer;}
     .action-confirm-message {margin:18px 0;line-height:1.7;color:#596b51;}
     .action-confirm-actions {display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     .action-confirm-actions .is-danger {background:#dc5364;color:#fff;border-color:#c43d50;}
@@ -4518,7 +4521,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-reliability-check";
+    const APP_VERSION = "2026-09-05-caret-polish";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
