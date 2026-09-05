@@ -295,6 +295,12 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 }
 @media(max-width:420px){.phone-home-card #accountActions{grid-template-columns:minmax(0,1fr)}.phone-home-card .phone-row>button{flex:1 1 44px}.phone-home-card .phone-primary-form{grid-template-columns:minmax(0,1fr) auto}}
 
+/* Bottom navigation: the active panel scrolls above a thumb-friendly fixed tab row. */
+.phone-home-card>.phone-tabs{order:3;position:relative;z-index:12;width:100%;margin-top:auto;padding:10px 2px max(8px,env(safe-area-inset-bottom));border-top:1px solid #cad8b9;border-bottom:0;background:#fffef8;box-sizing:border-box}
+.phone-home-card>[role="tabpanel"]{order:1}
+.phone-home-card>.phone-add-fab{bottom:86px}
+@media(max-width:540px){.phone-home-card>.phone-tabs{padding-top:8px}.phone-home-card>.phone-add-fab{bottom:76px}}
+
 /* Keep every settings help control perfectly circular, even in a shrinking flex row. */
 .phone-help-icon,.phone-home-card .account-help-head .phone-panel-icon{display:grid!important;place-items:center;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex:0 0 40px!important;aspect-ratio:1/1;box-sizing:border-box;padding:0!important;border:2px solid #9fc982!important;border-radius:50%!important;line-height:1;box-shadow:0 3px 0 #dceaca!important}
 .phone-help-icon i,.account-help-head .phone-panel-icon i{display:block;width:1em;height:1em;line-height:1;text-align:center}

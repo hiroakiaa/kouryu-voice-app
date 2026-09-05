@@ -270,6 +270,17 @@ test('説明は一度に一つだけ開き、参加者とモーダルは狭い�
  assert.match(css,/body\.is-in-call \.participants-card \.participants\{[^}]*justify-content:flex-start/);
 });
 
+test('自分の番号は外側のクリックで閉じ、電話タブは各画面の下に固定する',()=>{
+ assert.match(app,/document\.addEventListener\('click',event=>\{if\(\$\('phoneOwnToggle'\)\.getAttribute\('aria-expanded'\)!=='true'\)return;/);
+ assert.match(app,/\$\('phoneOwnDetails'\)\.contains\(event\.target\)\|\|\$\('phoneOwnToggle'\)\.contains\(event\.target\)/);
+ const settings=html.indexOf('<section id="phoneSettingsPanel"'),tabs=html.indexOf('<nav class="phone-tabs"');
+ assert.ok(settings>=0&&tabs>settings);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*order:3;[^}]*margin-top:auto;[^}]*border-top:/);
+ assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:1\}/);
+ assert.match(css,/\.phone-home-card>\.phone-add-fab\{bottom:86px\}/);
+});
+
 test('グループ詳細の共通開閉処理は詳細ボタンから参照できる範囲に置く',()=>{
  const helper=app.indexOf('const setCollapsible='), opener=app.indexOf('async function openGroup(');
  assert.ok(helper>=0&&helper<opener);

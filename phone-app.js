@@ -150,6 +150,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,remoteEnded=asy
   $('phoneNameDialog').addEventListener('click',e=>{if(e.target!==$('phoneNameDialog'))return;const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('phoneNameClose').click();});
   const setOwnOpen=open=>{$('phoneOwnToggle').setAttribute('aria-expanded',String(open));$('phoneOwnDetails').classList.toggle('is-visible',open);$('phoneOwnDetails').inert=!open;$('phoneOwnDetails').setAttribute('aria-hidden',String(!open));};
   $('phoneOwnToggle').onclick=()=>setOwnOpen($('phoneOwnToggle').getAttribute('aria-expanded')!=='true');
+  document.addEventListener('click',event=>{if($('phoneOwnToggle').getAttribute('aria-expanded')!=='true')return;if($('phoneOwnDetails').contains(event.target)||$('phoneOwnToggle').contains(event.target))return;setOwnOpen(false);});
   $('accountHelpToggle').onclick=()=>setCollapsible('accountHelpToggle','accountHelpPanel',$('accountHelpToggle').getAttribute('aria-expanded')!=='true');
   $('defaultModeHelpToggle').onclick=()=>setCollapsible('defaultModeHelpToggle','defaultModeHelpPanel',$('defaultModeHelpToggle').getAttribute('aria-expanded')!=='true');
   $('notificationHelpToggle').onclick=()=>setCollapsible('notificationHelpToggle','notificationHelpPanel',$('notificationHelpToggle').getAttribute('aria-expanded')!=='true');
