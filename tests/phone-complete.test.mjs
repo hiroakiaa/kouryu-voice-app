@@ -415,18 +415,24 @@ test('4種類の着信音を試聴・保存し、実際の着信に使用する'
  for(const tone of ['gentle','sunny','drop','classic']) assert.match(html,new RegExp('data-ringtone-preview="'+tone+'"'));
  assert.match(app,/ringtonePatterns=\{\s*gentle:/);
  assert.match(app,/localStorage\.setItem\(ringtoneToneKey,radio\.value\)/);
- assert.match(app,/function previewRingtone\(key,button\)/);
+ assert.match(app,/async function previewRingtone\(key,button\)/);
  assert.match(app,/playRingtonePattern\(ringAudio,selectedRingtone\(\)\)/);
  assert.match(app,/if\(!\$\('phoneRingtone'\)\.checked\|\|ringAudioTimer\)return/);
  for(const title of ['はじまり','青空ホーム','そよかぜ','出発ベル']) assert.match(html,new RegExp('<b>'+title+'</b>'));
  assert.match(app,/createBiquadFilter\(\)/);
  assert.match(app,/createDynamicsCompressor\(\)/);
  assert.match(app,/createDelay\(\)/);
- assert.match(app,/setInterval\(play,2900\)/);
+ assert.match(app,/ringtonePatterns\[selectedRingtone\(\)\]\?\.loop\|\|2\.4/);
  assert.match(app,/voices:\[\[1,1,'triangle'/);
  assert.match(app,/voices:\[\[1,1,'sine'/);
  assert.match(app,/voices:\[\[1,1,'square'/);
  assert.match(app,/echo\.delayTime\.value=pattern\.echoDelay/);
+ assert.match(app,/for\(let repeat=0;repeat<5;repeat\+\+\)playRingtonePattern/);
+ assert.match(app,/context\.suspend\(\)/);
+ assert.match(app,/context\.resume\(\)/);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.ringtone-option>button i\{[^}]*transform:translateX\(1px\)/);
+ assert.match(css,/\.ringtone-option>button \.fa-pause\{transform:none\}/);
 });
 
 test('呼び出し中は取消ボタンを表示し、ページ終了時も相手へ取消を送る',()=>{
