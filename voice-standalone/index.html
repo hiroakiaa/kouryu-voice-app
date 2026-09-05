@@ -4558,11 +4558,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-06-instant-answer";
+    const APP_VERSION = "2026-09-06-no-reload-answer";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
-    const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
+    let CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
@@ -4695,14 +4695,14 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const sessionId = createSessionId();
     const deviceId = getOrCreateUserId();
     let userId = deviceId + "-" + sessionId.slice(-12);
-    const callId = ensureCallId(params.get("call"));
+    let callId = ensureCallId(params.get("call"));
     if (/^n_|^g_/.test(callId)) {
       document.body.classList.remove("phone-home");
       const phoneHomeAtStartup = document.getElementById("phoneHome");
       if (phoneHomeAtStartup) phoneHomeAtStartup.setAttribute("aria-hidden", "true");
     }
-    const isDefaultCall = callId === DEFAULT_CALL_ID;
-    const ACTIVE_SUPPORT_MODE = CAPTIONS_ENABLED ? "support" : "plain";
+    let isDefaultCall = callId === DEFAULT_CALL_ID;
+    let ACTIVE_SUPPORT_MODE = CAPTIONS_ENABLED ? "support" : "plain";
     normalizeCallUrl();
 
     const el = {
@@ -5205,7 +5205,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         if(/^n_|^g_/.test(callId)) userId=authUser.uid;
         authUser.getIdToken().then(function(token) { cachedPushAuthToken = token; }).catch(function() {});
         numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId,supportMode:ACTIVE_SUPPORT_MODE}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,disable:disableCallNotifications,enabled:closedAppNotificationsEnabled,status:notificationStatusText,test:testCallNotification},preflight:runDevicePreflight,stop:()=>stopLocalCall(true),remoteEnded:(name,message)=>finishRemoteCallWithNotice(name,message),notice:setNotice,trace:(label,detail)=>{recordConnectionStep(label,detail,"phone:"+label);pushDiagnostic("info",label,detail);},usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
-          navigate:(id,supportMode,role)=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('support',supportMode==='plain'?'plain':'support');u.searchParams.set('autoJoin','1');if(role==='caller'||role==='callee')u.searchParams.set('callRole',role);try{sessionStorage.setItem(PENDING_CALL_NAVIGATION_KEY,JSON.stringify({callId:id,url:u.toString(),at:Date.now()}));}catch(_){}try{window.location.assign(u.toString());}catch(_){window.location.href=u.toString();}window.setTimeout(()=>{if(new URL(window.location.href).searchParams.get('call')!==id)window.location.href=u.toString();},250);}});
+          navigate:enterPhoneCallWithoutReload});
         await numberCalls.start();
         if (!/^n_|^g_/.test(callId) && localStorage.getItem(ONBOARDING_KEY) !== "done" && !onboarding.open) window.setTimeout(function() { onboarding.showModal(); }, 350);
         if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", function(event) { numberCalls?.handlePushState(event.data); });
@@ -5222,6 +5222,44 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if(!/^n_|^g_/.test(callId))return;
       ensureParticipantWatcher();
       ensureTurnConfiguration();
+      maybeAutoJoinCall();
+    }
+
+    function enterPhoneCallWithoutReload(id, supportMode, role) {
+      const nextCallId = ensureCallId(id);
+      const selectedMode = supportMode === "plain" ? "plain" : "support";
+      stopParticipantWatcher();
+      stopSignalWatcher();
+      participants = [];
+      lastParticipantsRenderSignature = "";
+      callId = nextCallId;
+      isDefaultCall = false;
+      ACTIVE_SUPPORT_MODE = selectedMode;
+      CAPTIONS_ENABLED = selectedMode === "support";
+      userId = authUser.uid;
+      params.set("call", nextCallId);
+      params.set("support", selectedMode);
+      params.set("autoJoin", "1");
+      if (role === "caller" || role === "callee") params.set("callRole", role);
+      else params.delete("callRole");
+      const url = new URL(location.href);
+      url.searchParams.set("call", nextCallId);
+      url.searchParams.set("support", selectedMode);
+      url.searchParams.set("autoJoin", "1");
+      if (role === "caller" || role === "callee") url.searchParams.set("callRole", role);
+      else url.searchParams.delete("callRole");
+      history.pushState({ callId: nextCallId }, "", url);
+      document.body.classList.remove("phone-home");
+      el.phoneHome?.setAttribute("aria-hidden", "true");
+      document.getElementById("activeSupportMode").textContent = CAPTIONS_ENABLED ? "サポートあり" : "通常通話";
+      turnConfigurationPromise = null;
+      rtcConfig = { iceCandidatePoolSize: 2, iceServers: FALLBACK_ICE_SERVERS };
+      autoJoinStarted = false;
+      renderParticipants([]);
+      numberCalls?.enterCall();
+      ensureParticipantWatcher();
+      ensureTurnConfiguration();
+      try { if (captionController) captionController.sync(); } catch (_) {}
       maybeAutoJoinCall();
     }
 

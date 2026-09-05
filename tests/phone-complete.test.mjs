@@ -329,16 +329,16 @@ test('グループ詳細の共通開閉処理は詳細ボタンから参照で�
  assert.match(app,/グループの詳細を開けませんでした/);
 });
 
-test('着信応答では元画面を通話画面に見せず通話URLへ確実に移動する',()=>{
+test('着信応答ではアプリを再読み込みせず同じ画面で通話へ移る',()=>{
  assert.match(app,/function prepareCallNavigation\(\)/);
- assert.doesNotMatch(app,/document\.body\.classList\.remove\('phone-home'\)/);
  assert.match(app,/for\(const id of \['numberIncoming','phoneOutgoingDialog','phoneDialConfirm','phoneCallResultDialog','groupDialog','phoneConfirmDialog'\]\)/);
  assert.match(app,/go\(callId,supportMode,'callee'\)/);
- assert.match(html,/if \(\/\^n_\|\^g_\/\.test\(callId\)\) \{\s*document\.body\.classList\.remove\("phone-home"\)/);
- assert.match(html,/PENDING_CALL_NAVIGATION_KEY/);
- assert.match(html,/sessionStorage\.setItem\(PENDING_CALL_NAVIGATION_KEY/);
- assert.match(html,/window\.location\.assign\(u\.toString\(\)\)/);
- assert.match(html,/params\.get\("call"\) !== pendingNavigation\.callId/);
+ assert.match(html,/navigate:enterPhoneCallWithoutReload/);
+ assert.match(html,/function enterPhoneCallWithoutReload\(id, supportMode, role\)/);
+ assert.match(html,/history\.pushState\(\{ callId: nextCallId \}, "", url\)/);
+ assert.match(html,/numberCalls\?\.enterCall\(\);[\s\S]*?maybeAutoJoinCall\(\)/);
+ const transition=html.slice(html.indexOf('function enterPhoneCallWithoutReload'),html.indexOf('async function ensureAnonymousAuth'));
+ assert.doesNotMatch(transition,/location\.assign|location\.href\s*=/);
 });
 
 test('着信応答後は初期化中からローディングを表示し参加権限は参加処理内で確認する',()=>{
