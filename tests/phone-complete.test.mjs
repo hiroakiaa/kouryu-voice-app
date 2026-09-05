@@ -217,13 +217,23 @@ test('グループは招待状態・参加状況・履歴からの再参加を�
  assert.match(rules,/'groupId','callType','participantCount'/);
 });
 
+test('着信応答ではホームとモーダルを解除して通話画面へ移動する',()=>{
+ assert.match(app,/function prepareCallNavigation\(\)/);
+ assert.match(app,/document\.body\.classList\.remove\('phone-home'\)/);
+ assert.match(app,/for\(const id of \['numberIncoming','phoneDialConfirm','phoneCallResultDialog','groupDialog','phoneConfirmDialog'\]\)/);
+ assert.match(app,/go\(callId,supportMode,'callee'\)/);
+ assert.match(html,/if \(\/\^n_\|\^g_\/\.test\(callId\)\) \{\s*document\.body\.classList\.remove\("phone-home"\)/);
+ assert.match(html,/document\.querySelectorAll\('dialog\[open\]'\)/);
+ assert.match(html,/location\.replace\(u\.toString\(\)\)/);
+});
+
 test('発信前に理解サポートありと通話だけを選び、着信・履歴・グループへ引き継ぐ',()=>{
  assert.match(html,/name="phoneSupportMode" value="support"/);
  assert.match(html,/name="phoneSupportMode" value="plain"/);
  assert.match(html,/name="groupSupportMode"/);
  assert.match(app,/supportMode,status:'ringing'/);
  assert.match(app,/1対1・'\+modeLabel\(supportMode\)/);
- assert.match(app,/navigate\(id,selected\)/);
+ assert.match(app,/navigate\(id,selected,role\)/);
  assert.match(rules,/supportMode.*\['support','plain'\]/);
 });
 
