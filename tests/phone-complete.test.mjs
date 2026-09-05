@@ -428,6 +428,10 @@ test('6種類の着信音を試聴・保存し、実際の着信に使用する'
  assert.match(app,/voices:\[\[1,1,'square'/);
  assert.match(app,/normal:\{kind:'warble'/);
  assert.match(app,/rotary:\{kind:'mechanical'/);
+ assert.match(app,/drop:\{kind:'breeze'/);
+ assert.match(app,/vibrato\.frequency\.value=\.42/);
+ assert.match(app,/airFilter\.frequency\.linearRampToValueAtTime\(3100/);
+ assert.match(html,/風が抜ける、のびやかな音/);
  assert.match(app,/lfo\.frequency\.value=pattern\.rate/);
  assert.match(app,/for\(let strike=0;strike<pattern\.strikes;strike\+\+\)/);
  assert.match(app,/createBuffer\(1,Math\.ceil\(context\.sampleRate\*\.025\)/);
