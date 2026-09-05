@@ -430,6 +430,10 @@ test('6種類の着信音を試聴・保存し、実際の着信に使用する'
  assert.match(app,/rotary:\{kind:'mechanical'/);
  assert.match(app,/lfo\.frequency\.value=pattern\.rate/);
  assert.match(app,/for\(let strike=0;strike<pattern\.strikes;strike\+\+\)/);
+ assert.match(app,/createBuffer\(1,Math\.ceil\(context\.sampleRate\*\.025\)/);
+ assert.match(app,/motor\.type='sawtooth'/);
+ assert.match(app,/\[5\.12,\.06\]/);
+ assert.match(html,/昭和のジリリリリーン/);
  assert.match(app,/echo\.delayTime\.value=pattern\.echoDelay/);
  assert.match(app,/for\(let repeat=0;repeat<5;repeat\+\+\)playRingtonePattern/);
  assert.match(app,/context\.suspend\(\)/);
