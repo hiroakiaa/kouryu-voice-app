@@ -159,6 +159,20 @@ test('QR読み取りはBarcodeDetector非対応ブラウザでもjsQRを使う',
  assert.match(app,/window\.jsQR/);
 });
 
+test('QR読み取り後は電話帳追加モーダルを開いて名前入力へ移る',()=>{
+ assert.match(app,/function useQrValue[\s\S]*?openContactForm\('name'\)/);
+ assert.match(app,/const openContactForm=\(focus='number'\)=>/);
+ assert.match(app,/focus==='name'\?'phoneContactName':'phoneContactNumber'/);
+});
+
+test('名前入力中のかなをよみがな候補にし手動編集後は上書きしない',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/const readingFromKana=/);
+ assert.match(app,/contactName\.addEventListener\('compositionupdate'/);
+ assert.match(app,/if\(readingWasEdited\)return/);
+ assert.match(css,/\.contact-form-dialog>#phoneAddContact\{[^}]*width:100%;[^}]*min-height:58px;[^}]*font-size:19px/);
+});
+
 test('お気に入りを保存でき、ルールは任意のbooleanだけを許可する',()=>{
  assert.match(app,/data-favorite/);
  assert.match(app,/favorite:!c\?\.favorite/);
