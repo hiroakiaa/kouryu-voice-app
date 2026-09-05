@@ -348,11 +348,13 @@ test('着信応答後は初期化中からローディングを表示し参加�
  assert.match(html,/acquired = await numberCalls\.acquire\(\)[\s\S]*?if \(acquired\) break/);
 });
 
-test('前回通話の終了直後に応答しても通話中情報を待って自動接続する',()=>{
- assert.match(app,/const retryWaits=\[0,400,800,1200,1800\]/);
- assert.match(app,/前の通話の終了を確認しています…/);
- assert.match(app,/error\?\.message!=='どちらかが通話中です。'/);
- assert.match(app,/if\(!accepted\)throw lastError/);
+test('新しい着信への応答は古い通話中情報の固定待機なしで接続する',()=>{
+ assert.doesNotMatch(app,/const retryWaits=\[0,400,800,1200,1800\]/);
+ assert.doesNotMatch(app,/前回通話の終了待ち/);
+ assert.match(app,/t\.set\(busyRef\(person\),\{callId,until:/);
+ assert.match(app,/active:true,expiresAt:/);
+ const rules=fs.readFileSync(new URL('../firestore.rules',import.meta.url),'utf8');
+ assert.match(rules,/leaseFree\(uid\)[\s\S]*?numberInvitations\/\$\(uid\)[\s\S]*?status == 'accepted'/);
 });
 
 test('発信側はリアルタイム通知が止まっても応答済みルームへ直ちに参加する',()=>{
@@ -460,7 +462,8 @@ test('再着信は前回の通話状態の読み取りを待たずに表示す�
  assert.match(receive,/if\(state\(\)\.joined\)/);
  assert.doesNotMatch(receive,/await available/);
  assert.match(receive,/showModal\(\)/);
- assert.match(app,/const selfFree=await available\(t,uid\),otherFree=await available\(t,r\.from\)/);
+ assert.match(app,/t\.set\(ref\('numberVoiceCalls',callId\)/);
+ assert.doesNotMatch(app,/const selfFree=await available\(t,uid\),otherFree=await available\(t,r\.from\)/);
 });
 
 test('相手側の終了時は保存処理より先に終了モーダルを開始する',()=>{
@@ -553,4 +556,11 @@ test('応答後はTURN取得と参加準備を並行し自動参加の待機を�
  assert.match(html,/\[0, 120, 220, 360, 550\]/);
  assert.match(html,/await turnReady;\s*startLiveWatchers\(\)/);
  assert.match(html,/turnAbortController\.abort\(\)[\s\S]*?2500/);
+});
+
+test('1対1の応答後は履歴保存と重複した参加枠処理を待たない',()=>{
+ assert.match(app,/activeHistory=\{id,startedAt:Date\.now\(\)[\s\S]*?\};history\(id,[\s\S]*?\);go\(callId,supportMode,'callee'\)/);
+ assert.doesNotMatch(app,/activeHistory=\{id,startedAt:Date\.now\(\)[\s\S]{0,300}?await history\(/);
+ assert.match(app,/existing\.data\(\)\.callId===id\)return true/);
+ assert.match(html,/callSlot = callId\.startsWith\("n_"\) \? "" : await claimCallSlot\(\)/);
 });

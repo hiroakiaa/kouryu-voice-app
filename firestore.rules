@@ -56,7 +56,12 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.resource.data.keys().hasOnly(['callId','until'])
         && request.resource.data.until > request.time && request.resource.data.until <= request.time + duration.value(270,'s')
-        && (leaseFree(uid) || (resource != null && resource.data.callId == request.resource.data.callId))
+        && (leaseFree(uid) || (resource != null && resource.data.callId == request.resource.data.callId)
+          || (request.resource.data.callId.matches('^n_.*')
+            && getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.callId)).data.ownerUid == request.auth.uid
+            && (request.auth.uid == uid
+              || (getAfter(/databases/$(database)/documents/numberInvitations/$(uid)).data.status == 'accepted'
+                && getAfter(/databases/$(database)/documents/numberInvitations/$(uid)).data.roomId == request.resource.data.callId))))
         && ((request.auth.uid == uid && ((request.resource.data.callId.matches('^g_.*') && groupMember(request.resource.data.callId))
           || (request.resource.data.callId.matches('^n_.*') && uid in getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.callId)).data.members)))
           || (request.resource.data.callId.matches('^n_.*')

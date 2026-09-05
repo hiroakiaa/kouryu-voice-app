@@ -4513,7 +4513,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-busy-race";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-06-instant-answer";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4558,7 +4558,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-06-fast-answer-signal";
+    const APP_VERSION = "2026-09-06-instant-answer";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -5569,8 +5569,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
 
       try {
-        callSlot = await claimCallSlot();
-        recordWrite("callSlotClaim");
+        callSlot = callId.startsWith("n_") ? "" : await claimCallSlot();
+        if (callSlot) recordWrite("callSlotClaim");
       } catch (error) {
         callSlot = "";
         if (error && error.message === "CALL_FULL") {
