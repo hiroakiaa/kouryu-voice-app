@@ -288,7 +288,10 @@ test('電話番号は直接編集できない表示専用エリアにする',()=
  assert.doesNotMatch(html,/<input id="phoneDialNumber"/);
  assert.match(app,/import \{bindDialDisplay\} from '\.\/dial-input\.js'/);
  assert.match(app,/const editDial=bindDialDisplay\(\$\('phoneDialNumber'\)\)/);
- assert.match(app,/backspace\.addEventListener\('pointerdown'/);
+ assert.match(app,/backspace\.addEventListener\('mousedown'/);
+ assert.match(app,/if\(e\.button===0\)startBackspaceHold\(\)/);
+ assert.match(app,/backspace\.addEventListener\('touchstart',startBackspaceHold/);
+ assert.match(app,/window\.addEventListener\('touchend',cancelBackspaceHold\)/);
  assert.match(app,/editDial\.clear\(\)/);
  assert.match(app,/backspaceDidClear/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');

@@ -173,9 +173,12 @@ export function createPhoneApp({db,user,state,name,navigate,stop,remoteEnded=asy
   const editDial=bindDialDisplay($('phoneDialNumber'));
   for(const b of document.querySelectorAll('[data-phone-key]'))b.onclick=()=>editDial(b.dataset.phoneKey);
   const backspace=$('phoneBackspace');let backspaceHoldTimer=0,backspaceDidClear=false;
-  backspace.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;backspaceDidClear=false;clearTimeout(backspaceHoldTimer);backspaceHoldTimer=setTimeout(()=>{backspaceHoldTimer=0;if(!$('phoneDialNumber').value)return;editDial.clear();backspaceDidClear=true;try{navigator.vibrate?.(35);}catch(_){}},550);});
+  const startBackspaceHold=()=>{backspaceDidClear=false;clearTimeout(backspaceHoldTimer);backspaceHoldTimer=setTimeout(()=>{backspaceHoldTimer=0;if(!$('phoneDialNumber').value)return;editDial.clear();backspaceDidClear=true;try{navigator.vibrate?.(35);}catch(_){}},500);};
+  backspace.addEventListener('mousedown',e=>{if(e.button===0)startBackspaceHold();});
+  backspace.addEventListener('touchstart',startBackspaceHold,{passive:true});
+  backspace.addEventListener('pointerdown',e=>{if(e.pointerType==='pen')startBackspaceHold();});
   const cancelBackspaceHold=()=>{clearTimeout(backspaceHoldTimer);backspaceHoldTimer=0;};
-  backspace.addEventListener('pointerup',cancelBackspaceHold);backspace.addEventListener('pointercancel',cancelBackspaceHold);backspace.addEventListener('contextmenu',e=>e.preventDefault());
+  window.addEventListener('mouseup',cancelBackspaceHold);window.addEventListener('touchend',cancelBackspaceHold);window.addEventListener('touchcancel',cancelBackspaceHold);backspace.addEventListener('pointerup',cancelBackspaceHold);backspace.addEventListener('pointercancel',cancelBackspaceHold);backspace.addEventListener('contextmenu',e=>e.preventDefault());
   backspace.addEventListener('click',e=>{if(backspaceDidClear){e.preventDefault();backspaceDidClear=false;return;}editDial(null);});
   $('phoneDialForm').addEventListener('submit',e=>{e.preventDefault();dial($('phoneDialNumber').value);});
   bind('numberAccept',()=>respond(true));bind('numberDecline',()=>respond(false));bind('numberBlock',block);$('numberIncoming').addEventListener('cancel',e=>{e.preventDefault();respond(false);});
