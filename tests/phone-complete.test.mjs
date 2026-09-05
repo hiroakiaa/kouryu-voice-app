@@ -256,6 +256,13 @@ test('説明は一度に一つだけ開き、参加者とモーダルは狭い�
  assert.match(css,/body\.is-in-call \.participants-card \.participants\{[^}]*justify-content:flex-start/);
 });
 
+test('グループ詳細の共通開閉処理は詳細ボタンから参照できる範囲に置く',()=>{
+ const helper=app.indexOf('const setCollapsible='), opener=app.indexOf('async function openGroup(');
+ assert.ok(helper>=0&&helper<opener);
+ assert.match(app,/if\(d\.openGroup\)await openGroup\(d\.openGroup\)\.catch/);
+ assert.match(app,/グループの詳細を開けませんでした/);
+});
+
 test('着信応答では元画面を通話画面に見せず通話URLへ確実に移動する',()=>{
  assert.match(app,/function prepareCallNavigation\(\)/);
  assert.doesNotMatch(app,/document\.body\.classList\.remove\('phone-home'\)/);
