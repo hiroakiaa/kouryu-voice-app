@@ -4,6 +4,7 @@ import fs from 'node:fs';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const phone=fs.readFileSync(new URL('../phone-app.js',import.meta.url),'utf8');
+const theme=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
 
 test('発信とグループ参加の前に端末チェックを通す',()=>{
   assert.match(phone,/preflight=async\(\)=>\(\{ok:true\}\)/);
@@ -29,4 +30,9 @@ test('初回案内と通知の最終配信確認を保存する',()=>{
 test('操作要素では入力カーソルを隠し、入力欄では表示する',()=>{
   assert.match(html,/body \{caret-color:transparent;\}/);
   assert.match(html,/input,textarea,\[contenteditable="true"\][^{]*\{[^}]*caret-color:auto!important/);
+});
+
+test('端末チェックの手動項目は小さな固定チェック欄で縦にそろえる',()=>{
+  assert.match(theme,/\.device-check-manual>label\{[^}]*grid-template-columns:20px minmax\(0,1fr\)!important/);
+  assert.match(theme,/\.device-check-manual>label>input\[type="checkbox"\]\{[^}]*width:18px!important[^}]*height:18px!important/);
 });
