@@ -413,7 +413,7 @@ test('発着信の各段階を匿名で診断し、復帰時に着信を再確�
 
 test('4種類の着信音を試聴・保存し、実際の着信に使用する',()=>{
  for(const tone of ['gentle','sunny','drop','classic']) assert.match(html,new RegExp('data-ringtone-preview="'+tone+'"'));
- assert.match(app,/ringtonePatterns=\{gentle:/);
+ assert.match(app,/ringtonePatterns=\{\s*gentle:/);
  assert.match(app,/localStorage\.setItem\(ringtoneToneKey,radio\.value\)/);
  assert.match(app,/function previewRingtone\(key,button\)/);
  assert.match(app,/playRingtonePattern\(ringAudio,selectedRingtone\(\)\)/);
@@ -423,7 +423,10 @@ test('4種類の着信音を試聴・保存し、実際の着信に使用する'
  assert.match(app,/createDynamicsCompressor\(\)/);
  assert.match(app,/createDelay\(\)/);
  assert.match(app,/setInterval\(play,2900\)/);
- assert.match(app,/\[2,\.14,'sine'\]/);
+ assert.match(app,/voices:\[\[1,1,'triangle'/);
+ assert.match(app,/voices:\[\[1,1,'sine'/);
+ assert.match(app,/voices:\[\[1,1,'square'/);
+ assert.match(app,/echo\.delayTime\.value=pattern\.echoDelay/);
 });
 
 test('呼び出し中は取消ボタンを表示し、ページ終了時も相手へ取消を送る',()=>{
