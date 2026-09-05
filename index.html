@@ -4506,7 +4506,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-admin-reliability";
+    const APP_VERSION = "2026-09-05-incoming-autojoin";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -4887,6 +4887,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     renderMetrics();
     setReadyStatus();
     document.getElementById('activeSupportMode').textContent = CAPTIONS_ENABLED ? 'サポートあり' : '通常通話';
+    if (/^n_|^g_/.test(callId) && params.get("autoJoin") === "1") {
+      el.join.classList.add("primary", "is-busy");
+      el.join.innerHTML = '<i class="fa-solid fa-spinner" aria-hidden="true"></i><span>応答を準備中…</span>';
+      el.join.setAttribute("aria-label", "応答を準備中");
+      el.join.disabled = true;
+    }
 
     let captionController = null;
     if (CAPTIONS_ENABLED) {
@@ -5161,7 +5167,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         pushDiagnostic("error", "匿名認証に失敗", error && error.message ? error.message : "");
         return;
       }
-      if(/^n_|^g_/.test(callId)&&!(await numberCalls.allowed())){setNotice('番号から電話し、持ち主の承認を受けてください。',true);return;}
       if(!/^n_|^g_/.test(callId))return;
       ensureParticipantWatcher();
       await ensureTurnConfiguration();

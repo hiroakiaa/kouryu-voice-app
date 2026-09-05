@@ -341,6 +341,12 @@ test('着信応答では元画面を通話画面に見せず通話URLへ確実�
  assert.match(html,/params\.get\("call"\) !== pendingNavigation\.callId/);
 });
 
+test('着信応答後は初期化中からローディングを表示し参加権限は参加処理内で確認する',()=>{
+ assert.match(html,/params\.get\("autoJoin"\) === "1"[\s\S]*?応答を準備中…[\s\S]*?el\.join\.disabled = true/);
+ assert.doesNotMatch(html,/numberCalls\.allowed\(\)\)\s*\{?setNotice/);
+ assert.match(html,/numberCalls && !\(await numberCalls\.acquire\(\)\)/);
+});
+
 test('発信側はリアルタイム通知が止まっても応答済みルームへ直ちに参加する',()=>{
  assert.match(app,/ringPollTimer=setInterval/);
  assert.match(app,/handleOutgoingState\(\(await read\(requestRef\(uid\)\)\)\.data\(\)\)/);
