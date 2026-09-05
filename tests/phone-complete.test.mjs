@@ -217,14 +217,16 @@ test('グループは招待状態・参加状況・履歴からの再参加を�
  assert.match(rules,/'groupId','callType','participantCount'/);
 });
 
-test('着信応答ではホームとモーダルを解除して通話画面へ移動する',()=>{
+test('着信応答では元画面を通話画面に見せず通話URLへ確実に移動する',()=>{
  assert.match(app,/function prepareCallNavigation\(\)/);
- assert.match(app,/document\.body\.classList\.remove\('phone-home'\)/);
+ assert.doesNotMatch(app,/document\.body\.classList\.remove\('phone-home'\)/);
  assert.match(app,/for\(const id of \['numberIncoming','phoneDialConfirm','phoneCallResultDialog','groupDialog','phoneConfirmDialog'\]\)/);
  assert.match(app,/go\(callId,supportMode,'callee'\)/);
  assert.match(html,/if \(\/\^n_\|\^g_\/\.test\(callId\)\) \{\s*document\.body\.classList\.remove\("phone-home"\)/);
- assert.match(html,/document\.querySelectorAll\('dialog\[open\]'\)/);
- assert.match(html,/location\.replace\(u\.toString\(\)\)/);
+ assert.match(html,/PENDING_CALL_NAVIGATION_KEY/);
+ assert.match(html,/sessionStorage\.setItem\(PENDING_CALL_NAVIGATION_KEY/);
+ assert.match(html,/window\.location\.assign\(u\.toString\(\)\)/);
+ assert.match(html,/params\.get\("call"\) !== pendingNavigation\.callId/);
 });
 
 test('発信側はリアルタイム通知が止まっても応答済みルームへ直ちに参加する',()=>{

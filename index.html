@@ -4048,7 +4048,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-turn-before-join">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-call-navigation-recovery">
 </head>
 <body class="phone-home">
   <main>
@@ -4401,12 +4401,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-05-turn-before-join"></script>
-  <script src="./jsQR.js?v=2026-09-05-turn-before-join"></script>
+  <script src="./qrcode-generator.js?v=2026-09-05-call-navigation-recovery"></script>
+  <script src="./jsQR.js?v=2026-09-05-call-navigation-recovery"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-turn-before-join";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-call-navigation-recovery";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-turn-before-join";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-call-navigation-recovery";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4448,7 +4448,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-turn-before-join";
+    const APP_VERSION = "2026-09-05-call-navigation-recovery";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4557,6 +4557,16 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const FIRESTORE_FREE_DELETES_PER_DAY = 20000;
 
     const params = new URLSearchParams(location.search);
+    const PENDING_CALL_NAVIGATION_KEY = "kouryu-pending-call-navigation-v1";
+    try {
+      const pendingNavigation = JSON.parse(sessionStorage.getItem(PENDING_CALL_NAVIGATION_KEY) || "null");
+      if (pendingNavigation && /^n_|^g_/.test(pendingNavigation.callId || "") && Date.now() - Number(pendingNavigation.at || 0) < 30000) {
+        if (params.get("call") !== pendingNavigation.callId) window.location.assign(pendingNavigation.url);
+        else sessionStorage.removeItem(PENDING_CALL_NAVIGATION_KEY);
+      } else {
+        sessionStorage.removeItem(PENDING_CALL_NAVIGATION_KEY);
+      }
+    } catch (_) {}
     const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "1";
     const metricsEnabled = params.get("metrics") === "1" || params.get("debug") === "1";
     const app = isDemoMode ? null : initializeApp(firebaseConfig);
@@ -5052,7 +5062,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         await ensureAnonymousAuth();
         if(/^n_|^g_/.test(callId)) userId=authUser.uid;
         numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId,supportMode:ACTIVE_SUPPORT_MODE}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,status:notificationStatusText,test:testCallNotification},stop:()=>stopLocalCall(true),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
-          navigate:(id,supportMode,role)=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('support',supportMode==='plain'?'plain':'support');u.searchParams.set('autoJoin','1');if(role==='caller'||role==='callee')u.searchParams.set('callRole',role);document.querySelectorAll('dialog[open]').forEach(dialog=>{try{dialog.close();}catch(_){}});document.body.classList.remove('phone-home');location.replace(u.toString());}});
+          navigate:(id,supportMode,role)=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('support',supportMode==='plain'?'plain':'support');u.searchParams.set('autoJoin','1');if(role==='caller'||role==='callee')u.searchParams.set('callRole',role);try{sessionStorage.setItem(PENDING_CALL_NAVIGATION_KEY,JSON.stringify({callId:id,url:u.toString(),at:Date.now()}));}catch(_){}try{window.location.assign(u.toString());}catch(_){window.location.href=u.toString();}window.setTimeout(()=>{if(new URL(window.location.href).searchParams.get('call')!==id)window.location.href=u.toString();},250);}});
         await numberCalls.start();
         if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", function(event) { numberCalls?.handlePushState(event.data); });
         // The number phonebook replaces the old registration-link flow.
