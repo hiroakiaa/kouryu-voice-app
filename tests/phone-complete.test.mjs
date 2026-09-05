@@ -418,10 +418,12 @@ test('4種類の着信音を試聴・保存し、実際の着信に使用する'
  assert.match(app,/function previewRingtone\(key,button\)/);
  assert.match(app,/playRingtonePattern\(ringAudio,selectedRingtone\(\)\)/);
  assert.match(app,/if\(!\$\('phoneRingtone'\)\.checked\|\|ringAudioTimer\)return/);
- for(const title of ['木もれび','ひだまり','しずく','こだま']) assert.match(html,new RegExp('<b>'+title+'</b>'));
+ for(const title of ['はじまり','青空ホーム','そよかぜ','出発ベル']) assert.match(html,new RegExp('<b>'+title+'</b>'));
  assert.match(app,/createBiquadFilter\(\)/);
  assert.match(app,/createDynamicsCompressor\(\)/);
- assert.match(app,/\[2,\.16,'sine'\]/);
+ assert.match(app,/createDelay\(\)/);
+ assert.match(app,/setInterval\(play,2900\)/);
+ assert.match(app,/\[2,\.14,'sine'\]/);
 });
 
 test('呼び出し中は取消ボタンを表示し、ページ終了時も相手へ取消を送る',()=>{
