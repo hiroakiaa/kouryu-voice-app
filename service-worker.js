@@ -1,4 +1,4 @@
-const CACHE_NAME = "kouryu-voice-shell-v4";
+const CACHE_NAME = "kouryu-voice-shell-v5";
 const APP_SCOPE_URL = new URL("./", self.location.href).toString();
 
 self.addEventListener("install", function(event) {
@@ -32,6 +32,8 @@ self.addEventListener("push", function(event) {
       return self.registration.getNotifications({ tag: "kouryu-call-" + (invitationId || callId || "incoming") })
         .then(function(items) { items.forEach(function(item) { item.close(); }); });
     }
+    const hasVisibleApp = !isTest && windows.some(function(client) { return client.visibilityState === "visible"; });
+    if (hasVisibleApp) return;
     return self.registration.showNotification(isTest ? "わかる電話のテスト通知" : callerName + "さんから着信です", {
     body: isTest ? "アプリを閉じていても通知を受け取れる状態です。" : "タップして応答画面を開きます。",
     icon: "./app-icon.svg",

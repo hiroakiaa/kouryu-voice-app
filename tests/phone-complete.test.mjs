@@ -276,6 +276,12 @@ test('発信側はリアルタイム通知が止まっても応答済みルー�
  assert.match(app,/clearInterval\(ringPollTimer\);ringPollTimer=null/);
 });
 
+test('相手の古いオンライン表示に関係なく着信Pushを毎回送る',()=>{
+ const dial=app.slice(app.indexOf('async function dialNow'),app.indexOf('function finishRing'));
+ assert.match(dial,/trace\('Push通知送信'[\s\S]*?push\?\.\(to,\{action:'ring'/);
+ assert.doesNotMatch(dial,/targetBusy|isLeaseLive/);
+});
+
 test('通話終了後は30秒待たずにすぐ再発信できる',()=>{
  assert.doesNotMatch(rules,/resource\.data\.createdAt \+ duration\.value\(30,'s'\) <= request\.time/);
  assert.match(rules,/allow update: if validNumberRequest\(uid\)\s*&& \(resource\.data\.status != 'ringing' \|\| resource\.data\.expiresAt <= request\.time\)/);

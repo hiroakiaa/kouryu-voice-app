@@ -68,7 +68,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,remoteEnded=asy
     ringOff=watch(requestRef(uid),s=>handleOutgoingState(s.data()));
     ringPollTimer=setInterval(async()=>{if(!outgoing||outgoingNavigating)return;try{handleOutgoingState((await read(requestRef(uid))).data());}catch(_){}},1200);
    ringTimer=setTimeout(()=>cancel('応答がありませんでした。'),85000);
-    const targetBusy=await read(busyRef(to));if(!isLeaseLive(targetBusy.data(),Date.now())){trace('Push通知送信','相手端末へ着信通知を送りました。');push?.(to,{action:'ring',invitationId:outgoingPushId}).catch(()=>{});}
+    trace('Push通知送信','相手端末へ着信通知を送りました。');push?.(to,{action:'ring',invitationId:outgoingPushId}).catch(()=>{});
   }catch(e){msg(e.code==='permission-denied'?'発信できません。相手の番号、ブロック設定、通信状態を確認してください。':e.message||'発信できませんでした。');}finally{busy=false;}}
  function finishRing(){outgoing=false;ringOff?.();ringOff=null;clearTimeout(ringTimer);clearInterval(ringPollTimer);ringPollTimer=null;try{if($('phoneOutgoingDialog').open)$('phoneOutgoingDialog').close();}catch(_){} }
  async function cancel(text='呼び出しを取り消しました。'){if(!outgoing)return;const target=outgoingTargetUid,pushId=outgoingPushId,number=outgoingNumber,targetName=outgoingName,supportMode=outgoingMode;finishRing();const tasks=[patch(requestRef(uid),{status:'cancelled'})];if(target&&pushId)tasks.push(Promise.resolve(push?.(target,{action:'cancel',invitationId:pushId})));await Promise.allSettled(tasks);outgoingTargetUid='';outgoingPushId='';outgoingNumber='';outgoingName='';msg(text);if(text==='応答がありませんでした。')showCallResult('応答なし',targetName,number,supportMode);}
