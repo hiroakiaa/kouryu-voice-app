@@ -4103,7 +4103,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-joined-button-state">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-fast-redial-ending">
 </head>
 <body class="phone-home">
   <main>
@@ -4459,7 +4459,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-joined-button-state";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-fast-redial-ending";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4503,7 +4503,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-joined-button-state";
+    const APP_VERSION = "2026-09-05-fast-redial-ending";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -5797,8 +5797,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       phonebookCallEnding = true;
       const historyId = params.get("outgoingInvite") || ("call-" + callId + "-" + (params.get("callRole") || "phonebook"));
       saveCallHistory({ id: historyId, direction: params.get("callRole") === "caller" ? "outgoing" : "incoming", name: name || getDisplayName(params.get("contactName")) || "相手", status: "ended", at: Date.now() });
+      const endedNotice = finishRemoteCallWithNotice(name, (/さん$/.test(name || "") ? name : (name || "相手") + "さん") + "が退室しました");
       await Promise.race([markLeft(), new Promise(function(resolve) { window.setTimeout(resolve, 700); })]);
-      await finishRemoteCallWithNotice(name, (/さん$/.test(name || "") ? name : (name || "相手") + "さん") + "が退室しました");
+      await endedNotice;
       setStatus("通話を終了しました", "相手が退室したため通話を終了しました。");
       setNotice((name || "相手") + "さんが退室したため、通話を終了しました。", true);
       window.setTimeout(function() { setNotice((name || "相手") + "さんとの通話は終了しました。", true); }, 1000);

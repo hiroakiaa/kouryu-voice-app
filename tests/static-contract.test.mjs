@@ -153,7 +153,7 @@ test("マイク接続が生きている間は参加済みとして退室ボタ�
 test("相手側の終話は案内モーダルを表示してから電話画面へ戻す", () => {
   assert.match(rootHtml, /id="remoteEndedDialog" class="remote-ended-dialog"/);
   assert.match(rootHtml, /function finishRemoteCallWithNotice\(name, message\) \{\s*stopLocalCall\(false, false\);\s*await showRemoteEndedNotice\(name, message\);\s*document\.body\.classList\.add\("phone-home"\)/);
-  assert.match(phoneApp, /await remoteEnded\(remoteName,message\);\s*await leave\(\)/);
+  assert.match(phoneApp, /const endedNotice=remoteEnded\(remoteName,message\);\s*await leave\(\);\s*await endedNotice/);
   assert.match(themeCss, /\.remote-ended-dialog\.is-visible\{opacity:1;transform:translateY\(0\) scale\(1\)/);
 });
 

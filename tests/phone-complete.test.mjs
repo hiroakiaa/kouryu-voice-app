@@ -353,3 +353,16 @@ test('まとめた履歴カードは含まれる全履歴を削除し、失敗�
  assert.match(app,/historyItems=before;renderHistory\(\)/);
  assert.match(app,/await deleteHistoryCard\(d\.removeHistory\)/);
 });
+
+test('再着信は前回の通話状態の読み取りを待たずに表示する',()=>{
+ const receive=app.slice(app.indexOf('async function receive(items)'),app.indexOf('async function handlePushState'));
+ assert.match(receive,/if\(state\(\)\.joined\)/);
+ assert.doesNotMatch(receive,/await available/);
+ assert.match(receive,/showModal\(\)/);
+ assert.match(app,/const selfFree=await available\(t,uid\),otherFree=await available\(t,r\.from\)/);
+});
+
+test('相手側の終了時は保存処理より先に終了モーダルを開始する',()=>{
+ assert.match(html,/const endedNotice = finishRemoteCallWithNotice[\s\S]*?await Promise\.race\(\[markLeft\(\)/);
+ assert.match(app,/const endedNotice=remoteEnded\(remoteName,message\);await leave\(\);await endedNotice/);
+});
