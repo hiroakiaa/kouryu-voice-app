@@ -402,3 +402,9 @@ test('呼び出し中は取消ボタンを表示し、ページ終了時も相�
  assert.match(html,/cachedPushAuthToken \|\| await authUser\.getIdToken\(\)/);
  assert.match(app,/data\.action==='cancel'[\s\S]*?await receive\(\[\]\)/);
 });
+
+test('スマホの発信ボタンは縦横同寸の真円を維持する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/#phoneDialForm \.phone-dial-actions \.phone-call\{[^}]*inline-size:calc\(var\(--dial-key\) \+ 8px\)!important;[^}]*block-size:calc\(var\(--dial-key\) \+ 8px\)!important;/);
+ assert.match(css,/#phoneDialForm \.phone-dial-actions \.phone-call\{[^}]*aspect-ratio:1\/1;[^}]*border-radius:50%!important/);
+});
