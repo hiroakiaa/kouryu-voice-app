@@ -4513,7 +4513,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-06-instant-answer";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-06-faster-notification-answer";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4558,7 +4558,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-06-unlimited-calls";
+    const APP_VERSION = "2026-09-06-faster-notification-answer";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -4937,6 +4937,15 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       el.join.setAttribute("aria-label", "応答を準備中");
       el.join.disabled = true;
     }
+    if (params.get("fromPush") === "1" && params.get("incomingInvite")) {
+      const pendingIncomingDialog = document.getElementById("numberIncoming");
+      document.getElementById("numberCaller").textContent = getDisplayName(params.get("incomingName")) || "着信";
+      document.getElementById("numberCallerNumber").textContent = "";
+      document.getElementById("numberIncomingText").textContent = "着信を確認しています…";
+      document.getElementById("numberAccept").disabled = true;
+      document.getElementById("numberDecline").disabled = true;
+      try { if (!pendingIncomingDialog.open) pendingIncomingDialog.showModal(); } catch (_) {}
+    }
 
     let captionController = null;
     if (CAPTIONS_ENABLED) {
@@ -5197,7 +5206,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         if(/^n_|^g_/.test(callId)) userId=authUser.uid;
         authUser.getIdToken().then(function(token) { cachedPushAuthToken = token; }).catch(function() {});
         numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId,supportMode:ACTIVE_SUPPORT_MODE}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,disable:disableCallNotifications,enabled:closedAppNotificationsEnabled,status:notificationStatusText,test:testCallNotification},preflight:runDevicePreflight,stop:()=>stopLocalCall(true),remoteEnded:(name,message)=>finishRemoteCallWithNotice(name,message),notice:setNotice,trace:(label,detail)=>{recordConnectionStep(label,detail,"phone:"+label);pushDiagnostic("info",label,detail);},usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
-          navigate:enterPhoneCallWithoutReload});
+          navigate:enterPhoneCallWithoutReload,warm:function() { return ensureTurnConfiguration(); }});
         await numberCalls.start();
         if (!/^n_|^g_/.test(callId) && localStorage.getItem(ONBOARDING_KEY) !== "done" && !onboarding.open) window.setTimeout(function() { onboarding.showModal(); }, 350);
         if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", function(event) { numberCalls?.handlePushState(event.data); });
@@ -5244,8 +5253,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       document.body.classList.remove("phone-home");
       el.phoneHome?.setAttribute("aria-hidden", "true");
       document.getElementById("activeSupportMode").textContent = CAPTIONS_ENABLED ? "サポートあり" : "通常通話";
-      turnConfigurationPromise = null;
-      rtcConfig = { iceCandidatePoolSize: 2, iceServers: FALLBACK_ICE_SERVERS };
+      if (!turnConfigurationPromise) rtcConfig = { iceCandidatePoolSize: 2, iceServers: FALLBACK_ICE_SERVERS };
       autoJoinStarted = false;
       renderParticipants([]);
       numberCalls?.enterCall();

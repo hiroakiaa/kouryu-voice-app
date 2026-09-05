@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../phone-app.js',import.meta.url),'utf8');
 const rules=fs.readFileSync(new URL('../firestore.rules',import.meta.url),'utf8');
+const sw=fs.readFileSync(new URL('../service-worker.js',import.meta.url),'utf8');
 
 test('通知・発信確認を設定画面から利用し、廃止した費用設定を表示しない',()=>{
  for(const id of ['phoneNotificationToggle','phoneNotificationTest','phoneNotificationStatus','phoneDialConfirm']) assert.match(html,new RegExp(`id="${id}"`));
@@ -361,6 +362,7 @@ test('新しい着信への応答は古い通話中情報の固定待機なし�
  assert.match(app,/t\.set\(busyRef\(person\),\{callId,until:/);
  assert.match(app,/active:true,expiresAt:/);
  const rules=fs.readFileSync(new URL('../firestore.rules',import.meta.url),'utf8');
+const sw=fs.readFileSync(new URL('../service-worker.js',import.meta.url),'utf8');
  assert.match(rules,/leaseFree\(uid\)[\s\S]*?numberInvitations\/\$\(uid\)[\s\S]*?status == 'accepted'/);
 });
 
@@ -383,7 +385,7 @@ test('通話終了後は30秒待たずにすぐ再発信できる',()=>{
  assert.match(rules,/allow update: if validNumberRequest\(uid\)\s*&& \(resource\.data\.status != 'ringing' \|\| resource\.data\.expiresAt <= request\.time\)/);
  assert.doesNotMatch(app,/連続発信の場合は30秒以上待ってください/);
  assert.match(app,/async function clearPreviousOutgoingRequest\(\)[\s\S]*?status==='ringing'[\s\S]*?status:'cancelled'/);
- assert.match(app,/const id=uid\+'_'\+Date\.now\(\);await clearPreviousOutgoingRequest\(\)/);
+ assert.match(app,/id=uid\+'_\'\+Date\.now\(\);Promise\.resolve\(warm\(\)\)\.catch[\s\S]*?await clearPreviousOutgoingRequest\(\)/);
 });
 
 test('発信前に理解サポートありと通話だけを選び、着信・履歴・グループへ引き継ぐ',()=>{
@@ -563,11 +565,27 @@ test('応答後はTURN取得と参加準備を並行し自動参加の待機を�
  assert.match(html,/\[0, 120, 220, 360, 550\]/);
  assert.match(html,/await turnReady;\s*startLiveWatchers\(\)/);
  assert.match(html,/turnAbortController\.abort\(\)[\s\S]*?2500/);
+ assert.match(app,/Promise\.resolve\(warm\(\)\)\.catch/);
+ assert.match(app,/Promise\.resolve\(warm\(callId\)\)\.catch/);
+ assert.match(html,/warm:function\(\) \{ return ensureTurnConfiguration\(\); \}/);
+ assert.match(html,/if \(!turnConfigurationPromise\) rtcConfig/);
 });
 
 test('1対1の応答後は履歴保存と重複した参加枠処理を待たない',()=>{
  assert.match(app,/activeHistory=\{id,startedAt:Date\.now\(\)[\s\S]*?\};history\(id,[\s\S]*?\);go\(callId,supportMode,'callee'\)/);
  assert.doesNotMatch(app,/activeHistory=\{id,startedAt:Date\.now\(\)[\s\S]{0,300}?await history\(/);
  assert.match(app,/existing\.data\(\)\.callId===id\)return true/);
+ assert.match(app,/reservedCallId===id&&await allowed\(\)/);
+ assert.match(app,/currentRoom=\{\.\.\.roomData,id:callId\};reservedCallId=callId/);
+ assert.match(app,/currentRoom=\{id:r\.roomId,active:true/);
  assert.match(html,/callSlot = callId\.startsWith\("n_"\) \? "" : await claimCallSlot\(\)/);
+});
+
+test('通知タップ直後に着信画面を出し開いているアプリは再読込しない',()=>{
+ assert.match(sw,/target\.searchParams\.set\("incomingName", callerName\)/);
+ assert.match(sw,/data: \{ url: target\.toString\(\), callerUid, callerName, callId, invitationId \}/);
+ assert.match(sw,/client\.postMessage\(\{ type: "kouryu-phone-state"[\s\S]*?return client\.focus\(\)/);
+ assert.doesNotMatch(sw,/client\.navigate\(targetUrl\)/);
+ assert.match(html,/params\.get\("fromPush"\) === "1"[\s\S]*?着信を確認しています…[\s\S]*?pendingIncomingDialog\.showModal\(\)/);
+ assert.match(app,/\$\('numberAccept'\)\.disabled=false;\$\('numberDecline'\)\.disabled=false/);
 });

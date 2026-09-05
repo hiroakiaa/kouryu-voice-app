@@ -1,4 +1,4 @@
-const CACHE_NAME = "kouryu-voice-shell-v40";
+const CACHE_NAME = "kouryu-voice-shell-v41";
 const APP_SCOPE_URL = new URL("./", self.location.href).toString();
 
 self.addEventListener("install", function(event) {
@@ -25,6 +25,8 @@ self.addEventListener("push", function(event) {
   const target = new URL("./", APP_SCOPE_URL);
   if (callId) target.searchParams.set("call", callId);
   if (invitationId) target.searchParams.set("incomingInvite", invitationId);
+  if (callerUid) target.searchParams.set("incomingCaller", callerUid);
+  if (callerName) target.searchParams.set("incomingName", callerName);
   target.searchParams.set("fromPush", "1");
   event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(windows) {
     if (!isTest) windows.forEach(function(client) { client.postMessage({ type: "kouryu-phone-state", action, callerUid }); });
@@ -41,20 +43,19 @@ self.addEventListener("push", function(event) {
     tag: isTest ? "kouryu-notification-test" : "kouryu-call-" + (invitationId || callId || "incoming"),
     renotify: true,
     requireInteraction: true,
-    data: { url: target.toString() }
+    data: { url: target.toString(), callerUid, callerName, callId, invitationId }
     });
   }));
 });
 
 self.addEventListener("notificationclick", function(event) {
   event.notification.close();
-  const targetUrl = event.notification.data && event.notification.data.url
-    ? event.notification.data.url : APP_SCOPE_URL;
+  const notificationData = event.notification.data || {};
+  const targetUrl = notificationData.url || APP_SCOPE_URL;
   event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(windows) {
     for (const client of windows) {
-      if ("navigate" in client) {
-        return client.navigate(targetUrl).then(function() { return client.focus(); });
-      }
+      client.postMessage({ type: "kouryu-phone-state", action: "ring", callerUid: notificationData.callerUid || "" });
+      return client.focus();
     }
     return clients.openWindow(targetUrl);
   }));
