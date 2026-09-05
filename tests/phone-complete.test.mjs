@@ -296,6 +296,8 @@ test('電話番号は直接編集できない表示専用エリアにする',()=
  assert.match(app,/backspaceDidClear/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#phoneDialNumber\{[^}]*cursor:default/);
+ assert.match(html,/id="phoneBackspace"[^>]*aria-label="1文字消す。長押しですべて消去"[^>]*>[\s\S]*?<span>長押し<\/span><span>全消去<\/span>/);
+ assert.match(css,/#phoneDialForm #phoneBackspace small\{[^}]*flex-direction:column/);
 });
 
 test('グループ詳細の共通開閉処理は詳細ボタンから参照できる範囲に置く',()=>{
