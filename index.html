@@ -4558,7 +4558,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-06-forced-auto-join";
+    const APP_VERSION = "2026-09-06-unlimited-call-actions";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -4654,20 +4654,14 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const COST_HISTORY_KEY = "kouryu-voice-cost-history-v1";
     const COST_HISTORY_MAX_RECORDS = 120;
     const COST_HISTORY_MAX_DAYS = 60;
-    const ACTION_RATE_KEY = "kouryu-voice-action-rate-v1";
     const DIAGNOSTIC_LOG_KEY = "kouryu-voice-diagnostic-log-v1";
     const DIAGNOSTIC_SESSION_ID = "診断-" + Array.from(crypto.getRandomValues(new Uint8Array(4)), function(value) { return value.toString(16).padStart(2, "0"); }).join("").toUpperCase();
     const NOTIFICATION_VERIFIED_KEY = "kouryu-notification-verified-at-v1";
     const ONBOARDING_KEY = "kouryu-phone-onboarding-v1";
     const CALL_HISTORY_KEY = "kouryu-voice-call-history-v1";
     const CALL_HISTORY_MAX_RECORDS = 20;
-    const JOIN_RATE_LIMIT = { action: "join", max: 12, windowMs: 10 * 60 * 1000 };
-    const NEW_CALL_RATE_LIMIT = { action: "new-call", max: 6, windowMs: 60 * 60 * 1000 };
-    const CONTACT_INVITE_RATE_LIMIT = { action: "contact-invite", max: 8, windowMs: 60 * 60 * 1000 };
-    const CONTACT_CALL_RATE_LIMIT = { action: "contact-call", max: 8, windowMs: 10 * 60 * 1000 };
     const CONTACT_INVITE_TTL_MS = 24 * 60 * 60 * 1000;
     const INCOMING_CALL_TTL_MS = 90 * 1000;
-    const TURN_DAILY_SAFETY_BYTES = 2 * 1024 * 1024 * 1024;
     const FIRESTORE_FREE_READS_PER_DAY = 50000;
     const FIRESTORE_FREE_WRITES_PER_DAY = 20000;
     const FIRESTORE_FREE_DELETES_PER_DAY = 20000;
@@ -5286,11 +5280,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     function ensureTurnConfiguration() {
       if (!TURN_CREDENTIALS_ENDPOINT) return Promise.resolve(rtcConfig);
       if (turnConfigurationPromise) return turnConfigurationPromise;
-      if (getStoredTurnBytesForDate(getDateKey(new Date())) >= TURN_DAILY_SAFETY_BYTES) {
-        rtcConfig = { iceCandidatePoolSize: 2, iceServers: FALLBACK_ICE_SERVERS };
-        pushDiagnostic("info", "中継通信を自動調整", "安全のため直接接続とSTUNを優先します。");
-        return Promise.resolve(rtcConfig);
-      }
       const turnAbortController = typeof AbortController === "function" ? new AbortController() : null;
       const turnTimeout = window.setTimeout(function() {
         if (turnAbortController) turnAbortController.abort();
@@ -5541,11 +5530,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     async function joinCall() {
       if (joined) return;
       if(!/^n_|^g_/.test(callId)){setNotice("電話番号から発信するか、グループを選んでください。",true);return;}
-      const automaticJoin = params.get("autoJoin") === "1";
-      if (!automaticJoin && !allowLocalAction(JOIN_RATE_LIMIT)) {
-        setNotice("短時間に参加操作が繰り返されました。10分ほど待ってからお試しください。", true);
-        return;
-      }
       if (!runPassivePreflightCheck()) return;
       setJoinBusy(true, "参加準備中…");
       const turnReady = ensureTurnConfiguration();
@@ -7338,10 +7322,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     async function openNewCall() {
-      if (!allowLocalAction(NEW_CALL_RATE_LIMIT)) {
-        setNotice("短時間に新しいURLが繰り返し作成されました。1時間ほど待ってからお試しください。", true);
-        return;
-      }
       const url = new URL(location.origin + location.pathname);
       url.searchParams.set("call", createCallId());
       if (joined) {
@@ -7469,9 +7449,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     async function createContactInvite() {
-      if (!authUser || !allowLocalAction(CONTACT_INVITE_RATE_LIMIT)) {
-        showContactsMessage("しばらく待ってから、もう一度お試しください。", true);
-        setNotice("登録用URLの作成が続いています。しばらく待ってからお試しください。", true);
+      if (!authUser) {
+        showContactsMessage("接続準備が完了していません。ページを開き直してください。", true);
+        setNotice("接続準備が完了していません。ページを開き直してください。", true);
         return;
       }
       const code = createSecureToken(24);
@@ -7619,8 +7599,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         setNotice("インターネットに接続されていないため発信できません。接続後にもう一度お試しください。", true);
         return;
       }
-      if (!authUser || !contact || !allowLocalAction(CONTACT_CALL_RATE_LIMIT)) {
-        setNotice("短時間の発信が続いています。少し待ってからお試しください。", true);
+      if (!authUser || !contact) {
+        setNotice("相手の情報を確認できません。電話帳を開き直してください。", true);
         return;
       }
       outgoingCallBusy = true;
@@ -8112,21 +8092,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       area.select();
       document.execCommand("copy");
       area.remove();
-    }
-
-    function allowLocalAction(rule) {
-      const now = Date.now();
-      try {
-        const stored = JSON.parse(localStorage.getItem(ACTION_RATE_KEY) || "{}");
-        const recent = (Array.isArray(stored[rule.action]) ? stored[rule.action] : []).filter(function(time) {
-          return Number.isFinite(Number(time)) && now - Number(time) < rule.windowMs;
-        });
-        if (recent.length >= rule.max) return false;
-        recent.push(now);
-        stored[rule.action] = recent;
-        localStorage.setItem(ACTION_RATE_KEY, JSON.stringify(stored));
-      } catch (_) {}
-      return true;
     }
 
     function updateJoinButton() {

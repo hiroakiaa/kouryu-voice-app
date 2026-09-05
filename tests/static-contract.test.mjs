@@ -213,12 +213,10 @@ test("料金推移グラフに軸名と数値目盛りがある", () => {
   assert.match(rootHtml, /通話記録（古い → 新しい）/);
 });
 
-test("連続操作とTURN認証情報の発行を制限する", () => {
-  assert.match(rootHtml, /JOIN_RATE_LIMIT/);
-  assert.match(rootHtml, /NEW_CALL_RATE_LIMIT/);
-  assert.match(rootHtml, /TURN_DAILY_SAFETY_BYTES/);
-  assert.match(turnWorker, /CF-Connecting-IP/);
-  assert.match(turnWorker, /rate_limited/);
+test("通常通話を回数や端末内中継量で止めず通知連打だけを保護する", () => {
+  assert.doesNotMatch(rootHtml, /JOIN_RATE_LIMIT|NEW_CALL_RATE_LIMIT|CONTACT_CALL_RATE_LIMIT|TURN_DAILY_SAFETY_BYTES|allowLocalAction/);
+  assert.doesNotMatch(turnWorker, /device-10m:|device-day:|ip-10m:|ip-day:/);
+  assert.match(turnWorker, /push-uid:/);
   assert.match(turnWorker, /TURN_DISABLED/);
 });
 

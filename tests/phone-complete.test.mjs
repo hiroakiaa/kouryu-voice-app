@@ -341,9 +341,9 @@ test('着信応答ではアプリを再読み込みせず同じ画面で通話�
  assert.doesNotMatch(transition,/location\.assign|location\.href\s*=/);
 });
 
-test('着信応答は手動参加の連打制限に止められず必ず自動参加する',()=>{
- assert.match(html,/const automaticJoin = params\.get\("autoJoin"\) === "1"/);
- assert.match(html,/if \(!automaticJoin && !allowLocalAction\(JOIN_RATE_LIMIT\)\)/);
+test('通話・発信・招待は端末内の回数制限で止めない',()=>{
+ assert.doesNotMatch(html,/JOIN_RATE_LIMIT|NEW_CALL_RATE_LIMIT|CONTACT_INVITE_RATE_LIMIT|CONTACT_CALL_RATE_LIMIT|allowLocalAction/);
+ assert.doesNotMatch(html,/短時間に参加操作|短時間の発信|短時間に新しいURL/);
  assert.match(html,/maybeAutoJoinCall\(true\)/);
  assert.match(html,/if \(force && joinBusy\) setJoinBusy\(false\)/);
 });
