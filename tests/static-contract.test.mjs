@@ -132,6 +132,21 @@ test("通話だけモードでも料金計測を先に初期化して起動を�
   assert.ok(metricsInit >= 0 && plainRender > metricsInit && costRender > metricsInit);
 });
 
+test("通話中の終了ボタンは接続状態にかかわらず必ず退室する", () => {
+  const clickStart = rootHtml.indexOf('el.join.addEventListener("click"');
+  const clickEnd = rootHtml.indexOf('el.mute.addEventListener("click"', clickStart);
+  const handler = rootHtml.slice(clickStart, clickEnd);
+  assert.match(handler, /if \(joined\) \{\s*leaveCall\(\);\s*\}/);
+  assert.doesNotMatch(handler, /reconnectCall\(\)/);
+  assert.match(rootHtml, /joined = false;\s*if \(typeof callId !== "undefined" && \/\^n_\|\^g_\/\.test\(callId\)\) document\.body\.classList\.add\("phone-home"\)/);
+});
+
+test("1対1通話では参加者を中央に並べ、通話種別を時間の横に表示する", () => {
+  assert.match(rootHtml, /class="call-meta"><span id="activeSupportMode"/);
+  assert.match(rootHtml, /body\.is-one-to-one\.is-in-call \.participants-card \.participants \{justify-content:center/);
+  assert.match(phoneApp, /classList\.toggle\('is-one-to-one',state\(\)\.callId\.startsWith\('n_'\)\)/);
+});
+
 test("料金画面にCloudflare TURNの通話中継量だけを表示する", () => {
   assert.doesNotMatch(rootHtml, /Cloudflare無料枠|月1,000 GB/);
   assert.match(rootHtml, /id="turnUsageStatus"/);

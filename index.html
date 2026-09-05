@@ -4005,6 +4005,17 @@
     #tipsCloseBtn:focus-visible {outline:2px solid #548d3c;outline-offset:3px;}
     #audioHealth {grid-template-columns:auto minmax(0,1fr) auto;gap:10px;}
     #callElapsed {font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;line-height:1.4;min-width:3.5em;text-align:right;}
+    .call-meta {display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:max-content;}
+    .active-support-mode {display:inline-flex;align-items:center;min-height:30px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--accent-soft);color:var(--text);font-size:12px;font-weight:700;white-space:nowrap;}
+    body.is-one-to-one.is-in-call .participants-card .participants {justify-content:center;align-items:center;gap:clamp(28px,10vw,92px);padding:12px 12px 28px;}
+    body.is-one-to-one.is-in-call .participants .participant,
+    body.is-one-to-one.is-in-call .participants .participant.is-self {flex-basis:4.5rem;width:4.5rem;height:4.5rem;margin-left:0;}
+    @media(max-width:480px) {
+      #audioHealth {grid-template-columns:auto minmax(0,1fr) auto;}
+      .call-meta {gap:5px;}
+      .active-support-mode {padding:2px 7px;font-size:11px;}
+      body.is-one-to-one.is-in-call .participants-card .participants {gap:clamp(22px,12vw,52px);}
+    }
     .number-modal {position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(460px,calc(100% - 32px));max-height:88dvh;overflow:auto;padding:20px;border:2px solid #8bc85b;border-radius:24px;background:#fffef8;color:#30462d;}
     .number-modal.incoming-call[open] {display:block;left:0;bottom:0;transform:none;margin:auto;}
     .number-modal::backdrop {background:rgba(30,35,38,.58);}
@@ -4048,7 +4059,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-plain-call-startup-fix">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-leave-and-one-to-one-layout">
 </head>
 <body class="phone-home">
   <main>
@@ -4140,7 +4151,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <button id="micState" class="mic-state-toggle" type="button" disabled aria-label="マイクを解除" aria-pressed="true"><i class="fa-solid fa-microphone-lines"></i><span>マイク待ち</span></button>
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
-      <span id="callElapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span><span id="activeSupportMode" class="active-support-mode"></span>
+      <span class="call-meta"><span id="activeSupportMode" class="active-support-mode"></span><span id="callElapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span></span>
     </section>
 
     <section class="card participants-card">
@@ -4401,12 +4412,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-05-plain-call-startup-fix"></script>
-  <script src="./jsQR.js?v=2026-09-05-plain-call-startup-fix"></script>
+  <script src="./qrcode-generator.js?v=2026-09-05-leave-and-one-to-one-layout"></script>
+  <script src="./jsQR.js?v=2026-09-05-leave-and-one-to-one-layout"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-plain-call-startup-fix";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-leave-and-one-to-one-layout";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-plain-call-startup-fix";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-leave-and-one-to-one-layout";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4448,7 +4459,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-plain-call-startup-fix";
+    const APP_VERSION = "2026-09-05-leave-and-one-to-one-layout";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4915,11 +4926,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           return;
         }
         if (joined) {
-          if (callPhase === "failed") {
-            reconnectCall();
-          } else {
-            leaveCall();
-          }
+          leaveCall();
         } else {
           joinCall();
         }
@@ -6824,6 +6831,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       try { broadcastLocalRealtimeState(true); } catch(error) { console.warn(error); }
       endedCostExtras=currentCostExtras();callCost.end();
       joined = false;
+      if (typeof callId !== "undefined" && /^n_|^g_/.test(callId)) document.body.classList.add("phone-home");
       if (localStream) localStream.getTracks().forEach(function(track){try{track.stop()}catch(_){}});
       if (rawLocalStream) rawLocalStream.getTracks().forEach(function(track){try{track.stop()}catch(_){}});
       updateJoinButton();

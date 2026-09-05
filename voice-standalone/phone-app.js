@@ -106,6 +106,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,not
  async function leave(){const id=state().callId;try{const meta=JSON.parse(sessionStorage.getItem('phone-history:'+id)||'null');if(meta){await history(meta.id,{number:meta.number||'',name:meta.name||'相手',status:'accepted',direction:meta.direction,supportMode:mode(meta.supportMode),startedAt:meta.startedAt,endedAt:Date.now(),durationSeconds:Math.max(0,Math.round((Date.now()-meta.startedAt)/1000)),...(meta.groupId?{groupId:meta.groupId,callType:'group',participantCount:meta.participantCount||1}:{})});sessionStorage.removeItem('phone-history:'+id);}await tx(async t=>{const b=await t.get(busyRef(uid));let room;if(id.startsWith('n_'))room=await t.get(ref('numberVoiceCalls',id));if(room?.data()?.active)t.update(ref('numberVoiceCalls',id),{active:false});if(b.data()?.callId===id)t.delete(busyRef(uid));});}catch(_){}document.body.classList.add('phone-home');}
  async function start(){
   document.body.classList.toggle('phone-home',!/^n_|^g_/.test(state().callId));
+  document.body.classList.toggle('is-one-to-one',state().callId.startsWith('n_'));
   document.querySelector('.participant-limit').textContent=state().callId.startsWith('n_')?'1対1':'最大4人';$('phoneToGroup').hidden=!state().callId.startsWith('n_');
   $('phoneName').value=name()==='匿名さん'?'':name();$('accountStatus').textContent=user.isAnonymous?'番号・電話帳・グループを別の端末へ引き継ぐには、メールとパスワードを登録してください。':user.email+'でログイン中';
   for(const b of document.querySelectorAll('[data-phone-tab]'))b.onclick=()=>tab(b.dataset.phoneTab);
