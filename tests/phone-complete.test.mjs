@@ -280,7 +280,7 @@ test('自分の番号は外側のクリックで閉じ、電話タブは各画�
  assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*padding:9px 2px 4px/);
  assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:1\}/);
  assert.match(css,/\.phone-home-card>\.phone-add-fab\{bottom:86px\}/);
- assert.match(css,/@media\(min-width:640px\)\{body\.phone-home \.phone-home-card\{padding-bottom:4px\}\.phone-home-card>\.phone-tabs\{padding-bottom:2px\}\}/);
+ assert.match(css,/@media\(min-width:640px\)\{body\.phone-home \.phone-home-card\{padding-bottom:0\}\.phone-home-card>\.phone-tabs\{padding:9px 2px\}\}/);
 });
 
 test('電話番号は直接編集できない表示専用エリアにする',()=>{
@@ -288,6 +288,9 @@ test('電話番号は直接編集できない表示専用エリアにする',()=
  assert.doesNotMatch(html,/<input id="phoneDialNumber"/);
  assert.match(app,/import \{bindDialDisplay\} from '\.\/dial-input\.js'/);
  assert.match(app,/const editDial=bindDialDisplay\(\$\('phoneDialNumber'\)\)/);
+ assert.match(app,/backspace\.addEventListener\('pointerdown'/);
+ assert.match(app,/editDial\.clear\(\)/);
+ assert.match(app,/backspaceDidClear/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#phoneDialNumber\{[^}]*cursor:default/);
 });

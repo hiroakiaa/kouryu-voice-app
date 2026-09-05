@@ -9,4 +9,6 @@ test('番号表示はボタン操作だけで8桁まで更新し4桁で区切る
   assert.equal(output.value,'1234 5678');
   edit(null);
   assert.equal(output.value,'1234 567');
+  edit.clear();
+  assert.equal(output.value,'');
 });

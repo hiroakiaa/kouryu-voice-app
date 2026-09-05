@@ -172,7 +172,11 @@ export function createPhoneApp({db,user,state,name,navigate,stop,remoteEnded=asy
   tabs.addEventListener('keydown',e=>{const buttons=[...tabs.querySelectorAll('[data-phone-tab]')],i=buttons.indexOf(document.activeElement);if(i<0||!['ArrowRight','ArrowLeft','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;tab(buttons[next].dataset.phoneTab);buttons[next].focus();});
   const editDial=bindDialDisplay($('phoneDialNumber'));
   for(const b of document.querySelectorAll('[data-phone-key]'))b.onclick=()=>editDial(b.dataset.phoneKey);
-  $('phoneBackspace').onclick=()=>editDial(null);
+  const backspace=$('phoneBackspace');let backspaceHoldTimer=0,backspaceDidClear=false;
+  backspace.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;backspaceDidClear=false;clearTimeout(backspaceHoldTimer);backspaceHoldTimer=setTimeout(()=>{backspaceHoldTimer=0;if(!$('phoneDialNumber').value)return;editDial.clear();backspaceDidClear=true;try{navigator.vibrate?.(35);}catch(_){}},550);});
+  const cancelBackspaceHold=()=>{clearTimeout(backspaceHoldTimer);backspaceHoldTimer=0;};
+  backspace.addEventListener('pointerup',cancelBackspaceHold);backspace.addEventListener('pointercancel',cancelBackspaceHold);backspace.addEventListener('contextmenu',e=>e.preventDefault());
+  backspace.addEventListener('click',e=>{if(backspaceDidClear){e.preventDefault();backspaceDidClear=false;return;}editDial(null);});
   $('phoneDialForm').addEventListener('submit',e=>{e.preventDefault();dial($('phoneDialNumber').value);});
   bind('numberAccept',()=>respond(true));bind('numberDecline',()=>respond(false));bind('numberBlock',block);$('numberIncoming').addEventListener('cancel',e=>{e.preventDefault();respond(false);});
   bind('groupClose',()=>{setCollapsible('groupSupportHelpToggle','groupSupportHelpPanel',false);setCollapsible('groupInviteToggle','groupInviteArea',false);$('groupDialog').close();groupPeopleOff?.();groupDetailOff?.();});bind('groupAcceptInvite',acceptGroup);bind('groupDeclineInvite',declineGroup);bind('groupRenameSave',renameGroup);bind('groupJoin',joinGroup);bind('groupShare',()=>copy(groupLink(selectedGroup)));bind('groupInviteSend',inviteContact);bind('groupDelete',()=>quitGroup(true));bind('groupQuit',()=>quitGroup(false));
