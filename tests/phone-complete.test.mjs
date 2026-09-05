@@ -426,8 +426,10 @@ test('6種類の着信音を試聴・保存し、実際の着信に使用する'
  assert.match(app,/voices:\[\[1,1,'triangle'/);
  assert.match(app,/voices:\[\[1,1,'sine'/);
  assert.match(app,/voices:\[\[1,1,'square'/);
- assert.match(app,/normal:\{notes:/);
- assert.match(app,/rotary:\{notes:/);
+ assert.match(app,/normal:\{kind:'warble'/);
+ assert.match(app,/rotary:\{kind:'mechanical'/);
+ assert.match(app,/lfo\.frequency\.value=pattern\.rate/);
+ assert.match(app,/for\(let strike=0;strike<pattern\.strikes;strike\+\+\)/);
  assert.match(app,/echo\.delayTime\.value=pattern\.echoDelay/);
  assert.match(app,/for\(let repeat=0;repeat<5;repeat\+\+\)playRingtonePattern/);
  assert.match(app,/context\.suspend\(\)/);
