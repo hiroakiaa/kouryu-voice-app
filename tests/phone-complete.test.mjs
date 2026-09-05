@@ -411,14 +411,14 @@ test('発着信の各段階を匿名で診断し、復帰時に着信を再確�
  assert.match(app,/activeHistory=null;currentRoom=null;incoming=null;finishRing\(\);stopRingtone\(\)/);
 });
 
-test('4種類の着信音を試聴・保存し、実際の着信に使用する',()=>{
- for(const tone of ['gentle','sunny','drop','classic']) assert.match(html,new RegExp('data-ringtone-preview="'+tone+'"'));
+test('6種類の着信音を試聴・保存し、実際の着信に使用する',()=>{
+ for(const tone of ['gentle','sunny','drop','classic','normal','rotary']) assert.match(html,new RegExp('data-ringtone-preview="'+tone+'"'));
  assert.match(app,/ringtonePatterns=\{\s*gentle:/);
  assert.match(app,/localStorage\.setItem\(ringtoneToneKey,radio\.value\)/);
  assert.match(app,/async function previewRingtone\(key,button\)/);
  assert.match(app,/playRingtonePattern\(ringAudio,selectedRingtone\(\)\)/);
  assert.match(app,/if\(!\$\('phoneRingtone'\)\.checked\|\|ringAudioTimer\)return/);
- for(const title of ['はじまり','青空ホーム','そよかぜ','出発ベル']) assert.match(html,new RegExp('<b>'+title+'</b>'));
+ for(const title of ['はじまり','青空ホーム','そよかぜ','出発ベル','通常の電話','黒電話']) assert.match(html,new RegExp('<b>'+title+'</b>'));
  assert.match(app,/createBiquadFilter\(\)/);
  assert.match(app,/createDynamicsCompressor\(\)/);
  assert.match(app,/createDelay\(\)/);
@@ -426,6 +426,8 @@ test('4種類の着信音を試聴・保存し、実際の着信に使用する'
  assert.match(app,/voices:\[\[1,1,'triangle'/);
  assert.match(app,/voices:\[\[1,1,'sine'/);
  assert.match(app,/voices:\[\[1,1,'square'/);
+ assert.match(app,/normal:\{notes:/);
+ assert.match(app,/rotary:\{notes:/);
  assert.match(app,/echo\.delayTime\.value=pattern\.echoDelay/);
  assert.match(app,/for\(let repeat=0;repeat<5;repeat\+\+\)playRingtonePattern/);
  assert.match(app,/context\.suspend\(\)/);
