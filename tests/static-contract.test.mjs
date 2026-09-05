@@ -137,9 +137,17 @@ test("通話中の終了ボタンは接続状態にかかわらず必ず退室�
   const clickStart = rootHtml.indexOf('el.join.addEventListener("click"');
   const clickEnd = rootHtml.indexOf('el.mute.addEventListener("click"', clickStart);
   const handler = rootHtml.slice(clickStart, clickEnd);
-  assert.match(handler, /if \(joined\) \{\s*leaveCall\(\);\s*\}/);
+  assert.match(handler, /if \(isLocallyInCall\(\)\) \{\s*leaveCall\(\);\s*\}/);
   assert.doesNotMatch(handler, /reconnectCall\(\)/);
   assert.match(rootHtml, /joined = false;\s*if \(returnToPhoneHome !== false && typeof callId !== "undefined" && \/\^n_\|\^g_\/\.test\(callId\)\) document\.body\.classList\.add\("phone-home"\)/);
+});
+
+test("マイク接続が生きている間は参加済みとして退室ボタンを表示する", () => {
+  assert.match(rootHtml, /if \(isLocallyInCall\(\)\) \{\s*leaveCall\(\)/);
+  assert.match(rootHtml, /const inCall = isLocallyInCall\(\);\s*document\.body\.classList\.toggle\("is-in-call", inCall\)/);
+  assert.match(rootHtml, /localStream\.getAudioTracks\(\)\.some/);
+  assert.match(phoneApp, /inThisCall=state\(\)\.joined&&state\(\)\.callId===id/);
+  assert.match(phoneApp, /inThisCall\?'<i class="fa-solid fa-phone" aria-hidden="true"><\/i> 通話中'/);
 });
 
 test("相手側の終話は案内モーダルを表示してから電話画面へ戻す", () => {
