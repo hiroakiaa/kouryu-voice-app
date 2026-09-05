@@ -188,7 +188,7 @@ async function handlePush(request, env, origin, path) {
   const callerName = typeof body.callerName === "string" ? body.callerName.trim().slice(0, 40) : "匿名さん";
   const action = body.action === "cancel" ? "cancel" : "ring";
   if (!calleeUid || calleeUid === uid || !callId || !invitationId) return response({ error: "invalid_request" }, 400, origin);
-  if (!allowRequest("push-uid:" + uid, 8, TEN_MINUTES)) return response({ error: "rate_limited" }, 429, origin);
+  if (!allowRequest("push-uid:" + uid, 60, TEN_MINUTES)) return response({ error: "rate_limited" }, 429, origin);
 
   const deliveryKey = "push-sent:" + uid + ":" + invitationId + ":" + action;
   if (await env.PUSH_SUBSCRIPTIONS.get(deliveryKey)) {
@@ -204,14 +204,14 @@ async function handlePush(request, env, origin, path) {
     }), env);
     if (!pushResponse.ok) {
       if (pushResponse.status === 404 || pushResponse.status === 410) await env.PUSH_SUBSCRIPTIONS.delete(calleeUid);
-      return response({ ok: true, delivered: false }, 200, origin);
+      return response({ ok: false, delivered: false, error: "push_rejected", pushStatus: pushResponse.status }, 502, origin);
     }
     return response({ ok: true, delivered: true }, 200, origin);
   } catch (error) {
     if (error && (error.statusCode === 404 || error.statusCode === 410)) {
       await env.PUSH_SUBSCRIPTIONS.delete(calleeUid);
     }
-    return response({ ok: true, delivered: false }, 200, origin);
+    return response({ ok: false, delivered: false, error: "push_failed" }, 502, origin);
   }
 }
 

@@ -341,6 +341,12 @@ test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () 
   assert.match(turnWorker, /expirationTtl: 120/);
 });
 
+test("繰り返し発信でもPush通知を止めず、配信失敗を成功として隠さない", () => {
+  assert.match(turnWorker, /allowRequest\("push-uid:" \+ uid, 60, TEN_MINUTES\)/);
+  assert.match(turnWorker, /error: "push_rejected"/);
+  assert.match(rootHtml, /push_delivery_failed_/);
+});
+
 test("着信通知は端末ごとにON・OFFでき、iPhoneにも暗号化した着信内容を送る", () => {
   assert.match(rootHtml, /id="phoneNotificationToggle"/);
   assert.match(rootHtml, /async function disableCallNotifications/);
