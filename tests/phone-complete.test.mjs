@@ -227,6 +227,14 @@ test('着信応答ではホームとモーダルを解除して通話画面へ�
  assert.match(html,/location\.replace\(u\.toString\(\)\)/);
 });
 
+test('発信側はリアルタイム通知が止まっても応答済みルームへ直ちに参加する',()=>{
+ assert.match(app,/ringPollTimer=setInterval/);
+ assert.match(app,/handleOutgoingState\(\(await read\(requestRef\(uid\)\)\)\.data\(\)\)/);
+ assert.match(app,/r\.status==='accepted'&&r\.roomId&&!outgoingNavigating/);
+ assert.match(app,/history\(id,\{number,name:activeHistory\.name[\s\S]*?\}\);go\(r\.roomId,supportMode,'caller'\)/);
+ assert.match(app,/clearInterval\(ringPollTimer\);ringPollTimer=null/);
+});
+
 test('発信前に理解サポートありと通話だけを選び、着信・履歴・グループへ引き継ぐ',()=>{
  assert.match(html,/name="phoneSupportMode" value="support"/);
  assert.match(html,/name="phoneSupportMode" value="plain"/);
