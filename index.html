@@ -4059,7 +4059,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-leave-and-one-to-one-layout">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-call-end-tone">
 </head>
 <body class="phone-home">
   <main>
@@ -4108,7 +4108,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <h2 id="appInfoTitle">アプリ情報</h2>
         <button id="appInfoCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <span id="versionPill" class="version-pill" title="アプリの更新番号">v2026.08.08</span>
       <p id="appInfoCostSummary" class="caption-help"></p>
       
       <div id="appInfoCallReport" class="app-info-call-report" role="status" aria-live="polite"></div>
@@ -4412,12 +4411,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <script src="./qrcode-generator.js?v=2026-09-05-leave-and-one-to-one-layout"></script>
-  <script src="./jsQR.js?v=2026-09-05-leave-and-one-to-one-layout"></script>
+  <script src="./qrcode-generator.js?v=2026-09-05-call-end-tone"></script>
+  <script src="./jsQR.js?v=2026-09-05-call-end-tone"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-leave-and-one-to-one-layout";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-call-end-tone";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
-    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-leave-and-one-to-one-layout";
+    import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-call-end-tone";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
@@ -4459,7 +4458,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-leave-and-one-to-one-layout";
+    const APP_VERSION = "2026-09-05-call-end-tone";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -6807,6 +6806,31 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       finally { stopLocalCall(true); }
     }
 
+    function playCallEndTone() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const context = new AudioContextClass();
+        const gain = context.createGain();
+        const start = context.currentTime + 0.02;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.075, start + 0.025);
+        gain.gain.setValueAtTime(0.075, start + 0.24);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.58);
+        gain.connect(context.destination);
+        [[523.25, 0, 0.25], [392, 0.27, 0.58]].forEach(function(note) {
+          const oscillator = context.createOscillator();
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(note[0], start + note[1]);
+          oscillator.connect(gain);
+          oscillator.start(start + note[1]);
+          oscillator.stop(start + note[2]);
+        });
+        if (context.state === "suspended") Promise.resolve(context.resume()).catch(function() {});
+        window.setTimeout(function() { Promise.resolve(context.close()).catch(function() {}); }, 750);
+      } catch (_) {}
+    }
+
     function markLeft() {
       stopHeartbeat();
       recordWrite("participantLeave");
@@ -6826,6 +6850,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const shouldMarkEnded = joined;
       if (shouldMarkEnded) {
         metrics.endedAt = Date.now();
+        try { playCallEndTone(); } catch (_) {}
       }
       clearJoinSlowTimer();
       try { broadcastLocalRealtimeState(true); } catch(error) { console.warn(error); }

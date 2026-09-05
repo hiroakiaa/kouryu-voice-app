@@ -147,6 +147,12 @@ test("1対1通話では参加者を中央に並べ、通話種別を時間の横
   assert.match(phoneApp, /classList\.toggle\('is-one-to-one',state\(\)\.callId\.startsWith\('n_'\)\)/);
 });
 
+test("終話時に一度だけ短い効果音を鳴らし、バージョン表示は利用者画面から外す", () => {
+  assert.match(rootHtml, /function playCallEndTone\(\)/);
+  assert.match(rootHtml, /if \(shouldMarkEnded\) \{\s*metrics\.endedAt = Date\.now\(\);\s*try \{ playCallEndTone\(\); \}/);
+  assert.doesNotMatch(rootHtml, /id="versionPill"/);
+});
+
 test("料金画面にCloudflare TURNの通話中継量だけを表示する", () => {
   assert.doesNotMatch(rootHtml, /Cloudflare無料枠|月1,000 GB/);
   assert.match(rootHtml, /id="turnUsageStatus"/);
