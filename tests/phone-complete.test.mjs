@@ -254,7 +254,7 @@ test('説明は一度に一つだけ開き、参加者とモーダルは狭い�
 test('着信応答では元画面を通話画面に見せず通話URLへ確実に移動する',()=>{
  assert.match(app,/function prepareCallNavigation\(\)/);
  assert.doesNotMatch(app,/document\.body\.classList\.remove\('phone-home'\)/);
- assert.match(app,/for\(const id of \['numberIncoming','phoneDialConfirm','phoneCallResultDialog','groupDialog','phoneConfirmDialog'\]\)/);
+ assert.match(app,/for\(const id of \['numberIncoming','phoneOutgoingDialog','phoneDialConfirm','phoneCallResultDialog','groupDialog','phoneConfirmDialog'\]\)/);
  assert.match(app,/go\(callId,supportMode,'callee'\)/);
  assert.match(html,/if \(\/\^n_\|\^g_\/\.test\(callId\)\) \{\s*document\.body\.classList\.remove\("phone-home"\)/);
  assert.match(html,/PENDING_CALL_NAVIGATION_KEY/);
@@ -384,4 +384,17 @@ test('4種類の着信音を試聴・保存し、実際の着信に使用する'
  assert.match(app,/function previewRingtone\(key,button\)/);
  assert.match(app,/playRingtonePattern\(ringAudio,selectedRingtone\(\)\)/);
  assert.match(app,/if\(!\$\('phoneRingtone'\)\.checked\|\|ringAudioTimer\)return/);
+});
+
+test('呼び出し中は取消ボタンを表示し、ページ終了時も相手へ取消を送る',()=>{
+ assert.match(html,/id="phoneOutgoingDialog"[^>]*outgoing-call-dialog/);
+ assert.match(html,/id="phoneCancel"[^>]*>[\s\S]*?呼び出しをやめる/);
+ assert.match(app,/phoneOutgoingDialog'\)\.showModal\(\)/);
+ assert.match(app,/bind\('phoneCancel',\(\)=>cancel\(\)\)/);
+ assert.match(app,/const cancelOnPageExit=[\s\S]*?if\(outgoing\)[\s\S]*?cancel\(\)/);
+ assert.match(app,/window\.addEventListener\('pagehide',cancelOnPageExit\)/);
+ assert.match(app,/window\.addEventListener\('beforeunload',cancelOnPageExit\)/);
+ assert.match(html,/keepalive: true/);
+ assert.match(html,/cachedPushAuthToken \|\| await authUser\.getIdToken\(\)/);
+ assert.match(app,/data\.action==='cancel'[\s\S]*?await receive\(\[\]\)/);
 });
