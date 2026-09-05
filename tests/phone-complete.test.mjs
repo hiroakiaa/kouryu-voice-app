@@ -283,3 +283,11 @@ test('通話中のグループ種類変更を止め、古いURLの異なる種�
 test('公開用の追加ファイルも同一',()=>{
  for(const name of ['index.html','phone-app.js','phone-theme.css','jsQR.js','jsQR.LICENSE']) assert.equal(fs.readFileSync(new URL('../'+name,import.meta.url),'utf8'),fs.readFileSync(new URL('../voice-standalone/'+name,import.meta.url),'utf8'),name);
 });
+
+test('着信画面は名前を主役にし、拒否と応答を円形アイコンで見分けられる',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/#numberIncoming #numberCaller\{[^}]*font-size:30px/);
+ assert.match(css,/#numberIncoming \.incoming-actions button i\{[^}]*border-radius:50%/);
+ assert.match(css,/#numberIncoming #numberDecline i\{background:#d95761\}/);
+ assert.match(css,/#numberIncoming #numberAccept i\{background:#60b83d\}/);
+});
