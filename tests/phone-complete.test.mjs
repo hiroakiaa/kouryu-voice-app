@@ -227,6 +227,7 @@ test('グループカードの操作ボタンは常に右端へ寄せる',()=>{
  assert.match(css,/\.group-row>div:first-child\{flex:1 1 auto;min-width:0\}/);
  assert.match(css,/\.group-row-actions\{[^}]*justify-content:flex-end;[^}]*margin-left:auto/);
  assert.doesNotMatch(css,/\.group-row-actions\{width:100%\}/);
+ assert.match(css,/\.group-row-actions button:last-child\{[^}]*min-width:108px;[^}]*background:#f4fce9;[^}]*border-color:#a0cd79;[^}]*box-shadow:0 3px 0 #e0edcc/);
 });
 
 test('着信応答では元画面を通話画面に見せず通話URLへ確実に移動する',()=>{
