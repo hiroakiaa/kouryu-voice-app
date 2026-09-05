@@ -322,6 +322,7 @@ test('着信画面は名前を主役にし、拒否と応答を円形アイコ�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#numberIncoming #numberCaller\{[^}]*font-size:30px/);
  assert.match(css,/#numberIncoming \.incoming-actions button i\{[^}]*border-radius:50%/);
+ assert.match(css,/#numberIncoming \.incoming-actions button\{[^}]*outline:0!important/);
  assert.match(css,/#numberIncoming #numberDecline i\{background:#d95761\}/);
  assert.match(css,/#numberIncoming #numberAccept i\{background:#60b83d\}/);
 });
