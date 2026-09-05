@@ -406,3 +406,42 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
  body.is-one-to-one.is-in-call .participants .participant.is-self{right:12px;bottom:30px;width:4.6rem;height:4.6rem;flex-basis:4.6rem;}
  body.is-in-call .participants .participant.is-self .participant-state-badge{width:4.6rem;min-width:4.6rem;font-size:9px;}
 }
+
+/* Final consistency pass: optional group tools, responsive people layout, and safe mobile dialogs. */
+.group-section-toggle{
+ display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;
+ margin-top:12px;border:1px solid #bcd69f!important;border-radius:15px!important;
+ background:#f4fae9!important;color:#45663a!important;box-shadow:none!important;font-weight:700;
+}
+.group-section-toggle[aria-expanded="true"]{background:#e4f5d0!important;border-color:#80bb5b!important;}
+.group-detail-dialog .group-invite-area{box-sizing:border-box;width:100%;}
+.group-detail-dialog .group-invite-area.is-visible{
+ max-height:430px!important;margin:10px 0 0!important;padding:14px 0 0!important;
+ border-top-width:1px!important;overflow:visible;
+}
+.group-detail-dialog{overflow-x:hidden;scroll-padding-block:88px 28px;}
+.group-detail-dialog>.number-head{
+ position:sticky;top:-24px;z-index:5;margin:-4px -2px 0;padding:4px 2px 12px;
+ background:rgba(255,254,248,.97);backdrop-filter:blur(8px);
+}
+body.is-in-call .participants-card .participants{
+ display:flex;align-items:center;justify-content:flex-start;gap:clamp(10px,3vw,24px);
+ overflow:visible;
+}
+body.is-in-call .participants .participant:not(.is-self){flex:0 0 3.35rem;width:3.35rem;height:3.35rem;}
+body.is-in-call .participants .participant:not(.is-self) .participant-state-badge{font-size:10px;}
+@media(max-width:670px){
+ .group-detail-dialog{width:calc(100% - 18px);max-height:calc(100dvh - 18px);padding:18px 14px;}
+ .group-detail-dialog>.number-head{top:-18px;}
+ .group-dialog-section{min-width:0;}
+ .group-mode-row,.settings-mode-row{max-width:100%;}
+ .group-detail-dialog .group-invite-area>div{grid-template-columns:minmax(0,1fr);}
+ .group-detail-dialog .group-invite-area select,.group-detail-dialog .group-invite-area button{width:100%;max-width:100%;}
+ body.is-in-call .participants-card .participants{flex-wrap:wrap;row-gap:28px;}
+}
+@media(max-width:380px){
+ .group-detail-dialog{width:calc(100% - 10px);padding-inline:10px;border-radius:20px;}
+ .group-dialog-section{padding-inline:10px;}
+ .group-detail-dialog .group-mode-toggle span{font-size:11px;padding-inline:5px;}
+ body.is-in-call .participants .participant:not(.is-self){flex-basis:3rem;width:3rem;height:3rem;}
+}

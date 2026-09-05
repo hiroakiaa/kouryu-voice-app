@@ -234,6 +234,23 @@ test('グループカードの操作ボタンは常に右端へ寄せる',()=>{
  assert.match(css,/\.group-row-actions button:last-child\{[^}]*min-width:108px;[^}]*background:#f4fce9;[^}]*border-color:#a0cd79;[^}]*box-shadow:0 3px 0 #e0edcc/);
 });
 
+test('グループの招待操作は必要なときだけ開き、期限切れ招待を表示しない',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(html,/id="groupInviteToggle"[^>]*aria-controls="groupInviteArea"[^>]*aria-expanded="false"/);
+ assert.match(html,/id="groupInviteArea" class="group-invite-area phone-collapsible" inert aria-hidden="true"/);
+ assert.match(app,/setCollapsible\('groupInviteToggle','groupInviteArea'/);
+ assert.match(app,/!d\.expiresAt\|\|d\.expiresAt>now/);
+ assert.match(css,/\.group-section-toggle\{[^}]*width:100%;[^}]*min-height:46px/);
+});
+
+test('説明は一度に一つだけ開き、参加者とモーダルは狭い画面に収まる',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/const helpPairs=\[/);
+ assert.match(app,/for\(const \[otherButtonId,otherPanelId\] of helpPairs\)/);
+ assert.match(css,/@media\(max-width:670px\)[\s\S]*?\.group-detail-dialog\{width:calc\(100% - 18px\)/);
+ assert.match(css,/body\.is-in-call \.participants-card \.participants\{[^}]*justify-content:flex-start/);
+});
+
 test('着信応答では元画面を通話画面に見せず通話URLへ確実に移動する',()=>{
  assert.match(app,/function prepareCallNavigation\(\)/);
  assert.doesNotMatch(app,/document\.body\.classList\.remove\('phone-home'\)/);
@@ -313,7 +330,7 @@ test('発信確認は名前と電話操作を主役にし、通話種類を控�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.doesNotMatch(html,/この相手に電話しますか？/);
  assert.match(html,/class="support-mode-picker dial-mode-toggle"/);
- assert.match(html,/通常電話/);
+ assert.match(html,/通常通話/);
  assert.match(css,/#phoneDialConfirmName\{[^}]*font-size:32px/);
  assert.match(css,/#phoneDialConfirmCall\{[^}]*min-height:70px/);
  assert.doesNotMatch(html,/id="phoneDialConfirmCancel"/);

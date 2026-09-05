@@ -163,7 +163,7 @@ test("料金画面にCloudflare TURNの通話中継量だけを表示する", ()
 test("callTipsで利用者への請求がないことと通常の通信量を案内する", () => {
   assert.match(rootHtml, /参加者へアプリ利用料金は請求されません/);
   assert.match(rootHtml, /通常のデータ通信量は使用します/);
-  assert.match(rootHtml, /理解サポートあり/);
+  assert.match(rootHtml, /サポートあり/);
   assert.match(rootHtml, /音声認識・用語検出・説明・たとえのAI処理は行いません/);
 });
 
