@@ -4558,7 +4558,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-06-unlimited-call-actions";
+    const APP_VERSION = "2026-09-06-unlimited-calls";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -4584,7 +4584,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const AUTO_RECONNECT_MAX_ATTEMPTS = 2;
     const CLEANUP_AUDIT_DELAY_MS = 800;
     const HIDDEN_AUTO_LEAVE_MS = 2 * 60 * 1000;
-    const MAX_CALL_DURATION_MS = 60 * 60 * 1000;
     const PASSIVE_WATCHER_IDLE_MS = 10 * 60 * 1000;
     const CONNECTION_STUCK_MS = 15000;
     const MIC_PERMISSION_TIMEOUT_MS = 12000;
@@ -4849,7 +4848,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let participantNoticeTimer = null;
     let heartbeatTimer = null;
     let hiddenAutoLeaveTimer = null;
-    let maxCallDurationTimer = null;
     let passiveWatcherIdleTimer = null;
     let hiddenSince = 0;
     let lastAudioResumeAt = 0;
@@ -6001,9 +5999,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function startCallSafetyTimers() {
       stopCallSafetyTimers();
-      maxCallDurationTimer = window.setTimeout(function() {
-        autoLeaveCall("通話が1時間続いたため、安全のため自動退室しました。");
-      }, MAX_CALL_DURATION_MS);
       if (document.visibilityState === "hidden") scheduleHiddenAutoLeave();
     }
 
@@ -6075,9 +6070,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function stopCallSafetyTimers() {
       if (hiddenAutoLeaveTimer) window.clearTimeout(hiddenAutoLeaveTimer);
-      if (maxCallDurationTimer) window.clearTimeout(maxCallDurationTimer);
       hiddenAutoLeaveTimer = null;
-      maxCallDurationTimer = null;
       hiddenSince = 0;
     }
 
@@ -8862,7 +8855,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (unsubSignals) remaining.push("signals listener");
       if (heartbeatTimer) remaining.push("heartbeat");
       if (hiddenAutoLeaveTimer) remaining.push("hidden auto leave");
-      if (maxCallDurationTimer) remaining.push("max call duration");
       if (passiveWatcherIdleTimer) remaining.push("passive watcher idle");
       if (participantSweepTimer) remaining.push("participant sweep");
       if (participantWatcherRetryTimer) remaining.push("participant watcher retry");

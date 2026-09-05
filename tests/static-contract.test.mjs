@@ -28,11 +28,10 @@ test("4人制限と5人目の参加前停止がある", () => {
   assert.match(rootHtml, /参加情報やマイクを開始する前に停止しました/);
 });
 
-test("放置と長時間通話の自動退室がある", () => {
+test("閉じた通話は整理するが通話時間では自動退室しない", () => {
   assert.match(rootHtml, /const HIDDEN_AUTO_LEAVE_MS = 2 \* 60 \* 1000;/);
-  assert.match(rootHtml, /const MAX_CALL_DURATION_MS = 60 \* 60 \* 1000;/);
   assert.match(rootHtml, /scheduleHiddenAutoLeave\(\)/);
-  assert.match(rootHtml, /maxCallDurationTimer = window\.setTimeout/);
+  assert.doesNotMatch(rootHtml, /MAX_CALL_DURATION_MS|maxCallDurationTimer|通話が1時間続いたため/);
 });
 
 test("復帰時に音声と参加状態を回復する", () => {
