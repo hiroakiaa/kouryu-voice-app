@@ -172,8 +172,9 @@ async function handlePush(request, env, origin, path) {
     try {
       const pushResponse = await sendWebPush(stored.subscription, JSON.stringify({ kind: "test" }), env);
       if (!pushResponse.ok) {
+        const pushReason = (await pushResponse.text().catch(() => "")).slice(0, 120);
         if (pushResponse.status === 404 || pushResponse.status === 410) await env.PUSH_SUBSCRIPTIONS.delete(uid);
-        return response({ ok: false, error: "push_rejected", pushStatus: pushResponse.status }, 502, origin);
+        return response({ ok: false, error: "push_rejected", pushStatus: pushResponse.status, pushReason }, 502, origin);
       }
       return response({ ok: true, delivered: true }, 200, origin);
     } catch (_) {
@@ -203,8 +204,9 @@ async function handlePush(request, env, origin, path) {
       callerName: callerName || "匿名さん", callId, invitationId, callerUid: uid, action
     }), env);
     if (!pushResponse.ok) {
+      const pushReason = (await pushResponse.text().catch(() => "")).slice(0, 120);
       if (pushResponse.status === 404 || pushResponse.status === 410) await env.PUSH_SUBSCRIPTIONS.delete(calleeUid);
-      return response({ ok: false, delivered: false, error: "push_rejected", pushStatus: pushResponse.status }, 502, origin);
+      return response({ ok: false, delivered: false, error: "push_rejected", pushStatus: pushResponse.status, pushReason }, 502, origin);
     }
     return response({ ok: true, delivered: true }, 200, origin);
   } catch (error) {

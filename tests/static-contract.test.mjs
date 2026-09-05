@@ -344,6 +344,7 @@ test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () 
 test("繰り返し発信でもPush通知を止めず、配信失敗を成功として隠さない", () => {
   assert.match(turnWorker, /allowRequest\("push-uid:" \+ uid, 60, TEN_MINUTES\)/);
   assert.match(turnWorker, /error: "push_rejected"/);
+  assert.match(turnWorker, /pushReason/);
   assert.match(rootHtml, /push_delivery_failed_/);
 });
 
