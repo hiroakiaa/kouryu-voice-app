@@ -137,6 +137,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,not
   $('defaultModeHelpToggle').onclick=()=>setCollapsible('defaultModeHelpToggle','defaultModeHelpPanel',$('defaultModeHelpToggle').getAttribute('aria-expanded')!=='true');
   $('notificationHelpToggle').onclick=()=>setCollapsible('notificationHelpToggle','notificationHelpPanel',$('notificationHelpToggle').getAttribute('aria-expanded')!=='true');
   $('phoneSupportHelpToggle').onclick=()=>setCollapsible('phoneSupportHelpToggle','phoneSupportHelpPanel',$('phoneSupportHelpToggle').getAttribute('aria-expanded')!=='true');
+  $('groupSupportHelpToggle').onclick=()=>setCollapsible('groupSupportHelpToggle','groupSupportHelpPanel',$('groupSupportHelpToggle').getAttribute('aria-expanded')!=='true');
   for(const input of [$('phoneEmail'),$('phonePassword')])input.addEventListener('input',syncAccountActions);syncAccountActions();
   $('phoneHistoryToolsToggle').onclick=()=>setCollapsible('phoneHistoryToolsToggle','phoneHistoryTools',$('phoneHistoryToolsToggle').getAttribute('aria-expanded')!=='true');
    $('phoneContactToolsToggle').onclick=()=>setCollapsible('phoneContactToolsToggle','phoneContactTools',$('phoneContactToolsToggle').getAttribute('aria-expanded')!=='true');
@@ -155,7 +156,7 @@ export function createPhoneApp({db,user,state,name,navigate,stop,notice,push,not
   $('phoneBackspace').onclick=()=>editDial(null);
   $('phoneDialForm').addEventListener('submit',e=>{e.preventDefault();dial($('phoneDialNumber').value);});
   bind('numberAccept',()=>respond(true));bind('numberDecline',()=>respond(false));bind('numberBlock',block);$('numberIncoming').addEventListener('cancel',e=>{e.preventDefault();respond(false);});
-  bind('groupClose',()=>{$('groupDialog').close();groupPeopleOff?.();groupDetailOff?.();});bind('groupAcceptInvite',acceptGroup);bind('groupDeclineInvite',declineGroup);bind('groupRenameSave',renameGroup);bind('groupJoin',joinGroup);bind('groupShare',()=>copy(groupLink(selectedGroup)));bind('groupInviteSend',inviteContact);bind('groupDelete',()=>quitGroup(true));bind('groupQuit',()=>quitGroup(false));
+  bind('groupClose',()=>{setCollapsible('groupSupportHelpToggle','groupSupportHelpPanel',false);$('groupDialog').close();groupPeopleOff?.();groupDetailOff?.();});bind('groupAcceptInvite',acceptGroup);bind('groupDeclineInvite',declineGroup);bind('groupRenameSave',renameGroup);bind('groupJoin',joinGroup);bind('groupShare',()=>copy(groupLink(selectedGroup)));bind('groupInviteSend',inviteContact);bind('groupDelete',()=>quitGroup(true));bind('groupQuit',()=>quitGroup(false));
   $('groupDialog').addEventListener('click',async e=>{const button=e.target.closest('[data-cancel-group-invite]');if(!button)return;if(await askConfirmation('相手に送ったグループ招待を取り消します。',{title:'招待を取り消しますか？',confirmLabel:'取り消す'}))await cancelGroupInvite(button.dataset.cancelGroupInvite);});
   for(const mode of ['save','login','reset','logout'])bind('account-'+mode,()=>account(mode));
   bind('phoneHomeBtn',()=>home());bind('phoneToGroup',async()=>{if(!(await askConfirmation('今の電話を終了してグループ画面へ移動します。相手にはグループ作成後に招待を送ってください。',{title:'グループ画面へ移動しますか？',confirmLabel:'移動する'})))return;await leave();stop();home('groups');});

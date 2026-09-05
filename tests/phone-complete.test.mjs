@@ -15,8 +15,12 @@ test('通知・発信確認を設定画面から利用し、廃止した費用�
 
 test('説明を普段は隠し必要なときだけ開ける',()=>{
  assert.match(html,/id="defaultModeHelpToggle"/);
- assert.match(html,/id="defaultModeHelpPanel" class="setting-help-panel phone-collapsible" inert aria-hidden="true"/);
+ assert.match(html,/id="defaultModeHelpPanel" class="dial-support-help-panel phone-collapsible" inert aria-hidden="true"/);
  assert.match(app,/setCollapsible\('defaultModeHelpToggle','defaultModeHelpPanel'/);
+ assert.match(html,/class="support-mode-picker dial-mode-toggle phone-default-mode"/);
+ assert.match(html,/id="groupSupportHelpToggle"[^>]*aria-controls="groupSupportHelpPanel"/);
+ assert.match(app,/setCollapsible\('groupSupportHelpToggle','groupSupportHelpPanel'/);
+ assert.match(html,/name="groupSupportMode" value="plain"><span><i[^>]*><\/i> 通常通話/);
  assert.doesNotMatch(html,/最後に選んだ種類も次回の初期選択になります/);
 });
 
