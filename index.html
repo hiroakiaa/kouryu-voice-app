@@ -251,6 +251,39 @@
       background: rgba(251, 113, 133, 0.11);
     }
 
+    .signal-wave {
+      display: inline-flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 0.12rem;
+      width: 1.05rem;
+      height: 1rem;
+      flex: 0 0 1.05rem;
+    }
+
+    .signal-wave > i {
+      display: block;
+      width: 0.16rem;
+      border-radius: 999px;
+      background: currentColor;
+      transform-origin: center bottom;
+      animation: signal-wave-stretch 1.05s ease-in-out infinite alternate;
+    }
+
+    .signal-wave > i:nth-child(1) { height: 0.42rem; animation-duration: 0.9s; }
+    .signal-wave > i:nth-child(2) { height: 0.68rem; animation-duration: 1.15s; animation-delay: -0.38s; }
+    .signal-wave > i:nth-child(3) { height: 0.94rem; animation-duration: 1.35s; animation-delay: -0.72s; }
+
+    @keyframes signal-wave-stretch {
+      0% { transform: scaleY(0.42); opacity: 0.68; }
+      48% { transform: scaleY(0.78); opacity: 0.9; }
+      100% { transform: scaleY(1); opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .signal-wave > i { animation: none; transform: none; opacity: 1; }
+    }
+
     .connection-tooltip {
       position: fixed;
       z-index: 80;
@@ -4506,7 +4539,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-busy-race";
+    const APP_VERSION = "2026-09-05-signal-animation";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -8251,7 +8284,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       el.connectionPill.classList.toggle("is-active", normalized === "通話中");
       el.connectionPill.classList.toggle("is-connecting", normalized === "接続中" || normalized === "再接続中");
       el.connectionPill.classList.toggle("is-unstable", normalized === "失敗");
-      el.connectionPill.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(normalized) + '</span>';
+      const iconMarkup = normalized === "通話中"
+        ? '<span class="signal-wave" aria-hidden="true"><i></i><i></i><i></i></span>'
+        : '<i class="fa-solid ' + icon + '"></i>';
+      el.connectionPill.innerHTML = iconMarkup + '<span>' + escapeHtml(normalized) + '</span>';
       if (el.qualityTip) {
         const label = normalized === "通話中"
           ? "音声品質は良好です"
@@ -8287,7 +8323,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         el.connectionPill.classList.toggle("is-active", callPhase === "connected");
         el.connectionPill.classList.toggle("is-connecting", callPhase === "connecting" || callPhase === "reconnecting");
         el.connectionPill.classList.toggle("is-unstable", callPhase === "failed");
-        el.connectionPill.innerHTML = '<i class="fa-solid ' + config.icon + '"></i><span>' + escapeHtml(config.label) + '</span>';
+        const iconMarkup = callPhase === "connected"
+          ? '<span class="signal-wave" aria-hidden="true"><i></i><i></i><i></i></span>'
+          : '<i class="fa-solid ' + config.icon + '"></i>';
+        el.connectionPill.innerHTML = iconMarkup + '<span>' + escapeHtml(config.label) + '</span>';
       }
       if (callPhase === "failed" && joined) {
         setNotice("音声接続に失敗しました。再接続ボタンで1回だけ作り直せます。", true);

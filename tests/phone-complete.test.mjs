@@ -531,3 +531,11 @@ test('スマホの発信ボタンは縦横同寸の真円を維持する',()=>{
  assert.match(css,/#phoneDialForm \.phone-dial-actions \.phone-call\{[^}]*inline-size:calc\(var\(--dial-key\) \+ 8px\)!important;[^}]*block-size:calc\(var\(--dial-key\) \+ 8px\)!important;/);
  assert.match(css,/#phoneDialForm \.phone-dial-actions \.phone-call\{[^}]*aspect-ratio:1\/1;[^}]*border-radius:50%!important/);
 });
+
+test('通話中の接続表示は3本のバーが滑らかに伸縮する',()=>{
+ assert.match(html,/class="signal-wave"[^>]*><i><\/i><i><\/i><i><\/i>/);
+ assert.match(html,/@keyframes signal-wave-stretch/);
+ assert.match(html,/\.signal-wave > i:nth-child\(3\)/);
+ assert.match(html,/@media \(prefers-reduced-motion: reduce\)/);
+ assert.match(html,/callPhase === "connected"[\s\S]*?class="signal-wave"/);
+});
