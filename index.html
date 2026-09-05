@@ -7654,7 +7654,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         if (permission === "denied") add("microphone", "マイク", "error", "端末の設定でマイクを許可してください");
         else if (interactive) {
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await getUserMediaWithTimeout({ audio: true, video: false }, 12000);
             stream.getTracks().forEach(function(track) { track.stop(); });
             add("microphone", "マイク", "ok", "音声入力を利用できます");
           } catch (_) { add("microphone", "マイク", "error", "マイクを許可できませんでした"); }
@@ -7688,9 +7688,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     async function openDeviceCheck() {
       const dialog = document.getElementById("deviceCheckDialog");
+      const runButton = document.getElementById("deviceCheckRun");
       if (!dialog.open) dialog.showModal();
       document.getElementById("deviceCheckResults").innerHTML = '<div class="device-check-result"><i class="fa-solid fa-spinner fa-spin"></i><strong>確認中</strong><small>少しお待ちください</small></div>';
-      renderDeviceCheck(await runDevicePreflight({ interactive: true }));
+      runButton.disabled = true;
+      try { renderDeviceCheck(await runDevicePreflight({ interactive: true })); }
+      catch (_) { renderDeviceCheck({ id: DIAGNOSTIC_SESSION_ID, results: [{ label: "端末チェック", state: "error", detail: "確認できませんでした。通信を確認して再度お試しください" }] }); }
+      finally { runButton.disabled = false; }
     }
 
     async function testCallNotification() {
