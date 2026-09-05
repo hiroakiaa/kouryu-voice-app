@@ -4103,7 +4103,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-app-polish-pass">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-remote-ended-modal">
 </head>
 <body class="phone-home">
   <main>
@@ -4146,6 +4146,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     <dialog id="phoneDialConfirm" class="number-modal incoming-call dial-confirm-dialog" aria-labelledby="phoneDialConfirmName"><button id="phoneDialConfirmClose" class="dial-confirm-close" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button><div class="dial-confirm-person"><strong id="phoneDialConfirmName"></strong><span id="phoneDialConfirmNumber"></span></div><div class="dial-mode-row"><fieldset class="support-mode-picker dial-mode-toggle"><legend class="visually-hidden">通話の種類</legend><label><input type="radio" name="phoneSupportMode" value="support" checked><span><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> サポートあり</span></label><label><input type="radio" name="phoneSupportMode" value="plain"><span><i class="fa-solid fa-phone" aria-hidden="true"></i> 通常通話</span></label></fieldset><button id="phoneSupportHelpToggle" class="dial-support-help" type="button" aria-label="サポートありについて" aria-controls="phoneSupportHelpPanel" aria-expanded="false"><i class="fa-solid fa-question" aria-hidden="true"></i></button></div><div id="phoneSupportHelpPanel" class="dial-support-help-panel phone-collapsible" inert aria-hidden="true"><strong>サポートありとは</strong><p>会話に出た専門用語を見つけ、押すと意味を確認できる通話です。通常通話では音声通話だけを行います。</p></div><div class="dial-confirm-actions"><button id="phoneDialConfirmCall" type="button"><i class="fa-solid fa-phone"></i><span>電話する</span></button></div></dialog><dialog id="phoneCallResultDialog" class="number-modal incoming-call call-result-dialog" aria-labelledby="phoneCallResultStatus"><div class="number-head"><h2 id="phoneCallResultStatus">応答なし</h2><button id="phoneCallResultClose" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><strong id="phoneCallResultName"></strong><span id="phoneCallResultNumber"></span><div class="call-result-actions"><button id="phoneCallResultHistory" type="button"><i class="fa-solid fa-clock-rotate-left"></i> 履歴へ戻る</button><button id="phoneCallResultRegister" type="button"><i class="fa-solid fa-address-book"></i> 電話帳に登録</button><button id="phoneCallResultRedial" type="button"><i class="fa-solid fa-phone"></i> もう一度かける</button></div></dialog><dialog id="phoneQrScanDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrScanTitle"><div class="number-head"><h2 id="phoneQrScanTitle">QRコードを読み取る</h2><button id="phoneQrScanClose" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><video id="phoneQrVideo" playsinline muted></video><canvas id="phoneQrCanvas" hidden></canvas><p id="phoneQrScanStatus">カメラをQRコードへ向けてください。</p></dialog>
     <dialog id="phoneConfirmDialog" class="number-modal action-confirm" aria-labelledby="phoneConfirmTitle"><div class="number-head"><h2 id="phoneConfirmTitle">確認</h2><button id="phoneConfirmClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><p id="phoneConfirmMessage" class="action-confirm-message"></p><div class="action-confirm-actions"><button id="phoneConfirmCancel" type="button">やめる</button><button id="phoneConfirmOk" type="button">続ける</button></div></dialog>
+    <dialog id="remoteEndedDialog" class="remote-ended-dialog" aria-labelledby="remoteEndedTitle" aria-describedby="remoteEndedMessage"><div class="remote-ended-icon" aria-hidden="true"><i class="fa-solid fa-phone-slash"></i></div><h2 id="remoteEndedTitle">通話が終了しました</h2><p id="remoteEndedMessage"></p></dialog>
     <dialog id="phoneQrDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrTitle"><div class="number-head"><h2 id="phoneQrTitle">番号を交換</h2><button id="phoneQrClose" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><p>相手のカメラで読み取ると、電話帳の登録画面が開きます。</p><div id="phoneQrImage" class="phone-qr-image"></div><strong id="phoneQrNumber"></strong></dialog>
     <dialog id="appInfoTooltip" class="app-info-tooltip metrics-modal-card" aria-labelledby="appInfoTitle" aria-hidden="true">
       <div class="modal-head">
@@ -4458,7 +4459,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-app-polish-pass";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-remote-ended-modal";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4502,7 +4503,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-app-polish-pass";
+    const APP_VERSION = "2026-09-05-remote-ended-modal";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -5111,7 +5112,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       try {
         await ensureAnonymousAuth();
         if(/^n_|^g_/.test(callId)) userId=authUser.uid;
-        numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId,supportMode:ACTIVE_SUPPORT_MODE}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,status:notificationStatusText,test:testCallNotification},stop:()=>stopLocalCall(true),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
+        numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId,supportMode:ACTIVE_SUPPORT_MODE}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,status:notificationStatusText,test:testCallNotification},stop:()=>stopLocalCall(true),remoteEnded:(name,message)=>finishRemoteCallWithNotice(name,message),notice:setNotice,usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
           navigate:(id,supportMode,role)=>{const u=new URL(location.origin+location.pathname);u.searchParams.set('call',id);u.searchParams.set('support',supportMode==='plain'?'plain':'support');u.searchParams.set('autoJoin','1');if(role==='caller'||role==='callee')u.searchParams.set('callRole',role);try{sessionStorage.setItem(PENDING_CALL_NAVIGATION_KEY,JSON.stringify({callId:id,url:u.toString(),at:Date.now()}));}catch(_){}try{window.location.assign(u.toString());}catch(_){window.location.href=u.toString();}window.setTimeout(()=>{if(new URL(window.location.href).searchParams.get('call')!==id)window.location.href=u.toString();},250);}});
         await numberCalls.start();
         if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", function(event) { numberCalls?.handlePushState(event.data); });
@@ -5752,13 +5753,52 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       hasParticipantSnapshot = true;
     }
 
+    let remoteEndedNoticePromise = null;
+
+    function showRemoteEndedNotice(name, message) {
+      if (remoteEndedNoticePromise) return remoteEndedNoticePromise;
+      const dialog = document.getElementById("remoteEndedDialog");
+      const title = document.getElementById("remoteEndedTitle");
+      const detail = document.getElementById("remoteEndedMessage");
+      const cleanName = getDisplayName(name || "相手");
+      const person = /さん$/.test(cleanName) ? cleanName : cleanName + "さん";
+      title.textContent = message || person + "が通話を終えました";
+      detail.textContent = "通話を終了して、電話画面へ戻ります。";
+      remoteEndedNoticePromise = new Promise(function(resolve) {
+        document.querySelectorAll("dialog[open]").forEach(function(openDialog) {
+          if (openDialog !== dialog) try { openDialog.close(); } catch (_) {}
+        });
+        try {
+          if (!dialog.open) dialog.showModal();
+        } catch (_) {
+          dialog.setAttribute("open", "");
+        }
+        window.requestAnimationFrame(function() { dialog.classList.add("is-visible"); });
+        window.setTimeout(function() {
+          dialog.classList.remove("is-visible");
+          window.setTimeout(function() {
+            if (dialog.open) dialog.close();
+            remoteEndedNoticePromise = null;
+            resolve();
+          }, 260);
+        }, 1800);
+      });
+      return remoteEndedNoticePromise;
+    }
+
+    async function finishRemoteCallWithNotice(name, message) {
+      stopLocalCall(false, false);
+      await showRemoteEndedNotice(name, message);
+      document.body.classList.add("phone-home");
+    }
+
     async function endPhonebookCallAfterRemoteLeave(name) {
       if (phonebookCallEnding) return;
       phonebookCallEnding = true;
       const historyId = params.get("outgoingInvite") || ("call-" + callId + "-" + (params.get("callRole") || "phonebook"));
       saveCallHistory({ id: historyId, direction: params.get("callRole") === "caller" ? "outgoing" : "incoming", name: name || getDisplayName(params.get("contactName")) || "相手", status: "ended", at: Date.now() });
       await Promise.race([markLeft(), new Promise(function(resolve) { window.setTimeout(resolve, 700); })]);
-      stopLocalCall(false);
+      await finishRemoteCallWithNotice(name, (/さん$/.test(name || "") ? name : (name || "相手") + "さん") + "が退室しました");
       setStatus("通話を終了しました", "相手が退室したため通話を終了しました。");
       setNotice((name || "相手") + "さんが退室したため、通話を終了しました。", true);
       window.setTimeout(function() { setNotice((name || "相手") + "さんとの通話は終了しました。", true); }, 1000);
@@ -6892,7 +6932,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       return Promise.all([participantLeave, releaseCallSlot(slotToRelease)]).then(()=>numberCalls?.leave());
     }
 
-    function stopLocalCall(updateStatus) {
+    function stopLocalCall(updateStatus, returnToPhoneHome) {
       const shouldMarkEnded = joined;
       if (shouldMarkEnded) {
         metrics.endedAt = Date.now();
@@ -6902,7 +6942,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       try { broadcastLocalRealtimeState(true); } catch(error) { console.warn(error); }
       endedCostExtras=currentCostExtras();callCost.end();
       joined = false;
-      if (typeof callId !== "undefined" && /^n_|^g_/.test(callId)) document.body.classList.add("phone-home");
+      if (returnToPhoneHome !== false && typeof callId !== "undefined" && /^n_|^g_/.test(callId)) document.body.classList.add("phone-home");
       if (localStream) localStream.getTracks().forEach(function(track){try{track.stop()}catch(_){}});
       if (rawLocalStream) rawLocalStream.getTracks().forEach(function(track){try{track.stop()}catch(_){}});
       updateJoinButton();

@@ -8,6 +8,7 @@ const firestoreRules = await readFile(new URL("../firestore.rules", import.meta.
 const turnWorker = await readFile(new URL("../cloudflare-turn-worker/src/index.js", import.meta.url), "utf8");
 const serviceWorker = await readFile(new URL("../service-worker.js", import.meta.url), "utf8");
 const phoneApp = await readFile(new URL("../phone-app.js", import.meta.url), "utf8");
+const themeCss = await readFile(new URL("../phone-theme.css", import.meta.url), "utf8");
 const termAssist = await readFile(new URL("../term-assist.js", import.meta.url), "utf8");
 
 test("アプリのJavaScript構文が有効", () => {
@@ -138,7 +139,20 @@ test("通話中の終了ボタンは接続状態にかかわらず必ず退室�
   const handler = rootHtml.slice(clickStart, clickEnd);
   assert.match(handler, /if \(joined\) \{\s*leaveCall\(\);\s*\}/);
   assert.doesNotMatch(handler, /reconnectCall\(\)/);
-  assert.match(rootHtml, /joined = false;\s*if \(typeof callId !== "undefined" && \/\^n_\|\^g_\/\.test\(callId\)\) document\.body\.classList\.add\("phone-home"\)/);
+  assert.match(rootHtml, /joined = false;\s*if \(returnToPhoneHome !== false && typeof callId !== "undefined" && \/\^n_\|\^g_\/\.test\(callId\)\) document\.body\.classList\.add\("phone-home"\)/);
+});
+
+test("相手側の終話は案内モーダルを表示してから電話画面へ戻す", () => {
+  assert.match(rootHtml, /id="remoteEndedDialog" class="remote-ended-dialog"/);
+  assert.match(rootHtml, /function finishRemoteCallWithNotice\(name, message\) \{\s*stopLocalCall\(false, false\);\s*await showRemoteEndedNotice\(name, message\);\s*document\.body\.classList\.add\("phone-home"\)/);
+  assert.match(phoneApp, /await remoteEnded\(remoteName,message\);\s*await leave\(\)/);
+  assert.match(themeCss, /\.remote-ended-dialog\.is-visible\{opacity:1;transform:translateY\(0\) scale\(1\)/);
+});
+
+test("グループ詳細は最前面のモーダルとして開き、失敗時も表示を維持する", () => {
+  assert.match(phoneApp, /document\.querySelectorAll\('dialog\[open\]'\)/);
+  assert.match(phoneApp, /groupDialog\.showModal\(\)/);
+  assert.match(phoneApp, /groupDialog\.setAttribute\('open',''\)/);
 });
 
 test("1対1通話では参加者を中央に並べ、通話種別を時間の横に表示する", () => {

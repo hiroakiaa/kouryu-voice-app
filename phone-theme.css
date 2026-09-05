@@ -445,3 +445,26 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
  .group-detail-dialog .group-mode-toggle span{font-size:11px;padding-inline:5px;}
  body.is-in-call .participants .participant:not(.is-self){flex-basis:3rem;width:3rem;height:3rem;}
 }
+
+/* Calm handoff between an ended call and the phone home. */
+.remote-ended-dialog{
+ position:fixed;inset:0;z-index:5000;width:min(360px,calc(100% - 32px));
+ margin:auto;padding:30px 24px;border:3px solid #84bf5c;border-radius:28px;
+ background:linear-gradient(180deg,#fffef9 0%,#f4fbe9 100%);color:#304d2c;
+ text-align:center;box-shadow:0 20px 70px rgba(28,43,23,.34),inset 0 0 0 7px #edf7df;
+ opacity:0;transform:translateY(10px) scale(.97);
+ transition:opacity .24s ease,transform .24s ease;
+}
+.remote-ended-dialog[open]{display:block;}
+.remote-ended-dialog.is-visible{opacity:1;transform:translateY(0) scale(1);}
+.remote-ended-dialog::backdrop{background:rgba(35,43,32,.48);backdrop-filter:blur(2px);}
+.remote-ended-icon{
+ display:grid;place-items:center;width:68px;height:68px;margin:0 auto 15px;
+ border:2px solid #9dcb7c;border-radius:50%;background:#e7f7d2;color:#589b3f;font-size:26px;
+ box-shadow:0 4px 0 #d7e9c3;
+}
+.remote-ended-dialog h2{margin:0;color:#34582e;font-size:22px;line-height:1.45;overflow-wrap:anywhere;}
+.remote-ended-dialog p{margin:10px 0 0;color:#687b61;font-size:14px;line-height:1.6;}
+.group-detail-dialog{z-index:4000;}
+@media(max-width:420px){.remote-ended-dialog{padding:26px 18px;border-radius:24px}.remote-ended-dialog h2{font-size:20px}}
+@media(prefers-reduced-motion:reduce){.remote-ended-dialog{transition:none;}}
