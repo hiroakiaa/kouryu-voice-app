@@ -319,8 +319,8 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 @media(max-width:480px){#phoneSettingsPanel>.account-help-head,#phoneSettingsPanel>.setting-subtitle-row,#phoneSettingsPanel>h3{margin-top:28px!important}}
 
 #phoneContactTools.is-visible{display:flex;padding:14px!important;margin-bottom:14px!important}
-#phoneGroupsPanel{position:relative;padding-bottom:86px!important}
-#phoneGroupsPanel .phone-add-fab{position:absolute;right:14px;bottom:14px}
+#phoneContactsPanel,#phoneGroupsPanel{position:relative;padding-bottom:90px!important}
+#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{position:absolute;right:14px;bottom:14px}
 .phone-empty-state button{min-height:42px!important;padding:8px 14px!important;border-radius:14px!important}
 .history-details>p{margin:6px 0;color:#64725e;font-size:12px;overflow-wrap:anywhere}
 #phoneSettingsPanel{display:flex;flex-direction:column}

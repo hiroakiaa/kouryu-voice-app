@@ -209,10 +209,11 @@ test('履歴操作は登録・削除・電話の順でアイコンを持ち狭�
  assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/@media\(max-width:540px\)\{\.history-row>button span\{display:none\}/);
 });
 
-test('電話帳追加ボタンはphoneHome内の右下固定で、よく使う人物アイコンを拡大する',()=>{
+test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
- assert.match(css,/\.phone-home-card\{position:relative/);
- assert.match(css,/\.phone-home-card \.phone-add-fab\{position:absolute;right:18px;bottom:18px/);
+ assert.match(html,/<section id="phoneContactsPanel"[\s\S]*?id="phoneContactAddToggle"[\s\S]*?<\/section>/);
+ assert.match(css,/#phoneContactsPanel,#phoneGroupsPanel\{position:relative;padding-bottom:90px!important\}/);
+ assert.match(css,/#phoneContactsPanel \.phone-add-fab,#phoneGroupsPanel \.phone-add-fab\{position:absolute;right:14px;bottom:14px\}/);
  assert.match(app,/addButton\.hidden=id!==\'contacts\'/);
  assert.match(css,/\.frequent-card>i\{font-size:52px\}/);
 });
@@ -279,8 +280,13 @@ test('自分の番号は外側のクリックで閉じ、電話タブは各画�
  assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*order:3;[^}]*margin-top:auto;[^}]*border-top:/);
  assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*padding:9px 2px 4px/);
  assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:1\}/);
- assert.match(css,/\.phone-home-card>\.phone-add-fab\{bottom:86px\}/);
  assert.match(css,/@media\(min-width:640px\)\{body\.phone-home \.phone-home-card\{padding-bottom:0\}\.phone-home-card>\.phone-tabs\{padding:9px 2px\}\}/);
+});
+
+test('アプリ情報から接続診断と通話品質パネルを廃止する',()=>{
+ assert.doesNotMatch(html,/id="diagnosticsToggleBtn"/);
+ assert.doesNotMatch(html,/id="diagnosticsPanel"/);
+ assert.doesNotMatch(html,/id="callReliabilityPanel"/);
 });
 
 test('電話番号は直接編集できない表示専用エリアにする',()=>{
