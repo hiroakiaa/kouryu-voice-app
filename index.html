@@ -1283,6 +1283,25 @@
       opacity: 1;
     }
 
+    .participant.is-speaking .speaking-bars span {
+      transform-origin: center bottom;
+      animation: participant-signal-stretch 0.92s ease-in-out infinite alternate;
+    }
+
+    .participant.is-speaking .speaking-bars span:nth-child(1) { animation-duration: 0.78s; }
+    .participant.is-speaking .speaking-bars span:nth-child(2) { animation-duration: 1.08s; animation-delay: -0.34s; }
+    .participant.is-speaking .speaking-bars span:nth-child(3) { animation-duration: 0.9s; animation-delay: -0.61s; }
+
+    @keyframes participant-signal-stretch {
+      0% { transform: scaleY(0.38); opacity: 0.64; }
+      52% { transform: scaleY(0.74); opacity: 0.88; }
+      100% { transform: scaleY(1); opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .participant.is-speaking .speaking-bars span { animation: none; transform: none; opacity: 1; }
+    }
+
     .is-connected {
       color: var(--ok);
     }
@@ -4539,7 +4558,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-signal-animation";
+    const APP_VERSION = "2026-09-06-fast-answer-signal";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -5202,7 +5221,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
       if(!/^n_|^g_/.test(callId))return;
       ensureParticipantWatcher();
-      await ensureTurnConfiguration();
+      ensureTurnConfiguration();
       maybeAutoJoinCall();
     }
 
@@ -5234,11 +5253,16 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         pushDiagnostic("info", "中継通信を自動調整", "安全のため直接接続とSTUNを優先します。");
         return Promise.resolve(rtcConfig);
       }
+      const turnAbortController = typeof AbortController === "function" ? new AbortController() : null;
+      const turnTimeout = window.setTimeout(function() {
+        if (turnAbortController) turnAbortController.abort();
+      }, 2500);
       turnConfigurationPromise = fetch(TURN_CREDENTIALS_ENDPOINT, {
         method: "POST",
         mode: "cors",
         cache: "no-store",
         credentials: "omit",
+        signal: turnAbortController ? turnAbortController.signal : undefined,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ callId: callId, clientId: deviceId })
       }).then(function(response) {
@@ -5271,6 +5295,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         const limited = /429|503/.test(code);
         pushDiagnostic(limited ? "warn" : "info", limited ? "中継接続を一時調整" : "直接接続を使用", limited ? "接続できない場合は、Wi-Fiとモバイル回線を切り替えてから再接続してください。" : "端末同士の直接接続で通話を続けます。", code);
         return rtcConfig;
+      }).finally(function() {
+        window.clearTimeout(turnTimeout);
       });
       return turnConfigurationPromise;
     }
@@ -5483,6 +5509,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
       if (!runPassivePreflightCheck()) return;
       setJoinBusy(true, "参加準備中…");
+      const turnReady = ensureTurnConfiguration();
       try {
         await ensureAnonymousAuth();
       } catch (error) {
@@ -5490,15 +5517,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
         return;
       }
-      setJoinBusy(true, "通信経路を準備中");
-      updateJoinButton();
-      await ensureTurnConfiguration();
       setJoinBusy(true, "参加枠を確認中…");
       try{
         if (numberCalls) {
           let acquired = false;
           const automatic = params.get("autoJoin") === "1";
-          const waits = automatic ? [0, 300, 500, 800, 1200, 1600] : [0];
+          const waits = automatic ? [0, 120, 220, 360, 550] : [0];
           for (const waitMs of waits) {
             if (waitMs) {
               setJoinBusy(true, "通話を接続中…");
@@ -5664,6 +5688,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         if (startedFromPhonebook) setNotice(params.get("callRole") === "callee" ? "応答しました。通話を開始しています。" : "発信しました。相手の応答を待っています。");
         updatePresence();
         startParticipantSweep();
+        await turnReady;
         startLiveWatchers();
         recordConnectionStep("待受開始", "参加者と自分宛ての接続情報を監視しています。", "watchers-started");
         startStabilityAudit();

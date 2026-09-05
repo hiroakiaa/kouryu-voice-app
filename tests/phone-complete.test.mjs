@@ -344,7 +344,7 @@ test('着信応答では元画面を通話画面に見せず通話URLへ確実�
 test('着信応答後は初期化中からローディングを表示し参加権限は参加処理内で確認する',()=>{
  assert.match(html,/params\.get\("autoJoin"\) === "1"[\s\S]*?応答を準備中…[\s\S]*?el\.join\.disabled = true/);
  assert.doesNotMatch(html,/numberCalls\.allowed\(\)\)\s*\{?setNotice/);
- assert.match(html,/const waits = automatic \? \[0, 300, 500, 800, 1200, 1600\] : \[0\]/);
+ assert.match(html,/const waits = automatic \? \[0, 120, 220, 360, 550\] : \[0\]/);
  assert.match(html,/acquired = await numberCalls\.acquire\(\)[\s\S]*?if \(acquired\) break/);
 });
 
@@ -538,4 +538,19 @@ test('通話中の接続表示は3本のバーが滑らかに伸縮する',()=>{
  assert.match(html,/\.signal-wave > i:nth-child\(3\)/);
  assert.match(html,/@media \(prefers-reduced-motion: reduce\)/);
  assert.match(html,/callPhase === "connected"[\s\S]*?class="signal-wave"/);
+});
+
+test('会話中の参加者アンテナも3本が別々に滑らかに伸縮する',()=>{
+ assert.match(html,/@keyframes participant-signal-stretch/);
+ assert.match(html,/\.participant\.is-speaking \.speaking-bars span \{/);
+ assert.match(html,/\.participant\.is-speaking \.speaking-bars span:nth-child\(3\)/);
+ assert.match(html,/prefers-reduced-motion: reduce[\s\S]*?\.participant\.is-speaking \.speaking-bars span/);
+});
+
+test('応答後はTURN取得と参加準備を並行し自動参加の待機を短くする',()=>{
+ assert.match(html,/ensureParticipantWatcher\(\);\s*ensureTurnConfiguration\(\);\s*maybeAutoJoinCall\(\)/);
+ assert.match(html,/const turnReady = ensureTurnConfiguration\(\)/);
+ assert.match(html,/\[0, 120, 220, 360, 550\]/);
+ assert.match(html,/await turnReady;\s*startLiveWatchers\(\)/);
+ assert.match(html,/turnAbortController\.abort\(\)[\s\S]*?2500/);
 });

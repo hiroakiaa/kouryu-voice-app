@@ -117,13 +117,14 @@ test("Cloudflare TURN uses short-lived credentials with a STUN fallback", () => 
   assert.match(turnWorker, /https:\/\/hiroakiaa\.github\.io/);
 });
 
-test("電話参加前にTURN設定を待ってからWebRTC接続を作る", () => {
+test("TURN設定は参加準備と並行しWebRTC監視開始前に確定する", () => {
   const joinStart = rootHtml.indexOf("async function joinCall()");
-  const turnReady = rootHtml.indexOf("await ensureTurnConfiguration();", joinStart);
+  const turnStart = rootHtml.indexOf("const turnReady = ensureTurnConfiguration();", joinStart);
+  const turnReady = rootHtml.indexOf("await turnReady;", joinStart);
   const acquire = rootHtml.indexOf("numberCalls.acquire()", joinStart);
-  const peerCreate = rootHtml.indexOf("new RTCPeerConnection(rtcConfig)");
-  assert.ok(joinStart >= 0 && turnReady > joinStart && turnReady < acquire);
-  assert.ok(peerCreate > turnReady);
+  const watcherStart = rootHtml.indexOf("startLiveWatchers();", joinStart);
+  assert.ok(joinStart >= 0 && turnStart > joinStart && turnStart < acquire);
+  assert.ok(turnReady > acquire && watcherStart > turnReady);
 });
 
 test("通話だけモードでも料金計測を先に初期化して起動を止めない", () => {
@@ -151,8 +152,9 @@ test("マイク接続が生きている間は参加済みとして退室ボタ�
 });
 
 test("参加操作の通信待ちは回転表示を保ち、完了後に退室表示へ切り替える", () => {
-  assert.match(rootHtml, /setJoinBusy\(true, "参加準備中…"\);\s*try \{\s*await ensureAnonymousAuth\(\)/);
-  assert.match(rootHtml, /await ensureTurnConfiguration\(\);\s*setJoinBusy\(true, "参加枠を確認中…"\)/);
+  assert.match(rootHtml, /setJoinBusy\(true, "参加準備中…"\);\s*const turnReady = ensureTurnConfiguration\(\);\s*try \{\s*await ensureAnonymousAuth\(\)/);
+  assert.match(rootHtml, /setJoinBusy\(true, "参加枠を確認中…"\)/);
+  assert.match(rootHtml, /await turnReady;\s*startLiveWatchers\(\)/);
   assert.match(rootHtml, /joinBusyLabel = label/);
   assert.match(rootHtml, /class="fa-solid fa-spinner" aria-hidden="true"/);
   assert.match(rootHtml, /\.primary-action\.is-busy i \{\s*animation: soft-spin/);
