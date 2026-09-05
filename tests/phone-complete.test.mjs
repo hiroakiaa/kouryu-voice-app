@@ -367,3 +367,12 @@ test('相手側の終了時は保存処理より先に終了モーダルを開�
  assert.match(html,/const endedNotice = finishRemoteCallWithNotice[\s\S]*?await Promise\.race\(\[markLeft\(\)/);
  assert.match(app,/const endedNotice=remoteEnded\(remoteName,message\);await leave\(\);await endedNotice/);
 });
+
+test('発着信の各段階を匿名で診断し、復帰時に着信を再確認する',()=>{
+ assert.match(app,/trace=\(\)=>\{\}/);
+ for(const label of ['発信操作','発信データ作成','Push通知送信','Push通知到着','着信データ受信','着信画面表示','応答操作','通話状態初期化']) assert.match(app,new RegExp(label));
+ assert.match(app,/const refreshIncoming=async\(\)=>/);
+ assert.match(app,/document\.addEventListener\('visibilitychange'/);
+ assert.match(app,/window\.addEventListener\('online'/);
+ assert.match(app,/activeHistory=null;currentRoom=null;incoming=null;finishRing\(\);stopRingtone\(\)/);
+});

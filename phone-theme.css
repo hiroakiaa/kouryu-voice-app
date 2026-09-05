@@ -468,3 +468,6 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .group-detail-dialog{z-index:4000;}
 @media(max-width:420px){.remote-ended-dialog{padding:26px 18px;border-radius:24px}.remote-ended-dialog h2{font-size:20px}}
 @media(prefers-reduced-motion:reduce){.remote-ended-dialog{transition:none;}}
+.diagnostic-live-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px;padding:10px;border:1px solid #cfe2bd;border-radius:14px;background:#f5faed}
+.diagnostic-live-summary span{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 7px;min-width:0;color:#596d51;font-size:12px}
+.diagnostic-live-summary i{grid-row:1/3;color:#65a647}.diagnostic-live-summary b{color:#385b31;font-size:11px}.diagnostic-live-summary span{overflow-wrap:anywhere}

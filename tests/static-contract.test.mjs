@@ -341,6 +341,13 @@ test("Cloudflare Workerは同じ着信通知を短時間に再送しない", () 
   assert.match(turnWorker, /expirationTtl: 120/);
 });
 
+test("接続診断は通話状態・マイク・音声接続・再接続・通信経路をまとめる", () => {
+  assert.match(rootHtml, /class="diagnostic-live-summary"/);
+  for (const label of ["状態", "マイク", "音声接続", "再接続", "経路"]) assert.match(rootHtml, new RegExp(label));
+  assert.match(themeCss, /\.diagnostic-live-summary\{display:grid/);
+  assert.match(rootHtml, /trace:\(label,detail\)=>\{recordConnectionStep/);
+});
+
 test("料金履歴は通話種類・1対1かグループか・全機能の内訳を保存する", () => {
   assert.match(rootHtml, /supportMode: ACTIVE_SUPPORT_MODE/);
   assert.match(rootHtml, /callType: callId\.startsWith\("g_"\)/);
