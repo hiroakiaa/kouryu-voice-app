@@ -348,6 +348,13 @@ test('着信応答後は初期化中からローディングを表示し参加�
  assert.match(html,/acquired = await numberCalls\.acquire\(\)[\s\S]*?if \(acquired\) break/);
 });
 
+test('前回通話の終了直後に応答しても通話中情報を待って自動接続する',()=>{
+ assert.match(app,/const retryWaits=\[0,400,800,1200,1800\]/);
+ assert.match(app,/前の通話の終了を確認しています…/);
+ assert.match(app,/error\?\.message!=='どちらかが通話中です。'/);
+ assert.match(app,/if\(!accepted\)throw lastError/);
+});
+
 test('発信側はリアルタイム通知が止まっても応答済みルームへ直ちに参加する',()=>{
  assert.match(app,/ringPollTimer=setInterval/);
  assert.match(app,/handleOutgoingState\(\(await read\(requestRef\(uid\)\)\)\.data\(\)\)/);
