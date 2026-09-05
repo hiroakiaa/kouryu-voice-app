@@ -150,6 +150,14 @@ test("マイク接続が生きている間は参加済みとして退室ボタ�
   assert.match(phoneApp, /inThisCall\?'<i class="fa-solid fa-phone" aria-hidden="true"><\/i> 通話中'/);
 });
 
+test("参加操作の通信待ちは回転表示を保ち、完了後に退室表示へ切り替える", () => {
+  assert.match(rootHtml, /setJoinBusy\(true, "参加準備中…"\);\s*try \{\s*await ensureAnonymousAuth\(\)/);
+  assert.match(rootHtml, /await ensureTurnConfiguration\(\);\s*setJoinBusy\(true, "参加枠を確認中…"\)/);
+  assert.match(rootHtml, /joinBusyLabel = label/);
+  assert.match(rootHtml, /class="fa-solid fa-spinner" aria-hidden="true"/);
+  assert.match(rootHtml, /\.primary-action\.is-busy i \{\s*animation: soft-spin/);
+});
+
 test("相手側の終話は案内モーダルを表示してから電話画面へ戻す", () => {
   assert.match(rootHtml, /id="remoteEndedDialog" class="remote-ended-dialog"/);
   assert.match(rootHtml, /function finishRemoteCallWithNotice\(name, message\) \{\s*stopLocalCall\(false, false\);\s*await showRemoteEndedNotice\(name, message\);\s*document\.body\.classList\.add\("phone-home"\)/);

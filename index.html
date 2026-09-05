@@ -4103,7 +4103,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     #phoneToGroup[hidden]{display:none!important;}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-fast-redial-ending">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-join-loading">
 </head>
 <body class="phone-home">
   <main>
@@ -4459,7 +4459,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-fast-redial-ending";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-05-join-loading";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4503,7 +4503,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-05-fast-redial-ending";
+    const APP_VERSION = "2026-09-05-join-loading";
     const CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -4776,6 +4776,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let acceptIncomingBusy = false;
     let micUnlockHintDismissed = false;
     let joinBusy = false;
+    let joinBusyLabel = "参加準備中…";
     let participants = [];
     let currentStatusTitle = "準備中です";
     let currentStatusText = "通話URLを開いた人だけで話せます。";
@@ -5409,18 +5410,19 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         return;
       }
       if (!runPassivePreflightCheck()) return;
+      setJoinBusy(true, "参加準備中…");
       try {
         await ensureAnonymousAuth();
       } catch (error) {
+        setJoinBusy(false);
         setNotice("接続準備に失敗しました。ページを再読み込みしてください。", true);
         return;
       }
       setJoinBusy(true, "通信経路を準備中");
       updateJoinButton();
       await ensureTurnConfiguration();
-      setJoinBusy(false);
-      updateJoinButton();
-      try{if(numberCalls && !(await numberCalls.acquire())){setNotice('電話への応答、またはグループへの登録が必要です。',true);return;}}catch(error){setNotice(error.message||'参加できませんでした。',true);return;}
+      setJoinBusy(true, "参加枠を確認中…");
+      try{if(numberCalls && !(await numberCalls.acquire())){setJoinBusy(false);setNotice('電話への応答、またはグループへの登録が必要です。',true);return;}}catch(error){setJoinBusy(false);setNotice(error.message||'参加できませんでした。',true);return;}
       const activeOtherParticipants = participants.filter(function(person) {
         return person && person.userId && person.userId !== userId && !isSameDeviceParticipant(person) && person.left !== true && isParticipantActive(person);
       });
@@ -5430,6 +5432,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         setStatus("通話が満員です", "参加情報やマイクを開始する前に停止しました。別の通話URLを作って参加してください。");
         setNotice("この通話は4人までです。「新規URL」ボタンから新しい通話を始められます。");
         pushDiagnostic("info", "参加前に満員を確認", "Firestoreへの参加書き込みとマイク開始を行わずに停止しました。");
+        setJoinBusy(false);
         updateJoinButton();
         return;
       }
@@ -5460,10 +5463,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           setCallPhase("failed", "この音声通話は4人までです。新しい通話URLを作ってください。");
           setStatus("通話が満員です", "別の通話URLを作って参加してください。");
           setNotice("この通話は4人までです。「新規URL」ボタンから新しい通話を始められます。");
+          setJoinBusy(false);
           updateJoinButton();
           return;
         }
-        if(/^n_|^g_/.test(callId)){setNotice('参加枠を確保できませんでした。もう一度お試しください。',true);return;}
+        if(/^n_|^g_/.test(callId)){setJoinBusy(false);setNotice('参加枠を確保できませんでした。もう一度お試しください。',true);return;}
         pushDiagnostic("info", "固定参加枠は準備中", "従来の4人判定で参加を続けます。");
       }
 
@@ -5509,7 +5513,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         recordConnectionStep("参加情報保存OK", "相手の端末から見える参加者になりました。", "participant-write-done");
         startHeartbeat();
         startCallSafetyTimers();
-        setJoinBusy(false);
         clearJoinSlowTimer();
         updateJoinButton();
         if (!typedName) {
@@ -7864,7 +7867,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (joinBusy) {
         el.join.classList.add("primary", "is-busy");
         el.join.classList.remove("danger", "is-leaving");
-        el.join.innerHTML = '<i class="fa-solid fa-spinner"></i><span>接続中</span>';
+        el.join.innerHTML = '<i class="fa-solid fa-spinner" aria-hidden="true"></i><span>' + joinBusyLabel + '</span>';
+        el.join.setAttribute("aria-label", joinBusyLabel);
         el.join.disabled = true;
         return;
       }
@@ -7873,12 +7877,14 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         el.join.classList.remove("primary");
         el.join.classList.add("danger", "is-leaving");
         el.join.innerHTML = '<i class="fa-solid fa-phone-slash"></i><span>退室する</span>';
+        el.join.setAttribute("aria-label", "退室する");
       } else {
         el.join.classList.add("primary");
         el.join.classList.remove("danger", "is-leaving");
         const label = callPhase === "failed" ? "再参加する" : "参加する";
         const icon = callPhase === "failed" ? "fa-rotate-right" : "fa-phone";
         el.join.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + label + '</span>';
+        el.join.setAttribute("aria-label", label);
       }
       el.join.disabled = false;
     }
@@ -7907,8 +7913,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       el.reconnect.disabled = !needsReconnect;
     }
 
-    function setJoinBusy(isBusy) {
+    function setJoinBusy(isBusy, label) {
       joinBusy = !!isBusy;
+      if (joinBusy && label) joinBusyLabel = label;
+      if (!joinBusy) joinBusyLabel = "参加準備中…";
       if (!joinBusy) clearJoinSlowTimer();
       updateJoinButton();
     }
