@@ -219,6 +219,8 @@ test('よく使うカード全体で発信確認を開き、電話帳の補助�
  assert.ok(favorite>=0&&favorite<edit&&edit<block&&block<remove&&remove<dial);
  assert.match(contacts,/fa-star/);assert.match(contacts,/fa-pen/);assert.match(contacts,/fa-ban/);assert.match(contacts,/fa-trash-can/);
  assert.match(app,/d\.contactMenu[\s\S]*?contact-row-menu\.is-visible/);
+ assert.match(app,/class="contact-row-actions"><div class="contact-menu-wrap"/);
+ assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/\.contact-row-actions\{[^}]*justify-content:flex-end[^}]*flex:0 0 auto!important[^}]*margin-left:auto/);
 });
 
 test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{
