@@ -172,8 +172,9 @@ test("グループ詳細は最前面のモーダルとして開き、失敗時�
   assert.match(phoneApp, /groupDialog\.setAttribute\('open',''\)/);
 });
 
-test("1対1通話では参加者を中央に並べ、通話種別を時間の横に表示する", () => {
-  assert.match(rootHtml, /class="call-meta"><span id="activeSupportMode"/);
+test("1対1通話では参加者を中央に並べ、通話種別を参加人数の横に表示する", () => {
+  assert.match(rootHtml, /class="participant-limit">最大4人<\/span><span id="activeSupportMode" class="participant-limit"/);
+  assert.doesNotMatch(rootHtml, /id="micState"/);
   assert.match(rootHtml, /body\.is-one-to-one\.is-in-call \.participants-card \.participants \{justify-content:center/);
   assert.match(phoneApp, /classList\.toggle\('is-one-to-one',state\(\)\.callId\.startsWith\('n_'\)\)/);
 });

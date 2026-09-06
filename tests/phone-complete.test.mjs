@@ -204,10 +204,21 @@ test('電話帳はよみがな対応の行見出しで並べる',()=>{
 });
 
 test('履歴操作は登録・削除・電話の順でアイコンを持ち狭い画面では文字を隠す',()=>{
- const register=app.indexOf('fa-address-book'),remove=app.indexOf('fa-trash-can'),dial=app.indexOf('data-dial="${esc(h.number)}"');
+ const history=app.slice(app.indexOf('function renderHistory'),app.indexOf('async function deleteHistoryCard'));
+ const register=history.indexOf('fa-address-book'),remove=history.indexOf('fa-trash-can'),dial=history.indexOf('data-dial="${esc(h.number)}"');
  assert.ok(register>=0&&register<remove&&remove<dial);
  assert.match(html,/phone-theme\.css/);
  assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/@media\(max-width:540px\)\{\.history-row>button span\{display:none\}/);
+});
+
+test('よく使うカード全体で発信確認を開き、電話帳の補助操作はメニューへまとめる',()=>{
+ assert.match(app,/<button class="frequent-card" data-dial=/);
+ assert.doesNotMatch(app,/<article class="frequent-card"/);
+ const contacts=app.slice(app.indexOf('function renderContacts'),app.indexOf('async function history'));
+ const favorite=contacts.indexOf('data-favorite'),edit=contacts.indexOf('data-edit'),block=contacts.indexOf('data-block-contact'),remove=contacts.indexOf('data-remove-contact'),dial=contacts.indexOf('contact-call-button');
+ assert.ok(favorite>=0&&favorite<edit&&edit<block&&block<remove&&remove<dial);
+ assert.match(contacts,/fa-star/);assert.match(contacts,/fa-pen/);assert.match(contacts,/fa-ban/);assert.match(contacts,/fa-trash-can/);
+ assert.match(app,/d\.contactMenu[\s\S]*?contact-row-menu\.is-visible/);
 });
 
 test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{

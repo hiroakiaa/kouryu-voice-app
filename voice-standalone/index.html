@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-05-remember-admin">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-06-contact-menu">
 </head>
 <body class="phone-home">
   <main>
@@ -4247,7 +4247,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の案内が消えるまで、そのままお待ちください。参加確認、マイク、音声接続は自動で進み、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>サポートあり</strong><span>会話から用語を見つけます。表示された用語を押すと短い説明を確認でき、必要なときだけ「たとえを見る」を使えます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone-volume"></i><span><strong>通常通話</strong><span>音声通話だけを使い、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-clock-rotate-left"></i><span><strong>履歴と電話帳</strong><span>履歴からかけ直したり、相手を電話帳へ登録したりできます。よく使う相手は履歴の上に表示されます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-clock-rotate-left"></i><span><strong>履歴と電話帳</strong><span>「よく使う」はカード全体を押すと発信確認が開きます。電話帳の星で、よく使う相手への登録と解除ができ、編集などは「…」から開けます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ通話</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。通話の種類は管理者が選びます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>設定</strong><span>いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを確認できます。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近い場合は、ハウリングを避けるためイヤホンを使い、最初は端末音量を控えめにしてください。</span></span></span>
@@ -4256,13 +4256,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>通話中にアプリを閉じた状態が2分続くと、接続を残さないため自動で退室します。通話時間そのものに上限はありません。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
-      <button id="micState" class="mic-state-toggle" type="button" disabled aria-label="マイクを解除" aria-pressed="true"><i class="fa-solid fa-microphone-lines"></i><span>マイク待ち</span></button>
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
-      <span class="call-meta"><span id="activeSupportMode" class="active-support-mode"></span><span id="callElapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span></span>
+      <span class="call-meta"><span id="callElapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span></span>
     </section>
 
     <section class="card participants-card">
-      <h2><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span></h2>
+      <h2><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span><span id="activeSupportMode" class="participant-limit">通常通話</span></h2>
       <div id="participants" class="participants"></div>
       <div id="notice" class="notice" role="status" aria-live="polite"></div>
     </section>
@@ -4525,7 +4524,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-06-polished-call-transition";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-06-contact-menu";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4570,7 +4569,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-06-polished-call-transition";
+    const APP_VERSION = "2026-09-06-contact-menu";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
