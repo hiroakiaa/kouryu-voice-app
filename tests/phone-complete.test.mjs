@@ -567,7 +567,9 @@ test('応答後はTURN取得と参加準備を並行し自動参加の待機を�
  assert.match(html,/turnAbortController\.abort\(\)[\s\S]*?2500/);
  assert.match(app,/Promise\.resolve\(warm\(\)\)\.catch/);
  assert.match(app,/Promise\.resolve\(warm\(callId\)\)\.catch/);
- assert.match(html,/warm:function\(\) \{ return ensureTurnConfiguration\(\); \}/);
+ assert.match(html,/warm:prepareIncomingConnection,phase:updatePhoneConnectionOverlay/);
+ assert.match(html,/Promise\.allSettled\(\[ensureTurnConfiguration\(\), prepareCallMicrophone\(\)\]\)/);
+ assert.match(html,/id="callConnectOverlay"/);
  assert.match(html,/if \(!turnConfigurationPromise\) rtcConfig/);
 });
 
