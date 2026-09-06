@@ -4244,6 +4244,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     <dialog id="callTips" class="card call-tips" aria-labelledby="callTipsTitle" aria-hidden="true">
 <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」タブで相手の8桁の番号を入力します。発信前に通話の種類を選べます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の案内が消えて「つながりました」と表示されるまで、そのままお待ちください。参加確認、マイク、音声接続は自動で進みます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>サポートあり</strong><span>会話から用語を見つけます。表示された用語を押すと短い説明を確認でき、必要なときだけ「たとえを見る」を使えます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone-volume"></i><span><strong>通常通話</strong><span>音声通話だけを使い、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-clock-rotate-left"></i><span><strong>履歴と電話帳</strong><span>履歴からかけ直したり、相手を電話帳へ登録したりできます。よく使う相手は履歴の上に表示されます。</span></span></span>
@@ -4251,8 +4252,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>設定</strong><span>いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを確認できます。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近い場合は、ハウリングを避けるためイヤホンを使い、最初は端末音量を控えめにしてください。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>声は保存しません</strong><span>声はWebRTCで端末間を移動し、接続環境によってCloudflare TURNを経由します。録音はしません。サポートありの場合だけ、発話部分を用語検出へ送ります。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-yen-sign"></i><span><strong>料金を確認</strong><span>左上のアプリ情報から、今回の通話と10分間の概算を確認できます。参加者へアプリ利用料金は請求されませんが、通常のデータ通信量は使用します。</span><span class="tip-cost-estimate"><span class="tip-cost-line">通話全体の10分で <strong id="tipsTenMinuteCost" class="tip-cost-number">計算中</strong></span><span id="tipsCostConditions" class="tip-cost-line"></span><span class="tip-cost-line">表示額は無料枠適用前の利用相当額です。</span></span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>画面を閉じた状態が2分続いた場合、または通話が1時間続いた場合は自動退室します。</span></span></span>    </dialog>
+      <span class="tip-item"><i class="fa-solid fa-yen-sign"></i><span><strong>運営料金</strong><span>管理者メニューでは、今回の通話と10分間の概算を確認できます。参加者へアプリ利用料金は請求されませんが、通常のデータ通信量は使用します。</span><span class="tip-cost-estimate"><span class="tip-cost-line">通話全体の10分で <strong id="tipsTenMinuteCost" class="tip-cost-number">計算中</strong></span><span id="tipsCostConditions" class="tip-cost-line"></span><span class="tip-cost-line">表示額は無料枠適用前の利用相当額です。</span></span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>通話中にアプリを閉じた状態が2分続くと、接続を残さないため自動で退室します。通話時間そのものに上限はありません。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <button id="micState" class="mic-state-toggle" type="button" disabled aria-label="マイクを解除" aria-pressed="true"><i class="fa-solid fa-microphone-lines"></i><span>マイク待ち</span></button>
