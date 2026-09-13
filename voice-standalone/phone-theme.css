@@ -532,3 +532,16 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .phone-dial-scope-note{position:absolute;left:16px;top:14px;z-index:2;display:flex;align-items:center;gap:6px;margin:0;padding:6px 10px;border:1px solid #d7e8c7;border-radius:999px;background:#f7fbed;color:#687d5d;font-size:11px;font-weight:600;line-height:1.2;white-space:nowrap}
 .phone-dial-scope-note i{color:#72ad50}
 @media(max-width:430px){.phone-dial-scope-note{left:8px;top:12px;padding:5px 8px;font-size:10px}}
+/* Notice workflow: one clear inbox with progressive disclosure. */
+.notice-filter-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 10px;padding:5px;border:1px solid #d6e5c8;border-radius:16px;background:#f1f7e9}
+.notice-filter-tabs button{min-width:0;min-height:42px;padding:7px 8px;border:0;border-radius:12px;background:transparent;box-shadow:none;color:#64745c;font-size:13px;font-weight:800}
+.notice-filter-tabs button[aria-selected="true"]{background:#fff;color:#35612d;box-shadow:0 2px 8px rgba(62,99,46,.12)}
+.notice-search-wrap{margin:0 0 10px}.notice-search-wrap input{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid #bdd5a7;border-radius:13px;background:#fff;font:inherit;color:#30462d}
+.notice-summary{min-height:20px;margin:3px 3px 10px;color:#718269;font-size:12px;font-weight:700}
+.school-notice-card.needs-action{border-left:5px solid #70b54d}.school-notice-card.needs-action h3{color:#294f25}
+.school-notice-card .notice-cancel-send{color:#8b5842;background:#fff9ee;border-color:#dfbf98}
+.notice-recipient-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.notice-recipient-heading small{color:#74816e;font-size:11px;font-weight:500}
+.notice-recipient-list label>span{display:flex;align-items:center;gap:7px;min-width:0}.notice-recipient-list label>span>small{margin-left:auto;color:#7c8874;font-size:10px;font-weight:500}.notice-recipient-department,.notice-recipient-group,.notice-recipient-all{border:1px solid #d3e5c1;background:#f7fbea!important}
+.admin-notice-overview{display:grid;gap:9px;margin:12px 0;padding:14px;border:1px solid #d2e4c1;border-radius:16px;background:#f8fbf3}.admin-notice-overview h3{margin:0;font-size:15px}.admin-notice-overview>small{color:#718069;font-size:11px}.admin-notice-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.admin-notice-stats span{display:grid;place-items:center;padding:9px 5px;border-radius:12px;background:#ebf5df;color:#64745c;font-size:10px}.admin-notice-stats strong{color:#315c2a;font-size:21px;line-height:1.1}
+.contact-row-person small+small{margin-top:2px}
+@media(max-width:540px){.notice-filter-tabs{gap:3px;padding:4px}.notice-filter-tabs button{min-height:40px;padding:6px 3px;font-size:11px}.notice-recipient-heading{align-items:flex-start;flex-direction:column;gap:2px}.admin-notice-stats{gap:5px}}

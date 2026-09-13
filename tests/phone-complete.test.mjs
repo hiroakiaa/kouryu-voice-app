@@ -177,7 +177,7 @@ test('名前入力中のかなをよみがな候補にし手動編集後は上�
 test('お気に入りを保存でき、ルールは任意のbooleanだけを許可する',()=>{
  assert.match(app,/data-favorite/);
  assert.match(app,/favorite:!c\?\.favorite/);
- assert.match(rules,/\['name','number','uid','favorite','reading'\]/);
+ assert.match(rules,/\['name','number','uid','favorite','reading','department'\]/);
  assert.match(rules,/favorite is bool/);
 });
 
@@ -239,6 +239,18 @@ test('連絡タブはお願いとお知らせを一枚のカードで送受信�
  assert.match(sw,/action === "notice"/);
  assert.match(sw,/新しい連絡があります/);
  assert.doesNotMatch(sw,/action === "notice"[^]*?showNotification[^]*?subject/);
+});
+
+test('連絡は所属宛先・未対応優先・検索・配信状態・取消・管理集計を扱う',()=>{
+ for(const id of ['phoneNoticeSearchToggle','phoneNoticeSearch','phoneNoticeSummary','adminNoticeStats','phoneContactDepartment'])assert.match(html,new RegExp(`id="${id}"`));
+ for(const filter of ['pending','all','mine','archive'])assert.match(html,new RegExp(`data-notice-filter="${filter}"`));
+ assert.match(app,/departmentChoices/);
+ assert.match(app,/noticeFilter='pending'/);
+ assert.match(app,/data-notice-cancel/);
+ assert.match(app,/delivery\.\$\{to\}/);
+ assert.match(app,/completedAt:Date\.now\(\)/);
+ assert.match(rules,/affectedKeys\(\)\.hasOnly\(\['status','completedAt','canceledAt','delivery'\]\)/);
+ assert.match(rules,/resource\.data\.status == 'open'/);
 });
 
 test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{

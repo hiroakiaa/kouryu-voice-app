@@ -11,10 +11,11 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']) && shortName(request.resource.data.name);
       match /contacts/{number} {
         allow read, delete: if request.auth != null && request.auth.uid == uid;
-        allow create, update: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['name','number','uid','favorite','reading'])
+        allow create, update: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['name','number','uid','favorite','reading','department'])
           && number.matches('^[0-9]{8}$') && request.resource.data.number == number && shortName(request.resource.data.name)
           && (!('favorite' in request.resource.data) || request.resource.data.favorite is bool)
           && (!('reading' in request.resource.data) || (request.resource.data.reading is string && request.resource.data.reading.size() <= 40))
+          && (!('department' in request.resource.data) || (request.resource.data.department is string && request.resource.data.department.size() <= 30))
           && get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.resource.data.uid;
       }
       match /history/{id} {
@@ -194,7 +195,7 @@ service cloud.firestore {
     }
 
     function validSchoolNotice(d) {
-      return d.keys().hasOnly(['senderUid','senderName','senderNumber','recipientUids','recipientNames','kind','subject','detail','priority','status','createdAt','responses'])
+      return d.keys().hasOnly(['senderUid','senderName','senderNumber','recipientUids','recipientNames','kind','subject','detail','priority','status','createdAt','responses','delivery','completedAt','canceledAt'])
         && d.senderUid == request.auth.uid && shortName(d.senderName)
         && d.senderNumber.matches('^[0-9]{8}$')
         && get(/databases/$(database)/documents/voiceNumbers/$(d.senderNumber)).data.ownerUid == request.auth.uid
@@ -204,7 +205,8 @@ service cloud.firestore {
         && d.subject is string && d.subject.size() > 0 && d.subject.size() <= 60
         && d.detail is string && d.detail.size() <= 300
         && d.priority in ['normal','urgent'] && d.status == 'open'
-        && d.createdAt is number && d.responses is map && d.responses.size() == 0;
+        && d.createdAt is number && d.responses is map && d.responses.size() == 0
+        && d.delivery is map && d.delivery.size() == d.recipientUids.size();
     }
     function validSchoolResponse(value) {
       return value is map && value.keys().hasOnly(['state','name','text','at'])
@@ -215,9 +217,11 @@ service cloud.firestore {
       allow get, list: if request.auth != null && (resource.data.senderUid == request.auth.uid || request.auth.uid in resource.data.recipientUids);
       allow create: if request.auth != null && id.matches('^m_[a-f0-9]{32}$') && validSchoolNotice(request.resource.data);
       allow update: if request.auth != null && resource.data.senderUid == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-        && resource.data.status == 'open' && request.resource.data.status == 'completed';
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','completedAt','canceledAt','delivery'])
+        && request.resource.data.status in ['open','completed','canceled']
+        && (request.resource.data.status == resource.data.status || resource.data.status == 'open');
       allow update: if request.auth != null && request.auth.uid in resource.data.recipientUids
+        && resource.data.status == 'open'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses'])
         && request.resource.data.responses.diff(resource.data.responses).affectedKeys().hasOnly([request.auth.uid])
         && validSchoolResponse(request.resource.data.responses[request.auth.uid]);
