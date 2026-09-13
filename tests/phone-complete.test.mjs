@@ -353,12 +353,14 @@ test('管理者パスワードの照合後だけ料金詳細を開く',()=>{
  assert.match(html,/const ADMIN_PASSWORD_SHA256 = "[a-f0-9]{64}"/);
  assert.doesNotMatch(html,/Wakaru!7284/);
  assert.match(html,/crypto\.subtle\.digest\('SHA-256'/);
- assert.match(html,/hash!==ADMIN_PASSWORD_SHA256/);
+ assert.match(html,/hash!==effectiveAdminPasswordHash\(\)/);
  assert.match(html,/hideAppInfoTooltip\(\);openMetricsModal\(\)/);
  assert.match(html,/function openMetricsModal\(\)[\s\S]*?renderMetrics\(\)/);
  assert.match(html,/const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1"/);
- assert.match(html,/localStorage\.setItem\(ADMIN_ACCESS_KEY,ADMIN_PASSWORD_SHA256\)/);
- assert.match(html,/localStorage\.getItem\(ADMIN_ACCESS_KEY\)===ADMIN_PASSWORD_SHA256\)\{openMetricsModal\(\);return;\}/);
+ assert.match(html,/localStorage\.setItem\(ADMIN_ACCESS_KEY,hash\)/);
+ assert.match(html,/localStorage\.getItem\(ADMIN_ACCESS_KEY\)===effectiveAdminPasswordHash\(\)\)\{openMetricsModal\(\);return;\}/);
+ assert.match(html,/id="adminPasswordChangeForm"/);
+ assert.match(html,/ADMIN_PASSWORD_HASH_KEY/);
 });
 
 test('電話画面でアプリ専用番号であることを明示する',()=>{

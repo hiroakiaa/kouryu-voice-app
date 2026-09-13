@@ -299,7 +299,7 @@ test("電話帳の着信は応答・拒否と90秒の期限を持つ", () => {
 
 test("アプリを閉じた後の着信通知を安全なWeb Pushで受け取る", () => {
   assert.match(rootHtml, /rel="manifest" href="\.\/manifest\.webmanifest"/);
-  assert.match(rootHtml, /navigator\.serviceWorker\.register\("\.\/service-worker\.js"/);
+  assert.match(rootHtml, /navigator\.serviceWorker\.register\("\.\/service-worker\.js(?:\?[^\"]*)?"/);
   assert.match(rootHtml, /pushManager\.subscribe/);
   assert.match(rootHtml, /subscription\.options\.applicationServerKey/);
   assert.match(rootHtml, /if \(!keyMatches\) \{ await subscription\.unsubscribe\(\); subscription = null; \}/);

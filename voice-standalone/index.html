@@ -4172,6 +4172,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <link rel="stylesheet" href="./phone-theme.css?v=2026-09-13-notice-flow">
 </head>
 <body class="phone-home">
+<div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
+<script>(function(){window.wakaruAppReady=false;window.recoverWakaruPhone=async function(){var b=document.querySelector('#appRecovery button');if(b){b.disabled=true;b.textContent='更新しています…'}try{if('serviceWorker'in navigator){var rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(function(r){return r.update()}))}var ns=await caches.keys();await Promise.all(ns.filter(function(n){return n.indexOf('kouryu-voice-shell-')===0}).map(function(n){return caches.delete(n)}))}catch(e){}var u=new URL(location.href);u.searchParams.set('recovery',Date.now());location.replace(u)};window.wakaruRecoveryTimer=setTimeout(function(){if(!window.wakaruAppReady){var e=document.getElementById('appRecovery');if(e)e.hidden=false}},9000)})();</script>
   <main>
     <header>
       <button id="appInfoToggleBtn" class="app-icon" type="button" aria-controls="appInfoTooltip" aria-expanded="false" aria-label="管理者メニュー">
@@ -4234,6 +4236,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <label>宛先<span id="phoneNoticeRecipients" class="notice-recipient-list"></span></label>
         <label>内容<select id="phoneNoticeTemplate"><option>保護者へ折り返し</option><option>来客・業者対応</option><option>職員室へ連絡</option><option>確認してください</option><option value="その他">その他</option></select></label>
         <label>補足<textarea id="phoneNoticeDetail" maxlength="300" rows="3" placeholder="必要な場合だけ入力"></textarea></label>
+        <label>期限（任意）<input id="phoneNoticeDeadline" type="datetime-local"><small>期限を過ぎた未対応の連絡は、カードで目立つように表示します。</small></label>
         <label class="notice-urgent-check"><input id="phoneNoticeUrgent" type="checkbox"><span>急ぎとして送る</span></label>
         <div id="phoneNoticeReview" class="notice-send-review" role="status"></div>
         <button class="phone-primary notice-send-button" type="submit"><i class="fa-solid fa-paper-plane"></i> この内容で送る</button>
@@ -4261,7 +4264,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     <dialog id="callTips" class="card call-tips" aria-labelledby="callTipsTitle" aria-hidden="true">
 <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」タブで相手の8桁の番号を入力します。このアプリ同士で使う専用番号で、一般の電話番号や緊急通報には発信できません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>「連絡」タブでは、お願いやお知らせを送れます。届いたお願いには「あとで対応」「対応する」、お知らせには「確認しました」で返せます。詳しい返信や電話も同じカードから行えます。未対応を優先表示し、検索や保管済みへの切替もできます。送信直後は取り消せます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>お願いやお知らせを送り、同じカードで返答や電話ができます。期限を付けると期限超過が目立ち、通知に失敗した相手には再送できます。一斉送信・急ぎ・まとめて送る機能は管理者が端末ごとに許可します。送信直後は取り消せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の案内が消えるまで、そのままお待ちください。参加確認、マイク、音声接続は自動で進み、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>サポートあり</strong><span>会話から用語を見つけます。表示された用語を押すと短い説明を確認でき、必要なときだけ「たとえを見る」を使えます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone-volume"></i><span><strong>通常通話</strong><span>音声通話だけを使い、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
@@ -4404,7 +4407,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <button id="metricsRateHelpBtn" class="metrics-rate-help-btn" type="button" aria-label="為替レートの取得時刻" aria-expanded="false"><i class="fa-solid fa-circle-question"></i></button>
       </div>
       <div class="admin-budget-row"><label for="adminBudgetInput">月の目安上限（円）</label><input id="adminBudgetInput" type="number" inputmode="decimal" min="0" step="100" value="500"><p id="adminBudgetStatus" role="status" aria-live="polite"></p></div>
-      <section class="admin-notice-overview" aria-labelledby="adminNoticeOverviewTitle"><h3 id="adminNoticeOverviewTitle">連絡の利用状況</h3><div id="adminNoticeStats" class="admin-notice-stats"><span><strong>0</strong>送信</span><span><strong>0</strong>未対応</span><span><strong>0</strong>通知失敗</span></div><small>このアカウントが閲覧できる連絡だけを集計します。本文は表示しません。</small></section><details class="admin-notice-cost"><summary>連絡機能の仕組みと費用</summary><p>連絡1件を1人へ送り、通知結果を記録して相手が確認を返す場合、Firestoreはおおむね書き込み3回と数回の読み取り、Push通知1回を使います。送信取消や完了では、さらに書き込み1回を使います。無料枠適用前でも1人宛て1往復は約0.001円未満が目安です。本文と返答はFirestoreに保存し、通話音声は保存しません。実際の請求はアカウント全体の無料枠と利用量で決まります。</p></details>
+      <section class="admin-control-card" aria-labelledby="adminNoticePermissionTitle"><h3 id="adminNoticePermissionTitle">連絡の利用設定</h3><p>この端末から使わせる送信方法を選びます。</p><label><input id="adminNoticeAllowAll" type="checkbox"> 電話帳の全員へ送る</label><label><input id="adminNoticeAllowGroup" type="checkbox"> グループ・所属へまとめて送る</label><label><input id="adminNoticeAllowUrgent" type="checkbox"> 「急ぎ」を付けて送る</label></section>
+      <section class="admin-control-card" aria-labelledby="adminPasswordChangeTitle"><h3 id="adminPasswordChangeTitle">管理者パスワードを変更</h3><p>この端末で次回から使うパスワードです。文字そのものは保存しません。</p><form id="adminPasswordChangeForm"><label>新しいパスワード<input id="adminNewPassword" type="password" minlength="4" autocomplete="new-password" required></label><label>もう一度入力<input id="adminNewPasswordConfirm" type="password" minlength="4" autocomplete="new-password" required></label><button type="submit"><i class="fa-solid fa-key"></i> 変更する</button><p id="adminPasswordChangeMessage" role="status"></p></form></section>
+      <section class="admin-notice-overview" aria-labelledby="adminNoticeOverviewTitle"><h3 id="adminNoticeOverviewTitle">連絡の利用状況</h3><div id="adminNoticeStats" class="admin-notice-stats"><span><strong>0</strong>送信</span><span><strong>0</strong>未対応</span><span><strong>0</strong>通知失敗</span></div><small>このアカウントが閲覧できる連絡だけを集計します。本文は表示しません。</small></section><details class="admin-notice-cost"><summary>連絡機能の仕組みと費用</summary><p>連絡1件を1人へ送り、通知結果を記録して相手が確認を返す場合、Firestoreはおおむね書き込み3回と数回の読み取り、Push通知1回を使います。期限は同じ文書内へ保存するため通常の追加料金はほぼありません。通知再送では、失敗した相手1人につきPush通知1回と最大2回の書き込みが増えます。無料枠適用前でも1人宛て1往復や1回の再送は約0.001円未満が目安です。本文と返答はFirestoreに保存し、通話音声は保存しません。実際の請求はアカウント全体の無料枠と利用量で決まります。</p></details>
       <div class="cost-tabs" role="tablist" aria-label="料金の表示">
         <button id="currentCallTab" role="tab" data-cost-tab aria-controls="currentCallPanel" aria-selected="true" type="button">今回の通話</button>
         <button id="costScenarioTab" role="tab" data-cost-tab aria-controls="costScenarioPanel" aria-selected="false" tabindex="-1" type="button">10分間の試算</button>
@@ -4600,10 +4605,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-13-button-recovery";
+    const APP_VERSION = "2026-09-13-notice-safety";
     const ADMIN_PASSWORD_SHA256 = "1cb69c64b337e546c188ac6c1452f02c91805a4f1e04063a0bb13d567eec8b86";
+    const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v1";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
+    const NOTICE_PERMISSION_KEY = "wakaru-phone-notice-permissions-v1";
+    function effectiveAdminPasswordHash(){return localStorage.getItem(ADMIN_PASSWORD_HASH_KEY)||ADMIN_PASSWORD_SHA256;}
     let CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
     const MAX_CALL_PARTICIPANTS = 4;
@@ -5173,6 +5181,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (el.metricsCopy) el.metricsCopy.addEventListener("click", copyMetricsOutput);
       if (el.metricsHistoryOpen) el.metricsHistoryOpen.addEventListener("click", openMetricsHistoryModal);
       document.getElementById("adminLogoutBtn")?.addEventListener("click", clearAdminAccess);
+      const noticePermissionInputs={allowAll:document.getElementById('adminNoticeAllowAll'),allowGroup:document.getElementById('adminNoticeAllowGroup'),allowUrgent:document.getElementById('adminNoticeAllowUrgent')};
+      let noticePermissions={allowAll:true,allowGroup:true,allowUrgent:true};try{noticePermissions={...noticePermissions,...JSON.parse(localStorage.getItem(NOTICE_PERMISSION_KEY)||'{}')}}catch(_){}
+      Object.entries(noticePermissionInputs).forEach(function([key,input]){if(!input)return;input.checked=noticePermissions[key];input.addEventListener('change',function(){noticePermissions[key]=input.checked;localStorage.setItem(NOTICE_PERMISSION_KEY,JSON.stringify(noticePermissions));window.dispatchEvent(new CustomEvent('wakaru-notice-permissions',{detail:noticePermissions}));setNotice('連絡の利用設定を保存しました。')})});
+      document.getElementById('adminPasswordChangeForm')?.addEventListener('submit',async function(event){event.preventDefault();const first=document.getElementById('adminNewPassword'),second=document.getElementById('adminNewPasswordConfirm'),message=document.getElementById('adminPasswordChangeMessage');if(first.value!==second.value){message.textContent='2つの入力が一致しません。';return}if(first.value.length<4){message.textContent='4文字以上で入力してください。';return}try{const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(first.value)),hash=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');localStorage.setItem(ADMIN_PASSWORD_HASH_KEY,hash);localStorage.setItem(ADMIN_ACCESS_KEY,hash);first.value='';second.value='';message.textContent='この端末のパスワードを変更しました。'}catch(_){message.textContent='変更できませんでした。'}});
       const adminBudgetInput = document.getElementById("adminBudgetInput");
       if (adminBudgetInput) {
         adminBudgetInput.value = localStorage.getItem(ADMIN_BUDGET_KEY) || "500";
@@ -5264,6 +5276,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         numberCalls=createNumberCalls({db,user:authUser,state:()=>({joined,callId,supportMode:ACTIVE_SUPPORT_MODE}),name:displayNameForContact,push:(callee,event)=>sendClosedAppCallNotification({uid:callee},'main-room',event.invitationId,event.action),notifications:{enable:enableCallNotifications,disable:disableCallNotifications,enabled:closedAppNotificationsEnabled,status:notificationStatusText,test:testCallNotification},preflight:runDevicePreflight,stop:()=>stopLocalCall(true),remoteEnded:(name,message)=>finishRemoteCallWithNotice(name,message),notice:setNotice,trace:(label,detail)=>{recordConnectionStep(label,detail,"phone:"+label);pushDiagnostic("info",label,detail);},usage:(reads,writes)=>{metrics.estimatedReads+=reads;if(writes)incrementMetric("writes","numberCalls",writes);},
           navigate:enterPhoneCallWithoutReload,warm:prepareIncomingConnection,phase:updatePhoneConnectionOverlay});
         await numberCalls.start();
+        window.wakaruAppReady=true;clearTimeout(window.wakaruRecoveryTimer);document.getElementById('appRecovery')?.setAttribute('hidden','');
         if (!/^n_|^g_/.test(callId) && localStorage.getItem(ONBOARDING_KEY) !== "done" && !onboarding.open) window.setTimeout(function() { onboarding.showModal(); }, 350);
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.addEventListener("message", function(event) { numberCalls?.handlePushState(event.data); });
@@ -9432,7 +9445,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     function toggleAppInfoTooltip(event) {
       event.stopPropagation();
       if (!el.appInfoToggle || !el.appInfoTooltip) return;
-      if(localStorage.getItem(ADMIN_ACCESS_KEY)===ADMIN_PASSWORD_SHA256){openMetricsModal();return;}
+      if(localStorage.getItem(ADMIN_ACCESS_KEY)===effectiveAdminPasswordHash()){openMetricsModal();return;}
       const isOpen = !el.appInfoTooltip.classList.contains("is-open");
       if (isOpen) {
         hideCallTips();
@@ -9455,8 +9468,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       try{
         const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(input.value));
         const hash=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');
-        if(hash!==ADMIN_PASSWORD_SHA256){message.textContent='パスワードが違います。';input.select();return;}
-        localStorage.setItem(ADMIN_ACCESS_KEY,ADMIN_PASSWORD_SHA256);
+        if(hash!==effectiveAdminPasswordHash()){message.textContent='パスワードが違います。';input.select();return;}
+        localStorage.setItem(ADMIN_ACCESS_KEY,hash);
         input.value='';message.textContent='';hideAppInfoTooltip();openMetricsModal();
       }catch(_){message.textContent='確認できませんでした。もう一度お試しください。';}
       finally{submit.disabled=false;}
