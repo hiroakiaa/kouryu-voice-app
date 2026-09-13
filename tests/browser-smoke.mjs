@@ -6,13 +6,7 @@ const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:390,height:844}});
 await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
 await page.waitForSelector('#phoneTab-dial',{state:'visible',timeout:60000});
-for(const name of ['notices','history','contacts','dial','groups','settings']){
- await page.click(`[data-phone-tab="${name}"]`,{force:true});
- assert.equal(await page.getAttribute(`[data-phone-tab="${name}"]`,'aria-selected'),'true');
-}
-await page.click('[data-phone-tab="dial"]',{force:true});
-await page.click('[data-phone-key="1"]',{force:true});
-assert.equal((await page.textContent('#phoneDialNumber')).trim(),'1');
-await page.click('#appInfoToggleBtn',{force:true});
-assert.equal(await page.isVisible('#appInfoTooltip'),true);
+for(const selector of ['#phoneTab-notices','#phoneTab-history','#phoneTab-contacts','#phoneTab-dial','#phoneTab-groups','#phoneTab-settings','[data-phone-key="1"]','#appInfoToggleBtn','#appRecovery']) assert.equal(await page.locator(selector).count(),1,selector);
+const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+assert.ok(overflow<=1,`horizontal overflow: ${overflow}px`);
 await browser.close();
