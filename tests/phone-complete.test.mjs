@@ -337,6 +337,14 @@ test('管理者パスワードの照合後だけ料金詳細を開く',()=>{
  assert.match(html,/localStorage\.getItem\(ADMIN_ACCESS_KEY\)===ADMIN_PASSWORD_SHA256\)\{openMetricsModal\(\);return;\}/);
 });
 
+test('電話画面でアプリ専用番号であることを明示する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(html,/class="phone-dial-scope-note"/);
+ assert.match(html,/このアプリの8桁番号専用です/);
+ assert.match(html,/一般の電話番号や緊急通報には発信できません/);
+ assert.match(css,/\.phone-dial-scope-note\{/);
+});
+
 test('電話番号は直接編集できない表示専用エリアにする',()=>{
  assert.match(html,/<output id="phoneDialNumber"[^>]*aria-live="polite"><\/output>/);
  assert.doesNotMatch(html,/<input id="phoneDialNumber"/);
