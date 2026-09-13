@@ -548,3 +548,15 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .admin-notice-overview{display:grid;gap:9px;margin:12px 0;padding:14px;border:1px solid #d2e4c1;border-radius:16px;background:#f8fbf3}.admin-notice-overview h3{margin:0;font-size:15px}.admin-notice-overview>small{color:#718069;font-size:11px}.admin-notice-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.admin-notice-stats span{display:grid;place-items:center;padding:9px 5px;border-radius:12px;background:#ebf5df;color:#64745c;font-size:10px}.admin-notice-stats strong{color:#315c2a;font-size:21px;line-height:1.1}
 .contact-row-person small+small{margin-top:2px}
 @media(max-width:540px){.notice-filter-tabs{gap:3px;padding:4px}.notice-filter-tabs button{min-height:40px;padding:6px 3px;font-size:11px}.notice-recipient-heading{align-items:flex-start;flex-direction:column;gap:2px}.admin-notice-stats{gap:5px}}
+
+/* Match the three global header controls to the 48px phone-panel icon target. */
+.phone-home main>header .app-icon,
+.phone-home main>header .header-icon-btn{
+  width:48px;
+  height:48px;
+  min-width:48px;
+  min-height:48px;
+  flex:0 0 48px;
+  box-sizing:border-box;
+  font-size:19px;
+}
