@@ -253,6 +253,11 @@ test('連絡は所属宛先・未対応優先・検索・配信状態・取消�
  assert.match(rules,/resource\.data\.status == 'open'/);
 });
 
+test('連絡カードの操作HTMLはブラウザで解釈できる文字列として組み立てる',()=>{
+ assert.doesNotMatch(app,/電話<\/button>\$\{item\.kind===/);
+ assert.match(app,/電話<\/button>'\+\(item\.kind==='request'/);
+});
+
 test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(html,/<section id="phoneContactsPanel"[\s\S]*?id="phoneContactAddToggle"[\s\S]*?<\/section>/);
