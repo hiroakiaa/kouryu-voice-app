@@ -192,6 +192,8 @@ test('履歴の検索はアイコンから滑らかに開閉し電話帳追加�
 test('履歴は人物アイコンとよく使う3件を表示し登録済みなら登録ボタンを省く',()=>{
  assert.match(html,/id="phoneFrequent"/);
  assert.match(app,/frequentHistoryTargets\(historyItems,contacts\)/);
+ assert.match(app,/closeContactMenus\(true\)/);
+ assert.match(app,/この相手をブロックしますか/);
  assert.match(app,/registered=contacts\.some/);
  assert.match(app,/fa-solid fa-circle-user/);
 });
@@ -218,9 +220,13 @@ test('よく使うカード全体で発信確認を開き、電話帳の補助�
  const favorite=contacts.indexOf('data-favorite'),edit=contacts.indexOf('data-edit'),block=contacts.indexOf('data-block-contact'),remove=contacts.indexOf('data-remove-contact'),dial=contacts.indexOf('contact-call-button');
  assert.ok(favorite>=0&&favorite<edit&&edit<block&&block<remove&&remove<dial);
  assert.match(contacts,/fa-star/);assert.match(contacts,/fa-pen/);assert.match(contacts,/fa-ban/);assert.match(contacts,/fa-trash-can/);
- assert.match(app,/d\.contactMenu[\s\S]*?contact-row-menu\.is-visible/);
+ assert.match(app,/d\.contactMenu[\s\S]*?closeContactMenus\(\)/);
+ assert.match(app,/closeContactMenus=.*contact-row-menu\.is-visible/);
  assert.match(app,/class="contact-row-actions"><div class="contact-menu-wrap"/);
  assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/\.contact-row-actions\{[^}]*justify-content:flex-end[^}]*flex:0 0 auto!important[^}]*margin-left:auto/);
+ assert.match(html,/id="adminConnectionQualitySummary"/);
+ assert.match(html,/id="adminConnectionTimeline"/);
+ assert.match(html,/function getConnectionStageAnalysis\(\)/);
 });
 
 test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{

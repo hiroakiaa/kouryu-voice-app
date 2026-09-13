@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-06-contact-menu-spacing">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-13-admin-quality">
 </head>
 <body class="phone-home">
   <main>
@@ -4251,8 +4251,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ通話</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。通話の種類は管理者が選びます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>設定</strong><span>いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを確認できます。</span></span></span>
       <span id="deviceTip" class="tip-item"><i class="fa-solid fa-headphones-simple"></i><span><strong>近くではイヤホン</strong><span>端末同士が近い場合は、ハウリングを避けるためイヤホンを使い、最初は端末音量を控えめにしてください。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>声は保存しません</strong><span>声はWebRTCで端末間を移動し、接続環境によってCloudflare TURNを経由します。録音はしません。サポートありの場合だけ、発話部分を用語検出へ送ります。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-yen-sign"></i><span><strong>運営料金</strong><span>管理者メニューでは、今回の通話と10分間の概算を確認できます。参加者へアプリ利用料金は請求されませんが、通常のデータ通信量は使用します。</span><span class="tip-cost-estimate"><span class="tip-cost-line">通話全体の10分で <strong id="tipsTenMinuteCost" class="tip-cost-number">計算中</strong></span><span id="tipsCostConditions" class="tip-cost-line"></span><span class="tip-cost-line">表示額は無料枠適用前の利用相当額です。</span></span></span></span>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-wave-square"></i><span><strong>声は保存しません</strong><span>通話の声は録音・保存しません。サポートありの場合だけ、話した部分から用語を探します。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>自動退室</strong><span>通話中にアプリを閉じた状態が2分続くと、接続を残さないため自動で退室します。通話時間そのものに上限はありません。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
@@ -4465,6 +4464,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <span><strong id="turnUsageBytes">0 MB</strong><small>この端末で確認できた中継通信量</small></span>
       </div>
       <div id="metricsCompareSummary" class="metrics-compare-summary" aria-label="前回計測区間との比較"></div>
+      <section class="admin-connection-quality" aria-labelledby="adminConnectionQualityTitle">
+        <h4 id="adminConnectionQualityTitle"><i class="fa-solid fa-gauge-high"></i> 接続品質</h4>
+        <div id="adminConnectionQualitySummary" class="metrics-mode-summary"></div>
+        <ol id="adminConnectionTimeline" class="admin-connection-timeline"></ol>
+      </section>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
         <div id="metricsDetailReads" class="metrics-detail" aria-hidden="true"></div>
@@ -4524,7 +4528,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-06-contact-menu-spacing";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-13-admin-quality";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4569,7 +4573,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-06-contact-menu-spacing";
+    const APP_VERSION = "2026-09-13-admin-quality";
     const ADMIN_PASSWORD_SHA256 = "b7e73e8cd9e9f022bad4e4593041754a7b27ca4000600804f367ebd499abc9ec";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
@@ -4749,6 +4753,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       turnUsageStatus: document.getElementById("turnUsageStatus"),
       turnUsageBytes: document.getElementById("turnUsageBytes"),
       metricsCompareSummary: document.getElementById("metricsCompareSummary"),
+      adminConnectionQualitySummary: document.getElementById("adminConnectionQualitySummary"),
+      adminConnectionTimeline: document.getElementById("adminConnectionTimeline"),
       metricsReadsCount: document.getElementById("metricsReadsCount"),
       metricsWritesCount: document.getElementById("metricsWritesCount"),
       metricsDeletesCount: document.getElementById("metricsDeletesCount"),
@@ -5193,6 +5199,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         handleVisibleReturn();
         refreshClosedAppNotifications();
       });
+      window.addEventListener("online", refreshClosedAppNotifications);
+      window.setInterval(function() {
+        if (document.visibilityState === "visible") refreshClosedAppNotifications();
+      }, 15 * 60 * 1000);
       el.contacts.addEventListener("click", openContactsModal);
       el.contactsClose.addEventListener("click", closeContactsModal);
       el.contactsModal.addEventListener("click", function(event) { if (event.target === el.contactsModal) closeContactsModal(); });
@@ -10100,6 +10110,40 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       return "未接続。現在までの長い待ち: " + (phases.length ? phases.join(" / ") : "記録中");
     }
 
+    function getConnectionStageAnalysis() {
+      const list = metrics.connectionTimeline || [];
+      let slowest = null;
+      for (let i = 1; i < list.length; i += 1) {
+        const seconds = Math.round((list[i].seconds - list[i - 1].seconds) * 10) / 10;
+        if (!slowest || seconds > slowest.seconds) slowest = { from: list[i - 1].label, to: list[i].label, seconds };
+      }
+      const reconnects = Array.from(autoReconnectAttempts.values()).reduce(function(total, value) { return total + (Number(value) || 0); }, 0);
+      return {
+        connectedSeconds: metrics.connectedAt ? Math.round(((metrics.connectedAt - metrics.startedAt) / 1000) * 10) / 10 : null,
+        slowest,
+        failureStage: metrics.connectedAt ? "" : (list.length ? list[list.length - 1].label : "開始前"),
+        reconnects,
+        method: turnUsage.relayActive ? "TURN中継" : "直接接続"
+      };
+    }
+
+    function renderAdminConnectionQuality() {
+      if (!el.adminConnectionQualitySummary || !el.adminConnectionTimeline) return;
+      const analysis = getConnectionStageAnalysis();
+      const speed = analysis.connectedSeconds == null ? "接続待ち" : analysis.connectedSeconds.toFixed(1) + "秒";
+      const slow = analysis.slowest ? analysis.slowest.from + " → " + analysis.slowest.to + "（" + analysis.slowest.seconds.toFixed(1) + "秒）" : "計測待ち";
+      el.adminConnectionQualitySummary.innerHTML =
+        '<span><strong>' + escapeHtml(speed) + '</strong><small>応答・参加から最初の音声まで</small></span>' +
+        '<span><strong>' + escapeHtml(analysis.method) + '</strong><small>現在の通信経路</small></span>' +
+        '<span><strong>' + analysis.reconnects + '回</strong><small>自動再接続</small></span>' +
+        '<span><strong>' + escapeHtml(analysis.failureStage || 'なし') + '</strong><small>未接続時の停止地点</small></span>';
+      el.adminConnectionTimeline.innerHTML = (metrics.connectionTimeline || []).map(function(item, index, list) {
+        const delta = index ? Math.max(0, Math.round((item.seconds - list[index - 1].seconds) * 10) / 10) : item.seconds;
+        return '<li class="' + (delta >= 2 ? 'is-slow' : '') + '"><time>' + item.seconds.toFixed(1) + '秒</time><strong>' + escapeHtml(item.label) + '</strong><small>前段階から ' + delta.toFixed(1) + '秒</small></li>';
+      }).join('') || '<li><strong>通話を始めると段階ごとの時間を表示します。</strong></li>';
+      el.adminConnectionQualitySummary.setAttribute('data-slowest-stage', slow);
+    }
+
     function isFirestoreGuardActive() {
       return Date.now() < firestoreGuardActiveUntil;
     }
@@ -10417,7 +10461,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         firestoreCostYen: roundCostValue(fullCost.firestore),
         turnCostYen: roundCostValue(fullCost.turn),
         connectionMethod: turnUsage.relayActive ? "TURN中継" : "直接接続",
-        turnBytes: Math.round(turnUsage.bytes)
+        turnBytes: Math.round(turnUsage.bytes),
+        connectionSeconds: getConnectionStageAnalysis().connectedSeconds,
+        reconnectCount: getConnectionStageAnalysis().reconnects,
+        failureStage: getConnectionStageAnalysis().failureStage,
+        connectionTimeline: (metrics.connectionTimeline || []).slice(0, 40)
       };
       const history = loadCostHistory();
       history.records.unshift(record);
@@ -10833,6 +10881,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (el.metricsFixedReads) el.metricsFixedReads.textContent = String(connected ? connected.estimatedReads : reads);
       if (el.metricsOngoingReads) el.metricsOngoingReads.textContent = String(readsPerMinute) + "/分";
       renderTurnUsage();
+      renderAdminConnectionQuality();
       if (el.metricsCompareSummary) {
         el.metricsCompareSummary.innerHTML = renderMetricsCompareSummary(latest);
       }

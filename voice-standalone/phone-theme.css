@@ -522,3 +522,6 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 /* Keep the phonebook action buttons together at the card's right edge. */
 .contact-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:0 0 auto!important;margin-left:auto}.contact-row-actions>.contact-menu-wrap{flex:0 0 auto!important}
 @media(max-width:540px){.contact-row-actions{gap:6px}}
+
+.admin-connection-quality{margin-top:16px;padding:15px;border:1px solid #d2e4c0;border-radius:17px;background:#f8fbf2}.admin-connection-quality h4{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:#3c6233}.admin-connection-timeline{display:grid;gap:6px;margin:12px 0 0;padding:0;list-style:none}.admin-connection-timeline li{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:9px;padding:8px 10px;border-radius:11px;background:#fffef9;color:#536b4c}.admin-connection-timeline li.is-slow{background:#fff2cf;color:#765816}.admin-connection-timeline time{font-variant-numeric:tabular-nums;font-weight:800}.admin-connection-timeline small{font-size:11px}
+@media(max-width:670px){.admin-connection-timeline li{grid-template-columns:52px minmax(0,1fr)}.admin-connection-timeline li small{grid-column:2}.contact-row-menu{right:0;max-width:min(220px,calc(100vw - 42px))}}
