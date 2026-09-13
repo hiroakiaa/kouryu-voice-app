@@ -229,6 +229,18 @@ test('よく使うカード全体で発信確認を開き、電話帳の補助�
  assert.match(html,/function getConnectionStageAnalysis\(\)/);
 });
 
+test('連絡タブはお願いとお知らせを一枚のカードで送受信する',()=>{
+ for(const id of ['phoneTab-notices','phoneNoticesPanel','phoneNoticeAddToggle','phoneNoticeCompose','phoneNoticeReply'])assert.match(html,new RegExp(`id="${id}"`));
+ assert.match(app,/collection\(db,'schoolNotices'\)/);
+ assert.match(app,/data-notice-accept/);assert.match(app,/data-notice-later/);assert.match(app,/data-notice-seen/);
+ assert.match(app,/data-notice-reply/);assert.match(app,/data-notice-call/);assert.match(app,/data-notice-done/);
+ assert.match(rules,/match \/schoolNotices\/\{id\}/);
+ assert.match(rules,/recipientUids\.size\(\) <= 40/);
+ assert.match(sw,/action === "notice"/);
+ assert.match(sw,/新しい連絡があります/);
+ assert.doesNotMatch(sw,/action === "notice"[^]*?showNotification[^]*?subject/);
+});
+
 test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(html,/<section id="phoneContactsPanel"[\s\S]*?id="phoneContactAddToggle"[\s\S]*?<\/section>/);
@@ -604,7 +616,7 @@ test('1対1の応答後は履歴保存と重複した参加枠処理を待たな
 
 test('通知タップ直後に着信画面を出し開いているアプリは再読込しない',()=>{
  assert.match(sw,/target\.searchParams\.set\("incomingName", callerName\)/);
- assert.match(sw,/data: \{ url: target\.toString\(\), callerUid, callerName, callId, invitationId \}/);
+ assert.match(sw,/data: \{ url: target\.toString\(\), callerUid, callerName, callId, invitationId, action \}/);
  assert.match(sw,/client\.postMessage\(\{ type: "kouryu-phone-state"[\s\S]*?return client\.focus\(\)/);
  assert.doesNotMatch(sw,/client\.navigate\(targetUrl\)/);
  assert.match(html,/params\.get\("fromPush"\) === "1"[\s\S]*?着信を確認しています…[\s\S]*?pendingIncomingDialog\.showModal\(\)/);

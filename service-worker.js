@@ -1,4 +1,4 @@
-const CACHE_NAME = "kouryu-voice-shell-v42";
+const CACHE_NAME = "kouryu-voice-shell-v43";
 const APP_SCOPE_URL = new URL("./", self.location.href).toString();
 
 self.addEventListener("install", function(event) {
@@ -19,14 +19,15 @@ self.addEventListener("push", function(event) {
   const isTest = data.kind === "test";
   const callerName = String(data.callerName || "匿名さん").slice(0, 40);
   const callId = String(data.callId || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 48);
-  const invitationId = String(data.invitationId || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 64);
+  const invitationId = String(data.invitationId || "").replace(/[^A-Za-z0-9_]/g, "").slice(0, 64);
   const callerUid = String(data.callerUid || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 128);
-  const action = isTest ? "test" : data.action === "cancel" ? "cancel" : "ring";
+  const action = isTest ? "test" : data.action === "cancel" ? "cancel" : data.action === "notice" ? "notice" : "ring";
   const target = new URL("./", APP_SCOPE_URL);
-  if (callId) target.searchParams.set("call", callId);
-  if (invitationId) target.searchParams.set("incomingInvite", invitationId);
-  if (callerUid) target.searchParams.set("incomingCaller", callerUid);
-  if (callerName) target.searchParams.set("incomingName", callerName);
+  if (action === "notice") target.searchParams.set("notice", invitationId || "1");
+  else if (callId) target.searchParams.set("call", callId);
+  if (action !== "notice" && invitationId) target.searchParams.set("incomingInvite", invitationId);
+  if (action !== "notice" && callerUid) target.searchParams.set("incomingCaller", callerUid);
+  if (action !== "notice" && callerName) target.searchParams.set("incomingName", callerName);
   target.searchParams.set("fromPush", "1");
   event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(windows) {
     if (!isTest) windows.forEach(function(client) { client.postMessage({ type: "kouryu-phone-state", action, callerUid }); });
@@ -36,14 +37,14 @@ self.addEventListener("push", function(event) {
     }
     const hasVisibleApp = !isTest && windows.some(function(client) { return client.visibilityState === "visible"; });
     if (hasVisibleApp) return;
-    return self.registration.showNotification(isTest ? "わかる電話のテスト通知" : callerName + "さんから着信です", {
-    body: isTest ? "アプリを閉じていても通知を受け取れる状態です。" : "タップして応答画面を開きます。",
+    return self.registration.showNotification(isTest ? "わかる電話のテスト通知" : action === "notice" ? "新しい連絡があります" : callerName + "さんから着信です", {
+    body: isTest ? "アプリを閉じていても通知を受け取れる状態です。" : action === "notice" ? "アプリを開いて内容を確認してください。" : "タップして応答画面を開きます。",
     icon: "./app-icon.svg",
     badge: "./app-icon.svg",
-    tag: isTest ? "kouryu-notification-test" : "kouryu-call-" + (invitationId || callId || "incoming"),
+    tag: isTest ? "kouryu-notification-test" : (action === "notice" ? "kouryu-notice-" : "kouryu-call-") + (invitationId || callId || "incoming"),
     renotify: true,
     requireInteraction: true,
-    data: { url: target.toString(), callerUid, callerName, callId, invitationId }
+    data: { url: target.toString(), callerUid, callerName, callId, invitationId, action }
     });
   }));
 });
@@ -54,7 +55,7 @@ self.addEventListener("notificationclick", function(event) {
   const targetUrl = notificationData.url || APP_SCOPE_URL;
   event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(windows) {
     for (const client of windows) {
-      client.postMessage({ type: "kouryu-phone-state", action: "ring", callerUid: notificationData.callerUid || "" });
+      client.postMessage({ type: "kouryu-phone-state", action: notificationData.action === "notice" ? "notice" : "ring", callerUid: notificationData.callerUid || "" });
       return client.focus();
     }
     return clients.openWindow(targetUrl);

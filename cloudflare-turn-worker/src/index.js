@@ -185,9 +185,9 @@ async function handlePush(request, env, origin, path) {
 
   const calleeUid = typeof body.calleeUid === "string" ? body.calleeUid : "";
   const callId = typeof body.callId === "string" && /^[A-Za-z0-9_-]{1,48}$/.test(body.callId) ? body.callId : "";
-  const invitationId = typeof body.invitationId === "string" && /^[A-Za-z0-9]{1,64}$/.test(body.invitationId) ? body.invitationId : "";
+  const invitationId = typeof body.invitationId === "string" && /^[A-Za-z0-9_]{1,64}$/.test(body.invitationId) ? body.invitationId : "";
   const callerName = typeof body.callerName === "string" ? body.callerName.trim().slice(0, 40) : "匿名さん";
-  const action = body.action === "cancel" ? "cancel" : "ring";
+  const action = body.action === "cancel" ? "cancel" : body.action === "notice" ? "notice" : "ring";
   if (!calleeUid || calleeUid === uid || !callId || !invitationId) return response({ error: "invalid_request" }, 400, origin);
   if (!allowRequest("push-uid:" + uid, 60, TEN_MINUTES)) return response({ error: "rate_limited" }, 429, origin);
 

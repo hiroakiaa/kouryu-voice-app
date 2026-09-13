@@ -193,6 +193,37 @@ service cloud.firestore {
       }
     }
 
+    function validSchoolNotice(d) {
+      return d.keys().hasOnly(['senderUid','senderName','senderNumber','recipientUids','recipientNames','kind','subject','detail','priority','status','createdAt','responses'])
+        && d.senderUid == request.auth.uid && shortName(d.senderName)
+        && d.senderNumber.matches('^[0-9]{8}$')
+        && get(/databases/$(database)/documents/voiceNumbers/$(d.senderNumber)).data.ownerUid == request.auth.uid
+        && d.recipientUids is list && d.recipientUids.size() >= 1 && d.recipientUids.size() <= 40
+        && d.recipientUids.toSet().size() == d.recipientUids.size() && !(request.auth.uid in d.recipientUids)
+        && d.recipientNames is map && d.kind in ['request','info']
+        && d.subject is string && d.subject.size() > 0 && d.subject.size() <= 60
+        && d.detail is string && d.detail.size() <= 300
+        && d.priority in ['normal','urgent'] && d.status == 'open'
+        && d.createdAt is number && d.responses is map && d.responses.size() == 0;
+    }
+    function validSchoolResponse(value) {
+      return value is map && value.keys().hasOnly(['state','name','text','at'])
+        && value.state in ['seen','later','accepted','done'] && shortName(value.name)
+        && value.text is string && value.text.size() <= 200 && value.at is number;
+    }
+    match /schoolNotices/{id} {
+      allow get, list: if request.auth != null && (resource.data.senderUid == request.auth.uid || request.auth.uid in resource.data.recipientUids);
+      allow create: if request.auth != null && id.matches('^m_[a-f0-9]{32}$') && validSchoolNotice(request.resource.data);
+      allow update: if request.auth != null && resource.data.senderUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && resource.data.status == 'open' && request.resource.data.status == 'completed';
+      allow update: if request.auth != null && request.auth.uid in resource.data.recipientUids
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses'])
+        && request.resource.data.responses.diff(resource.data.responses).affectedKeys().hasOnly([request.auth.uid])
+        && validSchoolResponse(request.resource.data.responses[request.auth.uid]);
+      allow delete: if request.auth != null && resource.data.senderUid == request.auth.uid;
+    }
+
     match /publicRooms/{roomId} {
       allow read: if true;
       allow create, update: if isValidPublicRoom();
