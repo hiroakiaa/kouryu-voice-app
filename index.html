@@ -4544,6 +4544,14 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   </div>
   <div id="connectionTooltip" class="connection-tooltip" role="tooltip" aria-hidden="true"></div>
 
+  <script>
+    // Run before the module app so an older broken module cannot prevent PWA recovery.
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js?v=2026-09-13-pwa-recovery", { scope: "./", updateViaCache: "none" })
+        .then(function(registration) { return registration.update(); })
+        .catch(function() {});
+    }
+  </script>
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
@@ -7947,7 +7955,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-09-13-pwa-recovery", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);

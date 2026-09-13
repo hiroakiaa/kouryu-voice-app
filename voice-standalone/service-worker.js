@@ -1,4 +1,4 @@
-const CACHE_NAME = "kouryu-voice-shell-v44";
+const CACHE_NAME = "kouryu-voice-shell-v45";
 const APP_SCOPE_URL = new URL("./", self.location.href).toString();
 
 self.addEventListener("install", function(event) {
@@ -11,6 +11,14 @@ self.addEventListener("activate", function(event) {
   event.waitUntil(caches.keys().then(function(names) {
     return Promise.all(names.filter(function(name) { return name !== CACHE_NAME; }).map(function(name) { return caches.delete(name); }));
   }).then(function() { return self.clients.claim(); }));
+});
+
+// Installed PWAs must not stay on an older broken HTML shell.
+self.addEventListener("fetch", function(event) {
+  if (event.request.mode !== "navigate") return;
+  event.respondWith(fetch(event.request, { cache: "no-store" }).catch(function() {
+    return caches.match("./");
+  }));
 });
 
 self.addEventListener("push", function(event) {

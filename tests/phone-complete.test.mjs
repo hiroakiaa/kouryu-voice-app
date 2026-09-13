@@ -258,6 +258,13 @@ test('連絡カードの操作HTMLはブラウザで解釈できる文字列と�
  assert.match(app,/電話<\/button>'\+\(item\.kind==='request'/);
 });
 
+test('壊れた旧画面でもPWA更新を止めず次回起動は最新HTMLを取得する',()=>{
+ assert.match(html,/service-worker\.js\?v=2026-09-13-pwa-recovery/);
+ assert.match(html,/updateViaCache: "none"/);
+ assert.match(sw,/event\.request\.mode !== "navigate"/);
+ assert.match(sw,/fetch\(event\.request, \{ cache: "no-store" \}\)/);
+});
+
 test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(html,/<section id="phoneContactsPanel"[\s\S]*?id="phoneContactAddToggle"[\s\S]*?<\/section>/);
