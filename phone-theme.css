@@ -566,11 +566,11 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .phone-home-card>.phone-tabs button{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-width:0;flex:none;font-size:17px}
 .phone-home-card>.phone-tabs button>i{font-size:19px;color:#5d963f}
 .phone-home-card>.phone-tabs button[aria-selected="true"]>i{color:#3e7b2d}
-.phone-home-card>.phone-dial-shortcuts{order:1;position:relative;z-index:11;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));flex:0 0 auto;gap:6px;width:100%;box-sizing:border-box;margin:10px 0;padding:5px;border:1px solid #d6e5c8;border-radius:16px;background:#f1f7e9}
+.phone-home-card>.phone-dial-shortcuts{order:1;position:relative;z-index:11;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));flex:0 0 auto;gap:6px;width:100%;box-sizing:border-box;margin:10px 0;padding:5px;border:1px solid #d6e5c8;border-radius:16px;background:#f1f7e9}
 .phone-home-card .phone-dial-shortcuts button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-width:0;min-height:42px;padding:7px 8px;border:0;border-radius:12px;background:transparent;color:#64745c;font-size:13px;font-weight:800;text-align:center;box-shadow:none}
 .phone-dial-shortcuts button i{display:grid;place-items:center;width:21px;flex:0 0 21px;color:#65a645;font-size:16px}
 .phone-dial-shortcuts button[aria-selected="true"]{background:#fff!important;color:#35612d;box-shadow:0 2px 8px rgba(62,99,46,.12)}
-@media(max-width:540px){.phone-home-card>.phone-tabs button{min-height:48px;font-size:16px}.phone-home-card>.phone-dial-shortcuts{gap:3px;margin:7px 0;padding:4px}.phone-home-card .phone-dial-shortcuts button{min-height:40px;padding:6px 3px;font-size:11px;gap:5px}.phone-dial-shortcuts button i{width:18px;flex-basis:18px;font-size:15px}}
+@media(max-width:540px){.phone-home-card>.phone-tabs button{min-height:48px;font-size:16px}.phone-home-card>.phone-dial-shortcuts{gap:3px;margin:7px 0;padding:4px}.phone-home-card .phone-dial-shortcuts button{min-height:40px;padding:6px 2px;font-size:10px;gap:4px}.phone-dial-shortcuts button i{width:16px;flex-basis:16px;font-size:14px}}
 @media(max-width:340px){.phone-home-card .phone-dial-shortcuts button{font-size:11px;letter-spacing:-.04em}}
 #phoneHistoryPanel,#phoneContactsPanel,#phoneGroupsPanel{padding-bottom:8px!important}
 .phone-home-card>#phoneDialUtility{order:3;position:relative;z-index:13;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;gap:12px;width:100%;min-height:58px;box-sizing:border-box;padding:7px 12px;border-top:1px solid #cad8b9;background:#fffef8}
