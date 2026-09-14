@@ -253,6 +253,22 @@ test('連絡は所属宛先・未対応優先・検索・配信状態・取消�
  assert.match(rules,/resource\.data\.status == 'open'/);
 });
 
+test('連絡の絞り込みは電話ナビと同じ位置と操作で検索はその直下に置く',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ const filters=html.indexOf('id="phoneNoticeFilters"'),panel=html.indexOf('id="phoneNoticesPanel"'),search=html.indexOf('id="phoneNoticeSearchToggle"');
+ assert.ok(filters>=0&&filters<panel&&panel<search);
+ assert.match(html,/id="phoneNoticeFilters" class="phone-notice-filters notice-filter-tabs" role="tablist" aria-label="連絡の表示"/);
+ assert.match(html,/data-notice-filter="pending" aria-selected="true" aria-current="page"/);
+ assert.match(html,/class="notice-search-toggle-row"><button id="phoneNoticeSearchToggle"/);
+ assert.doesNotMatch(html,/<section id="phoneNoticesPanel"[^>]*><div class="phone-panel-head phone-section-head"/);
+ assert.match(app,/const noticeFilters=\$\('phoneNoticeFilters'\);if\(noticeFilters\)noticeFilters\.hidden=id!==\'notices\'/);
+ assert.match(app,/function setNoticeFilter\(value,/);
+ assert.match(app,/noticeScrollPositions\.set\(noticeFilter,panel\.scrollTop\)/);
+ assert.match(app,/noticeFilterTabs\.addEventListener\('keydown'/);
+ assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts,\.phone-home-card>\.phone-notice-filters\{order:1/);
+ assert.match(css,/\.notice-search-toggle-row\{display:flex;justify-content:flex-end/);
+});
+
 test('連絡カードの操作HTMLはブラウザで解釈できる文字列として組み立てる',()=>{
  assert.doesNotMatch(app,/電話<\/button>\$\{item\.kind===/);
  assert.match(app,/電話<\/button>'\+\(item\.kind==='request'/);
@@ -383,7 +399,7 @@ test('主タブは連絡と電話だけにし電話の補助機能と設定を�
  assert.match(app,/const primary=id==='notices'\?'notices':'dial'/);
  assert.match(css,/\.phone-home-card>\.phone-tabs\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(html,/id="phoneDialShortcuts" class="phone-dial-shortcuts notice-filter-tabs"/);
- assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts\{order:1;position:relative;[^}]*display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\);[^}]*flex:0 0 auto/);
+ assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts,\.phone-home-card>\.phone-notice-filters\{order:1;position:relative;[^}]*display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\);[^}]*flex:0 0 auto/);
  assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:2\}/);
  assert.match(css,/\.phone-home-card>\.phone-tabs\{order:4/);
  assert.match(html,/id="phoneDialUtility"[\s\S]*?phone-dial-scope-note[\s\S]*?id="phoneOwnToggle"[\s\S]*?id="phoneOwnDetails"/);
@@ -407,7 +423,7 @@ test('電話の現在地・スクロール・追加ボタン・キーボード�
  assert.doesNotMatch(app,/\['notices','history','contacts','dial','groups','settings'\]/);
  assert.match(css,/#phoneContactsPanel,#phoneGroupsPanel\{padding-bottom:96px!important\}/);
  assert.match(css,/#phoneDialUtility #phoneOwnDetails\{[^}]*max-height:min\(360px,calc\(100dvh - 190px\)\);overflow-y:auto/);
- assert.match(css,/\.phone-dial-shortcuts button\[aria-selected="true"\]\{[^}]*border:1px solid/);
+ assert.match(css,/\.phone-dial-shortcuts button\[aria-selected="true"\],\.phone-notice-filters button\[aria-selected="true"\]\{[^}]*border:1px solid/);
 });
 
 test('電話番号は直接編集できない表示専用エリアにする',()=>{
