@@ -771,3 +771,13 @@ test('連絡送信中はボタン内にローディングを表示して二重�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/\.notice-send-button\.is-loading \.notice-send-spinner\{display:inline-block\}/);
 });
+
+test('連絡カードは送信者と状態をバッジで示し操作対象を明記する',()=>{
+ assert.match(app,/さんからの連絡内容/);
+ assert.match(app,/notice-status-badge/);
+ assert.match(app,/送信者へ返信/);
+ assert.match(app,/送信者へ電話/);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.notice-sender-badge\{/);
+ assert.match(css,/\.notice-status-badge\.is-complete\{/);
+});
