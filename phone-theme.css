@@ -539,7 +539,7 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .notice-filter-tabs button[aria-selected="true"]{background:#fff;color:#35612d;box-shadow:0 2px 8px rgba(62,99,46,.12)}
 .notice-search-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;margin:0 0 7px}.notice-search-toggle-row .phone-panel-icon{margin:0}.phone-presence-toggle{display:flex;align-items:center;gap:7px;min-height:42px;padding:7px 12px!important;border-radius:999px!important;font-size:12px;font-weight:800}.phone-presence-toggle i{font-size:9px;color:#62af42}.phone-presence-toggle[data-status="class"] i{color:#df9c34}.phone-presence-toggle[data-status="away"] i{color:#86927e}.phone-presence-toggle[data-status="urgent"] i{color:#d65260}.notice-search-wrap{margin:0 0 10px}.notice-search-wrap input{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid #bdd5a7;border-radius:13px;background:#fff;font:inherit;color:#30462d}
 .notice-summary{min-height:20px;margin:3px 3px 10px;color:#718269;font-size:12px;font-weight:700}
-.school-notice-card.needs-action{border-left:5px solid #70b54d}.school-notice-card.needs-action h3{color:#294f25}
+
 .notice-deadline{display:inline-flex;align-items:center;gap:5px;margin:7px 0 1px;padding:4px 8px;border-radius:999px;background:#edf6e4;color:#527046;font-size:12px;font-weight:700}.notice-deadline.is-overdue{background:#ffe0d8;color:#9b3f35}
 .school-notice-compose input[type="datetime-local"]{box-sizing:border-box;width:100%;padding:12px;border:1px solid #aacb89;border-radius:12px;background:#fff;color:#30462d;font:inherit}.school-notice-compose label>small{color:#75816e;font-size:11px;font-weight:500}
 .school-notice-card .notice-cancel-send{color:#8b5842;background:#fff9ee;border-color:#dfbf98}
@@ -623,3 +623,8 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 @keyframes phone-panel-enter{from{opacity:.45;transform:translateY(5px)}to{opacity:1;transform:none}}
 @keyframes notice-card-enter{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){#phoneHome>[role="tabpanel"]:not([hidden]),.school-notice-card{animation:none}.phone-tabs button,.notice-filter-tabs button{transition:none}}
+
+/* Keep creation actions in reach while only the panel content scrolls. */
+.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{position:fixed;right:max(22px,calc((100vw - 1180px)/2 + 30px));bottom:calc(env(safe-area-inset-bottom,0px) + 84px);left:auto;z-index:24}
+.notice-self-sent-badge{display:inline-flex;align-items:center;gap:6px;margin:11px 0 2px;padding:6px 10px;border:1px solid #bcd8a3;border-radius:999px;background:#e8f5dc;color:#3e6735;font-size:12px;font-weight:800}.notice-self-sent-badge i{color:#65a946}
+@media(max-width:540px){.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 74px)}}

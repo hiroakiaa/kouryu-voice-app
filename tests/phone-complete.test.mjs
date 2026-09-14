@@ -804,3 +804,12 @@ test('返信するたび件数を増やし送信者側へリアルタイム通�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/\.notice-reply-count\{/);
 });
+
+test('連絡を未対応から開き送信済み表示と固定追加ボタンを使う',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/b\.id==='phoneTab-notices'\)setNoticeFilter\('pending'\)/);
+ assert.match(app,/notice-self-sent-badge/);
+ assert.doesNotMatch(css,/\.school-notice-card\.needs-action\{border-left:5px/);
+ assert.match(css,/\.phone-home-card \.phone-add-fab,[^}]*position:fixed/);
+ assert.match(html,/自分が送ったカードには「自分が送った連絡」と表示されます/);
+});
