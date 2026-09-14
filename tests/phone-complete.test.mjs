@@ -781,3 +781,10 @@ test('連絡カードは送信者と状態をバッジで示し操作対象を�
  assert.match(css,/\.notice-sender-badge\{/);
  assert.match(css,/\.notice-status-badge\.is-complete\{/);
 });
+
+test('アプリ更新の再読み込み後もユーザーが選んだ電話画面を復元する',()=>{
+ assert.match(app,/route\.searchParams\.set\('tab',id\)/);
+ assert.match(app,/window\.history\.replaceState\(window\.history\.state,'',route\)/);
+ assert.match(app,/tab\(\['notices','history','contacts','dial','groups'\]\.includes\(params\.get\('tab'\)\)\?params\.get\('tab'\):'dial'\)/);
+ assert.match(html,/controllerchange[\s\S]*?location\.reload\(\)/);
+});
