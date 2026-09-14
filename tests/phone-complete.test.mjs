@@ -793,7 +793,7 @@ test('返信するたび件数を増やし送信者側へリアルタイム通�
  assert.match(app,/incrementReply:true/);
  assert.match(app,/replyCount=Math\.min\(999,\(Number\(previous\.replyCount\)\|\|0\)\+\(incrementReply\?1:0\)\)/);
  assert.match(app,/notice-reply-count/);
- assert.match(app,/replyTotal=responses\.reduce/);
+ assert.match(app,/querySelectorAll\('\[data-notice-reply\]'\)/);
  assert.match(app,/push\?\.\(currentItem\.senderUid,\{action:'notice',invitationId:noticeId\}\)/);
  assert.match(rules,/replyCount/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
