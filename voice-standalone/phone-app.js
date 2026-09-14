@@ -198,7 +198,7 @@ export function createPhoneApp({db,user,state,name,navigate,warm=()=>{},phase=()
    $('groupInviteToggle').onclick=()=>setCollapsible('groupInviteToggle','groupInviteArea',$('groupInviteToggle').getAttribute('aria-expanded')!=='true');
    $('groupManageToggle').onclick=()=>setCollapsible('groupManageToggle','groupOwnerTools',$('groupManageToggle').getAttribute('aria-expanded')!=='true');
   $('phoneContactAddToggle').onclick=openContactForm;
-  $('phoneNoticeAddToggle').onclick=openNoticeCompose;
+  $('phoneNoticeAddToggle').onclick=()=>openNoticeCompose();
   $('phoneNoticeComposeClose').onclick=closeNoticeCompose;
   $('phoneNoticeCompose').addEventListener('cancel',e=>{e.preventDefault();closeNoticeCompose();});
   $('phoneNoticeCompose').addEventListener('click',e=>{if(e.target===$('phoneNoticeCompose'))closeNoticeCompose();});

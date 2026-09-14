@@ -745,6 +745,7 @@ test('電話帳・履歴・グループから相手を選んで連絡を作れ�
  assert.match(app,/data-message-number=/);
  assert.match(app,/data-message-group=/);
  assert.match(app,/function openNoticeCompose\(targetUids=\[\]\)/);
+ assert.match(app,/phoneNoticeAddToggle'\)\.onclick=\(\)=>openNoticeCompose\(\)/);
  assert.match(app,/if\(d\.messageUid\)await messageTo/);
 });
 
