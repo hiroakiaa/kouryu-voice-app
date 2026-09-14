@@ -788,3 +788,14 @@ test('アプリ更新の再読み込み後もユーザーが選んだ電話画�
  assert.match(app,/tab\(\['notices','history','contacts','dial','groups'\]\.includes\(params\.get\('tab'\)\)\?params\.get\('tab'\):'dial'\)/);
  assert.match(html,/controllerchange[\s\S]*?location\.reload\(\)/);
 });
+
+test('返信するたび件数を増やし送信者側へリアルタイム通知する',()=>{
+ assert.match(app,/incrementReply:true/);
+ assert.match(app,/replyCount=Math\.min\(999,\(Number\(previous\.replyCount\)\|\|0\)\+\(incrementReply\?1:0\)\)/);
+ assert.match(app,/notice-reply-count/);
+ assert.match(app,/replyTotal=responses\.reduce/);
+ assert.match(app,/push\?\.\(currentItem\.senderUid,\{action:'notice',invitationId:noticeId\}\)/);
+ assert.match(rules,/replyCount/);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.notice-reply-count\{/);
+});
