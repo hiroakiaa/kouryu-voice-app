@@ -821,7 +821,7 @@ test('連絡を未対応から開き送信済み表示と固定追加ボタン�
  assert.match(app,/notice-self-sent-badge/);
  assert.doesNotMatch(css,/\.school-notice-card\.needs-action\{border-left:5px/);
  assert.match(css,/\.phone-home-card>\.phone-add-fab\{position:absolute;right:clamp\(12px,1\.6vw,20px\);bottom:86px/);
- assert.match(app,/\$\('phoneHome'\)\.append\(\$\(actionId\)\)/);
+ assert.match(app,/action\.hidden=true;\$\('phoneHome'\)\.append\(action\)/);
  assert.match(html,/自分が送ったカードには「自分が送った連絡」と表示されます/);
 });
 
@@ -835,4 +835,10 @@ test('完了・返信・状態変更を全端末の連絡一覧へ同期する',
  assert.match(app,/\$\{!done&&!mine&&item\.status==='open'/);
  assert.match(app,/recipientUids','array-contains',uid[\s\S]*?mergeNotices\(\)/);
  assert.match(app,/senderUid','==',uid[\s\S]*?mergeNotices\(\)/);
+});
+
+test('起動中は別画面の追加ボタンを表示しない',()=>{
+ for(const id of ['phoneNoticeAddToggle','phoneContactAddToggle','phoneGroupAddToggle'])assert.match(html,new RegExp('id="'+id+'" class="phone-add-fab" hidden'));
+ assert.match(app,/const action=\$\(actionId\);action\.hidden=true;\$\('phoneHome'\)\.append\(action\)/);
+ assert.match(app,/addButton\.hidden=id!==panelId/);
 });
