@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-15-notice-live-sync">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-15-notice-reply-thread">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4269,7 +4269,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」タブで相手の8桁の番号を入力します。画面上部の「番号入力・履歴・電話帳・グループ」から、使いたい画面へ直接切り替えられます。「番号入力」を押すと、履歴などから電話をかける画面へ戻れます。アプリ更新が入っても、選んでいた画面を保ちます。専用番号の案内と自分の番号は、画面下部にまとまっています。このアプリ同士で使う専用番号で、一般の電話番号や緊急通報には発信できません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-hand-pointer"></i><span><strong>上部のボタン</strong><span>左のヘッドホンは管理者メニュー、右の人型はプロフィールと設定、「？」はこの使い方を開きます。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>電話帳・履歴・グループの「連絡」から、相手を選んだ状態でメッセージを作れます。対応時期は「すぐ対応・午前・午後・時間帯」から選ぶか、補足を自由に入力できます。「誰か1人にお願い」は最初に「向かいます」を押した人だけが担当になり、カードの「送信者へ返信」「送信者へ電話」から差出人へ連絡できます。返信すると件数バッジが更新されます。「連絡」を開くと未対応から始まり、「未対応・あとで対応・完了・すべて」で絞り込めます。自分が送ったカードには「自分が送った連絡」と表示されます。誰かが完了にすると、開いている全端末で未対応から完了へ移り、返信や状態変更もその場で更新されます。完了後に訂正するときは「変更」から未対応またはあとで対応へ戻せます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>電話帳・履歴・グループの「連絡」から、相手を選んだ状態でメッセージを作れます。対応時期は「すぐ対応・午前・午後・時間帯」から選ぶか、補足を自由に入力できます。「誰か1人にお願い」は最初に「向かいます」を押した人だけが担当になり、カードの「送信者へ返信」「送信者へ電話」から差出人へ連絡できます。返信は消えずに履歴として残り、最新の返信が上に並びます。返信した人の名前と送信時間も確認でき、件数バッジも更新されます。「連絡」を開くと未対応から始まり、「未対応・あとで対応・完了・すべて」で絞り込めます。自分が送ったカードには「自分が送った連絡」と表示されます。誰かが完了にすると、開いている全端末で未対応から完了へ移り、返信や状態変更もその場で更新されます。完了後に訂正するときは「変更」から未対応またはあとで対応へ戻せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の案内が消えるまで、そのままお待ちください。参加確認、マイク、音声接続は自動で進み、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>サポートあり</strong><span>会話から用語を見つけます。表示された用語を押すと短い説明を確認でき、必要なときだけ「たとえを見る」を使えます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone-volume"></i><span><strong>通常通話</strong><span>音声通話だけを使い、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
@@ -4565,7 +4565,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-15-notice-live-sync";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-15-notice-reply-thread";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4610,7 +4610,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-15-notice-live-sync";
+    const APP_VERSION = "2026-09-15-notice-reply-thread";
     const ADMIN_PASSWORD_SHA256 = "1cb69c64b337e546c188ac6c1452f02c91805a4f1e04063a0bb13d567eec8b86";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v1";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";

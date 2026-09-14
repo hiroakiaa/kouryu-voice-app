@@ -804,6 +804,15 @@ test('返信するたび件数を増やし送信者側へリアルタイム通�
  assert.match(rules,/replyCount/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/\.notice-reply-count\{/);
+ assert.match(app,/function noticeReplyItems\(item\)/);
+ assert.match(app,/return rows\.sort\(\(a,b\)=>b\.at-a\.at\)/);
+ assert.match(app,/replies=Array\.isArray\(previous\.replies\)\?previous\.replies\.slice\(-99\)/);
+ assert.match(app,/replies\.push\(\{name:myName\(\),text:replyText,at:now\}\)/);
+ assert.match(app,/\$\('phoneNoticeReplyText'\)\.value=''/);
+ assert.match(app,/notice-reply-author/);
+ assert.match(app,/<time>\$\{noticeTime\(reply\.at\)\}<\/time>/);
+ assert.match(css,/\.notice-reply-item time\{grid-column:2;justify-self:end/);
+ assert.match(rules,/value\.replies is list/);
 });
 
 test('連絡を未対応から開き送信済み表示と固定追加ボタンを使う',()=>{
