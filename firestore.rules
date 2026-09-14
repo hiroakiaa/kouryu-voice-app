@@ -205,7 +205,7 @@ service cloud.firestore {
     }
 
     function validSchoolNotice(d) {
-      return d.keys().hasOnly(['senderUid','senderName','senderNumber','recipientUids','recipientNames','kind','subject','detail','priority','status','createdAt','deadlineAt','responses','delivery','completedAt','canceledAt'])
+      return d.keys().hasOnly(['senderUid','senderName','senderNumber','recipientUids','recipientNames','kind','subject','detail','priority','status','createdAt','deadlineAt','windowStartAt','deadlineLabel','deadlineText','responses','delivery','completedAt','canceledAt'])
         && d.senderUid == request.auth.uid && shortName(d.senderName)
         && d.senderNumber.matches('^[0-9]{8}$')
         && get(/databases/$(database)/documents/voiceNumbers/$(d.senderNumber)).data.ownerUid == request.auth.uid
@@ -215,7 +215,10 @@ service cloud.firestore {
         && d.subject is string && d.subject.size() > 0 && d.subject.size() <= 60
         && d.detail is string && d.detail.size() <= 300
         && d.priority in ['normal','urgent'] && d.status == 'open'
-        && d.createdAt is number && (!('deadlineAt' in d) || (d.deadlineAt is number && d.deadlineAt > d.createdAt && d.deadlineAt <= d.createdAt + 2592000000)) && d.responses is map && d.responses.size() == 0
+        && d.createdAt is number && (!('deadlineAt' in d) || (d.deadlineAt is number && d.deadlineAt > d.createdAt && d.deadlineAt <= d.createdAt + 2592000000))
+        && (!('windowStartAt' in d) || (d.windowStartAt is number && 'deadlineAt' in d && d.windowStartAt >= d.createdAt && d.windowStartAt < d.deadlineAt))
+        && (!('deadlineLabel' in d) || (d.deadlineLabel is string && d.deadlineLabel.size() <= 20))
+        && (!('deadlineText' in d) || (d.deadlineText is string && d.deadlineText.size() <= 40)) && d.responses is map && d.responses.size() == 0
         && d.delivery is map && d.delivery.size() == d.recipientUids.size();
     }
     function validSchoolResponse(value) {

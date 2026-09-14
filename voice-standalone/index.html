@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-14-contact-operations">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-14-direct-contact">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4237,10 +4237,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <label>宛先<span id="phoneNoticeRecipients" class="notice-recipient-list"></span></label><p id="phoneNoticeRecommendation" class="notice-operation-recommendation" hidden></p>
         <label>内容<select id="phoneNoticeTemplate"><option>保護者へ折り返し</option><option>来客・業者対応</option><option>職員室へ連絡</option><option>確認してください</option><option value="その他">その他</option></select></label>
         <label>補足<textarea id="phoneNoticeDetail" maxlength="300" rows="3" placeholder="必要な場合だけ入力"></textarea></label>
-        <label>期限（任意）<input id="phoneNoticeDeadline" type="datetime-local"><small>期限を過ぎた未対応の連絡は、カードで目立つように表示します。</small></label>
+        <fieldset class="notice-deadline-picker"><div class="notice-field-heading"><legend>対応してほしい時期（任意）</legend><button id="phoneNoticeDeadlineHelp" class="phone-help-icon" type="button" aria-label="期限の選び方" aria-controls="phoneNoticeDeadlineHelpPanel" aria-expanded="false"><i class="fa-solid fa-question"></i></button></div><div class="notice-deadline-options"><label><input type="radio" name="noticeDeadlineChoice" value="none" checked><span>指定なし</span></label><label><input type="radio" name="noticeDeadlineChoice" value="soon"><span>すぐ対応</span></label><label><input type="radio" name="noticeDeadlineChoice" value="morning"><span>午前</span></label><label><input type="radio" name="noticeDeadlineChoice" value="afternoon"><span>午後</span></label><label><input type="radio" name="noticeDeadlineChoice" value="range"><span>時間帯</span></label></div><div id="phoneNoticeDeadlineHelpPanel" class="phone-collapsible notice-deadline-help" inert aria-hidden="true"><p><strong>すぐ対応：</strong>できる限り早く対応してほしい連絡です。</p><p><strong>午前：</strong>午前中の対応をお願いします。</p><p><strong>午後：</strong>午後5時ごろまでの対応をお願いします。</p><p><strong>時間帯：</strong>対応してほしい開始・終了時刻を指定します。</p></div><div id="phoneNoticeDeadlineRange" class="notice-deadline-range" hidden><label>開始<input id="phoneNoticeDeadlineStart" type="datetime-local"></label><label>終了<input id="phoneNoticeDeadline" type="datetime-local"></label></div><label class="notice-deadline-text">補足（任意）<input id="phoneNoticeDeadlineText" maxlength="40" placeholder="3時間目まで、昼休み中 など"></label></fieldset>
         <label class="notice-urgent-check"><input id="phoneNoticeUrgent" type="checkbox"><span>急ぎとして送る</span></label>
         <div id="phoneNoticeReview" class="notice-send-review" role="status"></div>
-        <button class="phone-primary notice-send-button" type="submit"><i class="fa-solid fa-paper-plane"></i> この内容で送る</button>
+        <button id="phoneNoticeSend" class="phone-primary notice-send-button" type="submit"><i class="fa-solid fa-paper-plane"></i><i class="fa-solid fa-spinner fa-spin notice-send-spinner" aria-hidden="true"></i><span>この内容で送る</span></button>
       </form>
     </dialog>
     <dialog id="phoneNoticeReply" class="number-modal school-notice-reply" aria-labelledby="phoneNoticeReplyTitle">
@@ -4268,7 +4268,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」タブで相手の8桁の番号を入力します。画面上部の「番号入力・履歴・電話帳・グループ」から、使いたい画面へ直接切り替えられます。「番号入力」を押すと、履歴などから電話をかける画面へ戻れます。専用番号の案内と自分の番号は、画面下部にまとまっています。このアプリ同士で使う専用番号で、一般の電話番号や緊急通報には発信できません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-hand-pointer"></i><span><strong>上部のボタン</strong><span>左のヘッドホンは管理者メニュー、右の人型はプロフィールと設定、「？」はこの使い方を開きます。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>宛先には相手の対応状態と、おすすめの連絡方法が表示されます。「誰か1人にお願い」は最初に「向かいます」を押した人だけが担当になり、ほかの人には担当者が表示されます。担当の引き継ぎ、「あとで対応」の再通知、返信・電話・完了まで同じカードで操作できます。不在着信からの折り返し依頼は、短時間に重ねて送りません。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>電話帳・履歴・グループの「連絡」から、相手を選んだ状態でメッセージを作れます。対応時期は「すぐ対応・午前・午後・時間帯」から選ぶか、補足を自由に入力できます。「誰か1人にお願い」は最初に「向かいます」を押した人だけが担当になり、返信・電話・完了まで同じカードで操作できます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の案内が消えるまで、そのままお待ちください。参加確認、マイク、音声接続は自動で進み、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>サポートあり</strong><span>会話から用語を見つけます。表示された用語を押すと短い説明を確認でき、必要なときだけ「たとえを見る」を使えます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone-volume"></i><span><strong>通常通話</strong><span>音声通話だけを使い、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
@@ -4564,7 +4564,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-14-contact-operations";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-14-direct-contact";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4609,7 +4609,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-14-contact-operations";
+    const APP_VERSION = "2026-09-14-direct-contact";
     const ADMIN_PASSWORD_SHA256 = "1cb69c64b337e546c188ac6c1452f02c91805a4f1e04063a0bb13d567eec8b86";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v1";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";

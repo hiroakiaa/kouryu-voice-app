@@ -733,3 +733,40 @@ test('通知タップ直後に着信画面を出し開いているアプリは�
  assert.match(html,/params\.get\("fromPush"\) === "1"[\s\S]*?着信を確認しています…[\s\S]*?pendingIncomingDialog\.showModal\(\)/);
  assert.match(app,/\$\('numberAccept'\)\.disabled=false;\$\('numberDecline'\)\.disabled=false/);
 });
+
+test('発信確定直後に呼び出し準備画面へ切り替える',()=>{
+ assert.match(app,/busy=true;\$\('phoneOutgoingName'\)\.textContent=targetName;\$\('phoneOutgoingNumber'\)\.textContent='発信を準備しています'/);
+ assert.match(app,/if\(!\$\('phoneOutgoingDialog'\)\.open\)\$\('phoneOutgoingDialog'\)\.showModal\(\);\s*try\{const check=await preflight/);
+ assert.match(app,/\$\('phoneCancel'\)\.disabled=true/);
+});
+
+test('電話帳・履歴・グループから相手を選んで連絡を作れる',()=>{
+ assert.match(app,/class="contact-message-button" data-message-uid=/);
+ assert.match(app,/data-message-number=/);
+ assert.match(app,/data-message-group=/);
+ assert.match(app,/function openNoticeCompose\(targetUids=\[\]\)/);
+ assert.match(app,/if\(d\.messageUid\)await messageTo/);
+});
+
+test('表示中の電話帳と連絡では在席状態をリアルタイム購読する',()=>{
+ assert.match(app,/function syncVisiblePresenceWatches\(\)/);
+ assert.match(app,/watch\(ref\('userPresence',id\),snapshot=>/);
+ assert.match(app,/contactPresenceOff=new Map\(\)/);
+});
+
+test('連絡期限を定型選択・時間帯・自由文で指定できる',()=>{
+ for(const value of ['soon','morning','afternoon','range']) assert.match(html,new RegExp(`name="noticeDeadlineChoice" value="${value}"`));
+ for(const id of ['phoneNoticeDeadlineHelp','phoneNoticeDeadlineStart','phoneNoticeDeadline','phoneNoticeDeadlineText']) assert.match(html,new RegExp(`id="${id}"`));
+ assert.match(app,/function selectedNoticeDeadline\(\)/);
+ assert.match(rules,/windowStartAt/);
+ assert.match(rules,/deadlineLabel/);
+ assert.match(rules,/deadlineText/);
+});
+
+test('連絡送信中はボタン内にローディングを表示して二重送信を防ぐ',()=>{
+ assert.match(html,/notice-send-spinner/);
+ assert.match(app,/button\.disabled=true;button\.classList\.add\('is-loading'\)/);
+ assert.match(app,/finally\{button\.disabled=false;button\.classList\.remove\('is-loading'\)/);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.notice-send-button\.is-loading \.notice-send-spinner\{display:inline-block\}/);
+});
