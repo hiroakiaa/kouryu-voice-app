@@ -566,11 +566,12 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .phone-home-card>.phone-tabs button{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-width:0;flex:none;font-size:17px}
 .phone-home-card>.phone-tabs button>i{font-size:19px;color:#5d963f}
 .phone-home-card>.phone-tabs button[aria-selected="true"]>i{color:#3e7b2d}
-.phone-dial-shortcuts{position:absolute;z-index:5;left:var(--own-inset,18px);bottom:14px;display:grid;gap:8px;width:116px}
+.phone-dial-shortcuts{position:absolute;z-index:11;left:2px;bottom:82px;display:grid;gap:8px;width:116px}
 .phone-home-card .phone-dial-shortcuts button{display:flex;align-items:center;gap:9px;width:100%;min-height:45px;padding:8px 11px;border-radius:15px;background:#f5fbe9;color:#45663c;font-size:13px;font-weight:750;text-align:left}
 .phone-dial-shortcuts button i{display:grid;place-items:center;width:21px;color:#65a645;font-size:16px}
-@media(max-width:540px){.phone-home-card>.phone-tabs button{min-height:48px;font-size:16px}.phone-dial-shortcuts{left:8px;bottom:8px;width:99px;gap:6px}.phone-home-card .phone-dial-shortcuts button{min-height:41px;padding:6px 8px;font-size:12px}}
+@media(max-width:540px){.phone-home-card>.phone-tabs button{min-height:48px;font-size:16px}.phone-dial-shortcuts{left:2px;bottom:70px;width:99px;gap:6px}.phone-home-card .phone-dial-shortcuts button{min-height:41px;padding:6px 8px;font-size:12px}}
 @media(max-width:360px){.phone-dial-shortcuts{width:48px}.phone-dial-shortcuts button{justify-content:center!important;padding:5px!important}.phone-dial-shortcuts button span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
+#phoneHistoryPanel,#phoneContactsPanel,#phoneGroupsPanel{padding-bottom:190px!important}
 
 /* Profile and settings share the header person button without crowding the main navigation. */
 #phoneNameDialog.profile-settings-dialog{width:min(680px,calc(100% - 24px));max-height:min(90dvh,820px);grid-template-rows:auto auto minmax(0,1fr)}

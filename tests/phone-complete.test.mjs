@@ -377,12 +377,13 @@ test('主タブは連絡と電話だけにし電話の補助機能と設定を�
  assert.match(mainTabs,/fa-message[\s\S]*?<span>連絡<\/span>/);
  assert.match(mainTabs,/fa-phone[\s\S]*?<span>電話<\/span>/);
  assert.doesNotMatch(mainTabs,/>履歴<|>電話帳<|>グループ<|>設定</);
- assert.match(html,/class="phone-dial-shortcuts"[\s\S]*?data-phone-tab="history"[\s\S]*?data-phone-tab="contacts"[\s\S]*?data-phone-tab="groups"/);
+ assert.match(html,/id="phoneDialShortcuts" class="phone-dial-shortcuts"[\s\S]*?data-phone-tab="history"[\s\S]*?data-phone-tab="contacts"[\s\S]*?data-phone-tab="groups"/);
  assert.match(html,/class="profile-settings-tabs"[\s\S]*?data-profile-tab="name"[\s\S]*?data-profile-tab="settings"/);
  assert.match(app,/settingsHost\.append\(settingsPanel\)/);
  assert.match(app,/const primary=id==='notices'\?'notices':'dial'/);
  assert.match(css,/\.phone-home-card>\.phone-tabs\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(css,/\.phone-dial-shortcuts\{position:absolute;[^}]*left:var\(--own-inset,18px\);bottom:14px;[^}]*display:grid/);
+ assert.match(css,/\.phone-dial-shortcuts\{position:absolute;[^}]*left:2px;bottom:82px;[^}]*display:grid/);
+ assert.match(app,/shortcuts\.hidden=id==='notices'/);
 });
 
 test('電話番号は直接編集できない表示専用エリアにする',()=>{
