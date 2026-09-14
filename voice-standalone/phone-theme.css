@@ -613,3 +613,13 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 @media(max-width:540px){.school-notice-card header{align-items:flex-start}.school-notice-card header time{padding-top:5px}.school-notice-actions button{font-size:12px;padding-inline:8px}}
 /* Reply counts update inside the action without changing button size. */
 .notice-reply-count{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:3px;padding:0 5px;border-radius:999px;background:#d95664;color:#fff;font-size:11px;font-weight:800;line-height:1;box-sizing:border-box}.school-notice-card details summary{display:flex;align-items:center;gap:6px;width:max-content;padding:7px 10px;border:1px solid #c6dcae;border-radius:999px;background:#f3f9ea;color:#43653a;font-weight:800;cursor:pointer}.school-notice-card details summary small{margin-left:2px;color:#718069;font-size:10px;font-weight:600}
+
+/* State changes keep the two main modes calm and visually continuous. */
+#phoneHome>[role="tabpanel"]:not([hidden]){animation:phone-panel-enter .22s ease-out both}
+.phone-tabs button,.notice-filter-tabs button{transition:background-color .2s ease,color .2s ease,box-shadow .2s ease,transform .16s ease}
+.phone-tabs button:active,.notice-filter-tabs button:active{transform:scale(.985)}
+.school-notice-card{animation:notice-card-enter .2s ease-out both}
+.notice-action-dialog form{display:grid;gap:12px}.notice-action-dialog form label{font-weight:800}.notice-action-dialog form select{width:100%;min-height:50px;padding:10px 12px;border:1px solid #aacb89;border-radius:13px;background:#fffef8;color:#30462d;font:inherit}.notice-action-dialog form .phone-primary{min-height:52px;font-size:16px}
+@keyframes phone-panel-enter{from{opacity:.45;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes notice-card-enter{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#phoneHome>[role="tabpanel"]:not([hidden]),.school-notice-card{animation:none}.phone-tabs button,.notice-filter-tabs button{transition:none}}

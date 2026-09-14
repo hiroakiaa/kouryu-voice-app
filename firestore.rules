@@ -223,7 +223,7 @@ service cloud.firestore {
     }
     function validSchoolResponse(value) {
       return value is map && value.keys().hasOnly(['state','name','text','at','replyCount','remindAt','handoffUid','handoffName'])
-        && value.state in ['seen','later','accepted','done'] && shortName(value.name)
+        && value.state in ['pending','seen','later','accepted','done'] && shortName(value.name)
         && value.text is string && value.text.size() <= 200 && value.at is number
         && (!('replyCount' in value) || (value.replyCount is int && value.replyCount >= 1 && value.replyCount <= 999))
         && (!('remindAt' in value) || (value.remindAt is number && value.remindAt > value.at && value.remindAt <= value.at + 86400000))

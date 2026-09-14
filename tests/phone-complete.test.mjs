@@ -243,7 +243,7 @@ test('連絡タブはお願いとお知らせを一枚のカードで送受信�
 
 test('連絡は所属宛先・未対応優先・検索・配信状態・取消・管理集計を扱う',()=>{
  for(const id of ['phoneNoticeSearchToggle','phoneNoticeSearch','phoneNoticeSummary','adminNoticeStats','phoneContactDepartment'])assert.match(html,new RegExp(`id="${id}"`));
- for(const filter of ['pending','all','mine','archive'])assert.match(html,new RegExp(`data-notice-filter="${filter}"`));
+ for(const filter of ['pending','later','completed','all'])assert.match(html,new RegExp(`data-notice-filter="${filter}"`));
  assert.match(app,/departmentChoices/);
  assert.match(app,/noticeFilter='pending'/);
  assert.match(app,/data-notice-cancel/);
@@ -265,6 +265,11 @@ test('連絡の絞り込みは電話ナビと同じ位置と操作で検索は�
  assert.match(app,/function setNoticeFilter\(value,/);
  assert.match(app,/noticeScrollPositions\.set\(noticeFilter,panel\.scrollTop\)/);
  assert.match(app,/noticeFilterTabs\.addEventListener\('keydown'/);
+ assert.match(html,/id="phoneNoticeChangeDialog"/);
+ assert.match(app,/noticeChange/);
+ assert.match(app,/setNoticeFilter\(next\)/);
+ assert.match(app,/mine&&failed&&!done/);
+ assert.match(rules,/\['pending','seen','later','accepted','done'\]/);
  assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts,\.phone-home-card>\.phone-notice-filters\{order:1/);
  assert.match(css,/\.notice-search-toggle-row\{display:flex;align-items:center;justify-content:space-between/);
 });
