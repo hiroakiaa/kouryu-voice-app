@@ -299,8 +299,8 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 @media(max-width:420px){.phone-home-card #accountActions{grid-template-columns:minmax(0,1fr)}.phone-home-card .phone-row>button{flex:1 1 44px}.phone-home-card .phone-primary-form{grid-template-columns:minmax(0,1fr) auto}}
 
 /* Bottom navigation: the active panel scrolls above a thumb-friendly fixed tab row. */
-.phone-home-card>.phone-tabs{order:3;position:relative;z-index:12;width:100%;margin-top:auto;padding:9px 2px 4px;border-top:1px solid #cad8b9;border-bottom:0;background:#fffef8;box-sizing:border-box}
-.phone-home-card>[role="tabpanel"]{order:1}
+.phone-home-card>.phone-tabs{order:4;position:relative;z-index:12;width:100%;margin-top:0;padding:9px 2px 4px;border-top:1px solid #cad8b9;border-bottom:0;background:#fffef8;box-sizing:border-box}
+.phone-home-card>[role="tabpanel"]{order:2}
 .phone-home-card>.phone-add-fab{bottom:86px}
 @media(max-width:540px){.phone-home-card>.phone-tabs{padding:7px 2px 3px}.phone-home-card>.phone-add-fab{bottom:72px}}
 @media(min-width:640px){body.phone-home .phone-home-card{padding-bottom:0}.phone-home-card>.phone-tabs{padding:9px 2px}}
@@ -566,13 +566,21 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .phone-home-card>.phone-tabs button{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-width:0;flex:none;font-size:17px}
 .phone-home-card>.phone-tabs button>i{font-size:19px;color:#5d963f}
 .phone-home-card>.phone-tabs button[aria-selected="true"]>i{color:#3e7b2d}
-.phone-home-card>.phone-dial-shortcuts{order:2;position:relative;z-index:11;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));flex:0 0 auto;gap:8px;width:100%;box-sizing:border-box;margin:0;padding:9px 2px;border-top:1px solid #cad8b9;background:#fffef8}
-.phone-home-card .phone-dial-shortcuts button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-width:0;min-height:45px;padding:8px 10px;border-radius:15px;background:#f5fbe9;color:#45663c;font-size:14px;font-weight:750;text-align:center}
+.phone-home-card>.phone-dial-shortcuts{order:1;position:relative;z-index:11;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));flex:0 0 auto;gap:6px;width:100%;box-sizing:border-box;margin:62px 0 10px;padding:5px;border:1px solid #d6e5c8;border-radius:16px;background:#f1f7e9}
+.phone-home-card .phone-dial-shortcuts button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-width:0;min-height:42px;padding:7px 8px;border:0;border-radius:12px;background:transparent;color:#64745c;font-size:13px;font-weight:800;text-align:center;box-shadow:none}
 .phone-dial-shortcuts button i{display:grid;place-items:center;width:21px;flex:0 0 21px;color:#65a645;font-size:16px}
-.phone-dial-shortcuts button[aria-selected="true"]{background:#e1f5c8!important;color:#376b25;border-color:#7ab94e;box-shadow:inset 0 0 0 2px #f2fbe5,0 3px 0 #d4e9bc}
-@media(max-width:540px){.phone-home-card>.phone-tabs button{min-height:48px;font-size:16px}.phone-home-card>.phone-dial-shortcuts{gap:6px;padding:7px 2px}.phone-home-card .phone-dial-shortcuts button{min-height:42px;padding:6px 5px;font-size:12px;gap:5px}.phone-dial-shortcuts button i{width:18px;flex-basis:18px;font-size:15px}}
+.phone-dial-shortcuts button[aria-selected="true"]{background:#fff!important;color:#35612d;box-shadow:0 2px 8px rgba(62,99,46,.12)}
+@media(max-width:540px){.phone-home-card>.phone-tabs button{min-height:48px;font-size:16px}.phone-home-card>.phone-dial-shortcuts{gap:3px;margin-top:58px;padding:4px}.phone-home-card .phone-dial-shortcuts button{min-height:40px;padding:6px 3px;font-size:11px;gap:5px}.phone-dial-shortcuts button i{width:18px;flex-basis:18px;font-size:15px}}
 @media(max-width:340px){.phone-home-card .phone-dial-shortcuts button{font-size:11px;letter-spacing:-.04em}}
 #phoneHistoryPanel,#phoneContactsPanel,#phoneGroupsPanel{padding-bottom:8px!important}
+.phone-home-card>#phoneDialUtility{order:3;position:relative;z-index:13;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;gap:12px;width:100%;min-height:58px;box-sizing:border-box;padding:7px 12px;border-top:1px solid #cad8b9;background:#fffef8}
+.phone-home-card>#phoneDialUtility[hidden]{display:none!important}
+#phoneDialUtility .phone-dial-scope-note{position:static;min-width:0;white-space:normal}
+#phoneDialUtility #phoneOwnToggle{position:static;right:auto;top:auto;flex:0 0 auto;margin:0}
+#phoneDialUtility #phoneOwnDetails{right:8px;top:auto;bottom:calc(100% + 8px);z-index:20;transform:translateY(6px)}
+#phoneDialUtility #phoneOwnDetails.is-visible{transform:translateY(0)}
+@media(max-width:430px){.phone-home-card>#phoneDialUtility{gap:7px;padding:6px 7px}.phone-home-card>#phoneDialUtility .phone-dial-scope-note{left:auto;top:auto;max-width:calc(100% - 68px);padding:5px 7px;font-size:9px}}
+#phoneDialPanel{padding-top:8px}
 
 /* Profile and settings share the header person button without crowding the main navigation. */
 #phoneNameDialog.profile-settings-dialog{width:min(680px,calc(100% - 24px));max-height:min(90dvh,820px);grid-template-rows:auto auto minmax(0,1fr)}

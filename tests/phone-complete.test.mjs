@@ -333,9 +333,9 @@ test('自分の番号は外側のクリックで閉じ、電話タブは各画�
  const settings=html.indexOf('<section id="phoneSettingsPanel"'),tabs=html.indexOf('<nav class="phone-tabs"');
  assert.ok(settings>=0&&tabs>settings);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
- assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*order:3;[^}]*margin-top:auto;[^}]*border-top:/);
+ assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*order:4;[^}]*margin-top:0;[^}]*border-top:/);
  assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*padding:9px 2px 4px/);
- assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:1\}/);
+ assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:2\}/);
  assert.match(css,/@media\(min-width:640px\)\{body\.phone-home \.phone-home-card\{padding-bottom:0\}\.phone-home-card>\.phone-tabs\{padding:9px 2px\}\}/);
 });
 
@@ -377,14 +377,18 @@ test('主タブは連絡と電話だけにし電話の補助機能と設定を�
  assert.match(mainTabs,/fa-message[\s\S]*?<span>連絡<\/span>/);
  assert.match(mainTabs,/fa-phone[\s\S]*?<span>電話<\/span>/);
  assert.doesNotMatch(mainTabs,/>履歴<|>電話帳<|>グループ<|>設定</);
- assert.match(html,/id="phoneDialShortcuts" class="phone-dial-shortcuts"[\s\S]*?data-phone-tab="history"[\s\S]*?data-phone-tab="contacts"[\s\S]*?data-phone-tab="groups"/);
+ assert.match(html,/id="phoneDialShortcuts" class="phone-dial-shortcuts notice-filter-tabs"[\s\S]*?data-phone-tab="history"[\s\S]*?data-phone-tab="contacts"[\s\S]*?data-phone-tab="groups"/);
  assert.match(html,/class="profile-settings-tabs"[\s\S]*?data-profile-tab="name"[\s\S]*?data-profile-tab="settings"/);
  assert.match(app,/settingsHost\.append\(settingsPanel\)/);
  assert.match(app,/const primary=id==='notices'\?'notices':'dial'/);
  assert.match(css,/\.phone-home-card>\.phone-tabs\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts\{order:2;position:relative;[^}]*display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);[^}]*flex:0 0 auto/);
- assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:1\}/);
- assert.match(css,/\.phone-home-card>\.phone-tabs\{order:3/);
+ assert.match(html,/id="phoneDialShortcuts" class="phone-dial-shortcuts notice-filter-tabs"/);
+ assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts\{order:1;position:relative;[^}]*display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);[^}]*flex:0 0 auto/);
+ assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:2\}/);
+ assert.match(css,/\.phone-home-card>\.phone-tabs\{order:4/);
+ assert.match(html,/id="phoneDialUtility"[\s\S]*?phone-dial-scope-note[\s\S]*?id="phoneOwnToggle"[\s\S]*?id="phoneOwnDetails"/);
+ assert.match(css,/#phoneDialUtility #phoneOwnDetails\{[^}]*bottom:calc\(100% \+ 8px\)/);
+ assert.match(app,/utility\.hidden=id!=='dial'/);
  assert.match(app,/shortcuts\.hidden=id==='notices'/);
 });
 
