@@ -628,3 +628,6 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{position:fixed;right:max(22px,calc((100vw - 1180px)/2 + 30px));bottom:calc(env(safe-area-inset-bottom,0px) + 84px);left:auto;z-index:24}
 .notice-self-sent-badge{display:inline-flex;align-items:center;gap:6px;margin:11px 0 2px;padding:6px 10px;border:1px solid #bcd8a3;border-radius:999px;background:#e8f5dc;color:#3e6735;font-size:12px;font-weight:800}.notice-self-sent-badge i{color:#65a946}
 @media(max-width:540px){.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 74px)}}
+/* Add actions belong to phoneHome, so they stay at the visible section corner at every width. */
+.phone-home-card>.phone-add-fab{position:absolute;right:clamp(12px,1.6vw,20px);bottom:86px;left:auto;z-index:24}
+@media(max-width:540px){.phone-home-card>.phone-add-fab{right:12px;bottom:74px}}

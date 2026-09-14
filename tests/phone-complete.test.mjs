@@ -312,8 +312,9 @@ test('電話帳とグループの追加ボタンは同じ位置で下部タブ�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(html,/<section id="phoneContactsPanel"[\s\S]*?id="phoneContactAddToggle"[\s\S]*?<\/section>/);
  assert.match(css,/#phoneContactsPanel,#phoneGroupsPanel\{position:relative;padding-bottom:90px!important\}/);
- assert.match(css,/#phoneContactsPanel \.phone-add-fab,#phoneGroupsPanel \.phone-add-fab\{position:absolute;right:14px;bottom:14px\}/);
- assert.match(app,/addButton\.hidden=id!==\'contacts\'/);
+ assert.match(css,/\.phone-home-card>\.phone-add-fab\{position:absolute;right:clamp\(12px,1\.6vw,20px\);bottom:86px/);
+ assert.match(app,/\[\['phoneNoticeAddToggle','notices'\],\['phoneContactAddToggle','contacts'\],\['phoneGroupAddToggle','groups'\]\]/);
+ assert.match(app,/addButton\.hidden=id!==panelId/);
  assert.match(css,/\.frequent-card>i\{font-size:52px\}/);
 });
 
@@ -810,6 +811,19 @@ test('連絡を未対応から開き送信済み表示と固定追加ボタン�
  assert.match(app,/b\.id==='phoneTab-notices'\)setNoticeFilter\('pending'\)/);
  assert.match(app,/notice-self-sent-badge/);
  assert.doesNotMatch(css,/\.school-notice-card\.needs-action\{border-left:5px/);
- assert.match(css,/\.phone-home-card \.phone-add-fab,[^}]*position:fixed/);
+ assert.match(css,/\.phone-home-card>\.phone-add-fab\{position:absolute;right:clamp\(12px,1\.6vw,20px\);bottom:86px/);
+ assert.match(app,/\$\('phoneHome'\)\.append\(\$\(actionId\)\)/);
  assert.match(html,/自分が送ったカードには「自分が送った連絡」と表示されます/);
+});
+
+test('完了・返信・状態変更を全端末の連絡一覧へ同期する',()=>{
+ assert.match(app,/function noticeIsCompleted\(item\)/);
+ assert.match(app,/Object\.values\(item\.responses\|\|\{\}\)\.some\(value=>value\.state==='done'\)/);
+ assert.match(app,/completed=noticeIsCompleted\(item\)\|\|response\.state==='done'\|\|response\.state==='seen'/);
+ assert.match(app,/done=noticeIsCompleted\(item\)\|\|response\.state==='done'\|\|response\.state==='seen'/);
+ assert.match(app,/item\.status==='open'&&!noticeIsCompleted\(item\)[^;]*needsAction\+\+/);
+ assert.match(app,/waiting=!done&&!mine/);
+ assert.match(app,/\$\{!done&&!mine&&item\.status==='open'/);
+ assert.match(app,/recipientUids','array-contains',uid[\s\S]*?mergeNotices\(\)/);
+ assert.match(app,/senderUid','==',uid[\s\S]*?mergeNotices\(\)/);
 });

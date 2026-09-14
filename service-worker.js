@@ -1,4 +1,4 @@
-const CACHE_NAME = "kouryu-voice-shell-v64";
+const CACHE_NAME = "kouryu-voice-shell-v65";
 const APP_SCOPE_URL = new URL("./", self.location.href).toString();
 
 self.addEventListener("install", function(event) {
