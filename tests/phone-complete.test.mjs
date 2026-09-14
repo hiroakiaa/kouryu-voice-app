@@ -276,12 +276,16 @@ test('職員の状態・即時返答・先着担当・不在時の折り返し�
  assert.match(html,/誰か1人にお願い/);
  assert.match(app,/const presenceLabels=\{available:'対応できます',class:'授業中',away:'離席中',urgent:'緊急のみ'/);
  assert.match(app,/Date\.now\(\)\+90\*60000/);
- assert.match(app,/watch\(ref\('userPresence',id\)/);
+ assert.match(app,/async function refreshContactPresence/);
+ assert.match(app,/Date\.now\(\)-presenceRefreshAt<60000/);
  assert.match(app,/data-notice-call-back/);
  assert.match(app,/updateNoticeResponse\(id,'accepted','向かいます'\)/);
  assert.match(app,/updateNoticeResponse\(id,'accepted','電話します'\)/);
  assert.match(app,/async function sendCallbackRequest/);
  assert.match(app,/subject:'折り返しをお願いします'/);
+ assert.match(app,/data-notice-handoff/);
+ assert.match(app,/data-remind-minutes/);
+ assert.match(app,/noticeSent\.find\(item=>item\.status==='open'/);
  assert.match(rules,/match \/userPresence\/\{uid\}/);
  assert.match(rules,/request\.resource\.data\.status in \['available','class','away','urgent'\]/);
  assert.match(css,/\.presence-options\{display:grid/);

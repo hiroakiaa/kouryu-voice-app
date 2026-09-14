@@ -219,9 +219,12 @@ service cloud.firestore {
         && d.delivery is map && d.delivery.size() == d.recipientUids.size();
     }
     function validSchoolResponse(value) {
-      return value is map && value.keys().hasOnly(['state','name','text','at'])
+      return value is map && value.keys().hasOnly(['state','name','text','at','remindAt','handoffUid','handoffName'])
         && value.state in ['seen','later','accepted','done'] && shortName(value.name)
-        && value.text is string && value.text.size() <= 200 && value.at is number;
+        && value.text is string && value.text.size() <= 200 && value.at is number
+        && (!('remindAt' in value) || (value.remindAt is number && value.remindAt > value.at && value.remindAt <= value.at + 86400000))
+        && (!('handoffUid' in value) || (value.handoffUid is string && value.handoffUid in resource.data.recipientUids && value.handoffUid != request.auth.uid))
+        && (!('handoffName' in value) || shortName(value.handoffName));
     }
     match /schoolNotices/{id} {
       allow get, list: if request.auth != null && (resource.data.senderUid == request.auth.uid || request.auth.uid in resource.data.recipientUids);

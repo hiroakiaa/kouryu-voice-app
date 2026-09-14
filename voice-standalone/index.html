@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-14-staff-contact-flow">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-14-contact-operations">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4234,7 +4234,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <div class="number-head"><h2 id="phoneNoticeComposeTitle">新しい連絡</h2><button id="phoneNoticeComposeClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div>
       <form id="phoneNoticeForm">
         <fieldset class="notice-kind-picker"><legend>連絡の種類</legend><label><input type="radio" name="noticeKind" value="request" checked><span><i class="fa-solid fa-hand"></i> 誰か1人にお願い</span></label><label><input type="radio" name="noticeKind" value="info"><span><i class="fa-solid fa-bullhorn"></i> お知らせ</span></label></fieldset>
-        <label>宛先<span id="phoneNoticeRecipients" class="notice-recipient-list"></span></label>
+        <label>宛先<span id="phoneNoticeRecipients" class="notice-recipient-list"></span></label><p id="phoneNoticeRecommendation" class="notice-operation-recommendation" hidden></p>
         <label>内容<select id="phoneNoticeTemplate"><option>保護者へ折り返し</option><option>来客・業者対応</option><option>職員室へ連絡</option><option>確認してください</option><option value="その他">その他</option></select></label>
         <label>補足<textarea id="phoneNoticeDetail" maxlength="300" rows="3" placeholder="必要な場合だけ入力"></textarea></label>
         <label>期限（任意）<input id="phoneNoticeDeadline" type="datetime-local"><small>期限を過ぎた未対応の連絡は、カードで目立つように表示します。</small></label>
@@ -4247,6 +4247,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <div class="number-head"><h2 id="phoneNoticeReplyTitle">返信</h2><button id="phoneNoticeReplyClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div>
       <form id="phoneNoticeReplyForm"><p id="phoneNoticeReplyTo"></p><textarea id="phoneNoticeReplyText" maxlength="200" rows="4" placeholder="短い返信を入力" required></textarea><button class="phone-primary" type="submit"><i class="fa-solid fa-reply"></i> 返信する</button></form>
     </dialog>
+    <dialog id="phoneNoticeLaterDialog" class="number-modal notice-action-dialog" aria-labelledby="phoneNoticeLaterTitle"><div class="number-head"><h2 id="phoneNoticeLaterTitle">あとで対応</h2><button id="phoneNoticeLaterClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div><p>もう一度知らせる時間を選びます。アプリを開いている間は時刻どおりに案内します。</p><div class="notice-time-options"><button type="button" data-remind-minutes="10">10分後</button><button type="button" data-remind-minutes="30">30分後</button><button type="button" data-remind-minutes="60">1時間後</button></div></dialog>
+    <dialog id="phoneNoticeHandoffDialog" class="number-modal notice-action-dialog" aria-labelledby="phoneNoticeHandoffTitle"><div class="number-head"><h2 id="phoneNoticeHandoffTitle">担当を引き継ぐ</h2><button id="phoneNoticeHandoffClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div><p>この連絡の宛先から、次の担当者を選びます。</p><div id="phoneNoticeHandoffPeople" class="notice-handoff-people"></div></dialog>
     <dialog id="deviceCheckDialog" class="number-modal device-check-dialog" aria-labelledby="deviceCheckTitle">
       <div class="number-head"><h2 id="deviceCheckTitle">端末チェック</h2><button id="deviceCheckClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div>
       <p class="device-check-intro">この端末で通話できる状態か確認します。会話内容や名前は送信しません。</p>
@@ -4266,7 +4268,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」タブで相手の8桁の番号を入力します。画面上部の「番号入力・履歴・電話帳・グループ」から、使いたい画面へ直接切り替えられます。「番号入力」を押すと、履歴などから電話をかける画面へ戻れます。専用番号の案内と自分の番号は、画面下部にまとまっています。このアプリ同士で使う専用番号で、一般の電話番号や緊急通報には発信できません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-hand-pointer"></i><span><strong>上部のボタン</strong><span>左のヘッドホンは管理者メニュー、右の人型はプロフィールと設定、「？」はこの使い方を開きます。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>画面上部で表示を切り替え、自分の対応状態も設定できます。「誰か1人にお願い」は、最初に「向かいます」を押した人が担当になります。「あとで対応」「電話します」でも素早く返答でき、応答のなかった電話から折り返し依頼も送れます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>宛先には相手の対応状態と、おすすめの連絡方法が表示されます。「誰か1人にお願い」は最初に「向かいます」を押した人だけが担当になり、ほかの人には担当者が表示されます。担当の引き継ぎ、「あとで対応」の再通知、返信・電話・完了まで同じカードで操作できます。不在着信からの折り返し依頼は、短時間に重ねて送りません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の案内が消えるまで、そのままお待ちください。参加確認、マイク、音声接続は自動で進み、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>サポートあり</strong><span>会話から用語を見つけます。表示された用語を押すと短い説明を確認でき、必要なときだけ「たとえを見る」を使えます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone-volume"></i><span><strong>通常通話</strong><span>音声通話だけを使い、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
@@ -4411,7 +4413,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <div class="admin-budget-row"><label for="adminBudgetInput">月の目安上限（円）</label><input id="adminBudgetInput" type="number" inputmode="decimal" min="0" step="100" value="500"><p id="adminBudgetStatus" role="status" aria-live="polite"></p></div>
       <section class="admin-control-card" aria-labelledby="adminNoticePermissionTitle"><h3 id="adminNoticePermissionTitle">連絡の利用設定</h3><p>この端末から使わせる送信方法を選びます。</p><label><input id="adminNoticeAllowAll" type="checkbox"> 電話帳の全員へ送る</label><label><input id="adminNoticeAllowGroup" type="checkbox"> グループ・所属へまとめて送る</label><label><input id="adminNoticeAllowUrgent" type="checkbox"> 「急ぎ」を付けて送る</label></section>
       <section class="admin-control-card" aria-labelledby="adminPasswordChangeTitle"><h3 id="adminPasswordChangeTitle">管理者パスワードを変更</h3><p>この端末で次回から使うパスワードです。文字そのものは保存しません。</p><form id="adminPasswordChangeForm"><label>新しいパスワード<input id="adminNewPassword" type="password" minlength="4" autocomplete="new-password" required></label><label>もう一度入力<input id="adminNewPasswordConfirm" type="password" minlength="4" autocomplete="new-password" required></label><button type="submit"><i class="fa-solid fa-key"></i> 変更する</button><p id="adminPasswordChangeMessage" role="status"></p></form></section>
-      <section class="admin-notice-overview" aria-labelledby="adminNoticeOverviewTitle"><h3 id="adminNoticeOverviewTitle">連絡の利用状況</h3><div id="adminNoticeStats" class="admin-notice-stats"><span><strong>0</strong>送信</span><span><strong>0</strong>未対応</span><span><strong>0</strong>通知失敗</span></div><small>このアカウントが閲覧できる連絡だけを集計します。本文は表示しません。</small></section><details class="admin-notice-cost"><summary>連絡機能の仕組みと費用</summary><p>連絡1件を1人へ送り、通知結果を記録して相手が確認を返す場合、Firestoreはおおむね書き込み3回と数回の読み取り、Push通知1回を使います。期限は同じ文書内へ保存するため通常の追加料金はほぼありません。通知再送では、失敗した相手1人につきPush通知1回と最大2回の書き込みが増えます。無料枠適用前でも1人宛て1往復や1回の再送は約0.001円未満が目安です。本文と返答はFirestoreに保存し、通話音声は保存しません。実際の請求はアカウント全体の無料枠と利用量で決まります。</p></details>
+      <section class="admin-notice-overview" aria-labelledby="adminNoticeOverviewTitle"><h3 id="adminNoticeOverviewTitle">連絡の利用状況</h3><div id="adminNoticeStats" class="admin-notice-stats"><span><strong>0</strong>送信</span><span><strong>0</strong>未対応</span><span><strong>0</strong>通知失敗</span></div><small>このアカウントが閲覧できる連絡だけを集計します。本文は表示しません。</small></section><details class="admin-notice-cost"><summary>連絡機能の仕組みと費用</summary><p>連絡1件を1人へ送り、通知結果を記録して相手が確認を返す場合、Firestoreはおおむね書き込み3回と数回の読み取り、Push通知1回を使います。在席状態は画面を開いた時と復帰時を中心に読み、常時監視を避けています。無料枠適用前でも1人宛て1往復は約0.001円未満が目安です。本文と返答はFirestoreに保存し、通話音声は保存しません。実際の請求はアカウント全体の無料枠と利用量で決まります。</p></details><section class="admin-control-card admin-two-device-check" aria-labelledby="adminTwoDeviceTitle"><h3 id="adminTwoDeviceTitle">2端末での連絡確認</h3><p>公開前に、送信側と受信側で次の順に確認します。チェック内容はこの端末だけに保存します。</p><label><input type="checkbox" data-admin-check="delivery"> 通知とカードが受信側へ届く</label><label><input type="checkbox" data-admin-check="assignment"> 1人が担当すると他端末の操作が閉じる</label><label><input type="checkbox" data-admin-check="handoff"> 引き継ぎとあとで通知が動く</label><label><input type="checkbox" data-admin-check="call"> カードから電話できる</label><button id="adminTwoDeviceReset" type="button"><i class="fa-solid fa-rotate-left"></i> 確認をリセット</button></section>
       <div class="cost-tabs" role="tablist" aria-label="料金の表示">
         <button id="currentCallTab" role="tab" data-cost-tab aria-controls="currentCallPanel" aria-selected="true" type="button">今回の通話</button>
         <button id="costScenarioTab" role="tab" data-cost-tab aria-controls="costScenarioPanel" aria-selected="false" tabindex="-1" type="button">10分間の試算</button>
@@ -4562,7 +4564,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-14-notice-navigation";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-14-contact-operations";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4607,7 +4609,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-14-notice-navigation";
+    const APP_VERSION = "2026-09-14-contact-operations";
     const ADMIN_PASSWORD_SHA256 = "1cb69c64b337e546c188ac6c1452f02c91805a4f1e04063a0bb13d567eec8b86";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v1";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
