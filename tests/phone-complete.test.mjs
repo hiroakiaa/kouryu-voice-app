@@ -382,7 +382,9 @@ test('主タブは連絡と電話だけにし電話の補助機能と設定を�
  assert.match(app,/settingsHost\.append\(settingsPanel\)/);
  assert.match(app,/const primary=id==='notices'\?'notices':'dial'/);
  assert.match(css,/\.phone-home-card>\.phone-tabs\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(css,/\.phone-dial-shortcuts\{position:absolute;[^}]*left:12px;bottom:142px;[^}]*display:grid/);
+ assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts\{order:2;position:relative;[^}]*display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);[^}]*flex:0 0 auto/);
+ assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:1\}/);
+ assert.match(css,/\.phone-home-card>\.phone-tabs\{order:3/);
  assert.match(app,/shortcuts\.hidden=id==='notices'/);
 });
 

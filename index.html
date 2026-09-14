@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-14-phone-shortcuts-2">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-14-phone-shortcut-row">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4263,7 +4263,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     </dialog>
     <dialog id="callTips" class="card call-tips" aria-labelledby="callTipsTitle" aria-hidden="true">
 <div class="tips-modal-head"><h2 id="callTipsTitle">使い方のヒント</h2><button id="tipsCloseBtn" class="modal-close" type="button" aria-label="閉じる" autofocus><i class="fa-solid fa-xmark"></i></button></div>
-      <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」タブで相手の8桁の番号を入力します。左側のボタンから履歴・電話帳・グループへ移動でき、移動後も同じ場所から切り替えられます。このアプリ同士で使う専用番号で、一般の電話番号や緊急通報には発信できません。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」タブで相手の8桁の番号を入力します。画面下の「履歴・電話帳・グループ」は横一列のメニューから切り替えられます。このアプリ同士で使う専用番号で、一般の電話番号や緊急通報には発信できません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-hand-pointer"></i><span><strong>上部のボタン</strong><span>左のヘッドホンは管理者メニュー、右の人型はプロフィールと設定、「？」はこの使い方を開きます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-envelope"></i><span><strong>連絡</strong><span>お願いやお知らせを送り、同じカードで返答や電話ができます。期限を付けると期限超過が目立ち、通知に失敗した相手には再送できます。一斉送信・急ぎ・まとめて送る機能は管理者が端末ごとに許可します。送信直後は取り消せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の案内が消えるまで、そのままお待ちください。参加確認、マイク、音声接続は自動で進み、通話できる状態になると通話画面へ切り替わります。</span></span></span>
@@ -4606,7 +4606,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-14-phone-shortcuts";
+    const APP_VERSION = "2026-09-14-phone-shortcut-row";
     const ADMIN_PASSWORD_SHA256 = "1cb69c64b337e546c188ac6c1452f02c91805a4f1e04063a0bb13d567eec8b86";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v1";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
