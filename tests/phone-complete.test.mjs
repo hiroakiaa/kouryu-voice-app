@@ -259,14 +259,32 @@ test('連絡の絞り込みは電話ナビと同じ位置と操作で検索は�
  assert.ok(filters>=0&&filters<panel&&panel<search);
  assert.match(html,/id="phoneNoticeFilters" class="phone-notice-filters notice-filter-tabs" role="tablist" aria-label="連絡の表示"/);
  assert.match(html,/data-notice-filter="pending" aria-selected="true" aria-current="page"/);
- assert.match(html,/class="notice-search-toggle-row"><button id="phoneNoticeSearchToggle"/);
+ assert.match(html,/class="notice-search-toggle-row">[\s\S]*?id="phoneNoticeSearchToggle"/);
  assert.doesNotMatch(html,/<section id="phoneNoticesPanel"[^>]*><div class="phone-panel-head phone-section-head"/);
  assert.match(app,/const noticeFilters=\$\('phoneNoticeFilters'\);if\(noticeFilters\)noticeFilters\.hidden=id!==\'notices\'/);
  assert.match(app,/function setNoticeFilter\(value,/);
  assert.match(app,/noticeScrollPositions\.set\(noticeFilter,panel\.scrollTop\)/);
  assert.match(app,/noticeFilterTabs\.addEventListener\('keydown'/);
  assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts,\.phone-home-card>\.phone-notice-filters\{order:1/);
- assert.match(css,/\.notice-search-toggle-row\{display:flex;justify-content:flex-end/);
+ assert.match(css,/\.notice-search-toggle-row\{display:flex;align-items:center;justify-content:space-between/);
+});
+
+test('職員の状態・即時返答・先着担当・不在時の折り返し依頼を一続きで扱う',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ for(const id of ['phonePresenceToggle','phonePresenceDialog','phonePresenceClose','phoneCallResultNotify'])assert.match(html,new RegExp(`id="${id}"`));
+ for(const status of ['available','class','away','urgent'])assert.match(html,new RegExp(`data-presence="${status}"`));
+ assert.match(html,/誰か1人にお願い/);
+ assert.match(app,/const presenceLabels=\{available:'対応できます',class:'授業中',away:'離席中',urgent:'緊急のみ'/);
+ assert.match(app,/Date\.now\(\)\+90\*60000/);
+ assert.match(app,/watch\(ref\('userPresence',id\)/);
+ assert.match(app,/data-notice-call-back/);
+ assert.match(app,/updateNoticeResponse\(id,'accepted','向かいます'\)/);
+ assert.match(app,/updateNoticeResponse\(id,'accepted','電話します'\)/);
+ assert.match(app,/async function sendCallbackRequest/);
+ assert.match(app,/subject:'折り返しをお願いします'/);
+ assert.match(rules,/match \/userPresence\/\{uid\}/);
+ assert.match(rules,/request\.resource\.data\.status in \['available','class','away','urgent'\]/);
+ assert.match(css,/\.presence-options\{display:grid/);
 });
 
 test('連絡カードの操作HTMLはブラウザで解釈できる文字列として組み立てる',()=>{
