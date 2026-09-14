@@ -392,6 +392,24 @@ test('主タブは連絡と電話だけにし電話の補助機能と設定を�
  assert.match(app,/shortcuts\.hidden=id==='notices'/);
 });
 
+test('電話の現在地・スクロール・追加ボタン・キーボード操作を迷わない形にする',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(html,/role="tablist" aria-label="電話の画面"/);
+ assert.match(html,/role="tab" aria-label="番号入力、電話をかける画面"/);
+ assert.match(html,/id="phoneTab-dial"[^>]*aria-label="電話メニュー"/);
+ assert.match(app,/const panelScrollPositions=new Map\(\)/);
+ assert.match(app,/panelScrollPositions\.set\(activePhoneTab,previous\.scrollTop\)/);
+ assert.match(app,/target\.scrollTop=panelScrollPositions\.get\(id\)\|\|0/);
+ assert.match(app,/b\.setAttribute\('aria-current',selected\?'page':'false'\)/);
+ assert.match(app,/const bindTabKeys=host=>host\.addEventListener\('keydown'/);
+ assert.match(app,/bindTabKeys\(tabs\);bindTabKeys\(\$\('phoneDialShortcuts'\)\)/);
+ assert.match(app,/\['notices','history','contacts','dial','groups'\]\.includes\(params\.get\('tab'\)\)/);
+ assert.doesNotMatch(app,/\['notices','history','contacts','dial','groups','settings'\]/);
+ assert.match(css,/#phoneContactsPanel,#phoneGroupsPanel\{padding-bottom:96px!important\}/);
+ assert.match(css,/#phoneDialUtility #phoneOwnDetails\{[^}]*max-height:min\(360px,calc\(100dvh - 190px\)\);overflow-y:auto/);
+ assert.match(css,/\.phone-dial-shortcuts button\[aria-selected="true"\]\{[^}]*border:1px solid/);
+});
+
 test('電話番号は直接編集できない表示専用エリアにする',()=>{
  assert.match(html,/<output id="phoneDialNumber"[^>]*aria-live="polite"><\/output>/);
  assert.doesNotMatch(html,/<input id="phoneDialNumber"/);
