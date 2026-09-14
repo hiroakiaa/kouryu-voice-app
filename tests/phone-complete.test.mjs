@@ -800,7 +800,8 @@ test('返信するたび件数を増やし送信者側へリアルタイム通�
  assert.match(app,/replyCount=Math\.min\(999,\(Number\(previous\.replyCount\)\|\|0\)\+\(incrementReply\?1:0\)\)/);
  assert.match(app,/notice-reply-count/);
  assert.match(app,/querySelectorAll\('\[data-notice-reply\]'\)/);
- assert.match(app,/push\?\.\(currentItem\.senderUid,\{action:'notice',invitationId:noticeId\}\)/);
+ assert.match(app,/const replyTargets=currentItem\.senderUid===uid\?\(currentItem\.recipientUids\|\|\[\]\):\[currentItem\.senderUid\]/);
+ assert.match(app,/replyTargets\.filter\(Boolean\)\.map\(target=>Promise\.resolve\(push\?\.\(target,\{action:'notice',invitationId:noticeId\}\)\)/);
  assert.match(rules,/replyCount/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/\.notice-reply-count\{/);
@@ -813,6 +814,12 @@ test('返信するたび件数を増やし送信者側へリアルタイム通�
  assert.match(app,/<time>\$\{noticeTime\(reply\.at\)\}<\/time>/);
  assert.match(css,/\.notice-reply-item time\{grid-column:2;justify-self:end/);
  assert.match(rules,/value\.replies is list/);
+ assert.match(app,/mine&&item.status==='open'\?'<button class="notice-reply-action" data-notice-reply=/);
+ assert.match(app,/currentItem\.senderUid===uid\?\(currentItem\.recipientUids\|\|\[\]\):\[currentItem\.senderUid\]/);
+ assert.match(app,/currentItem\.senderUid===uid\?'pending':'seen'/);
+ assert.match(app,/recipientResponses=Object\.entries\(item\.responses\|\|\{\}\)\.filter/);
+ assert.match(rules,/resource\.data\.senderUid == request\.auth\.uid[\s\S]*?affectedKeys\(\)\.hasOnly\(\['responses'\]\)[\s\S]*?validSchoolResponse/);
+ assert.match(css,/\.school-notice-actions \.notice-reply-action\{/);
 });
 
 test('連絡を未対応から開き送信済み表示と固定追加ボタンを使う',()=>{
@@ -828,8 +835,8 @@ test('連絡を未対応から開き送信済み表示と固定追加ボタン�
 test('完了・返信・状態変更を全端末の連絡一覧へ同期する',()=>{
  assert.match(app,/function noticeIsCompleted\(item\)/);
  assert.match(app,/Object\.values\(item\.responses\|\|\{\}\)\.some\(value=>value\.state==='done'\)/);
- assert.match(app,/completed=noticeIsCompleted\(item\)\|\|response\.state==='done'\|\|response\.state==='seen'/);
- assert.match(app,/done=noticeIsCompleted\(item\)\|\|response\.state==='done'\|\|response\.state==='seen'/);
+ assert.match(app,/completed=noticeIsCompleted\(item\)\|\|\(!mine&&\(response\.state==='done'\|\|response\.state==='seen'\)\)/);
+ assert.match(app,/done=noticeIsCompleted\(item\)\|\|\(!mine&&\(response\.state==='done'\|\|response\.state==='seen'\)\)/);
  assert.match(app,/item\.status==='open'&&!noticeIsCompleted\(item\)[^;]*needsAction\+\+/);
  assert.match(app,/waiting=!done&&!mine/);
  assert.match(app,/\$\{!done&&!mine&&item\.status==='open'/);

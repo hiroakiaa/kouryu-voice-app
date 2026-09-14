@@ -238,6 +238,11 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','completedAt','canceledAt','delivery'])
         && request.resource.data.status in ['open','completed','canceled']
         && (request.resource.data.status == resource.data.status || resource.data.status == 'open');
+      allow update: if request.auth != null && resource.data.senderUid == request.auth.uid
+        && resource.data.status == 'open'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses'])
+        && request.resource.data.responses.diff(resource.data.responses).affectedKeys().hasOnly([request.auth.uid])
+        && validSchoolResponse(request.resource.data.responses[request.auth.uid]);
       allow update: if request.auth != null && request.auth.uid in resource.data.recipientUids
         && resource.data.status == 'open'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses'])
