@@ -274,7 +274,7 @@ test('連絡タブはお願いとお知らせを一枚のカードで送受信�
 });
 
 test('連絡は所属宛先・対応優先・検索・取消・管理集計を扱う',()=>{
- for(const id of ['phoneNoticeSearchToggle','phoneNoticeSearch','phoneNoticeSummary','adminNoticeStats','phoneContactDepartment'])assert.match(html,new RegExp(`id="${id}"`));
+ for(const id of ['phoneNoticeSearchToggle','phoneNoticeSearch','adminNoticeStats','phoneContactDepartment'])assert.match(html,new RegExp(`id="${id}"`));
  for(const filter of ['action','sent'])assert.match(html,new RegExp(`data-notice-filter="${filter}"`));
  assert.match(app,/departmentChoices/);
  assert.match(app,/noticeFilter='action'/);
@@ -283,6 +283,14 @@ test('連絡は所属宛先・対応優先・検索・取消・管理集計を�
  assert.match(app,/completedAt:Date\.now\(\)/);
  assert.match(rules,/affectedKeys\(\)\.hasOnly\(\['status','completedAt','canceledAt','delivery'\]\)/);
  assert.match(rules,/resource\.data\.status == 'open'/);
+});
+
+test('連絡の空表示を一つに絞り追加ボタンを真円で表示する',()=>{
+ assert.doesNotMatch(html,/id="phoneNoticeSummary"/);
+ assert.match(html,/id="phoneNoticeAddToggle"[^>]*aria-label="新しい連絡を作る"[^>]*><i class="fa-solid fa-plus"/);
+ assert.doesNotMatch(html,/id="phoneNoticeAddToggle"[^>]*>[^<]*<span>/);
+ const theme=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(theme,/#phoneNoticeAddToggle\{[^}]*width:60px[^}]*height:60px[^}]*aspect-ratio:1[^}]*border-radius:50%[^}]*font-size:26px/);
 });
 
 test('連絡の絞り込みは電話ナビと同じ位置と操作で検索はその直下に置く',()=>{

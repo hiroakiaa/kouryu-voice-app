@@ -538,8 +538,6 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .notice-filter-tabs button{min-width:0;min-height:42px;padding:7px 8px;border:0;border-radius:12px;background:transparent;box-shadow:none;color:#64745c;font-size:13px;font-weight:800}
 .notice-filter-tabs button[aria-selected="true"]{background:#fff;color:#35612d;box-shadow:0 2px 8px rgba(62,99,46,.12)}
 .notice-search-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;margin:0 0 7px}.notice-search-toggle-row .phone-panel-icon{margin:0}.phone-presence-toggle{display:flex;align-items:center;gap:7px;min-height:42px;padding:7px 12px!important;border-radius:999px!important;font-size:12px;font-weight:800}.phone-presence-toggle i{font-size:9px;color:#62af42}.phone-presence-toggle[data-status="class"] i{color:#df9c34}.phone-presence-toggle[data-status="away"] i{color:#86927e}.phone-presence-toggle[data-status="urgent"] i{color:#d65260}.notice-search-wrap{margin:0 0 10px}.notice-search-wrap input{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid #bdd5a7;border-radius:13px;background:#fff;font:inherit;color:#30462d}
-.notice-summary{min-height:20px;margin:3px 3px 10px;color:#718269;font-size:12px;font-weight:700}
-
 .notice-deadline{display:inline-flex;align-items:center;gap:5px;margin:7px 0 1px;padding:4px 8px;border-radius:999px;background:#edf6e4;color:#527046;font-size:12px;font-weight:700}.notice-deadline.is-overdue{background:#ffe0d8;color:#9b3f35}
 .school-notice-compose input[type="datetime-local"]{box-sizing:border-box;width:100%;padding:12px;border:1px solid #aacb89;border-radius:12px;background:#fff;color:#30462d;font:inherit}.school-notice-compose label>small{color:#75816e;font-size:11px;font-weight:500}
 .school-notice-card .notice-cancel-send{color:#8b5842;background:#fff9ee;border-color:#dfbf98}
@@ -658,7 +656,6 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .phone-home-card .phone-notice-filters button{font-size:14px}
 .phone-home-card .phone-notice-filters button>i{color:#65a645;font-size:15px}
 .notice-filter-count{display:inline-grid;place-items:center;min-width:21px;height:21px;padding:0 6px;border-radius:999px;background:#d95664;color:#fff;font-size:11px;font-weight:900;box-sizing:border-box}
-.notice-summary{margin:5px 2px 12px;color:#5f7258;font-weight:800}
 .notice-past-toggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;margin:14px 0 72px;border:1px solid #ccdfb8;border-radius:14px;background:#f8fbf3;color:#58704f;font:inherit;font-weight:800}
 .notice-past-toggle[hidden]{display:none!important}
 .school-notice-card{display:grid;gap:8px;padding:17px}
@@ -675,7 +672,8 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .notice-response-details{margin-top:3px;padding-top:9px;border-top:1px solid #dbe8ce}
 .notice-response-details summary{color:#52704a;font-weight:800;cursor:pointer}
 .notice-response-details p{margin:7px 0;font-size:13px}
-.phone-home-card>#phoneNoticeAddToggle{display:flex;align-items:center;justify-content:center;gap:8px;width:auto;min-width:132px;padding:0 18px;border-radius:999px;font-size:15px;font-weight:900}
+.phone-home-card>#phoneNoticeAddToggle{display:grid;place-items:center;width:60px;height:60px;min-width:60px;min-height:60px;aspect-ratio:1;padding:0;border-radius:50%;font-size:26px;line-height:1}
+.phone-home-card>#phoneNoticeAddToggle i{display:block;line-height:1}
 .phone-home-card>#phoneNoticeAddToggle[hidden]{display:none!important}
 
 /* New contact creation asks only who and what, with advanced timing folded away. */
@@ -710,7 +708,7 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
  .notice-purpose-picker span{min-height:48px}
  .notice-recipient-list{max-height:155px}
  .notice-more>summary{min-width:92px}
- .phone-home-card>#phoneNoticeAddToggle{min-width:122px;height:54px;padding:0 15px}
+ .phone-home-card>#phoneNoticeAddToggle{width:58px;height:58px;min-width:58px;min-height:58px;padding:0;font-size:25px}
 }
 /* Direct contact actions and an easy deadline picker for staff messages. */
 .phone-home-card .contact-message-button{min-width:92px;background:#f7f5df;border-color:#d6c978;color:#57633f}.phone-home-card .contact-message-button i,.history-row [data-message-number] i,.group-row [data-message-group] i{color:#6d913f}
