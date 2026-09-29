@@ -447,7 +447,7 @@ test('電話画面でアプリ専用番号であることを明示する',()=>{
 
 test('自分の番号を作成している間は番号アイコンの左に進行状況を表示する',()=>{
  assert.match(html,/id="phoneOwnCreating" class="phone-own-creating" role="status" aria-live="polite" hidden[\s\S]*?id="phoneOwnNumberButton"/);
- assert.match(html,/id="profileNumberCreating" class="profile-number-loading"/);
+ assert.match(html,/id="profileNumberCreating" class="profile-number-loading" role="status" aria-live="polite" hidden/);
  assert.match(app,/function setOwnCreating\(active\)[\s\S]*?indicator\.hidden=!active[\s\S]*?button\.disabled=active/);
  assert.match(app,/setOwnCreating\(true\)/);
  assert.match(app,/finally\{numberCreationPromise=null;setOwnCreating\(false\);\}/);
