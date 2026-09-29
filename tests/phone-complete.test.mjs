@@ -21,6 +21,7 @@ test('初回は番号を自動準備し名前と番号が保存されるまで�
  assert.match(html,/id="profileOwnNumber"/);
  assert.match(html,/id="phoneName" maxlength="8"/);
  assert.match(html,/id="phoneProfileReading"[\s\S]*?探しやすくなります/);
+ assert.match(html,/学校・組織名[\s\S]*?id="phoneProfileOrganization"/);
  assert.match(html,/id="phoneProfileDepartment"/);
  assert.match(app,/function profileComplete\(\)\{return \/\^\\d\{8\}\$\/\.test\(own\)&&!!String\(profileData\.name\|\|''\)\.trim\(\);\}/);
  assert.match(app,/if\(!profileComplete\(\)\)\{showProfileTab\('name'\);\$\('phoneNameClose'\)\.hidden=true;[\s\S]*?if\(!own\)createNumber\(\)/);
@@ -35,7 +36,7 @@ test('登録プロフィールを着信・電話帳・履歴へ引き継ぐ',()=
  assert.match(app,/contacts\.some\(contact=>contact\.number===number\)\)return/);
  assert.match(app,/rememberIncomingProfile\(incoming\)/);
  assert.match(app,/\$\('numberCallerMeta'\)\.textContent=meta/);
- assert.match(rules,/request\.resource\.data\.keys\(\)\.hasOnly\(\['number','name','reading','department'\]\)/);
+ assert.match(rules,/request\.resource\.data\.keys\(\)\.hasOnly\(\['number','name','reading','organization','department'\]\)/);
  assert.match(rules,/request\.resource\.data\.keys\(\)\.hasOnly\(\['number','name','reading','department','status','direction','at','startedAt','endedAt','durationSeconds','supportMode','groupId','callType','participantCount'\]\)/);
 });
 
@@ -209,7 +210,7 @@ test('名前入力中のかなをよみがな候補にし手動編集後は上�
 test('お気に入りを保存でき、ルールは任意のbooleanだけを許可する',()=>{
  assert.match(app,/data-favorite/);
  assert.match(app,/favorite:!c\?\.favorite/);
- assert.match(rules,/\['name','number','uid','favorite','reading','department'\]/);
+ assert.match(rules,/\['name','number','uid','favorite','reading','organization','department'\]/);
  assert.match(rules,/favorite is bool/);
 });
 
@@ -283,6 +284,22 @@ test('連絡は所属宛先・対応優先・検索・取消・管理集計を�
  assert.match(app,/completedAt:Date\.now\(\)/);
  assert.match(rules,/affectedKeys\(\)\.hasOnly\(\['status','completedAt','canceledAt','delivery'\]\)/);
  assert.match(rules,/resource\.data\.status == 'open'/);
+});
+
+test('プロフィールの学校と所属グループをまとめ送りの宛先へ反映する',()=>{
+ assert.match(app,/organization=\$\('phoneProfileOrganization'\)/);
+ assert.match(app,/refreshContactProfiles\(\)/);
+ assert.match(app,/notice-recipient-organization/);
+ assert.match(app,/\$\{esc\(organization\)\} 職員全員/);
+ assert.match(app,/\[organization,department\]\.filter\(Boolean\)\.join\('・'\)/);
+ assert.match(rules,/allow get: if request\.auth != null;/);
+});
+
+test('連絡の用件を保存でき失敗時は内容を残して再送方法を示す',()=>{
+ assert.match(rules,/d\.purpose in \['callback','visitor','office','confirm','custom'\]/);
+ assert.match(app,/入力内容は残っています。少し待って、もう一度送ってください。/);
+ assert.match(app,/label\.textContent='もう一度送る'/);
+ assert.match(app,/trace\('連絡送信失敗'/);
 });
 
 test('連絡の空表示を一つに絞り追加ボタンを真円で表示する',()=>{
@@ -491,7 +508,7 @@ test('自分の番号を作成している間は番号アイコンの左に進�
 test('番号のない既存プロフィールを保ったまま8桁番号を追加できる',()=>{
  assert.match(app,/t\.set\(profile,\{number\},\{merge:true\}\)/);
  assert.match(app,/trace\('番号準備失敗'/);
- assert.match(rules,/affectedKeys\(\)\.hasOnly\(\['number','name','reading','department'\]\)/);
+ assert.match(rules,/affectedKeys\(\)\.hasOnly\(\['number','name','reading','organization','department'\]\)/);
  assert.match(rules,/!\('number' in resource\.data\)/);
  assert.match(rules,/getAfter\([^\n]+voiceNumbers[^\n]+request\.resource\.data\.number[^\n]+ownerUid == uid/);
 });
