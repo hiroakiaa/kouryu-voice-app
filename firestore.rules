@@ -11,7 +11,12 @@ service cloud.firestore {
         && (!('reading' in request.resource.data) || (request.resource.data.reading is string && request.resource.data.reading.size() <= 40))
         && (!('department' in request.resource.data) || (request.resource.data.department is string && request.resource.data.department.size() <= 30));
       allow update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','reading','department']) && shortName(request.resource.data.name)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['number','name','reading','department'])
+        && (!('number' in resource.data)
+          ? (request.resource.data.number.matches('^[0-9]{8}$')
+            && getAfter(/databases/$(database)/documents/voiceNumbers/$(request.resource.data.number)).data.ownerUid == uid)
+          : request.resource.data.number == resource.data.number)
+        && (!('name' in request.resource.data) || shortName(request.resource.data.name))
         && (!('reading' in request.resource.data) || (request.resource.data.reading is string && request.resource.data.reading.size() <= 40))
         && (!('department' in request.resource.data) || (request.resource.data.department is string && request.resource.data.department.size() <= 30));
       match /contacts/{number} {
@@ -56,7 +61,8 @@ service cloud.firestore {
       allow get: if request.auth != null;
       allow create: if request.auth != null && number.matches('^[0-9]{8}$') && request.resource.data.keys().hasOnly(['ownerUid','number'])
         && request.resource.data.number == number && request.resource.data.ownerUid == request.auth.uid
-        && !exists(/databases/$(database)/documents/numberProfiles/$(request.auth.uid))
+        && (!exists(/databases/$(database)/documents/numberProfiles/$(request.auth.uid))
+          || !('number' in get(/databases/$(database)/documents/numberProfiles/$(request.auth.uid)).data))
         && getAfter(/databases/$(database)/documents/numberProfiles/$(request.auth.uid)).data.number == number;
       match /blocked/{uid} {
         allow get: if request.auth != null && (uid == request.auth.uid || get(/databases/$(database)/documents/voiceNumbers/$(number)).data.ownerUid == request.auth.uid);

@@ -488,6 +488,14 @@ test('自分の番号を作成している間は番号アイコンの左に進�
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\.phone-own-creating i\{animation:none\}\}/);
 });
 
+test('番号のない既存プロフィールを保ったまま8桁番号を追加できる',()=>{
+ assert.match(app,/t\.set\(profile,\{number\},\{merge:true\}\)/);
+ assert.match(app,/trace\('番号準備失敗'/);
+ assert.match(rules,/affectedKeys\(\)\.hasOnly\(\['number','name','reading','department'\]\)/);
+ assert.match(rules,/!\('number' in resource\.data\)/);
+ assert.match(rules,/getAfter\([^\n]+voiceNumbers[^\n]+request\.resource\.data\.number[^\n]+ownerUid == uid/);
+});
+
 test('主タブは連絡と電話だけにし電話の補助機能と設定を迷わず開ける',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  const mainTabs=html.match(/<nav class="phone-tabs"[\s\S]*?<\/nav>/)?.[0]||'';
