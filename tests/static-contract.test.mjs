@@ -390,6 +390,14 @@ test("着信と発信取消をPush経由で開いている画面へ即時反映�
   assert.match(phoneApp, /Promise\.allSettled\(tasks\)/);
 });
 
+test("Firestoreの30秒通信遅延を避けるため起動時から短いlong-pollingを使う", () => {
+  assert.match(rootHtml, /initializeFirestore\(app, \{/);
+  assert.match(rootHtml, /experimentalForceLongPolling: true/);
+  assert.match(rootHtml, /experimentalLongPollingOptions: \{ timeoutSeconds: 5 \}/);
+  assert.doesNotMatch(rootHtml, /const db = isDemoMode \? null : getFirestore\(app\)/);
+  assert.match(rootHtml, /着信と呼び出し終了はリアルタイムで反映/);
+});
+
 test("音声到着前を通話中と表示せずiPhoneは低遅延のマイク経路を使う", () => {
   assert.match(rootHtml, /localStream = isIosDevice\(\) \? rawLocalStream : createCleanAudioStream\(rawLocalStream\)/);
   assert.match(rootHtml, /peer\.ontrack = function\(event\)[\s\S]*?markConnectedOnce\(\)/);
