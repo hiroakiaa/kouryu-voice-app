@@ -962,12 +962,15 @@ test('連絡カードは一枚の面を送信者・状態・本文・対応の�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(app,/class="notice-message-block"/);
  assert.match(app,/<small>送信者<\/small>/);
- assert.match(app,/<span class="notice-field-label">状態<\/span>/);
+ assert.match(app,/<span class="notice-field-label">種類<\/span>/);
+ assert.match(app,/status==='未対応'\?'':/);
  assert.match(app,/<span class="notice-field-label">連絡内容<\/span>/);
  assert.match(app,/<span class="notice-field-label">対応<\/span>/);
- assert.match(css,/\.school-notice-list \.school-notice-card\{[^}]*border:2px solid #91bd70[^}]*background:#fffef9/);
+ assert.match(css,/\.school-notice-list \.school-notice-card\{[^}]*border:2px solid #82bb5d[^}]*background:#fffef9/);
  assert.match(css,/\.school-notice-list \.school-notice-card>header\{[^}]*border-bottom:1px solid/);
  assert.match(css,/\.notice-message-block\{[^}]*border:0[^}]*background:#fffef9/);
  assert.match(css,/\.school-notice-list \.school-notice-actions\{[^}]*border-top:1px solid/);
+ assert.match(css,/\.school-notice-list \.school-notice-actions \.notice-main-action\{[^}]*grid-column:1;grid-row:2/);
+ assert.match(css,/\.school-notice-list \.notice-more\{[^}]*grid-column:2;grid-row:2/);
  assert.match(css,/\.school-notice-list \.notice-more\{[^}]*padding:0[^}]*border:0/);
 });
