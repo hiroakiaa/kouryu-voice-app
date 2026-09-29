@@ -746,22 +746,20 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 
 .school-notice-actions .notice-reply-action{border-color:#8fc16d;background:#e9f7d8;color:#37632e;font-weight:800}.school-notice-actions .notice-reply-action i{color:#60a541}
 
-/* A notice reads from status to sender, message, then action. */
-.school-notice-list .school-notice-card{gap:10px;padding:14px;border:1px solid #a9c88d;background:#dceccf;box-shadow:0 4px 0 #c4d9b2}
-.school-notice-list .school-notice-card.is-urgent{border-color:#d6ad65;background:#f2dfb7}
-.school-notice-list .school-notice-card.is-later{background:#e9e1c6}
-.school-notice-list .school-notice-card.is-done{background:#dfe5d8}
-.school-notice-list .school-notice-card>header{padding:10px 12px;border:1px solid #c6dbb3;border-radius:14px;background:#eff7e8}
-.school-notice-list .school-notice-card.is-urgent>header{border-color:#e2c58d;background:#fff4d9}
-.school-notice-list .notice-sender-badge,.school-notice-list .notice-self-sent-badge{display:flex;width:100%;box-sizing:border-box;margin:0;padding:9px 12px;border-color:#c5dcae;border-radius:13px;background:#f3f9ed}
-.notice-message-block{display:grid;gap:7px;padding:14px;border:1px solid #c5dcaf;border-radius:15px;background:#fffef8}
-.notice-message-block h3{margin:0;color:#355d2f;font-size:19px;line-height:1.45}
-.notice-message-block p{margin:0;color:#344a31;font-size:15px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
-.school-notice-list .school-notice-actions{gap:9px;margin-top:0;padding:11px;border:1px solid #c5dcaf;border-radius:15px;background:#f4faee}
-.school-notice-list .notice-more{margin:0;padding:0;border:0}
-.school-notice-list .notice-response-details{margin:0;padding:10px 12px;border:1px solid #c5dcaf;border-radius:14px;background:#f5faef}
+/* One clear notice card: sender, status, message, then response. */
+.school-notice-list .school-notice-card{gap:0;padding:0;overflow:visible;border:2px solid #91bd70;border-radius:20px;background:#fffef9;box-shadow:0 4px 0 #d6e4c8}
+.school-notice-list .school-notice-card.is-urgent{border-color:#dda453;background:#fffdf8}.school-notice-list .school-notice-card.is-later{background:#fffef9}.school-notice-list .school-notice-card.is-done{background:#f9fbf6}
+.school-notice-list .school-notice-card>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;border:0;border-bottom:1px solid #d5e4c8;border-radius:18px 18px 0 0;background:#edf7e4}
+.school-notice-list .school-notice-card.is-urgent>header{background:#fff1d2}
+.school-notice-list .notice-sender-badge,.school-notice-list .notice-self-sent-badge{display:flex;align-items:center;gap:10px;width:auto;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#345b2f}
+.school-notice-list .notice-sender-badge>i,.school-notice-list .notice-self-sent-badge>i{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:12px;background:#d5edc2;color:#4d8c39;font-size:17px}
+.school-notice-list .notice-sender-badge>span,.school-notice-list .notice-self-sent-badge>span{display:grid;min-width:0;gap:1px;padding:0;border-radius:0;background:transparent}.school-notice-list .notice-sender-badge small,.school-notice-list .notice-self-sent-badge small{color:#718269;font-size:10px;font-weight:700}.school-notice-list .notice-sender-badge strong,.school-notice-list .notice-self-sent-badge strong{overflow:hidden;text-overflow:ellipsis;color:#345b2f;font-size:15px;white-space:nowrap}
+.school-notice-list .school-notice-card>header time{flex:0 0 auto;color:#70806a;font-size:12px;font-variant-numeric:tabular-nums}
+.notice-card-status{display:flex;align-items:center;gap:12px;padding:11px 17px;border-bottom:1px solid #e1ead8}.notice-field-label{flex:0 0 auto;color:#6c7d64;font-size:11px;font-weight:800;letter-spacing:.05em}.notice-card-status .notice-card-badges{gap:7px}.notice-card-status .notice-card-badges span{padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800}.notice-card-status .notice-kind-badge{background:#e6f4d5;color:#47703a}.school-notice-card.is-urgent .notice-card-status .notice-kind-badge{background:#ffe3b7;color:#895519}.notice-card-status .notice-status-badge{background:#edf4e6;color:#5b6d54}.notice-card-status .notice-status-badge.is-waiting{background:#fff1c9;color:#795b20}.notice-card-status .notice-status-badge.is-progress{background:#dff1ff;color:#37647c}.notice-card-status .notice-status-badge.is-complete{background:#dff3d0;color:#36702a}
+.notice-message-block{display:grid;gap:7px;padding:16px 17px 18px;border:0;border-radius:0;background:#fffef9}.notice-message-block .notice-field-label{margin-bottom:1px}.notice-message-block h3{margin:0;color:#2f582b;font-size:20px;line-height:1.45}.notice-message-block p{margin:0;color:#344a31;font-size:15px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.school-notice-list .school-notice-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:9px;margin:0;padding:13px 17px 16px;border:0;border-top:1px solid #dce8d1;border-radius:0 0 18px 18px;background:#f4f9ee}.school-notice-list .school-notice-actions>.notice-field-label{grid-column:1/-1}.school-notice-list .school-notice-actions .notice-main-action{grid-column:1/-1}.school-notice-list .notice-more{grid-column:2;margin:0;padding:0;border:0}.school-notice-list .notice-response-details{margin:0;padding:12px 17px;border:0;border-top:1px solid #dce8d1;border-radius:0;background:#f8fbf4}
 .school-notice-list .school-notice-card.is-done .notice-message-block h3,.school-notice-list .school-notice-card.is-done .notice-message-block p{color:#667260}
-@media(max-width:540px){.school-notice-list .school-notice-card{padding:10px;gap:8px}.school-notice-list .school-notice-card>header,.school-notice-list .notice-sender-badge,.school-notice-list .notice-self-sent-badge,.notice-message-block,.school-notice-list .school-notice-actions{padding:10px}.notice-message-block h3{font-size:17px}.notice-message-block p{font-size:14px}}
+@media(max-width:540px){.school-notice-list .school-notice-card>header{padding:12px}.notice-card-status{padding:10px 12px}.notice-message-block{padding:14px 12px 16px}.school-notice-list .school-notice-actions{padding:11px 12px 13px}.notice-message-block h3{font-size:18px}.notice-message-block p{font-size:14px}.school-notice-list .notice-sender-badge>i,.school-notice-list .notice-self-sent-badge>i{flex-basis:34px;width:34px;height:34px}}
 
 /* Responsive dial controls: keep every target comfortable while fitting short and narrow screens. */
 #phoneDialPanel{container-name:phone-dial-panel;container-type:size;}

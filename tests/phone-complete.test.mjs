@@ -958,11 +958,16 @@ test('起動中は別画面の追加ボタンを表示しない',()=>{
  assert.match(app,/addButton\.hidden=id!==panelId/);
 });
 
-test('連絡カードは濃い外面と淡い情報面で内容を区切る',()=>{
+test('連絡カードは一枚の面を送信者・状態・本文・対応の順に整理する',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(app,/class="notice-message-block"/);
- assert.match(css,/\.school-notice-list \.school-notice-card\{[^}]*background:#dceccf/);
- assert.match(css,/\.notice-message-block\{[^}]*background:#fffef8/);
- assert.match(css,/\.school-notice-list \.school-notice-actions\{[^}]*background:#f4faee/);
+ assert.match(app,/<small>送信者<\/small>/);
+ assert.match(app,/<span class="notice-field-label">状態<\/span>/);
+ assert.match(app,/<span class="notice-field-label">連絡内容<\/span>/);
+ assert.match(app,/<span class="notice-field-label">対応<\/span>/);
+ assert.match(css,/\.school-notice-list \.school-notice-card\{[^}]*border:2px solid #91bd70[^}]*background:#fffef9/);
+ assert.match(css,/\.school-notice-list \.school-notice-card>header\{[^}]*border-bottom:1px solid/);
+ assert.match(css,/\.notice-message-block\{[^}]*border:0[^}]*background:#fffef9/);
+ assert.match(css,/\.school-notice-list \.school-notice-actions\{[^}]*border-top:1px solid/);
  assert.match(css,/\.school-notice-list \.notice-more\{[^}]*padding:0[^}]*border:0/);
 });
