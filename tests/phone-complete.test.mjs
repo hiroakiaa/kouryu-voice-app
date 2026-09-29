@@ -324,7 +324,7 @@ test('連絡カードの操作HTMLはブラウザで解釈できる文字列と�
 });
 
 test('壊れた旧画面でもPWA更新を止めず次回起動は最新HTMLを取得する',()=>{
- assert.match(html,/service-worker\.js\?v=2026-09-13-pwa-recovery/);
+ assert.match(html,/service-worker\.js\?v=2026-09-29-profile-onboarding-v2/);
  assert.match(html,/updateViaCache: "none"/);
  assert.match(sw,/event\.request\.mode !== "navigate"/);
  assert.match(sw,/fetch\(event\.request, \{ cache: "no-store" \}\)/);
