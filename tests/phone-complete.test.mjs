@@ -16,6 +16,7 @@ test('初回は番号を自動準備し名前と番号が保存されるまで�
  assert.match(app,/if\(!profileComplete\(\)\)\{showProfileTab\('name'\);\$\('phoneNameClose'\)\.hidden=true;[\s\S]*?if\(!own\)createNumber\(\)/);
  assert.match(app,/if\(!profileComplete\(\)\)\{event\.preventDefault\(\)/);
  assert.match(html,/初回案内はプロフィール設定に統合したため、旧案内は自動表示しない/);
+ assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/#phoneNameDialog \[hidden\]\{display:none!important\}/);
 });
 
 test('登録プロフィールを着信・電話帳・履歴へ引き継ぐ',()=>{
