@@ -746,6 +746,23 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 
 .school-notice-actions .notice-reply-action{border-color:#8fc16d;background:#e9f7d8;color:#37632e;font-weight:800}.school-notice-actions .notice-reply-action i{color:#60a541}
 
+/* A notice reads from status to sender, message, then action. */
+.school-notice-list .school-notice-card{gap:10px;padding:14px;border:1px solid #a9c88d;background:#dceccf;box-shadow:0 4px 0 #c4d9b2}
+.school-notice-list .school-notice-card.is-urgent{border-color:#d6ad65;background:#f2dfb7}
+.school-notice-list .school-notice-card.is-later{background:#e9e1c6}
+.school-notice-list .school-notice-card.is-done{background:#dfe5d8}
+.school-notice-list .school-notice-card>header{padding:10px 12px;border:1px solid #c6dbb3;border-radius:14px;background:#eff7e8}
+.school-notice-list .school-notice-card.is-urgent>header{border-color:#e2c58d;background:#fff4d9}
+.school-notice-list .notice-sender-badge,.school-notice-list .notice-self-sent-badge{display:flex;width:100%;box-sizing:border-box;margin:0;padding:9px 12px;border-color:#c5dcae;border-radius:13px;background:#f3f9ed}
+.notice-message-block{display:grid;gap:7px;padding:14px;border:1px solid #c5dcaf;border-radius:15px;background:#fffef8}
+.notice-message-block h3{margin:0;color:#355d2f;font-size:19px;line-height:1.45}
+.notice-message-block p{margin:0;color:#344a31;font-size:15px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.school-notice-list .school-notice-actions{gap:9px;margin-top:0;padding:11px;border:1px solid #c5dcaf;border-radius:15px;background:#f4faee}
+.school-notice-list .notice-more{margin:0;padding:0;border:0}
+.school-notice-list .notice-response-details{margin:0;padding:10px 12px;border:1px solid #c5dcaf;border-radius:14px;background:#f5faef}
+.school-notice-list .school-notice-card.is-done .notice-message-block h3,.school-notice-list .school-notice-card.is-done .notice-message-block p{color:#667260}
+@media(max-width:540px){.school-notice-list .school-notice-card{padding:10px;gap:8px}.school-notice-list .school-notice-card>header,.school-notice-list .notice-sender-badge,.school-notice-list .notice-self-sent-badge,.notice-message-block,.school-notice-list .school-notice-actions{padding:10px}.notice-message-block h3{font-size:17px}.notice-message-block p{font-size:14px}}
+
 /* Responsive dial controls: keep every target comfortable while fitting short and narrow screens. */
 #phoneDialPanel{container-name:phone-dial-panel;container-type:size;}
 .phone-dial-content{

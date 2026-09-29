@@ -957,3 +957,12 @@ test('起動中は別画面の追加ボタンを表示しない',()=>{
  assert.match(app,/const action=\$\(actionId\);action\.hidden=true;\$\('phoneHome'\)\.append\(action\)/);
  assert.match(app,/addButton\.hidden=id!==panelId/);
 });
+
+test('連絡カードは濃い外面と淡い情報面で内容を区切る',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/class="notice-message-block"/);
+ assert.match(css,/\.school-notice-list \.school-notice-card\{[^}]*background:#dceccf/);
+ assert.match(css,/\.notice-message-block\{[^}]*background:#fffef8/);
+ assert.match(css,/\.school-notice-list \.school-notice-actions\{[^}]*background:#f4faee/);
+ assert.match(css,/\.school-notice-list \.notice-more\{[^}]*padding:0[^}]*border:0/);
+});
