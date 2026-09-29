@@ -974,3 +974,10 @@ test('連絡カードは一枚の面を送信者・状態・本文・対応の�
  assert.match(css,/\.school-notice-list \.notice-more\{[^}]*grid-column:2;grid-row:2/);
  assert.match(css,/\.school-notice-list \.notice-more\{[^}]*padding:0[^}]*border:0/);
 });
+
+test('電話画面のCSSと描画処理はアプリ本体と同じ更新番号で読み込む',()=>{
+ const version=html.match(/const APP_VERSION = "([^"]+)"/)?.[1];
+ assert.ok(version);
+ assert.match(html,new RegExp(`phone-theme\\.css\\?v=${version}`));
+ assert.match(html,new RegExp(`phone-app\\.js\\?v=${version}`));
+});
