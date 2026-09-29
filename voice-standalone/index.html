@@ -4610,12 +4610,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-29-fast-realtime-transport";
-    const ADMIN_PASSWORD_SHA256 = "1cb69c64b337e546c188ac6c1452f02c91805a4f1e04063a0bb13d567eec8b86";
-    const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v1";
+    const APP_VERSION = "2026-09-29-admin-password-1111";
+    const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
+    const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
     const NOTICE_PERMISSION_KEY = "wakaru-phone-notice-permissions-v1";
+    function normalizeAdminPassword(value){return String(value||"").normalize("NFKC");}
     function effectiveAdminPasswordHash(){return localStorage.getItem(ADMIN_PASSWORD_HASH_KEY)||ADMIN_PASSWORD_SHA256;}
     let CAPTIONS_ENABLED = new URLSearchParams(location.search).get("support") !== "plain";
     const DEPLOY_VERSION_CACHE_KEY = "kouryu-voice-deploy-version";
@@ -5192,7 +5193,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const noticePermissionInputs={allowAll:document.getElementById('adminNoticeAllowAll'),allowGroup:document.getElementById('adminNoticeAllowGroup'),allowUrgent:document.getElementById('adminNoticeAllowUrgent')};
       let noticePermissions={allowAll:true,allowGroup:true,allowUrgent:true};try{noticePermissions={...noticePermissions,...JSON.parse(localStorage.getItem(NOTICE_PERMISSION_KEY)||'{}')}}catch(_){}
       Object.entries(noticePermissionInputs).forEach(function([key,input]){if(!input)return;input.checked=noticePermissions[key];input.addEventListener('change',function(){noticePermissions[key]=input.checked;localStorage.setItem(NOTICE_PERMISSION_KEY,JSON.stringify(noticePermissions));window.dispatchEvent(new CustomEvent('wakaru-notice-permissions',{detail:noticePermissions}));setNotice('連絡の利用設定を保存しました。')})});
-      document.getElementById('adminPasswordChangeForm')?.addEventListener('submit',async function(event){event.preventDefault();const first=document.getElementById('adminNewPassword'),second=document.getElementById('adminNewPasswordConfirm'),message=document.getElementById('adminPasswordChangeMessage');if(first.value!==second.value){message.textContent='2つの入力が一致しません。';return}if(first.value.length<4){message.textContent='4文字以上で入力してください。';return}try{const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(first.value)),hash=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');localStorage.setItem(ADMIN_PASSWORD_HASH_KEY,hash);localStorage.setItem(ADMIN_ACCESS_KEY,hash);first.value='';second.value='';message.textContent='この端末のパスワードを変更しました。'}catch(_){message.textContent='変更できませんでした。'}});
+      document.getElementById('adminPasswordChangeForm')?.addEventListener('submit',async function(event){event.preventDefault();const first=document.getElementById('adminNewPassword'),second=document.getElementById('adminNewPasswordConfirm'),message=document.getElementById('adminPasswordChangeMessage'),firstValue=normalizeAdminPassword(first.value),secondValue=normalizeAdminPassword(second.value);if(firstValue!==secondValue){message.textContent='2つの入力が一致しません。';return}if(firstValue.length<4){message.textContent='4文字以上で入力してください。';return}try{const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(firstValue)),hash=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');localStorage.setItem(ADMIN_PASSWORD_HASH_KEY,hash);localStorage.setItem(ADMIN_ACCESS_KEY,hash);first.value='';second.value='';message.textContent='この端末のパスワードを変更しました。'}catch(_){message.textContent='変更できませんでした。'}});
       const adminBudgetInput = document.getElementById("adminBudgetInput");
       if (adminBudgetInput) {
         adminBudgetInput.value = localStorage.getItem(ADMIN_BUDGET_KEY) || "500";
@@ -9474,7 +9475,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if(!input||!message||!submit)return;
       submit.disabled=true;message.textContent='確認しています…';
       try{
-        const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(input.value));
+        const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(normalizeAdminPassword(input.value)));
         const hash=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');
         if(hash!==effectiveAdminPasswordHash()){message.textContent='パスワードが違います。';input.select();return;}
         localStorage.setItem(ADMIN_ACCESS_KEY,hash);

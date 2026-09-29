@@ -407,6 +407,13 @@ test('管理者パスワードの照合後だけ料金詳細を開く',()=>{
  assert.match(html,/ADMIN_PASSWORD_HASH_KEY/);
 });
 
+test('管理者の初期パスワードは1111で全角入力も正規化する',()=>{
+ assert.match(html,/const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c"/);
+ assert.match(html,/ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2"/);
+ assert.match(html,/function normalizeAdminPassword\(value\)\{return String\(value\|\|""\)\.normalize\("NFKC"\);\}/);
+ assert.match(html,/TextEncoder\(\)\.encode\(normalizeAdminPassword\(input\.value\)\)/);
+});
+
 test('電話画面でアプリ専用番号であることを明示する',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(html,/class="phone-dial-scope-note"/);
