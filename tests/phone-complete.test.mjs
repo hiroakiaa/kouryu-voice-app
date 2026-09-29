@@ -749,7 +749,7 @@ test('発信確定直後に呼び出し準備画面へ切り替える',()=>{
 test('番号ボタンは電話パネルの横幅と高さに応じて押しやすい大きさへ変わる',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#phoneDialPanel\{container-name:phone-dial-panel;container-type:size;\}/);
- assert.match(css,/--phone-key-size:clamp\(52px,min\(calc\(\(100cqw - 56px\)\/3\),calc\(\(100cqh - 178px\)\/5\)\),88px\)/);
+ assert.match(css,/--phone-key-size:clamp\(52px,min\(calc\(\(100cqw - 56px\)\/3\),calc\(\(100cqh - 138px\)\/5\)\),88px\)/);
  assert.match(css,/@container phone-dial-panel \(max-width:360px\)/);
  assert.match(css,/@container phone-dial-panel \(max-height:560px\)/);
  assert.match(css,/@container phone-dial-panel \(min-width:700px\) and \(min-height:680px\)/);
