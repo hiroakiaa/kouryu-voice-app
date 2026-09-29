@@ -582,8 +582,6 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .phone-home-card>#phoneDialUtility[hidden]{display:none!important}
 #phoneDialUtility .phone-dial-scope-note{position:static;min-width:0;white-space:normal}
 #phoneDialUtility #phoneOwnToggle{position:static;right:auto;top:auto;flex:0 0 auto;margin:0}
-#phoneDialUtility #phoneOwnDetails{right:8px;top:auto;bottom:calc(100% + 8px);z-index:20;max-height:min(360px,calc(100dvh - 190px));overflow-y:auto;overscroll-behavior:contain;transform:translateY(6px)}
-#phoneDialUtility #phoneOwnDetails.is-visible{transform:translateY(0)}
 @media(max-width:430px){.phone-home-card>#phoneDialUtility{gap:7px;padding:6px 7px}.phone-home-card>#phoneDialUtility .phone-dial-scope-note{left:auto;top:auto;max-width:calc(100% - 68px);padding:5px 7px;font-size:9px}}
 #phoneDialPanel{padding-top:8px}
 
@@ -669,3 +667,24 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 @keyframes phoneOwnCreatingSpin{to{transform:rotate(360deg)}}
 @media(max-width:380px){.phone-own-creating{padding:.3rem .42rem;font-size:.6875rem}.phone-own-creating span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
 @media(prefers-reduced-motion:reduce){.phone-own-creating i{animation:none}}
+
+/* The dial footer always shows the device number; profile details live in settings. */
+.phone-own-number-display{display:grid!important;grid-template-columns:auto auto;align-items:center;justify-items:end;column-gap:.45rem;min-width:9.4rem;min-height:2.75rem;padding:.3rem .65rem!important;border:1px solid #bddb9e!important;border-radius:.9rem!important;background:#f5fbe9!important;color:#395c31!important;box-shadow:none!important}
+.phone-own-number-display span{grid-column:1;font-size:.6875rem;color:#718568;line-height:1}
+.phone-own-number-display strong{grid-column:1;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1.05rem;line-height:1.2;letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.phone-own-number-display>i{grid-column:2;grid-row:1/3;font-size:1rem;color:#67a747}
+.phone-own-number-display:disabled{opacity:.72}
+.profile-number-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.35rem .75rem;padding:1rem;border:1px solid #c9e1af;border-radius:1rem;background:#f5faed}
+.profile-number-card>span:first-child{font-size:.75rem;color:#718568}
+.profile-number-card>strong{grid-column:1;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1.45rem;letter-spacing:.1em;font-variant-numeric:tabular-nums}
+.profile-number-card>div{grid-column:2;grid-row:1/3;display:flex;align-items:center;gap:.4rem}
+.profile-number-card button{min-height:2.5rem;padding:.45rem .7rem;border-radius:.75rem}
+.profile-number-loading{grid-column:1/-1;display:inline-flex;align-items:center;gap:.45rem;color:#5d774f;font-size:.75rem;font-weight:700}
+.profile-number-loading[hidden]{display:none}
+.profile-number-loading i{animation:phoneOwnCreatingSpin .8s linear infinite}
+#profileNamePanel #phoneNameForm>input{box-sizing:border-box;width:100%;min-height:3rem;padding:.65rem .8rem;border:2px solid #c3e39c;border-radius:.875rem;background:#fffef9;color:#30462d;font:inherit}
+#profileNamePanel #phoneNameForm label small{color:#718568;font-size:.75rem;font-weight:600}
+.incoming-caller-meta{display:block;margin:.4rem 0 0;color:#63775b;font-size:.9rem}
+.incoming-caller-meta[hidden]{display:none}
+@media(max-width:430px){.phone-own-number-display{min-width:8.3rem;padding-inline:.5rem!important}.phone-own-number-display strong{font-size:.92rem}.profile-number-card{grid-template-columns:1fr}.profile-number-card>div{grid-column:1;grid-row:auto}.profile-number-card>strong{grid-column:1}}
+@media(prefers-reduced-motion:reduce){.profile-number-loading i{animation:none}}

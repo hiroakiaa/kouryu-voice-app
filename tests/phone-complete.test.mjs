@@ -7,6 +7,27 @@ const app=fs.readFileSync(new URL('../phone-app.js',import.meta.url),'utf8');
 const rules=fs.readFileSync(new URL('../firestore.rules',import.meta.url),'utf8');
 const sw=fs.readFileSync(new URL('../service-worker.js',import.meta.url),'utf8');
 
+test('初回は番号を自動準備し名前と番号が保存されるまでプロフィールを閉じない',()=>{
+ assert.match(html,/id="profileOwnNumber"/);
+ assert.match(html,/id="phoneName" maxlength="8"/);
+ assert.match(html,/id="phoneProfileReading"[\s\S]*?探しやすくなります/);
+ assert.match(html,/id="phoneProfileDepartment"/);
+ assert.match(app,/function profileComplete\(\)\{return \/\^\\d\{8\}\$\/\.test\(own\)&&!!String\(profileData\.name\|\|''\)\.trim\(\);\}/);
+ assert.match(app,/if\(!profileComplete\(\)\)\{showProfileTab\('name'\);\$\('phoneNameClose'\)\.hidden=true;[\s\S]*?if\(!own\)createNumber\(\)/);
+ assert.match(app,/if\(!profileComplete\(\)\)\{event\.preventDefault\(\)/);
+ assert.match(html,/初回案内はプロフィール設定に統合したため、旧案内は自動表示しない/);
+});
+
+test('登録プロフィールを着信・電話帳・履歴へ引き継ぐ',()=>{
+ assert.match(app,/reading:String\(profileData\.reading\|\|''\),department:String\(profileData\.department\|\|''\)/);
+ assert.match(app,/function rememberIncomingProfile\(item\)/);
+ assert.match(app,/contacts\.some\(contact=>contact\.number===number\)\)return/);
+ assert.match(app,/rememberIncomingProfile\(incoming\)/);
+ assert.match(app,/\$\('numberCallerMeta'\)\.textContent=meta/);
+ assert.match(rules,/request\.resource\.data\.keys\(\)\.hasOnly\(\['number','name','reading','department'\]\)/);
+ assert.match(rules,/request\.resource\.data\.keys\(\)\.hasOnly\(\['number','name','reading','department','status','direction','at','startedAt','endedAt','durationSeconds','supportMode','groupId','callType','participantCount'\]\)/);
+});
+
 test('通知・発信確認を設定画面から利用し、廃止した費用設定を表示しない',()=>{
  for(const id of ['phoneNotificationToggle','phoneNotificationTest','phoneNotificationStatus','phoneDialConfirm']) assert.match(html,new RegExp(`id="${id}"`));
  assert.match(app,/showNotification|notifications\.test/);
@@ -371,9 +392,10 @@ test('説明は一度に一つだけ開き、参加者とモーダルは狭い�
  assert.match(css,/body\.is-in-call \.participants-card \.participants\{[^}]*justify-content:flex-start/);
 });
 
-test('自分の番号は外側のクリックで閉じ、電話タブは各画面の下に固定する',()=>{
- assert.match(app,/document\.addEventListener\('click',event=>\{if\(\$\('phoneOwnToggle'\)\.getAttribute\('aria-expanded'\)!=='true'\)return;/);
- assert.match(app,/\$\('phoneOwnDetails'\)\.contains\(event\.target\)\|\|\$\('phoneOwnToggle'\)\.contains\(event\.target\)/);
+test('自分の番号は常時表示し、電話タブは各画面の下に固定する',()=>{
+ assert.doesNotMatch(html,/id="phoneOwnToggle"|id="phoneOwnDetails"/);
+ assert.match(html,/id="phoneOwnNumberButton"[\s\S]*?id="phoneOwnNumber"/);
+ assert.match(app,/bind\('phoneOwnNumberButton',\(\)=>copyNumberFeedback/);
  const settings=html.indexOf('<section id="phoneSettingsPanel"'),tabs=html.indexOf('<nav class="phone-tabs"');
  assert.ok(settings>=0&&tabs>settings);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
@@ -423,10 +445,11 @@ test('電話画面でアプリ専用番号であることを明示する',()=>{
 });
 
 test('自分の番号を作成している間は番号アイコンの左に進行状況を表示する',()=>{
- assert.match(html,/id="phoneOwnCreating" class="phone-own-creating" role="status" aria-live="polite" hidden[\s\S]*?id="phoneOwnToggle"/);
+ assert.match(html,/id="phoneOwnCreating" class="phone-own-creating" role="status" aria-live="polite" hidden[\s\S]*?id="phoneOwnNumberButton"/);
+ assert.match(html,/id="profileNumberCreating" class="profile-number-loading"/);
  assert.match(app,/function setOwnCreating\(active\)[\s\S]*?indicator\.hidden=!active[\s\S]*?button\.disabled=active/);
- assert.match(app,/busy=true;setOwnCreating\(true\)/);
- assert.match(app,/finally\{busy=false;setOwnCreating\(false\);\}/);
+ assert.match(app,/setOwnCreating\(true\)/);
+ assert.match(app,/finally\{numberCreationPromise=null;setOwnCreating\(false\);\}/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/\.phone-own-creating\{[^}]*margin-left:auto/);
  assert.match(css,/@keyframes phoneOwnCreatingSpin/);
@@ -448,8 +471,8 @@ test('主タブは連絡と電話だけにし電話の補助機能と設定を�
  assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts,\.phone-home-card>\.phone-notice-filters\{order:1;position:relative;[^}]*display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\);[^}]*flex:0 0 auto/);
  assert.match(css,/\.phone-home-card>\[role="tabpanel"\]\{order:2\}/);
  assert.match(css,/\.phone-home-card>\.phone-tabs\{order:4/);
- assert.match(html,/id="phoneDialUtility"[\s\S]*?phone-dial-scope-note[\s\S]*?id="phoneOwnToggle"[\s\S]*?id="phoneOwnDetails"/);
- assert.match(css,/#phoneDialUtility #phoneOwnDetails\{[^}]*bottom:calc\(100% \+ 8px\)/);
+ assert.match(html,/id="phoneDialUtility"[\s\S]*?phone-dial-scope-note[\s\S]*?id="phoneOwnNumberButton"[\s\S]*?id="phoneOwnNumber"/);
+ assert.match(css,/\.phone-own-number-display\{/);
  assert.match(app,/utility\.hidden=id!=='dial'/);
  assert.match(app,/shortcuts\.hidden=id==='notices'/);
 });
@@ -468,7 +491,7 @@ test('電話の現在地・スクロール・追加ボタン・キーボード�
  assert.match(app,/\['notices','history','contacts','dial','groups'\]\.includes\(params\.get\('tab'\)\)/);
  assert.doesNotMatch(app,/\['notices','history','contacts','dial','groups','settings'\]/);
  assert.match(css,/#phoneContactsPanel,#phoneGroupsPanel\{padding-bottom:96px!important\}/);
- assert.match(css,/#phoneDialUtility #phoneOwnDetails\{[^}]*max-height:min\(360px,calc\(100dvh - 190px\)\);overflow-y:auto/);
+ assert.doesNotMatch(css,/#phoneDialUtility #phoneOwnDetails/);
  assert.match(css,/\.phone-dial-shortcuts button\[aria-selected="true"\],\.phone-notice-filters button\[aria-selected="true"\]\{[^}]*border:1px solid/);
 });
 

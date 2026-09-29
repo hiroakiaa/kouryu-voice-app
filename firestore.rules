@@ -5,10 +5,15 @@ service cloud.firestore {
     // Phone home: personal calls are pairs; groups have at most four registered members.
     match /numberProfiles/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['number','name'])
-        && request.resource.data.number.matches('^[0-9]{8}$') && (!('name' in request.resource.data) || shortName(request.resource.data.name));
+      allow list: if false;
+      allow create: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['number','name','reading','department'])
+        && request.resource.data.number.matches('^[0-9]{8}$') && (!('name' in request.resource.data) || shortName(request.resource.data.name))
+        && (!('reading' in request.resource.data) || (request.resource.data.reading is string && request.resource.data.reading.size() <= 40))
+        && (!('department' in request.resource.data) || (request.resource.data.department is string && request.resource.data.department.size() <= 30));
       allow update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']) && shortName(request.resource.data.name);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','reading','department']) && shortName(request.resource.data.name)
+        && (!('reading' in request.resource.data) || (request.resource.data.reading is string && request.resource.data.reading.size() <= 40))
+        && (!('department' in request.resource.data) || (request.resource.data.department is string && request.resource.data.department.size() <= 30));
       match /contacts/{number} {
         allow read, delete: if request.auth != null && request.auth.uid == uid;
         allow create, update: if request.auth != null && request.auth.uid == uid && request.resource.data.keys().hasOnly(['name','number','uid','favorite','reading','department'])
@@ -21,8 +26,10 @@ service cloud.firestore {
       match /history/{id} {
         allow read, delete: if request.auth != null && request.auth.uid == uid;
         allow create, update: if request.auth != null && request.auth.uid == uid
-           && request.resource.data.keys().hasOnly(['number','name','status','direction','at','startedAt','endedAt','durationSeconds','supportMode','groupId','callType','participantCount']) && shortName(request.resource.data.name)
+           && request.resource.data.keys().hasOnly(['number','name','reading','department','status','direction','at','startedAt','endedAt','durationSeconds','supportMode','groupId','callType','participantCount']) && shortName(request.resource.data.name)
           && request.resource.data.number is string && request.resource.data.number.size() <= 8
+          && (!('reading' in request.resource.data) || (request.resource.data.reading is string && request.resource.data.reading.size() <= 40))
+          && (!('department' in request.resource.data) || (request.resource.data.department is string && request.resource.data.department.size() <= 30))
           && request.resource.data.status in ['ringing','accepted','declined','cancelled','busy','missed']
           && request.resource.data.direction in ['incoming','outgoing'] && request.resource.data.at is number
           && (!('startedAt' in request.resource.data) || request.resource.data.startedAt is number)
@@ -83,8 +90,10 @@ service cloud.firestore {
     function validNumberRequest(uid) {
       let d = request.resource.data;
       return request.auth != null && uid == request.auth.uid && d.from == uid && d.to != uid
-         && d.keys().hasOnly(['from','to','number','fromNumber','name','supportMode','status','createdAt','expiresAt'])
+         && d.keys().hasOnly(['from','to','number','fromNumber','name','reading','department','supportMode','status','createdAt','expiresAt'])
          && d.number.matches('^[0-9]{8}$') && shortName(d.name)
+         && (!('reading' in d) || (d.reading is string && d.reading.size() <= 40 && d.reading == get(/databases/$(database)/documents/numberProfiles/$(uid)).data.reading))
+         && (!('department' in d) || (d.department is string && d.department.size() <= 30 && d.department == get(/databases/$(database)/documents/numberProfiles/$(uid)).data.department))
          && (!('supportMode' in d) || d.supportMode in ['support','plain'])
         && get(/databases/$(database)/documents/voiceNumbers/$(d.number)).data.ownerUid == d.to
         && (!('fromNumber' in d) || get(/databases/$(database)/documents/voiceNumbers/$(d.fromNumber)).data.ownerUid == uid)
