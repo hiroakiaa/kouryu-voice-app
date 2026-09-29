@@ -273,11 +273,11 @@ test('連絡タブはお願いとお知らせを一枚のカードで送受信�
  assert.doesNotMatch(sw,/action === "notice"[^]*?showNotification[^]*?subject/);
 });
 
-test('連絡は所属宛先・未対応優先・検索・配信状態・取消・管理集計を扱う',()=>{
+test('連絡は所属宛先・対応優先・検索・取消・管理集計を扱う',()=>{
  for(const id of ['phoneNoticeSearchToggle','phoneNoticeSearch','phoneNoticeSummary','adminNoticeStats','phoneContactDepartment'])assert.match(html,new RegExp(`id="${id}"`));
- for(const filter of ['pending','later','completed','all'])assert.match(html,new RegExp(`data-notice-filter="${filter}"`));
+ for(const filter of ['action','sent'])assert.match(html,new RegExp(`data-notice-filter="${filter}"`));
  assert.match(app,/departmentChoices/);
- assert.match(app,/noticeFilter='pending'/);
+ assert.match(app,/noticeFilter='action'/);
  assert.match(app,/data-notice-cancel/);
  assert.match(app,/delivery\.\$\{to\}/);
  assert.match(app,/completedAt:Date\.now\(\)/);
@@ -290,7 +290,7 @@ test('連絡の絞り込みは電話ナビと同じ位置と操作で検索は�
  const filters=html.indexOf('id="phoneNoticeFilters"'),panel=html.indexOf('id="phoneNoticesPanel"'),search=html.indexOf('id="phoneNoticeSearchToggle"');
  assert.ok(filters>=0&&filters<panel&&panel<search);
  assert.match(html,/id="phoneNoticeFilters" class="phone-notice-filters notice-filter-tabs" role="tablist" aria-label="連絡の表示"/);
- assert.match(html,/data-notice-filter="pending" aria-selected="true" aria-current="page"/);
+ assert.match(html,/data-notice-filter="action" aria-selected="true" aria-current="page"/);
  assert.match(html,/class="notice-search-toggle-row">[\s\S]*?id="phoneNoticeSearchToggle"/);
  assert.doesNotMatch(html,/<section id="phoneNoticesPanel"[^>]*><div class="phone-panel-head phone-section-head"/);
  assert.match(app,/const noticeFilters=\$\('phoneNoticeFilters'\);if\(noticeFilters\)noticeFilters\.hidden=id!==\'notices\'/);
@@ -299,8 +299,8 @@ test('連絡の絞り込みは電話ナビと同じ位置と操作で検索は�
  assert.match(app,/noticeFilterTabs\.addEventListener\('keydown'/);
  assert.match(html,/id="phoneNoticeChangeDialog"/);
  assert.match(app,/noticeChange/);
- assert.match(app,/setNoticeFilter\(next\)/);
- assert.match(app,/mine&&failed&&!done/);
+ assert.match(app,/setNoticeFilter\('action'\)/);
+ assert.match(html,/id="phoneNoticePastToggle"/);
  assert.match(rules,/\['pending','seen','later','accepted','done'\]/);
  assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts,\.phone-home-card>\.phone-notice-filters\{order:1/);
  assert.match(css,/\.notice-search-toggle-row\{display:flex;align-items:center;justify-content:space-between/);
@@ -310,13 +310,13 @@ test('職員の状態・即時返答・先着担当・不在時の折り返し�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  for(const id of ['phonePresenceToggle','phonePresenceDialog','phonePresenceClose','phoneCallResultNotify'])assert.match(html,new RegExp(`id="${id}"`));
  for(const status of ['available','class','away','urgent'])assert.match(html,new RegExp(`data-presence="${status}"`));
- assert.match(html,/誰か1人にお願い/);
+ assert.match(html,/私が対応する|保護者へ電話/);
  assert.match(app,/const presenceLabels=\{available:'対応できます',class:'授業中',away:'離席中',urgent:'緊急のみ'/);
  assert.match(app,/Date\.now\(\)\+90\*60000/);
  assert.match(app,/async function refreshContactPresence/);
  assert.match(app,/Date\.now\(\)-presenceRefreshAt<60000/);
- assert.match(app,/data-notice-call-back/);
- assert.match(app,/updateNoticeResponse\(id,'accepted','向かいます'\)/);
+ assert.match(app,/data-notice-accept/);
+ assert.match(app,/updateNoticeResponse\(id,'accepted','対応します'\)/);
  assert.match(app,/updateNoticeResponse\(id,'accepted','電話します'\)/);
  assert.match(app,/async function sendCallbackRequest/);
  assert.match(app,/subject:'折り返しをお願いします'/);
@@ -328,13 +328,26 @@ test('職員の状態・即時返答・先着担当・不在時の折り返し�
  assert.match(css,/\.presence-options\{display:grid/);
 });
 
-test('連絡カードの操作HTMLはブラウザで解釈できる文字列として組み立てる',()=>{
- assert.doesNotMatch(app,/電話<\/button>\$\{item\.kind===/);
- assert.match(app,/電話<\/button>'\+\(item\.kind==='request'/);
+test('連絡カードは主操作1つとその他メニューを組み立てる',()=>{
+ assert.match(app,/notice-main-action/);
+ assert.match(app,/class="notice-more"/);
+});
+
+test('連絡は相手と用件だけを先に選び、対応するか送った連絡かで迷わず確認できる',()=>{
+ assert.match(html,/data-notice-filter="action"[\s\S]*?>対応する</);
+ assert.match(html,/data-notice-filter="sent"[\s\S]*?>送った連絡</);
+ for(const purpose of ['callback','visitor','office','confirm','custom'])assert.match(html,new RegExp(`name="noticePurpose" value="${purpose}"`));
+ assert.doesNotMatch(html,/name="noticeKind"/);
+ assert.match(html,/id="phoneNoticeSendSummary"/);
+ assert.match(app,/const purposes=\{callback:/);
+ assert.match(app,/data-notice-accept/);
+ assert.match(app,/私が対応する/);
+ assert.match(app,/対応が終わりました/);
+ assert.match(app,/showPastNotices/);
 });
 
 test('壊れた旧画面でもPWA更新を止めず次回起動は最新HTMLを取得する',()=>{
- assert.match(html,/service-worker\.js\?v=2026-09-29-profile-onboarding-v2|service-worker\.js\?v=2026-09-29-mobile-settings/);
+ assert.match(html,/service-worker\.js\?v=2026-09-30-simple-contact-flow/);
  assert.match(html,/updateViaCache: "none"/);
  assert.match(sw,/event\.request\.mode !== "navigate"/);
  assert.match(sw,/fetch\(event\.request, \{ cache: "no-store" \}\)/);
@@ -842,9 +855,9 @@ test('連絡送信中はボタン内にローディングを表示して二重�
 });
 
 test('連絡カードは送信者と状態をバッジで示し操作対象を明記する',()=>{
- assert.match(app,/さんからの連絡内容/);
+ assert.match(app,/さんから/);
  assert.match(app,/notice-status-badge/);
- assert.match(app,/送信者へ返信/);
+ assert.match(app,/返信する/);
  assert.match(app,/送信者へ電話/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/\.notice-sender-badge\{/);
@@ -877,32 +890,31 @@ test('返信するたび件数を増やし送信者側へリアルタイム通�
  assert.match(app,/<time>\$\{noticeTime\(reply\.at\)\}<\/time>/);
  assert.match(css,/\.notice-reply-item time\{grid-column:2;justify-self:end/);
  assert.match(rules,/value\.replies is list/);
- assert.match(app,/mine&&item.status==='open'\?'<button class="notice-reply-action" data-notice-reply=/);
+ assert.match(app,/mine&&item\.status==='open'\)secondary\.push\(`<button class="notice-reply-action" data-notice-reply=/);
  assert.match(app,/currentItem\.senderUid===uid\?\(currentItem\.recipientUids\|\|\[\]\):\[currentItem\.senderUid\]/);
  assert.match(app,/currentItem\.senderUid===uid\?'pending':'seen'/);
- assert.match(app,/recipientResponses=Object\.entries\(item\.responses\|\|\{\}\)\.filter/);
+ assert.match(app,/recipients=Object\.entries\(item\.responses\|\|\{\}\)\.filter/);
  assert.match(rules,/resource\.data\.senderUid == request\.auth\.uid[\s\S]*?affectedKeys\(\)\.hasOnly\(\['responses'\]\)[\s\S]*?validSchoolResponse/);
  assert.match(css,/\.school-notice-actions \.notice-reply-action\{/);
 });
 
-test('連絡を未対応から開き送信済み表示と固定追加ボタンを使う',()=>{
+test('連絡を対応する画面から開き送信先表示と固定追加ボタンを使う',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
- assert.match(app,/b\.id==='phoneTab-notices'\)setNoticeFilter\('pending'\)/);
+ assert.match(app,/b\.id==='phoneTab-notices'\)setNoticeFilter\('action'\)/);
  assert.match(app,/notice-self-sent-badge/);
  assert.doesNotMatch(css,/\.school-notice-card\.needs-action\{border-left:5px/);
  assert.match(css,/\.phone-home-card>\.phone-add-fab\{position:absolute;right:clamp\(12px,1\.6vw,20px\);bottom:86px/);
  assert.match(app,/action\.hidden=true;\$\('phoneHome'\)\.append\(action\)/);
- assert.match(html,/自分が送ったカードには「自分が送った連絡」と表示されます/);
+ assert.match(html,/「対応する」には、いま自分が行う連絡だけが表示されます/);
 });
 
 test('完了・返信・状態変更を全端末の連絡一覧へ同期する',()=>{
  assert.match(app,/function noticeIsCompleted\(item\)/);
  assert.match(app,/Object\.values\(item\.responses\|\|\{\}\)\.some\(value=>value\.state==='done'\)/);
- assert.match(app,/completed=noticeIsCompleted\(item\)\|\|\(!mine&&\(response\.state==='done'\|\|response\.state==='seen'\)\)/);
- assert.match(app,/done=noticeIsCompleted\(item\)\|\|\(!mine&&\(response\.state==='done'\|\|response\.state==='seen'\)\)/);
- assert.match(app,/item\.status==='open'&&!noticeIsCompleted\(item\)[^;]*needsAction\+\+/);
- assert.match(app,/waiting=!done&&!mine/);
- assert.match(app,/\$\{!done&&!mine&&item\.status==='open'/);
+ assert.match(app,/done=noticeIsCompleted\(item\)\|\|\(!mine&&\['done','seen'\]\.includes\(response\.state\)\)/);
+ assert.match(app,/const actionItems=received\.filter\(item=>item\.status==='open'&&!noticeIsCompleted\(item\)\)/);
+ assert.match(app,/assignedToOther=accepted&&response\.state!=='accepted'/);
+ assert.match(app,/!mine&&item\.status==='open'&&!done&&!assignedToOther/);
  assert.match(app,/recipientUids','array-contains',uid[\s\S]*?mergeNotices\(\)/);
  assert.match(app,/senderUid','==',uid[\s\S]*?mergeNotices\(\)/);
 });

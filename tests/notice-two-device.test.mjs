@@ -20,8 +20,7 @@ test('送信端末と受信端末で同じ連絡状態を共有する',()=>{
 test('期限、失敗通知の再送、管理者の送信設定を備える',()=>{
  for(const id of ['phoneNoticeDeadline','adminNoticeAllowAll','adminNoticeAllowGroup','adminNoticeAllowUrgent','adminPasswordChangeForm','appRecovery']) assert.match(html,new RegExp(`id="${id}"`));
  assert.match(app,/retryNoticeNotifications/);
- assert.match(app,/data-notice-retry/);
+ assert.match(app,/async function retryNoticeNotifications/);
  assert.match(app,/wakaru-notice-permissions/);
  assert.match(rules,/deadlineAt/);
 });
-
