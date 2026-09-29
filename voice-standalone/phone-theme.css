@@ -635,3 +635,28 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .notice-reply-history{display:grid;gap:8px;margin:13px 0;padding:12px;border:1px solid #d4e5c4;border-radius:15px;background:#f4f9ec}.notice-reply-history h4{display:flex;align-items:center;gap:7px;margin:0 0 2px;color:#4b6b40;font-size:13px}.notice-reply-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:11px 12px;border:1px solid #dce9cf;border-radius:13px;background:#fffef9}.notice-reply-author{display:flex;align-items:center;gap:7px;min-width:0;color:#396331}.notice-reply-author i{color:#74ad52;font-size:18px}.notice-reply-author strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.notice-reply-item p{grid-column:1/-1;margin:0!important;color:#344c30;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.notice-reply-item time{grid-column:2;justify-self:end;color:#788671;font-size:11px}
 
 .school-notice-actions .notice-reply-action{border-color:#8fc16d;background:#e9f7d8;color:#37632e;font-weight:800}.school-notice-actions .notice-reply-action i{color:#60a541}
+
+/* Responsive dial controls: keep every target comfortable while fitting short and narrow screens. */
+#phoneDialPanel{container-name:phone-dial-panel;container-type:size;}
+.phone-dial-content{
+  --phone-key-size:clamp(52px,min(calc((100cqw - 56px)/3),calc((100cqh - 178px)/5)),88px);
+  --phone-key-gap-x:clamp(14px,5cqw,24px);
+  --phone-key-gap-y:clamp(5px,1.25cqh,12px);
+}
+#phoneDialForm>*{--dial-gap:var(--phone-key-gap-y);}
+#phoneDialForm .phone-keypad,
+#phoneDialForm .phone-dial-actions{column-gap:var(--phone-key-gap-x);width:calc(3 * var(--dial-key) + 2 * var(--phone-key-gap-x));}
+#phoneDialForm .phone-key{touch-action:manipulation;}
+#phoneDialForm .phone-key>small{font-size:clamp(8px,calc(var(--dial-key) * .14),11px);}
+#phoneDialForm #phoneBackspace{width:clamp(48px,var(--dial-key),64px);height:clamp(48px,var(--dial-key),64px);}
+@container phone-dial-panel (max-width:360px){
+ .phone-dial-content{--phone-key-size:clamp(48px,min(calc((100cqw - 40px)/3),calc((100cqh - 166px)/5)),66px);--phone-key-gap-x:clamp(10px,4cqw,18px);}
+}
+@container phone-dial-panel (max-height:560px){
+ .phone-dial-content{--phone-key-size:clamp(46px,min(calc((100cqw - 44px)/3),calc((100cqh - 132px)/5)),58px);--phone-key-gap-y:4px;}
+ #phoneDialForm .phone-dial-actions{height:calc(var(--dial-key) + 28px);}
+ #phoneDialForm #phoneBackspace small{top:calc(50% + 13px);font-size:8px;}
+}
+@container phone-dial-panel (min-width:700px) and (min-height:680px){
+ .phone-dial-content{--phone-key-size:clamp(68px,min(calc((100cqw - 72px)/3),calc((100cqh - 190px)/5)),88px);width:min(100%,400px);}
+}
