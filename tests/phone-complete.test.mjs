@@ -981,3 +981,10 @@ test('電話画面のCSSと描画処理はアプリ本体と同じ更新番号�
  assert.match(html,new RegExp(`phone-theme\\.css\\?v=${version}`));
  assert.match(html,new RegExp(`phone-app\\.js\\?v=${version}`));
 });
+
+test('現在の状況ボタンの横に操作目的を表示する',()=>{
+ assert.match(html,/class="notice-presence-control"[\s\S]*?id="phonePresenceToggle"[\s\S]*?class="notice-presence-label">現在の状況を選択<\/span>/);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.notice-presence-control\{display:flex;align-items:center/);
+ assert.match(css,/\.notice-presence-label\{[^}]*white-space:nowrap/);
+});
