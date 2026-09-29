@@ -7,6 +7,16 @@ const app=fs.readFileSync(new URL('../phone-app.js',import.meta.url),'utf8');
 const rules=fs.readFileSync(new URL('../firestore.rules',import.meta.url),'utf8');
 const sw=fs.readFileSync(new URL('../service-worker.js',import.meta.url),'utf8');
 
+
+test('プロフィール設定はスマホ幅で横にはみ出さず項目ごとに読みやすく並ぶ',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/#profileSettingsHost\{overflow-x:hidden\}/);
+ assert.match(css,/#profileSettingsHost #phoneSettingsPanel label\{min-width:0;margin:0\}/);
+ assert.match(css,/@media\(max-width:480px\)[\s\S]*?#phoneNameDialog\.profile-settings-dialog\{width:calc\(100% - 12px\)/);
+ assert.match(css,/#profileSettingsHost \.ringtone-options\{width:100%;grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(css,/#profileSettingsHost \.notification-setting-card\{grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(html,/いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます/);
+});
 test('初回は番号を自動準備し名前と番号が保存されるまでプロフィールを閉じない',()=>{
  assert.match(html,/id="profileOwnNumber"/);
  assert.match(html,/id="phoneName" maxlength="8"/);
@@ -324,7 +334,7 @@ test('連絡カードの操作HTMLはブラウザで解釈できる文字列と�
 });
 
 test('壊れた旧画面でもPWA更新を止めず次回起動は最新HTMLを取得する',()=>{
- assert.match(html,/service-worker\.js\?v=2026-09-29-profile-onboarding-v2/);
+ assert.match(html,/service-worker\.js\?v=2026-09-29-profile-onboarding-v2|service-worker\.js\?v=2026-09-29-mobile-settings/);
  assert.match(html,/updateViaCache: "none"/);
  assert.match(sw,/event\.request\.mode !== "navigate"/);
  assert.match(sw,/fetch\(event\.request, \{ cache: "no-store" \}\)/);
