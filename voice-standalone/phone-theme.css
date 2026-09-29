@@ -660,3 +660,12 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 @container phone-dial-panel (min-width:700px) and (min-height:680px){
  .phone-dial-content{--phone-key-size:clamp(68px,min(calc((100cqw - 72px)/3),calc((100cqh - 190px)/5)),88px);width:min(100%,400px);}
 }
+
+/* Keep number creation feedback beside the own-number control without moving other controls. */
+.phone-own-creating{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;margin-left:auto;padding:.35rem .55rem;border:1px solid #b9d994;border-radius:999px;background:#f1f9e5;color:#527542;font-size:.75rem;font-weight:700;white-space:nowrap;pointer-events:none;}
+.phone-own-creating[hidden]{display:none!important;}
+.phone-own-creating i{animation:phoneOwnCreatingSpin .8s linear infinite;}
+#phoneOwnToggle.is-creating{opacity:.72;}
+@keyframes phoneOwnCreatingSpin{to{transform:rotate(360deg)}}
+@media(max-width:380px){.phone-own-creating{padding:.3rem .42rem;font-size:.6875rem}.phone-own-creating span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
+@media(prefers-reduced-motion:reduce){.phone-own-creating i{animation:none}}

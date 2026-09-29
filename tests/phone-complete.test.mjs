@@ -415,6 +415,17 @@ test('電話画面でアプリ専用番号であることを明示する',()=>{
  assert.match(css,/\.phone-dial-scope-note\{/);
 });
 
+test('自分の番号を作成している間は番号アイコンの左に進行状況を表示する',()=>{
+ assert.match(html,/id="phoneOwnCreating" class="phone-own-creating" role="status" aria-live="polite" hidden[\s\S]*?id="phoneOwnToggle"/);
+ assert.match(app,/function setOwnCreating\(active\)[\s\S]*?indicator\.hidden=!active[\s\S]*?button\.disabled=active/);
+ assert.match(app,/busy=true;setOwnCreating\(true\)/);
+ assert.match(app,/finally\{busy=false;setOwnCreating\(false\);\}/);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.phone-own-creating\{[^}]*margin-left:auto/);
+ assert.match(css,/@keyframes phoneOwnCreatingSpin/);
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\.phone-own-creating i\{animation:none\}\}/);
+});
+
 test('主タブは連絡と電話だけにし電話の補助機能と設定を迷わず開ける',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  const mainTabs=html.match(/<nav class="phone-tabs"[\s\S]*?<\/nav>/)?.[0]||'';
