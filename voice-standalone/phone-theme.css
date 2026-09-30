@@ -928,3 +928,57 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
  .phone-home-card>.phone-tabs button{min-height:42px}
  .phone-home-card>#phoneNoticeAddToggle.notice-add-button{bottom:56px}
 }
+
+/* Notice cards keep a predictable scan rhythm; replies open only when requested. */
+.notice-card-header-meta{align-items:stretch}
+.school-notice-card header .notice-card-status{flex-direction:column;align-items:flex-end;justify-content:center;gap:4px}
+.school-notice-list .school-notice-card>header time{display:grid;align-content:center;justify-items:end;gap:1px;min-width:3.4em;line-height:1.15}
+.notice-reply-history{display:block;margin:0!important;padding:0!important;border:0!important;border-top:1px solid #dce8d1!important;background:#f7fbf2}
+.notice-reply-history>summary{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;width:100%!important;box-sizing:border-box;padding:11px 17px!important;border:0!important;border-radius:0!important;background:#f2f8eb!important;color:#42663a;list-style:none}
+.notice-reply-history>summary::-webkit-details-marker{display:none}
+.notice-reply-history>summary>span{display:flex;align-items:center;gap:7px;font-weight:850}
+.notice-reply-history>summary>small{padding:3px 8px;border-radius:999px;background:#dcefc9;color:#42663a;font-size:11px;font-weight:850}
+.notice-reply-chevron{font-size:11px;transition:transform .22s ease}
+.notice-reply-history[open] .notice-reply-chevron{transform:rotate(180deg)}
+.notice-reply-list{display:grid;grid-template-rows:0fr;padding:0 12px;opacity:0;overflow:hidden;transition:grid-template-rows .24s ease,opacity .2s ease,padding .24s ease}
+.notice-reply-list-inner{display:grid;gap:8px;min-height:0;overflow:hidden}
+.notice-reply-history[open]>.notice-reply-list{grid-template-rows:1fr;max-height:180px;padding:10px 12px 12px;opacity:1;overflow-y:auto}
+
+@media(min-width:960px){
+ .school-notice-list>.school-notice-card,.notice-day-items>.school-notice-card{height:430px;min-height:430px;max-height:430px;display:flex;flex-direction:column;overflow:hidden}
+ .school-notice-list .notice-message-block{flex:1 1 auto;min-height:0;align-content:start}
+ .school-notice-list .notice-message-block h3{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+ .school-notice-list .notice-message-block>p{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+ .school-notice-list .school-notice-actions{flex:0 0 auto;width:100%;box-sizing:border-box}
+ .school-notice-list .notice-reply-history{flex:0 0 auto;width:100%;box-sizing:border-box}
+}
+
+/* Use wide dialogs as workspaces only where two columns reduce scrolling. */
+@media(min-width:900px) and (min-height:620px){
+ .contact-form-dialog{width:min(760px,calc(100% - 40px))}
+ .contact-form-dialog .phone-form-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+ .presence-dialog{width:min(720px,calc(100% - 40px))}
+ .presence-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .school-notice-compose{width:min(920px,calc(100% - 40px))}
+ .school-notice-compose form{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);align-items:start;gap:14px 18px}
+ .school-notice-compose .notice-compose-step:first-child{grid-column:1;grid-row:1/4}
+ .school-notice-compose .notice-compose-step:nth-child(2),.school-notice-compose .notice-detail-label,.school-notice-compose .notice-compose-options{grid-column:2}
+ .school-notice-compose .notice-recipient-list{grid-template-columns:repeat(2,minmax(0,1fr));max-height:420px}
+ .school-notice-compose .notice-send-summary,.school-notice-compose .notice-send-review,.school-notice-compose .notice-send-button{grid-column:1/-1}
+ .device-check-dialog{width:min(780px,calc(100% - 40px))}
+ .device-check-results{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .device-check-manual{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px}
+ .device-check-manual>strong{grid-column:1/-1}
+ .call-result-dialog{width:min(660px,calc(100% - 40px))}
+ .call-result-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .group-detail-dialog{width:min(920px,calc(100% - 40px))}
+ .group-detail-dialog[open]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px 18px}
+ .group-detail-dialog>.number-head,.group-detail-dialog>.group-call-status,.group-detail-dialog>.group-manage-toggle,.group-detail-dialog>.group-owner-tools,.group-detail-dialog>.group-member-actions{grid-column:1/-1;width:100%;box-sizing:border-box}
+ .group-detail-dialog>.group-dialog-section{margin-top:0;height:100%;box-sizing:border-box}
+}
+
+/* Keep the complete dial control group on the visual center line. */
+#phoneDialPanel .phone-dial-content{align-self:center;margin-inline:auto}
+#phoneDialForm{place-self:center;margin-inline:auto}
+@media(min-width:700px) and (max-height:820px){#phoneDialForm{width:max-content;max-width:100%}}
+@media(prefers-reduced-motion:reduce){.notice-reply-list,.notice-reply-chevron{transition:none}}

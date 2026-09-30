@@ -1009,6 +1009,33 @@ test('縦幅が短い学校端末では操作領域を圧縮し横向きテン�
  assert.match(css,/@media\(min-width:641px\) and \(max-height:540px\)/);
 });
 
+test('二列の連絡カードは固定高で本文を省略し返信を展開表示する',()=>{
+ const js=fs.readFileSync(new URL('../phone-app.js',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(js,/返信内容を確認/);
+ assert.match(js,/class="notice-reply-list-inner"/);
+ assert.match(js,/function noticeCardTime\(value\)/);
+ assert.match(css,/height:430px;min-height:430px;max-height:430px/);
+ assert.match(css,/-webkit-line-clamp:3/);
+ assert.match(css,/\.notice-reply-history\[open\]>.notice-reply-list/);
+ assert.match(css,/\.school-notice-card header \.notice-card-status\{flex-direction:column/);
+});
+
+test('横幅のある端末では内容量の多いモーダルだけ二列化する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/@media\(min-width:900px\) and \(min-height:620px\)/);
+ assert.match(css,/\.contact-form-dialog \.phone-form-row\{grid-template-columns:repeat\(2/);
+ assert.match(css,/\.school-notice-compose form\{grid-template-columns:minmax\(0,\.92fr\) minmax\(0,1\.08fr\)/);
+ assert.match(css,/\.device-check-results\{grid-template-columns:repeat\(2/);
+ assert.match(css,/\.group-detail-dialog\[open\]\{display:grid;grid-template-columns:repeat\(2/);
+});
+
+test('横向き電話画面ではテンキーと操作ボタン全体を中央に置く',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/#phoneDialPanel \.phone-dial-content\{align-self:center;margin-inline:auto/);
+ assert.match(css,/#phoneDialForm\{place-self:center;margin-inline:auto/);
+});
+
 test('現在の状況ボタンの横に操作目的を表示する',()=>{
  assert.match(html,/class="notice-presence-control"[\s\S]*?id="phonePresenceToggle"[\s\S]*?class="notice-presence-label">現在の状況を選択<\/span>/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
