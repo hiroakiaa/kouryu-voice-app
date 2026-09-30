@@ -79,6 +79,20 @@ Gain変更を段差のある即時切替にせず、Web Audio APIの時定数を
 
 管理者画面では現在のGain目標とAttack / Releaseを確認できます。iPhone / iPadは引き続き低遅延のブラウザー標準経路を使うため、このWeb Audio Gain処理の対象外です。
 
+## Phase F: Adaptive Audioと入力機器復旧
+
+5秒ごとのWebRTC品質を複数回確認してから、Opus送信上限を3段階で変更します。
+
+- full: 選択中プリセットの通常上限
+- balanced: 最大32 kbps
+- resilient: 最大24 kbps
+
+悪化時でも1回の測定だけでは変更せず、poorは2回、fairは3回、goodへの復帰は4回の連続判定を必要とします。変更後20秒は再変更せず、短い揺れによる音量・音質の往復を防ぎます。`setParameters()` が使えない端末や失敗時は現在の通話設定を維持します。
+
+`devicechange` では、現在のマイクトラックが生きていればAudioContextの再開だけを行います。トラックが終了していた場合だけ新しいマイクを取得し、各PeerのAudio Senderへ `replaceTrack()` します。切替に失敗してもPeer接続は閉じません。切替途中に退室した場合は、新しく取得したトラックを直ちに停止します。
+
+既存のネットワーク復旧は、短い待機、ICE Restart、Peer再作成の順に段階化済みです。最大試行回数と終了時間を設け、無限再接続を防いでいます。
+
 ## 費用とPrivacy
 
 今回追加した処理は端末内のブラウザーAPIだけを使います。外部AI、音声API、追加サーバー、Firestore読み書きは増えません。

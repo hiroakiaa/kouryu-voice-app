@@ -1034,3 +1034,21 @@ test('Gainは小声を保護しAttackとReleaseを分けて滑らかに変更す
  assert.match(html,/setTargetAtTime\(voiceGainTarget, localAudioContext\.currentTime, timeConstant\)/);
  assert.match(html,/現在のGain目標/);
 });
+
+test('Adaptive Audioは品質の継続を確認して段階変更し頻繁な切替を防ぐ',()=>{
+ assert.match(html,/function updateAdaptiveAudioProfile\(stats\)/);
+ assert.match(html,/candidate === "resilient" \? 2/);
+ assert.match(html,/Date\.now\(\) - adaptiveAudioChangedAt < 20000/);
+ assert.match(html,/resilient: Math\.min\(VOICE_SETTINGS\.maxBitrate, 24000\)/);
+ assert.match(html,/setAudioSenderBitrate\(sender, bitrates\[candidate\]\)/);
+ assert.match(html,/return sender\.setParameters\(params\)[\s\S]*?catch/);
+});
+
+test('入力機器が失われた時は通話中にreplaceTrackし失敗しても通話処理を止めない',()=>{
+ assert.match(html,/addEventListener\("devicechange", function\(\) \{[\s\S]*?recoverChangedAudioInput\(\)/);
+ assert.match(html,/function recoverChangedAudioInput\(\)/);
+ assert.match(html,/currentTrack && currentTrack\.readyState === "live"/);
+ assert.match(html,/sender\.replaceTrack\(nextTrack\)/);
+ assert.match(html,/Promise\.allSettled\(replacements\)/);
+ assert.match(html,/if \(!joined\) \{[\s\S]*?nextRawStream\.getTracks\(\)/);
+});

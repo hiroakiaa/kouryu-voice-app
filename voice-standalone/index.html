@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-gain-envelope">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-adaptive-recovery">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4571,7 +4571,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-gain-envelope";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-adaptive-recovery";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4616,7 +4616,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-30-gain-envelope";
+    const APP_VERSION = "2026-09-30-adaptive-recovery";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4896,6 +4896,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let vadLastVoiceAt = 0;
     let lastVadDiagnosticRenderAt = 0;
     let voiceGainTarget = 1;
+    let adaptiveAudioProfile = "full";
+    let adaptiveQualityCandidate = "";
+    let adaptiveQualitySamples = 0;
+    let adaptiveAudioChangedAt = 0;
+    let audioDeviceRecoveryPromise = null;
     let lastSpeakingWrite = 0;
     let lastSpeakingDataSent = 0;
     let lastSpeakingDataState = null;
@@ -5295,7 +5300,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       });
       if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === "function") {
         navigator.mediaDevices.addEventListener("devicechange", function() {
-          if (joined) resumeCallAudio("devicechange");
+          if (joined) recoverChangedAudioInput();
         });
       }
       updateDeviceTip();
@@ -7273,6 +7278,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       autoReconnectTimers.forEach(function(timerId) { window.clearTimeout(timerId); });
       autoReconnectTimers.clear();
       autoReconnectAttempts.clear();
+      adaptiveAudioProfile = "full";
+      adaptiveQualityCandidate = "";
+      adaptiveQualitySamples = 0;
+      adaptiveAudioChangedAt = 0;
       const activeListeners = verifyListenerCleanup();
       if (shouldMarkEnded) { try { markMetricMilestone("call-ended"); } catch(error) { console.warn(error); } }
       stopSpeakingMonitor();
@@ -9004,6 +9013,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (el.jitterBadge) el.jitterBadge.textContent = "音の揺れ " + formatStat(activeStats.jitterMs, "ms");
       if (el.packetLossBadge) el.packetLossBadge.textContent = "途切れ " + formatStat(activeStats.lossPct, "%");
       renderAdminWebRtcStats();
+      updateAdaptiveAudioProfile(activeStats);
       if (activeStats.quality && activeStats.quality !== "idle" && activeStats.quality !== previousQuality) {
         const detail = "RTT " + formatStat(activeStats.rttMs, "ms") + " / jitter " + formatStat(activeStats.jitterMs, "ms") + " / loss " + formatStat(activeStats.lossPct, "%");
         const advice = getQualityAdvice(activeStats);
@@ -9020,6 +9030,93 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         }
         maybeSuggestAudioPreset(activeStats);
       }
+    }
+
+    function updateAdaptiveAudioProfile(stats) {
+      if (!AUDIO_FEATURE_FLAGS.adaptiveAudio || !joined || !stats || stats.quality === "idle") return;
+      const candidate = stats.quality === "poor" ? "resilient" : (stats.quality === "fair" ? "balanced" : "full");
+      if (candidate !== adaptiveQualityCandidate) {
+        adaptiveQualityCandidate = candidate;
+        adaptiveQualitySamples = 1;
+      } else {
+        adaptiveQualitySamples += 1;
+      }
+      const requiredSamples = candidate === "resilient" ? 2 : (candidate === "balanced" ? 3 : 4);
+      if (candidate === adaptiveAudioProfile || adaptiveQualitySamples < requiredSamples || Date.now() - adaptiveAudioChangedAt < 20000) return;
+      const bitrates = { full: VOICE_SETTINGS.maxBitrate, balanced: Math.min(VOICE_SETTINGS.maxBitrate, 32000), resilient: Math.min(VOICE_SETTINGS.maxBitrate, 24000) };
+      adaptiveAudioProfile = candidate;
+      adaptiveAudioChangedAt = Date.now();
+      peers.forEach(function(state) {
+        if (!state || !state.peer) return;
+        state.peer.getSenders().filter(function(sender) { return sender.track && sender.track.kind === "audio"; }).forEach(function(sender) {
+          setAudioSenderBitrate(sender, bitrates[candidate]);
+        });
+      });
+      pushDiagnostic("info", "Adaptive Audio", candidate + " / 上限 " + Math.round(bitrates[candidate] / 1000) + "kbps");
+    }
+
+    function setAudioSenderBitrate(sender, maxBitrate) {
+      if (!sender || typeof sender.getParameters !== "function" || typeof sender.setParameters !== "function") return Promise.resolve(false);
+      try {
+        const params = sender.getParameters() || {};
+        params.encodings = params.encodings && params.encodings.length ? params.encodings : [{}];
+        params.encodings[0].maxBitrate = maxBitrate;
+        params.encodings[0].priority = "high";
+        return sender.setParameters(params).then(function() { return true; }).catch(function(error) {
+          console.warn(error);
+          return false;
+        });
+      } catch (error) {
+        console.warn(error);
+        return Promise.resolve(false);
+      }
+    }
+
+    function recoverChangedAudioInput() {
+      if (audioDeviceRecoveryPromise) return audioDeviceRecoveryPromise;
+      const currentTrack = rawLocalStream && rawLocalStream.getAudioTracks ? rawLocalStream.getAudioTracks()[0] : null;
+      if (currentTrack && currentTrack.readyState === "live") {
+        resumeCallAudio("devicechange");
+        return Promise.resolve(false);
+      }
+      audioDeviceRecoveryPromise = getUserMediaWithTimeout(callAudioConstraints(), MIC_PERMISSION_TIMEOUT_MS).then(function(nextRawStream) {
+        if (!joined) {
+          nextRawStream.getTracks().forEach(function(track) { track.stop(); });
+          return false;
+        }
+        const previousRawStream = rawLocalStream;
+        const previousLocalStream = localStream;
+        stopSpeakingMonitor();
+        try { if (localAudioContext && typeof localAudioContext.close === "function") localAudioContext.close(); } catch (error) { console.warn(error); }
+        localAudioContext = null;
+        localVoiceGain = null;
+        localVoiceAnalyser = null;
+        rawLocalStream = nextRawStream;
+        tuneLocalAudioTrack(rawLocalStream);
+        localStream = isIosDevice() || !AUDIO_FEATURE_FLAGS.advancedAudioProcessing ? rawLocalStream : createCleanAudioStream(rawLocalStream);
+        const nextTrack = localStream.getAudioTracks()[0];
+        const replacements = [];
+        peers.forEach(function(state) {
+          if (!state || !state.peer) return;
+          state.peer.getSenders().filter(function(sender) { return sender.track && sender.track.kind === "audio"; }).forEach(function(sender) {
+            replacements.push(Promise.resolve(sender.replaceTrack(nextTrack)).catch(function(error) { console.warn(error); return false; }));
+          });
+        });
+        return Promise.allSettled(replacements).then(function() {
+          if (previousLocalStream && previousLocalStream !== previousRawStream) previousLocalStream.getTracks().forEach(function(track) { track.stop(); });
+          if (previousRawStream) previousRawStream.getTracks().forEach(function(track) { track.stop(); });
+          applyMuteState(muted);
+          startSpeakingMonitor();
+          pushDiagnostic("info", "マイクを切り替え", "通話を維持したまま新しい入力機器へ切り替えました。");
+          return true;
+        });
+      }).catch(function(error) {
+        pushDiagnostic("warn", "マイク切替を継続できませんでした", error && error.message ? error.message : "");
+        return false;
+      }).finally(function() {
+        audioDeviceRecoveryPromise = null;
+      });
+      return audioDeviceRecoveryPromise;
     }
 
     function renderAdminWebRtcStats() {
