@@ -993,7 +993,6 @@ test('管理者診断でマイク処理の要求値と実適用値を区別す�
  assert.match(html,/id="adminAudioProcessingSummary"/);
  assert.match(html,/const AUDIO_FEATURE_FLAGS = Object\.freeze\([\s\S]*?detailedDiagnostics: true/);
  assert.match(html,/if \(!AUDIO_FEATURE_FLAGS\.vadEnabled\)/);
- assert.match(html,/!AUDIO_FEATURE_FLAGS\.adaptiveAudio[\s\S]{0,30}\? 1/);
  assert.match(html,/typeof track\.getSettings === "function"/);
  assert.match(html,/typeof track\.getCapabilities === "function"/);
  assert.match(html,/要求 [^<]+ \/ 対応範囲/);
@@ -1024,15 +1023,24 @@ test('適応型VADは周囲音を学習し小声の冒頭と語尾を保護す�
  assert.match(html,/VAD発話確率/);
 });
 
-test('Gainは小声を保護しAttackとReleaseを分けて滑らかに変更する',()=>{
+test('Gainは発話判定で送信音量を下げずミュートだけ滑らかに変更する',()=>{
  assert.match(html,/const VOICE_GAIN_ATTACK_SECONDS = 0\.012/);
  assert.match(html,/const VOICE_GAIN_RELEASE_SECONDS = 0\.22/);
- assert.match(html,/quietVoiceProtection/);
- assert.match(html,/Math\.max\(0\.72, settings\.idleGain\)/);
+ assert.match(html,/const targetGain = muted \? 0 : 1/);
  assert.match(html,/voiceGainTarget = Math\.max\(0, Math\.min\(1, targetGain\)\)/);
  assert.match(html,/cancelScheduledValues\(localAudioContext\.currentTime\)/);
  assert.match(html,/setTargetAtTime\(voiceGainTarget, localAudioContext\.currentTime, timeConstant\)/);
  assert.match(html,/現在のGain目標/);
+});
+
+test('貼り付け用診断に音声統計を追加し相手IDと通話IDを除外する',()=>{
+ assert.match(html,/audioDiagnostics: \{ samples: 0/);
+ assert.match(html,/function getShareableAudioDiagnostics\(\)/);
+ assert.match(html,/appliedMicrophoneSettings/);
+ assert.match(html,/speakingRatioPct/);
+ assert.match(html,/"audioDiagnostics: " \+ JSON\.stringify\(getShareableAudioDiagnostics\(\)/);
+ assert.match(html,/function getShareableConnectionTimeline\(\)[\s\S]*?label: item\.label, seconds: item\.seconds/);
+ assert.match(html,/"call=anonymous"/);
 });
 
 test('Adaptive Audioは品質の継続を確認して段階変更し頻繁な切替を防ぐ',()=>{

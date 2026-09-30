@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-adaptive-recovery">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-sustained-voice">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4571,7 +4571,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-adaptive-recovery";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-sustained-voice";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4616,7 +4616,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-30-adaptive-recovery";
+    const APP_VERSION = "2026-09-30-sustained-voice";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4671,8 +4671,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         autoGainControl: false,
         highpass: 120,
         lowpass: 12000,
-        compressorThreshold: -34,
-        compressorRatio: 2.4,
+        compressorThreshold: -20,
+        compressorRatio: 1.35,
         idleGain: 0.55,
         floorGain: 0.16,
         maxBitrate: 48000,
@@ -4707,8 +4707,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       autoGainControl: false,
       highpass: 120,
       lowpass: 12000,
-      compressorThreshold: -34,
-      compressorRatio: 2.4,
+      compressorThreshold: -20,
+      compressorRatio: 1.35,
       idleGain: 0.55,
       floorGain: 0.16,
       maxBitrate: 48000,
@@ -9718,12 +9718,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     function updateSoftNoiseGuard(rms, isSpeaking) {
       if (!localVoiceGain || !localAudioContext) return;
       const settings = getVoiceModeSettings();
-      const quietVoiceProtection = !isSpeaking && vadProbability >= 0.12 && rms >= Math.max(0.006, vadNoiseFloor * 1.25);
-      const targetGain = muted
-        ? 0
-        : (!AUDIO_FEATURE_FLAGS.adaptiveAudio
-          ? 1
-          : (isSpeaking ? 1 : (quietVoiceProtection ? Math.max(0.72, settings.idleGain) : (rms < vadNoiseFloor * 1.08 ? settings.floorGain : settings.idleGain))));
+      const targetGain = muted ? 0 : 1;
       voiceGainTarget = Math.max(0, Math.min(1, targetGain));
       const timeConstant = muted ? VOICE_GAIN_MUTE_SECONDS : (voiceGainTarget > localVoiceGain.gain.value ? VOICE_GAIN_ATTACK_SECONDS : VOICE_GAIN_RELEASE_SECONDS);
       try {
@@ -9732,6 +9727,24 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       } catch (error) {
         localVoiceGain.gain.value = voiceGainTarget;
       }
+      recordAudioDiagnosticFrame(rms, isSpeaking);
+    }
+
+    function recordAudioDiagnosticFrame(rms, isSpeaking) {
+      if (!metrics.audioDiagnostics) return;
+      const item = metrics.audioDiagnostics;
+      item.samples += 1;
+      item.rmsSum += Number(rms || 0);
+      item.rmsMin = item.rmsMin == null ? Number(rms || 0) : Math.min(item.rmsMin, Number(rms || 0));
+      item.rmsMax = Math.max(item.rmsMax, Number(rms || 0));
+      item.vadProbabilitySum += vadProbability;
+      item.vadProbabilityMin = item.vadProbabilityMin == null ? vadProbability : Math.min(item.vadProbabilityMin, vadProbability);
+      item.vadProbabilityMax = Math.max(item.vadProbabilityMax, vadProbability);
+      item.noiseFloorMin = item.noiseFloorMin == null ? vadNoiseFloor : Math.min(item.noiseFloorMin, vadNoiseFloor);
+      item.noiseFloorMax = Math.max(item.noiseFloorMax, vadNoiseFloor);
+      item.gainTargetMin = item.gainTargetMin == null ? voiceGainTarget : Math.min(item.gainTargetMin, voiceGainTarget);
+      item.gainTargetMax = Math.max(item.gainTargetMax, voiceGainTarget);
+      if (isSpeaking) item.speakingSamples += 1;
     }
 
     function renderCallElapsed() {
@@ -10415,9 +10428,37 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         listenersClosed: {},
         ice: { sent: 0, received: 0, duplicateSendSkipped: 0, duplicateReceiveSkipped: 0 },
         connectionTimeline: [],
+        audioDiagnostics: { samples: 0, speakingSamples: 0, rmsSum: 0, rmsMin: null, rmsMax: 0, vadProbabilitySum: 0, vadProbabilityMin: null, vadProbabilityMax: 0, noiseFloorMin: null, noiseFloorMax: 0, gainTargetMin: null, gainTargetMax: 0 },
         milestones: [],
         historySaved: false
       };
+    }
+
+    function getShareableAudioDiagnostics() {
+      const source = metrics.audioDiagnostics || {};
+      const samples = Math.max(1, Number(source.samples || 0));
+      const allowedSettings = {};
+      ["echoCancellation", "noiseSuppression", "autoGainControl", "channelCount", "sampleRate", "sampleSize"].forEach(function(key) {
+        if (audioTrackDiagnostics && Object.prototype.hasOwnProperty.call(audioTrackDiagnostics.applied || {}, key)) allowedSettings[key] = audioTrackDiagnostics.applied[key];
+      });
+      return {
+        appliedMicrophoneSettings: allowedSettings,
+        pipeline: audioTrackDiagnostics ? audioTrackDiagnostics.pipeline : "unknown",
+        preset: el.audioPreset && el.audioPreset.value ? el.audioPreset.value : "unknown",
+        compressor: { threshold: VOICE_SETTINGS.compressorThreshold, ratio: VOICE_SETTINGS.compressorRatio },
+        samples: Number(source.samples || 0),
+        speakingRatioPct: Math.round((Number(source.speakingSamples || 0) / samples) * 1000) / 10,
+        rms: { min: source.rmsMin, average: Math.round((Number(source.rmsSum || 0) / samples) * 100000) / 100000, max: source.rmsMax },
+        vadProbability: { min: source.vadProbabilityMin, average: Math.round((Number(source.vadProbabilitySum || 0) / samples) * 1000) / 1000, max: source.vadProbabilityMax },
+        noiseFloor: { min: source.noiseFloorMin, max: source.noiseFloorMax },
+        gainTarget: { min: source.gainTargetMin, max: source.gainTargetMax },
+        adaptiveProfile: adaptiveAudioProfile,
+        webrtc: activeStats
+      };
+    }
+
+    function getShareableConnectionTimeline() {
+      return (metrics.connectionTimeline || []).map(function(item) { return { label: item.label, seconds: item.seconds }; });
     }
 
     function resetMetrics() {
@@ -11215,7 +11256,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "quality=" + quality,
         "peers=" + connectedPeers + "/" + peerList.length,
         "listeners=" + getOpenListenerCount(),
-        "callId=" + callId
+        "call=anonymous"
       ];
       if (lastCleanupSummary) parts.push("cleanup=" + lastCleanupSummary);
       return parts.join(" / ");
@@ -11311,7 +11352,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "deletes: " + JSON.stringify(metrics.deletes, null, 2) + "\n" +
         "cost: " + formatYen(totalYen) + " / " + formatYen(minuteYen) + " per min (1ドル=" + yenPerDollar + "円)\n" +
         "connectionDelay: " + getConnectionDelaySummary() + "\n" +
-        "connectionTimeline: " + JSON.stringify(metrics.connectionTimeline, null, 2) + "\n" +
+        "connectionTimeline: " + JSON.stringify(getShareableConnectionTimeline(), null, 2) + "\n" +
+        "audioDiagnostics: " + JSON.stringify(getShareableAudioDiagnostics(), null, 2) + "\n" +
         "teacherDiagnostic: " + getTeacherDiagnosticSummary() + "\n" +
         "cleanup: " + (lastCleanupSummary || "not ended") + "\n" +
         "activeListenersNow: " + getOpenListenerCount() + "\n" +
