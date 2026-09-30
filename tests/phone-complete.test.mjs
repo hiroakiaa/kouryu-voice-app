@@ -993,7 +993,7 @@ test('管理者診断でマイク処理の要求値と実適用値を区別す�
  assert.match(html,/id="adminAudioProcessingSummary"/);
  assert.match(html,/const AUDIO_FEATURE_FLAGS = Object\.freeze\([\s\S]*?detailedDiagnostics: true/);
  assert.match(html,/if \(!AUDIO_FEATURE_FLAGS\.vadEnabled\)/);
- assert.match(html,/!AUDIO_FEATURE_FLAGS\.adaptiveAudio \? 1/);
+ assert.match(html,/!AUDIO_FEATURE_FLAGS\.adaptiveAudio[\s\S]{0,30}\? 1/);
  assert.match(html,/typeof track\.getSettings === "function"/);
  assert.match(html,/typeof track\.getCapabilities === "function"/);
  assert.match(html,/要求 [^<]+ \/ 対応範囲/);
@@ -1022,4 +1022,15 @@ test('適応型VADは周囲音を学習し小声の冒頭と語尾を保護す�
  assert.match(html,/updateSoftNoiseGuard\(visibleRms, nextSpeaking \|\| vad\.probability >= 0\.24\)/);
  assert.doesNotMatch(html,/track\.enabled\s*=\s*nextSpeaking/);
  assert.match(html,/VAD発話確率/);
+});
+
+test('Gainは小声を保護しAttackとReleaseを分けて滑らかに変更する',()=>{
+ assert.match(html,/const VOICE_GAIN_ATTACK_SECONDS = 0\.012/);
+ assert.match(html,/const VOICE_GAIN_RELEASE_SECONDS = 0\.22/);
+ assert.match(html,/quietVoiceProtection/);
+ assert.match(html,/Math\.max\(0\.72, settings\.idleGain\)/);
+ assert.match(html,/voiceGainTarget = Math\.max\(0, Math\.min\(1, targetGain\)\)/);
+ assert.match(html,/cancelScheduledValues\(localAudioContext\.currentTime\)/);
+ assert.match(html,/setTargetAtTime\(voiceGainTarget, localAudioContext\.currentTime, timeConstant\)/);
+ assert.match(html,/現在のGain目標/);
 });
