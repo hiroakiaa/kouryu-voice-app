@@ -1003,7 +1003,7 @@ test('縦幅が短い学校端末では操作領域を圧縮し横向きテン�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/@media\(min-width:641px\) and \(max-height:700px\)/);
  assert.match(css,/body\.phone-home main>header\{min-height:52px/);
- assert.match(css,/@media\(min-width:700px\) and \(max-height:640px\)/);
+ assert.match(css,/@media\(min-width:700px\) and \(max-height:820px\)/);
  assert.match(css,/#phoneDialForm\{display:grid;grid-template-columns:auto 76px/);
  assert.match(css,/#phoneDialForm \.phone-dial-actions\{grid-column:2;grid-row:2;display:flex;flex-direction:column/);
  assert.match(css,/@media\(min-width:641px\) and \(max-height:540px\)/);
