@@ -1022,6 +1022,19 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .school-notice-list .school-notice-card>header+.notice-reply-history{border-top:0!important;border-bottom:1px solid #dce8d1!important;background:#f3f9ec}
 .school-notice-list .school-notice-card>header+.notice-reply-history>summary{background:#edf7e4!important}
 
+/* Expanded replies become the card's main view from its top edge to the action area. */
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open]){display:flex;flex-direction:column;height:clamp(430px,65dvh,560px);min-height:430px;max-height:min(560px,75dvh);overflow:hidden}
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open])>header,
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open])>.notice-message-block,
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open])>.notice-assigned-banner,
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open])>.notice-response-details{display:none!important}
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open])>.notice-reply-history[open]{order:-1;position:relative;display:block;flex:1 1 auto;width:100%;height:auto;min-height:0;max-height:none;border-top:0!important;border-bottom:1px solid #dce8d1!important;background:#f3f9ec}
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open])>.notice-reply-history[open]>summary{position:relative;z-index:2;min-height:54px;padding:13px 17px!important;background:#e9f6dc!important}
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open])>.notice-reply-history[open]>.notice-reply-list{position:absolute;inset:54px 0 0;display:block;width:100%;height:auto;min-height:0;max-height:none;padding:12px 14px 16px;overflow-x:hidden;overflow-y:scroll!important;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.school-notice-list .school-notice-card:has(>.notice-reply-history[open])>.school-notice-actions{order:2;flex:0 0 auto;margin-top:0}
+@media(max-width:540px){.school-notice-list .school-notice-card:has(>.notice-reply-history[open]){height:clamp(420px,68dvh,540px);min-height:420px;max-height:min(540px,76dvh)}}
+@media(min-width:960px){.school-notice-list .school-notice-card:has(>.notice-reply-history[open]){height:430px;min-height:430px;max-height:430px}}
+
 /* Anchor the create button to the app card, independent of the browser viewport width. */
 .phone-home-card>#phoneNoticeAddToggle.notice-add-button{right:clamp(12px,1.6vw,20px)}
 @media(max-width:540px){.phone-home-card>#phoneNoticeAddToggle.notice-add-button{right:12px}}
