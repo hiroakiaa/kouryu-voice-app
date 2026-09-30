@@ -884,3 +884,47 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
  .notice-message-block{padding:19px 19px 22px}
  .school-notice-list .school-notice-actions{padding:15px 19px 18px}
 }
+
+/* Short school tablets and compact Chromebooks: spend height on the task, not on chrome. */
+@media(min-width:641px) and (max-height:700px){
+ body.phone-home{padding:4px max(6px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+ body.phone-home main{gap:5px;padding:6px;border-radius:22px}
+ body.phone-home main>header{min-height:52px;padding:5px 10px}
+ .phone-home header h1{font-size:clamp(22px,2.5vw,28px)}
+ .phone-home header .app-icon,.phone-home header .header-icon-btn{width:42px;height:42px;min-height:42px;flex-basis:42px}
+ body.phone-home .phone-home-card{padding:7px 14px;border-radius:19px}
+ .phone-home-card>.phone-dial-shortcuts,.phone-home-card>.phone-notice-filters{gap:5px;margin:3px 0;padding:4px}
+ .phone-home-card .phone-dial-shortcuts button,.phone-home-card .phone-notice-filters button{min-height:42px;padding:5px 7px;font-size:13px}
+ .phone-home-card [role="tabpanel"]{padding:4px 2px 2px}
+ .phone-home-card>#phoneDialUtility{min-height:48px;padding:3px 9px}
+ #phoneDialUtility .phone-dial-scope-note{padding:4px 8px;font-size:10px}
+ .phone-own-number-display{min-height:40px;padding-block:2px!important}
+ .phone-home-card>.phone-tabs{gap:8px;padding:3px 3px 2px}
+ .phone-home-card>.phone-tabs button{min-height:46px;padding:7px 12px;font-size:16px}
+ #phoneDialPanel{padding:0}
+ .phone-home-card>#phoneNoticeAddToggle.notice-add-button{bottom:64px;height:48px;min-height:48px!important;padding-inline:16px!important}
+}
+
+/* On a wide but short screen, keep all twelve keys and call controls visible together. */
+@media(min-width:700px) and (max-height:640px){
+ #phoneDialPanel .phone-dial-content{--phone-key-size:clamp(44px,min(calc((100cqw - 150px)/3),calc((100cqh - 76px)/4)),56px);width:min(100%,540px);gap:3px}
+ #phoneDialForm{display:grid;grid-template-columns:auto 76px;grid-template-rows:46px auto;align-items:center;justify-content:center;column-gap:18px;row-gap:3px;width:100%}
+ #phoneDialForm .phone-number-entry{grid-column:1/-1;grid-row:1;width:100%;height:46px}
+ #phoneDialForm .phone-number-entry #phoneDialNumber{height:46px;min-height:46px;padding:16px 12px 3px;font-size:21px}
+ #phoneDialForm .phone-number-entry label{top:3px}
+ #phoneDialForm .phone-keypad{grid-column:1;grid-row:2}
+ #phoneDialForm .phone-dial-actions{grid-column:2;grid-row:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:76px;height:auto}
+ #phoneDialForm .phone-call{flex:0 0 auto;width:58px;height:58px}
+ #phoneDialForm #phoneBackspace{flex:0 0 auto;width:54px;height:54px;min-height:54px}
+ #phoneDialForm #phoneBackspace small{top:calc(50% + 14px)}
+}
+
+/* Extremely short windows remain operable without stealing space from the content pane. */
+@media(min-width:641px) and (max-height:540px){
+ body.phone-home main>header{min-height:46px;padding-block:3px}
+ .phone-home header .app-icon,.phone-home header .header-icon-btn{width:38px;height:38px;min-height:38px;flex-basis:38px}
+ .phone-home-card .phone-dial-shortcuts button,.phone-home-card .phone-notice-filters button{min-height:38px}
+ .phone-home-card>#phoneDialUtility{min-height:43px}
+ .phone-home-card>.phone-tabs button{min-height:42px}
+ .phone-home-card>#phoneNoticeAddToggle.notice-add-button{bottom:56px}
+}

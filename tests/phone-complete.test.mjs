@@ -999,6 +999,16 @@ test('タブレットとPCでは一覧を用途に応じて二列へ広げる',(
  assert.match(css,/#phoneDialPanel \.phone-dial-content\{width:min\(100%,620px\)\}/);
 });
 
+test('縦幅が短い学校端末では操作領域を圧縮し横向きテンキーへ切り替える',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/@media\(min-width:641px\) and \(max-height:700px\)/);
+ assert.match(css,/body\.phone-home main>header\{min-height:52px/);
+ assert.match(css,/@media\(min-width:700px\) and \(max-height:640px\)/);
+ assert.match(css,/#phoneDialForm\{display:grid;grid-template-columns:auto 76px/);
+ assert.match(css,/#phoneDialForm \.phone-dial-actions\{grid-column:2;grid-row:2;display:flex;flex-direction:column/);
+ assert.match(css,/@media\(min-width:641px\) and \(max-height:540px\)/);
+});
+
 test('現在の状況ボタンの横に操作目的を表示する',()=>{
  assert.match(html,/class="notice-presence-control"[\s\S]*?id="phonePresenceToggle"[\s\S]*?class="notice-presence-label">現在の状況を選択<\/span>/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
