@@ -1038,6 +1038,8 @@ test('返信履歴はカード操作に重ならない固定高の領域で最�
  assert.match(css,/\.notice-reply-history\[open\]\{display:block;height:190px;min-height:190px;max-height:190px;overflow:hidden\}/);
  assert.match(css,/\.notice-reply-history\[open\]>\.notice-reply-list\{[^}]*display:block[^}]*height:142px[^}]*overflow-y:scroll!important[^}]*scrollbar-gutter:stable[^}]*touch-action:pan-y/);
  assert.match(css,/\.notice-reply-history\[open\] \.notice-reply-list-inner\{[^}]*min-height:0[^}]*overflow:visible[^}]*padding-bottom:1px/);
+ assert.match(app,/<\/header>\$\{renderNoticeReplies\(item\)\}<section class="notice-message-block">/);
+ assert.match(css,/\.school-notice-list \.school-notice-card>header\+\.notice-reply-history\{[^}]*border-top:0!important[^}]*border-bottom:1px solid/);
 });
 
 test('連絡作成ボタンはブラウザ幅ではなくアプリカードの右端に固定する',()=>{

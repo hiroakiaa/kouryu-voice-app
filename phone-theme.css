@@ -1019,6 +1019,8 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .notice-reply-history[open]>.notice-reply-list{display:block;height:142px;min-height:142px;max-height:142px;box-sizing:border-box;padding:10px 12px 14px;overflow-x:hidden;overflow-y:scroll!important;overscroll-behavior:contain;scrollbar-gutter:stable;scroll-padding-block:10px 14px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 .notice-reply-history[open] .notice-reply-list-inner{display:grid;min-height:0;overflow:visible;padding-bottom:1px}
 @media(min-width:960px){.school-notice-list .notice-reply-history[open]{flex:0 0 190px}}
+.school-notice-list .school-notice-card>header+.notice-reply-history{border-top:0!important;border-bottom:1px solid #dce8d1!important;background:#f3f9ec}
+.school-notice-list .school-notice-card>header+.notice-reply-history>summary{background:#edf7e4!important}
 
 /* Anchor the create button to the app card, independent of the browser viewport width. */
 .phone-home-card>#phoneNoticeAddToggle.notice-add-button{right:clamp(12px,1.6vw,20px)}
