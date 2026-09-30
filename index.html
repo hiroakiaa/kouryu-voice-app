@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-webrtc-stats-diagnostics">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-adaptive-vad">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4571,7 +4571,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-webrtc-stats-diagnostics";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-adaptive-vad";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4616,7 +4616,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-30-webrtc-stats-diagnostics";
+    const APP_VERSION = "2026-09-30-adaptive-vad";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4630,9 +4630,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const CALL_SLOT_NAMES = ["A", "B", "C", "D"];
     const PARTICIPANT_STALE_MS = 240 * 1000;
     const HEARTBEAT_MS = 120000;
-    const SPEAKING_MONITOR_MS = 260;
-    const SPEAKING_ON_HOLD_MS = 220;
-    const SPEAKING_OFF_HOLD_MS = 1400;
+    const SPEAKING_MONITOR_MS = 80;
+    const SPEAKING_ON_HOLD_MS = 40;
+    const SPEAKING_OFF_HOLD_MS = 650;
+    const VAD_HANGOVER_MS = 700;
     const SPEAKING_MIN_WRITE_MS = 180000;
     const SPEAKING_REFRESH_MS = 1800000;
     const CONNECTION_REFRESH_MS = 120000;
@@ -4886,6 +4887,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let speakingState = false;
     let speakingCandidateState = false;
     let speakingCandidateSince = 0;
+    let vadNoiseFloor = 0.008;
+    let vadProbability = 0;
+    let vadInputRms = 0;
+    let vadLastVoiceAt = 0;
+    let lastVadDiagnosticRenderAt = 0;
     let lastSpeakingWrite = 0;
     let lastSpeakingDataSent = 0;
     let lastSpeakingDataState = null;
@@ -9391,7 +9397,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           const applied = Object.prototype.hasOwnProperty.call(diagnostic.applied, key) ? formatAudioDiagnosticValue(diagnostic.applied[key]) : "不明";
           const supported = Object.prototype.hasOwnProperty.call(diagnostic.capabilities, key) ? formatAudioCapability(diagnostic.capabilities[key]) : "不明";
           return '<span><strong>' + escapeHtml(label + '：' + applied) + '</strong><small>要求 ' + escapeHtml(requested) + ' / 対応範囲 ' + escapeHtml(supported) + '</small></span>';
-        }).join('');
+        }).join('') +
+        '<span><strong>' + escapeHtml((vadProbability * 100).toFixed(0) + '%') + '</strong><small>VAD発話確率</small></span>' +
+        '<span><strong>' + escapeHtml(vadNoiseFloor.toFixed(4)) + '</strong><small>Noise Floor / RMS ' + escapeHtml(vadInputRms.toFixed(4)) + '</small></span>';
       el.adminAudioProcessingSummary.dataset.settingsAvailable = diagnostic.settingsAvailable ? "true" : "false";
       el.adminAudioProcessingSummary.dataset.capabilitiesAvailable = diagnostic.capabilitiesAvailable ? "true" : "false";
     }
@@ -9471,6 +9479,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         speakingState = false;
         speakingCandidateState = false;
         speakingCandidateSince = Date.now();
+        vadNoiseFloor = 0.008;
+        vadProbability = 0;
+        vadInputRms = 0;
+        vadLastVoiceAt = 0;
+        lastVadDiagnosticRenderAt = 0;
         lastSpeakingWrite = 0;
         lastSpeakingDataSent = 0;
         lastSpeakingDataState = null;
@@ -9485,22 +9498,27 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           localAnalyser.fftSize = 512;
           source.connect(localAnalyser);
         }
-        const data = new Uint8Array(localAnalyser.fftSize);
+        const floatData = new Float32Array(localAnalyser.fftSize);
+        const byteData = new Uint8Array(localAnalyser.fftSize);
         speakingTimer = window.setInterval(function() {
           if (!localAnalyser || !joined) return;
-          localAnalyser.getByteTimeDomainData(data);
-          let sum = 0;
-          for (let i = 0; i < data.length; i += 1) {
-            const value = (data[i] - 128) / 128;
-            sum += value * value;
+          let frame = floatData;
+          if (typeof localAnalyser.getFloatTimeDomainData === "function") {
+            localAnalyser.getFloatTimeDomainData(floatData);
+          } else {
+            localAnalyser.getByteTimeDomainData(byteData);
+            for (let i = 0; i < byteData.length; i += 1) floatData[i] = (byteData[i] - 128) / 128;
           }
-          const rms = Math.sqrt(sum / data.length);
-          const rawSpeaking = !muted && rms > 0.026;
-          const nextSpeaking = getStableSpeakingState(rawSpeaking, Date.now());
-          const visibleRms = muted ? 0 : rms;
-          updateSoftNoiseGuard(visibleRms, nextSpeaking);
-          updateAudioHealth(visibleRms, nextSpeaking, muted ? "ミュート中" : (nextSpeaking ? "会話中" : "ノイズ抑制中"));
           const now = Date.now();
+          const vad = calculateVadFrame(frame, muted, now);
+          const nextSpeaking = getStableSpeakingState(vad.speaking, now);
+          const visibleRms = muted ? 0 : vad.rms;
+          updateSoftNoiseGuard(visibleRms, nextSpeaking || vad.probability >= 0.24);
+          updateAudioHealth(visibleRms, nextSpeaking, muted ? "ミュート中" : (nextSpeaking ? "会話中" : "ノイズ抑制中"));
+          if (now - lastVadDiagnosticRenderAt >= 1000) {
+            lastVadDiagnosticRenderAt = now;
+            renderAdminAudioProcessing();
+          }
           if (!muted && !nextSpeaking && participants.length > 1 && now - lastMuteReminderAt > 45000) {
             lastMuteReminderAt = now;
         setNotice("話していない時はミュートにすると、相手にノイズが届きにくくなります。");
@@ -9526,6 +9544,43 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       } catch (error) {
         console.warn(error);
       }
+    }
+
+    function clamp01(value) {
+      return Math.max(0, Math.min(1, value));
+    }
+
+    function calculateVadFrame(data, isMuted, now) {
+      let sum = 0;
+      let peak = 0;
+      for (let i = 0; i < data.length; i += 1) {
+        const value = Number(data[i]) || 0;
+        const absolute = Math.abs(value);
+        sum += value * value;
+        if (absolute > peak) peak = absolute;
+      }
+      const rms = data.length ? Math.sqrt(sum / data.length) : 0;
+      vadInputRms = isMuted ? 0 : rms;
+      if (isMuted) {
+        vadProbability = 0;
+        return { rms: 0, probability: 0, speaking: false };
+      }
+      const reference = Math.max(0.003, vadNoiseFloor);
+      const snrDb = 20 * Math.log10((rms + 0.000001) / (reference + 0.000001));
+      const energyScore = clamp01((snrDb - 1.5) / 8);
+      const absoluteScore = clamp01((rms - 0.005) / 0.025);
+      const crestFactor = rms > 0 ? peak / rms : 0;
+      const voiceShapeScore = clamp01((crestFactor - 1.4) / 2.6);
+      vadProbability = clamp01((energyScore * 0.65) + (absoluteScore * 0.25) + (voiceShapeScore * 0.10));
+      const voiceEvidence = vadProbability >= 0.42 || (rms >= Math.max(0.014, reference * 1.8) && crestFactor >= 1.7);
+      if (voiceEvidence) vadLastVoiceAt = now;
+      const hangoverActive = vadLastVoiceAt > 0 && now - vadLastVoiceAt <= VAD_HANGOVER_MS;
+      const speaking = voiceEvidence || (speakingState && vadProbability >= 0.24) || hangoverActive;
+      if (!speakingState && !voiceEvidence && vadProbability < 0.34) {
+        const alpha = rms < vadNoiseFloor ? 0.08 : 0.012;
+        vadNoiseFloor = Math.max(0.003, Math.min(0.04, (vadNoiseFloor * (1 - alpha)) + (rms * alpha)));
+      }
+      return { rms, probability: vadProbability, speaking };
     }
 
     function getStableSpeakingState(rawSpeaking, now) {

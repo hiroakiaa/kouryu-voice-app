@@ -1010,3 +1010,16 @@ test('WebRTC詳細統計を管理者だけに表示して終了時に差分デ�
  assert.match(html,/Candidate経路/);
  assert.match(html,/区間Packet Loss/);
 });
+
+test('適応型VADは周囲音を学習し小声の冒頭と語尾を保護する',()=>{
+ assert.match(html,/const SPEAKING_MONITOR_MS = 80/);
+ assert.match(html,/const VAD_HANGOVER_MS = 700/);
+ assert.match(html,/function calculateVadFrame\(data, isMuted, now\)/);
+ assert.match(html,/const snrDb = 20 \* Math\.log10/);
+ assert.match(html,/vadNoiseFloor = Math\.max\(0\.003, Math\.min\(0\.04/);
+ assert.match(html,/vadProbability >= 0\.42/);
+ assert.match(html,/hangoverActive/);
+ assert.match(html,/updateSoftNoiseGuard\(visibleRms, nextSpeaking \|\| vad\.probability >= 0\.24\)/);
+ assert.doesNotMatch(html,/track\.enabled\s*=\s*nextSpeaking/);
+ assert.match(html,/VAD発話確率/);
+});
