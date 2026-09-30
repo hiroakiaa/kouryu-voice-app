@@ -838,3 +838,49 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 @media(prefers-reduced-motion:reduce){.notice-day-chevron{transition:none}.notice-day-group[open]>.notice-day-items{animation:none}}
 .phone-home-card>#phoneNoticeAddToggle.notice-add-button{width:max-content;min-width:0;max-width:calc(100vw - 36px);height:56px;min-height:56px!important;aspect-ratio:auto;padding:0 20px!important;border-radius:18px!important;font-size:16px}
 @media(max-width:620px){.phone-home-card>#phoneNoticeAddToggle.notice-add-button{width:max-content;min-width:0;height:54px;min-height:54px!important;aspect-ratio:auto;padding-inline:16px!important;font-size:15px}}
+
+/* Tablet and staff-room desktop workspace layout. */
+@media(min-width:760px){
+ body.phone-home .phone-home-card{padding-inline:clamp(16px,2.2vw,30px)}
+ .phone-home-card [role="tabpanel"]{padding:18px 4px 10px}
+ .phone-dial-shortcuts.notice-filter-tabs,.phone-notice-filters.notice-filter-tabs{gap:8px;padding:8px}
+ .phone-dial-shortcuts.notice-filter-tabs button,.phone-notice-filters.notice-filter-tabs button{min-height:54px;font-size:16px}
+ .notice-search-toggle-row{min-height:58px}
+ .notice-recipient-list{grid-template-columns:repeat(3,minmax(0,1fr));max-height:240px}
+ .phone-list-tools.is-visible{display:grid!important;grid-template-columns:minmax(0,1fr) max-content;align-items:center;gap:12px}
+ .phone-list-tools.is-visible>input{grid-column:1;min-width:0}
+ .phone-list-tools.is-visible>button{grid-column:2;min-width:170px}
+ .phone-home-card>.phone-tabs{padding-inline:4px}
+ .phone-home-card>.phone-tabs button{min-height:58px;font-size:18px}
+}
+@media(min-width:960px){
+ .school-notice-list{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:18px}
+ .school-notice-list>.phone-empty-state,.school-notice-list>.notice-day-group{grid-column:1/-1}
+ .notice-day-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+ .school-notice-list .school-notice-card{height:100%;align-self:stretch}
+ #phoneHistoryPanel:not([hidden]){display:grid;grid-template-columns:minmax(280px,.38fr) minmax(440px,1fr);grid-template-areas:"history-head history-head" "history-tools history-tools" "frequent history";align-content:start;column-gap:22px}
+ #phoneHistoryPanel>.phone-panel-head{grid-area:history-head}
+ #phoneHistoryPanel>#phoneHistoryTools{grid-area:history-tools}
+ #phoneHistoryPanel>.frequent-section{grid-area:frequent;margin-top:17px;padding:14px;border:1px solid #d3e5c0;border-radius:20px;background:#f7fbed}
+ #phoneHistoryPanel>.history-section{grid-area:history;min-width:0;margin-top:0}
+ #phoneHistoryPanel .frequent-section h3,#phoneHistoryPanel .history-section h3{margin-top:0}
+ #phoneHistoryPanel .frequent-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #phoneHistory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ #phoneHistory>.phone-row{height:100%;margin:0}
+ #phoneContacts>.contact-section{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:10px 14px;margin-top:12px}
+ #phoneContacts>.contact-section>h3{grid-column:1/-1}
+ #phoneContacts>.contact-section .contact-row{height:100%;margin:0}
+ #phoneGroups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px}
+ #phoneGroups>.phone-row,#phoneGroups>.group-row,#phoneGroups>.group-card{height:100%;margin:0}
+ #phoneGroupInvites:not(:empty){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}
+ #phoneDialPanel:not([hidden]){display:grid;place-items:center}
+ #phoneDialPanel .phone-dial-content{width:min(100%,620px)}
+ .phone-home-card>#phoneNoticeAddToggle.notice-add-button{right:max(26px,calc((100vw - 1240px)/2 + 36px));bottom:96px}
+}
+@media(min-width:1280px){
+ .school-notice-list,#phoneHistory{gap:20px}
+ #phoneContacts>.contact-section,#phoneGroups,#phoneGroupInvites:not(:empty){gap:16px 18px}
+ .school-notice-list .school-notice-card>header{padding:17px 19px}
+ .notice-message-block{padding:19px 19px 22px}
+ .school-notice-list .school-notice-actions{padding:15px 19px 18px}
+}

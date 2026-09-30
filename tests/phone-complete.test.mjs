@@ -988,6 +988,17 @@ test('電話画面のCSSと描画処理はアプリ本体と同じ更新番号�
  assert.match(html,new RegExp(`phone-app\\.js\\?v=${version}`));
 });
 
+test('タブレットとPCでは一覧を用途に応じて二列へ広げる',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/@media\(min-width:760px\)/);
+ assert.match(css,/@media\(min-width:960px\)/);
+ assert.match(css,/\.school-notice-list\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/#phoneHistoryPanel:not\(\[hidden\]\)\{display:grid;grid-template-columns:minmax\(280px,\.38fr\) minmax\(440px,1fr\)/);
+ assert.match(css,/#phoneContacts>\.contact-section\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/#phoneGroups\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/#phoneDialPanel \.phone-dial-content\{width:min\(100%,620px\)\}/);
+});
+
 test('現在の状況ボタンの横に操作目的を表示する',()=>{
  assert.match(html,/class="notice-presence-control"[\s\S]*?id="phonePresenceToggle"[\s\S]*?class="notice-presence-label">現在の状況を選択<\/span>/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
