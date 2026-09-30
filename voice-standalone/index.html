@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-audio-settings-diagnostics">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-webrtc-stats-diagnostics">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4499,6 +4499,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <div id="adminAudioProcessingSummary" class="metrics-mode-summary" aria-live="polite"></div>
         <p class="caption-help">要求値と、ブラウザーが音声トラックへ実際に適用した値を分けて表示します。「不明」は推測せず、ブラウザーから取得できなかった項目です。</p>
       </section>
+      <section class="admin-connection-quality" aria-labelledby="adminWebRtcStatsTitle">
+        <h4 id="adminWebRtcStatsTitle"><i class="fa-solid fa-chart-line"></i> WebRTC詳細統計</h4>
+        <div id="adminWebRtcStatsSummary" class="metrics-mode-summary" aria-live="polite"></div>
+        <p class="caption-help">5秒ごとにブラウザー内で集計します。音声や会話内容は保存せず、通話終了時に差分計算用データを破棄します。</p>
+      </section>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
         <div id="metricsDetailReads" class="metrics-detail" aria-hidden="true"></div>
@@ -4566,7 +4571,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-audio-settings-diagnostics";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-webrtc-stats-diagnostics";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4611,7 +4616,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-30-audio-settings-diagnostics";
+    const APP_VERSION = "2026-09-30-webrtc-stats-diagnostics";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4807,6 +4812,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       adminConnectionQualitySummary: document.getElementById("adminConnectionQualitySummary"),
       adminConnectionTimeline: document.getElementById("adminConnectionTimeline"),
       adminAudioProcessingSummary: document.getElementById("adminAudioProcessingSummary"),
+      adminWebRtcStatsSummary: document.getElementById("adminWebRtcStatsSummary"),
       metricsReadsCount: document.getElementById("metricsReadsCount"),
       metricsWritesCount: document.getElementById("metricsWritesCount"),
       metricsDeletesCount: document.getElementById("metricsDeletesCount"),
@@ -4953,9 +4959,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let callPhase = "waiting";
     let diagnostics = [];
     let lastInboundStats = new Map();
+    let lastRtpByteStats = new Map();
     let autoReconnectTimers = new Map();
     let autoReconnectAttempts = new Map();
-    let activeStats = { rttMs: null, jitterMs: null, lossPct: null, quality: "idle" };
+    let activeStats = { rttMs: null, jitterMs: null, lossPct: null, quality: "idle", inboundKbps: null, outboundKbps: null, jitterBufferMs: null, codecs: [], routes: [], packetsReceived: 0, packetsSent: 0 };
     let deniedByCapacity = false;
     let lastCapacityWarnAt = 0;
     let staleParticipantMarks = new Map();
@@ -8840,13 +8847,14 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         statsTimer = null;
       }
       lastInboundStats.clear();
+      lastRtpByteStats.clear();
       renderTurnUsage();
-      updateQualityUi({ rttMs: null, jitterMs: null, lossPct: null, quality: "idle" });
+      updateQualityUi({ rttMs: null, jitterMs: null, lossPct: null, quality: "idle", inboundKbps: null, outboundKbps: null, jitterBufferMs: null, codecs: [], routes: [], packetsReceived: 0, packetsSent: 0 });
     }
 
     async function collectWebRtcStats() {
       if (!joined || !peers.size) return;
-      const values = { rtt: [], jitter: [], lost: 0, packets: 0, turnBytes: 0, relayActive: false };
+      const values = { rtt: [], jitter: [], jitterBuffer: [], lost: 0, packets: 0, packetsReceived: 0, packetsSent: 0, inboundBitrates: [], outboundBitrates: [], codecs: new Set(), routes: new Set(), turnBytes: 0, relayActive: false };
       let remoteAudioChanged = false;
       for (const state of peers.values()) {
         if (!state || !state.peer || !isPeerConnected(state.peer)) continue;
@@ -8859,6 +8867,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
               if (typeof item.currentRoundTripTime === "number") values.rtt.push(item.currentRoundTripTime * 1000);
               const localCandidate = statsById.get(item.localCandidateId);
               const remoteCandidate = statsById.get(item.remoteCandidateId);
+              const localType = localCandidate && localCandidate.candidateType ? localCandidate.candidateType : "unknown";
+              const remoteType = remoteCandidate && remoteCandidate.candidateType ? remoteCandidate.candidateType : "unknown";
+              values.routes.add(localType + " → " + remoteType);
               if ((localCandidate && localCandidate.candidateType === "relay") || (remoteCandidate && remoteCandidate.candidateType === "relay")) {
                 values.relayActive = true;
                 values.turnBytes += Number(item.bytesSent || 0) + Number(item.bytesReceived || 0);
@@ -8866,10 +8877,16 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
             }
             if (item.type === "inbound-rtp" && (item.kind === "audio" || item.mediaType === "audio")) {
               if (typeof item.jitter === "number") values.jitter.push(item.jitter * 1000);
+              if (typeof item.jitterBufferDelay === "number" && Number(item.jitterBufferEmittedCount || 0) > 0) values.jitterBuffer.push((item.jitterBufferDelay / item.jitterBufferEmittedCount) * 1000);
+              const inboundCodec = statsById.get(item.codecId);
+              if (inboundCodec && inboundCodec.mimeType) values.codecs.add(inboundCodec.mimeType + (inboundCodec.clockRate ? " / " + inboundCodec.clockRate + "Hz" : ""));
+              const inboundRate = calculateRtpBitrate(state.id + ":in:" + item.id, item.bytesReceived, item.timestamp);
+              if (inboundRate != null) values.inboundBitrates.push(inboundRate);
               const key = state.id + ":" + item.id;
               const previous = lastInboundStats.get(key);
               const currentLost = Number(item.packetsLost || 0);
               const currentReceived = Number(item.packetsReceived || 0);
+              values.packetsReceived += currentReceived;
               if (previous) {
                 const lostDelta = Math.max(0, currentLost - previous.lost);
                 const receivedDelta = Math.max(0, currentReceived - previous.received);
@@ -8887,6 +8904,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
               }
               lastInboundStats.set(key, { lost: currentLost, received: currentReceived });
             }
+            if (item.type === "outbound-rtp" && (item.kind === "audio" || item.mediaType === "audio")) {
+              const outboundCodec = statsById.get(item.codecId);
+              if (outboundCodec && outboundCodec.mimeType) values.codecs.add(outboundCodec.mimeType + (outboundCodec.clockRate ? " / " + outboundCodec.clockRate + "Hz" : ""));
+              const outboundRate = calculateRtpBitrate(state.id + ":out:" + item.id, item.bytesSent, item.timestamp);
+              if (outboundRate != null) values.outboundBitrates.push(outboundRate);
+              values.packetsSent += Number(item.packetsSent || 0);
+            }
           });
         } catch (error) {
           pushDiagnostic("warn", "\u54c1\u8cea\u60c5\u5831\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093", error && error.message ? error.message : "");
@@ -8896,6 +8920,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         rttMs: average(values.rtt),
         jitterMs: average(values.jitter),
         lossPct: values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null,
+        inboundKbps: sum(values.inboundBitrates),
+        outboundKbps: sum(values.outboundBitrates),
+        jitterBufferMs: average(values.jitterBuffer),
+        codecs: Array.from(values.codecs),
+        routes: Array.from(values.routes),
+        packetsReceived: values.packetsReceived,
+        packetsSent: values.packetsSent,
         quality: classifyQuality(average(values.rtt), average(values.jitter), values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null)
       });
       if (values.relayActive) {
@@ -8923,6 +8954,21 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       return values.reduce(function(sum, value) { return sum + value; }, 0) / values.length;
     }
 
+    function sum(values) {
+      if (!values || !values.length) return null;
+      return values.reduce(function(total, value) { return total + value; }, 0);
+    }
+
+    function calculateRtpBitrate(key, bytes, timestamp) {
+      const currentBytes = Number(bytes);
+      const currentTimestamp = Number(timestamp);
+      if (!Number.isFinite(currentBytes) || !Number.isFinite(currentTimestamp)) return null;
+      const previous = lastRtpByteStats.get(key);
+      lastRtpByteStats.set(key, { bytes: currentBytes, timestamp: currentTimestamp });
+      if (!previous || currentBytes < previous.bytes || currentTimestamp <= previous.timestamp) return null;
+      return ((currentBytes - previous.bytes) * 8) / (currentTimestamp - previous.timestamp);
+    }
+
     function classifyQuality(rttMs, jitterMs, lossPct) {
       if (rttMs == null && jitterMs == null && lossPct == null) return "idle";
       if ((rttMs != null && rttMs > 300) || (jitterMs != null && jitterMs > 60) || (lossPct != null && lossPct > 5)) return "poor";
@@ -8947,6 +8993,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (el.rttBadge) el.rttBadge.textContent = "遅れ " + formatStat(activeStats.rttMs, "ms");
       if (el.jitterBadge) el.jitterBadge.textContent = "音の揺れ " + formatStat(activeStats.jitterMs, "ms");
       if (el.packetLossBadge) el.packetLossBadge.textContent = "途切れ " + formatStat(activeStats.lossPct, "%");
+      renderAdminWebRtcStats();
       if (activeStats.quality && activeStats.quality !== "idle" && activeStats.quality !== previousQuality) {
         const detail = "RTT " + formatStat(activeStats.rttMs, "ms") + " / jitter " + formatStat(activeStats.jitterMs, "ms") + " / loss " + formatStat(activeStats.lossPct, "%");
         const advice = getQualityAdvice(activeStats);
@@ -8963,6 +9010,28 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         }
         maybeSuggestAudioPreset(activeStats);
       }
+    }
+
+    function renderAdminWebRtcStats() {
+      if (!el.adminWebRtcStatsSummary || !AUDIO_FEATURE_FLAGS.detailedDiagnostics) return;
+      const stats = activeStats || {};
+      const route = stats.routes && stats.routes.length ? stats.routes.join(" / ") : (turnUsage.relayActive ? "relay" : "計測待ち");
+      const codec = stats.codecs && stats.codecs.length ? stats.codecs.join(" / ") : "計測待ち";
+      const rows = [
+        [formatStat(stats.rttMs, "ms"), "往復遅延 RTT"],
+        [formatStat(stats.jitterMs, "ms"), "Jitter"],
+        [formatStat(stats.lossPct, "%"), "区間Packet Loss"],
+        [formatStat(stats.jitterBufferMs, "ms"), "Jitter Buffer平均"],
+        [formatStat(stats.inboundKbps, "kbps"), "受信ビットレート"],
+        [formatStat(stats.outboundKbps, "kbps"), "送信ビットレート"],
+        [String(Number(stats.packetsReceived || 0)), "累計受信パケット"],
+        [String(Number(stats.packetsSent || 0)), "累計送信パケット"],
+        [codec, "Audio Codec"],
+        [route, "Candidate経路"]
+      ];
+      el.adminWebRtcStatsSummary.innerHTML = rows.map(function(row) {
+        return '<span><strong>' + escapeHtml(row[0]) + '</strong><small>' + escapeHtml(row[1]) + '</small></span>';
+      }).join('');
     }
 
     function maybeSuggestAudioPreset(stats) {
@@ -11043,6 +11112,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       renderTurnUsage();
       renderAdminConnectionQuality();
       renderAdminAudioProcessing();
+      renderAdminWebRtcStats();
       if (el.metricsCompareSummary) {
         el.metricsCompareSummary.innerHTML = renderMetricsCompareSummary(latest);
       }

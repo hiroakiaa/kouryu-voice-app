@@ -999,3 +999,14 @@ test('管理者診断でマイク処理の要求値と実適用値を区別す�
  assert.match(html,/要求 [^<]+ \/ 対応範囲/);
  assert.match(html,/Object\.prototype\.hasOwnProperty\.call\(diagnostic\.applied, key\)/);
 });
+
+test('WebRTC詳細統計を管理者だけに表示して終了時に差分データを破棄する',()=>{
+ assert.match(html,/id="adminWebRtcStatsSummary"/);
+ assert.match(html,/item\.type === "outbound-rtp"/);
+ assert.match(html,/item\.jitterBufferDelay/);
+ assert.match(html,/inboundCodec\.mimeType/);
+ assert.match(html,/calculateRtpBitrate/);
+ assert.match(html,/lastRtpByteStats\.clear\(\)/);
+ assert.match(html,/Candidate経路/);
+ assert.match(html,/区間Packet Loss/);
+});
