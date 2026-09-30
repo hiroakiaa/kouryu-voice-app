@@ -31,7 +31,10 @@ async function credentials(){
 async function runScenario(name,iceServers,policy,durationMs,restart=false){
   status.textContent=`${name} を試験しています…`;
   const context=new AudioContext();
-  await context.resume();
+  // A suspended context still exposes a live synthetic MediaStreamTrack. Do not
+  // await resume(): some embedded browsers require a user gesture and would
+  // otherwise stall the network-path diagnostic before creating the peers.
+  context.resume().catch(()=>{});
   const oscillator=context.createOscillator(),gain=context.createGain(),destination=context.createMediaStreamDestination();
   oscillator.frequency.value=220;gain.gain.value=.18;oscillator.connect(gain).connect(destination);oscillator.start();
   const config={iceServers,iceTransportPolicy:policy};
