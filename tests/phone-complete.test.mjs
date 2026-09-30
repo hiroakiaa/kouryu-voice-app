@@ -988,3 +988,14 @@ test('現在の状況ボタンの横に操作目的を表示する',()=>{
  assert.match(css,/\.notice-presence-control\{display:flex;align-items:center/);
  assert.match(css,/\.notice-presence-label\{[^}]*white-space:nowrap/);
 });
+
+test('管理者診断でマイク処理の要求値と実適用値を区別する',()=>{
+ assert.match(html,/id="adminAudioProcessingSummary"/);
+ assert.match(html,/const AUDIO_FEATURE_FLAGS = Object\.freeze\([\s\S]*?detailedDiagnostics: true/);
+ assert.match(html,/if \(!AUDIO_FEATURE_FLAGS\.vadEnabled\)/);
+ assert.match(html,/!AUDIO_FEATURE_FLAGS\.adaptiveAudio \? 1/);
+ assert.match(html,/typeof track\.getSettings === "function"/);
+ assert.match(html,/typeof track\.getCapabilities === "function"/);
+ assert.match(html,/要求 [^<]+ \/ 対応範囲/);
+ assert.match(html,/Object\.prototype\.hasOwnProperty\.call\(diagnostic\.applied, key\)/);
+});

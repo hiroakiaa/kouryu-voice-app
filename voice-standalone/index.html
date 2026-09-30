@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-presence-label">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-09-30-audio-settings-diagnostics">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4494,6 +4494,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <div id="adminConnectionQualitySummary" class="metrics-mode-summary"></div>
         <ol id="adminConnectionTimeline" class="admin-connection-timeline"></ol>
       </section>
+      <section class="admin-connection-quality" aria-labelledby="adminAudioProcessingTitle">
+        <h4 id="adminAudioProcessingTitle"><i class="fa-solid fa-microphone-lines"></i> マイク音声処理</h4>
+        <div id="adminAudioProcessingSummary" class="metrics-mode-summary" aria-live="polite"></div>
+        <p class="caption-help">要求値と、ブラウザーが音声トラックへ実際に適用した値を分けて表示します。「不明」は推測せず、ブラウザーから取得できなかった項目です。</p>
+      </section>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
         <div id="metricsDetailReads" class="metrics-detail" aria-hidden="true"></div>
@@ -4561,7 +4566,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-presence-label";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-09-30-audio-settings-diagnostics";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4606,7 +4611,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-09-30-presence-label";
+    const APP_VERSION = "2026-09-30-audio-settings-diagnostics";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4700,6 +4705,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       maxBitrate: 48000,
       remoteVolume: 0.9
     };
+    const AUDIO_FEATURE_FLAGS = Object.freeze({
+      advancedAudioProcessing: true,
+      vadEnabled: true,
+      adaptiveAudio: true,
+      detailedDiagnostics: true
+    });
     const EXCHANGE_RATE_CACHE_KEY = "kouryu-voice-usd-jpy-rate";
     const EXCHANGE_RATE_REFRESH_MS = 6 * 60 * 60 * 1000;
     const COST_HISTORY_KEY = "kouryu-voice-cost-history-v1";
@@ -4795,6 +4806,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       metricsCompareSummary: document.getElementById("metricsCompareSummary"),
       adminConnectionQualitySummary: document.getElementById("adminConnectionQualitySummary"),
       adminConnectionTimeline: document.getElementById("adminConnectionTimeline"),
+      adminAudioProcessingSummary: document.getElementById("adminAudioProcessingSummary"),
       metricsReadsCount: document.getElementById("metricsReadsCount"),
       metricsWritesCount: document.getElementById("metricsWritesCount"),
       metricsDeletesCount: document.getElementById("metricsDeletesCount"),
@@ -4851,6 +4863,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     };
 
     let rawLocalStream = null;
+    let audioTrackDiagnostics = null;
     let microphonePreparationPromise = null;
     let callConnectOverlayTimer = null;
     let callConnectTargetName = "相手";
@@ -5831,7 +5844,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         tuneLocalAudioTrack(rawLocalStream);
         // WebKit can start a newly-created AudioContext late after navigation. Sending
         // the captured track directly prevents the first words from being lost on iPhone.
-        localStream = isIosDevice() ? rawLocalStream : createCleanAudioStream(rawLocalStream);
+        localStream = isIosDevice() || !AUDIO_FEATURE_FLAGS.advancedAudioProcessing ? rawLocalStream : createCleanAudioStream(rawLocalStream);
         applyMuteState(false);
         startSpeakingMonitor();
         showEarphoneReminderOnce();
@@ -9221,19 +9234,116 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
     }
 
+    function getRequestedAudioTrackSettings() {
+      const settings = getVoiceModeSettings();
+      return {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: Boolean(settings.autoGainControl),
+        channelCount: 1,
+        sampleRate: 48000,
+        sampleSize: 16
+      };
+    }
+
+    function readAudioTrackDiagnostics(track) {
+      let applied = {};
+      let capabilities = {};
+      let settingsAvailable = false;
+      let capabilitiesAvailable = false;
+      try {
+        if (track && typeof track.getSettings === "function") {
+          applied = track.getSettings() || {};
+          settingsAvailable = true;
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+      try {
+        if (track && typeof track.getCapabilities === "function") {
+          capabilities = track.getCapabilities() || {};
+          capabilitiesAvailable = true;
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+      audioTrackDiagnostics = {
+        requested: getRequestedAudioTrackSettings(),
+        applied,
+        capabilities,
+        settingsAvailable,
+        capabilitiesAvailable,
+        pipeline: isIosDevice() || !AUDIO_FEATURE_FLAGS.advancedAudioProcessing ? "ブラウザー標準" : "Web Audio音声処理",
+        capturedAt: Date.now()
+      };
+      renderAdminAudioProcessing();
+    }
+
+    function formatAudioDiagnosticValue(value) {
+      if (value === true) return "ON";
+      if (value === false) return "OFF";
+      if (typeof value === "number" && Number.isFinite(value)) return String(value);
+      if (typeof value === "string" && value) return value;
+      return "不明";
+    }
+
+    function formatAudioCapability(value) {
+      if (Array.isArray(value)) return value.map(formatAudioDiagnosticValue).join(" / ") || "不明";
+      if (value && typeof value === "object") {
+        const range = [];
+        if (Number.isFinite(value.min)) range.push("最小 " + value.min);
+        if (Number.isFinite(value.max)) range.push("最大 " + value.max);
+        return range.join(" / ") || "不明";
+      }
+      return formatAudioDiagnosticValue(value);
+    }
+
+    function renderAdminAudioProcessing() {
+      if (!el.adminAudioProcessingSummary || !AUDIO_FEATURE_FLAGS.detailedDiagnostics) return;
+      if (!audioTrackDiagnostics) {
+        el.adminAudioProcessingSummary.innerHTML = '<span><strong>通話開始後に確認</strong><small>マイク取得後、ブラウザーの実適用値を表示します</small></span>';
+        return;
+      }
+      const diagnostic = audioTrackDiagnostics;
+      const rows = [
+        ["echoCancellation", "エコー抑制"],
+        ["noiseSuppression", "ノイズ抑制"],
+        ["autoGainControl", "自動音量調整"],
+        ["channelCount", "チャンネル数"],
+        ["sampleRate", "サンプルレート"],
+        ["sampleSize", "サンプルサイズ"]
+      ];
+      el.adminAudioProcessingSummary.innerHTML =
+        '<span><strong>' + escapeHtml(diagnostic.pipeline) + '</strong><small>送信前の音声経路</small></span>' +
+        rows.map(function(row) {
+          const key = row[0];
+          const label = row[1];
+          const requested = formatAudioDiagnosticValue(diagnostic.requested[key]);
+          const applied = Object.prototype.hasOwnProperty.call(diagnostic.applied, key) ? formatAudioDiagnosticValue(diagnostic.applied[key]) : "不明";
+          const supported = Object.prototype.hasOwnProperty.call(diagnostic.capabilities, key) ? formatAudioCapability(diagnostic.capabilities[key]) : "不明";
+          return '<span><strong>' + escapeHtml(label + '：' + applied) + '</strong><small>要求 ' + escapeHtml(requested) + ' / 対応範囲 ' + escapeHtml(supported) + '</small></span>';
+        }).join('');
+      el.adminAudioProcessingSummary.dataset.settingsAvailable = diagnostic.settingsAvailable ? "true" : "false";
+      el.adminAudioProcessingSummary.dataset.capabilitiesAvailable = diagnostic.capabilitiesAvailable ? "true" : "false";
+    }
+
     function tuneLocalAudioTrack(stream) {
       const track = stream && stream.getAudioTracks ? stream.getAudioTracks()[0] : null;
-      if (!track) return;
+      if (!track) return Promise.resolve();
       const settings = getVoiceModeSettings();
       if ("contentHint" in track) track.contentHint = "speech";
-      if (typeof track.applyConstraints !== "function") return;
-      track.applyConstraints({
+      readAudioTrackDiagnostics(track);
+      if (typeof track.applyConstraints !== "function") return Promise.resolve();
+      return track.applyConstraints({
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: settings.autoGainControl,
         channelCount: 1
+      }).then(function() {
+        readAudioTrackDiagnostics(track);
       }).catch(function(error) {
         console.warn(error);
+        readAudioTrackDiagnostics(track);
       });
     }
 
@@ -9284,6 +9394,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function startSpeakingMonitor() {
       stopSpeakingMonitor();
+      if (!AUDIO_FEATURE_FLAGS.vadEnabled) {
+        updateSoftNoiseGuard(0, true);
+        return;
+      }
       try {
         speakingState = false;
         speakingCandidateState = false;
@@ -9377,7 +9491,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     function updateSoftNoiseGuard(rms, isSpeaking) {
       if (!localVoiceGain || !localAudioContext) return;
       const settings = getVoiceModeSettings();
-      const targetGain = muted ? 0 : (isSpeaking ? 1 : (rms < 0.009 ? settings.floorGain : settings.idleGain));
+      const targetGain = muted ? 0 : (!AUDIO_FEATURE_FLAGS.adaptiveAudio ? 1 : (isSpeaking ? 1 : (rms < 0.009 ? settings.floorGain : settings.idleGain)));
       try {
         localVoiceGain.gain.setTargetAtTime(targetGain, localAudioContext.currentTime, isSpeaking ? 0.025 : 0.11);
       } catch (error) {
@@ -10928,6 +11042,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (el.metricsOngoingReads) el.metricsOngoingReads.textContent = String(readsPerMinute) + "/分";
       renderTurnUsage();
       renderAdminConnectionQuality();
+      renderAdminAudioProcessing();
       if (el.metricsCompareSummary) {
         el.metricsCompareSummary.innerHTML = renderMetricsCompareSummary(latest);
       }

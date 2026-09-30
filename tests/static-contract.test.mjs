@@ -399,7 +399,7 @@ test("Firestoreの30秒通信遅延を避けるため起動時から短いlong-p
 });
 
 test("音声到着前を通話中と表示せずiPhoneは低遅延のマイク経路を使う", () => {
-  assert.match(rootHtml, /localStream = isIosDevice\(\) \? rawLocalStream : createCleanAudioStream\(rawLocalStream\)/);
+  assert.match(rootHtml, /localStream = isIosDevice\(\) \|\| !AUDIO_FEATURE_FLAGS\.advancedAudioProcessing \? rawLocalStream : createCleanAudioStream\(rawLocalStream\)/);
   assert.match(rootHtml, /peer\.ontrack = function\(event\)[\s\S]*?markConnectedOnce\(\)/);
   assert.doesNotMatch(rootHtml, /onconnectionstatechange[\s\S]{0,800}markConnectedOnce\(\)/);
   assert.match(rootHtml, /isPeerConnected\(item\.peer\) && item\.remoteTrackReceived/);
