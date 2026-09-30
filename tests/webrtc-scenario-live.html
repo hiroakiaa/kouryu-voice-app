@@ -9,7 +9,8 @@
   pre{white-space:pre-wrap;word-break:break-word;padding:1rem;border-radius:1rem;background:#102313;color:#dfffc9}
 </style>
 <h1>WebRTC 経路診断</h1>
-<p class="status" id="status">試験を準備しています…</p>
+<p><button id="start" type="button">診断を開始</button></p>
+<p class="status" id="status">開始すると合成音声で通信経路を試験します。</p>
 <pre id="output"></pre>
 <script type="module">
 const status=document.querySelector('#status'),output=document.querySelector('#output');
@@ -31,10 +32,7 @@ async function credentials(){
 async function runScenario(name,iceServers,policy,durationMs,restart=false){
   status.textContent=`${name} を試験しています…`;
   const context=new AudioContext();
-  // A suspended context still exposes a live synthetic MediaStreamTrack. Do not
-  // await resume(): some embedded browsers require a user gesture and would
-  // otherwise stall the network-path diagnostic before creating the peers.
-  context.resume().catch(()=>{});
+  await context.resume();
   const oscillator=context.createOscillator(),gain=context.createGain(),destination=context.createMediaStreamDestination();
   oscillator.frequency.value=220;gain.gain.value=.18;oscillator.connect(gain).connect(destination);oscillator.start();
   const config={iceServers,iceTransportPolicy:policy};
@@ -56,7 +54,8 @@ async function runScenario(name,iceServers,policy,durationMs,restart=false){
   const result={scenario:name,firstConnectMs,restartMs,state:a.connectionState,iceState:a.iceConnectionState,receivedTracks:received.length,inboundPackets,outboundPackets,relay,bytes,codec,passed:a.connectionState==='connected'&&received.length>0&&inboundPackets>0&&(!(policy==='relay')||relay)};
   a.close();b.close();destination.stream.getTracks().forEach(t=>t.stop());oscillator.stop();await context.close();return result;
 }
-try{
+async function main(){try{
+  document.querySelector('#start').disabled=true;
   const iceServers=await credentials(),results=[];
   results.push(await runScenario('P2P/STUN 通常経路',iceServers,'all',4000));log(results);
   results.push(await runScenario('P2P/STUN ICE再接続',iceServers,'all',3000,true));log(results);
@@ -64,6 +63,7 @@ try{
   const relayBytes=results.filter(x=>x.relay).reduce((n,x)=>n+x.bytes,0);
   const report={testedAt:new Date().toISOString(),userAgent:navigator.userAgent,results,relayBytes,turnCostUsdBeforeFreeTier:relayBytes/1e9*.05,turnCostJpyBeforeFreeTier:relayBytes/1e9*.05*157.39};
   log(report);status.textContent=results.every(x=>x.passed)?'すべての試験に成功しました。':'失敗した試験があります。';document.title=`${results.every(x=>x.passed)?'成功':'失敗'} | WebRTC 経路診断`;
-}catch(error){status.textContent=`試験できませんでした: ${error.message}`;log({error:String(error),stack:error.stack});document.title='失敗 | WebRTC 経路診断'}
+}catch(error){status.textContent=`試験できませんでした: ${error.message}`;log({error:String(error),stack:error.stack});document.title='失敗 | WebRTC 経路診断'}}
+document.querySelector('#start').addEventListener('click',main,{once:true});
 </script>
 </html>
