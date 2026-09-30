@@ -1035,9 +1035,9 @@ test('連絡カードは完了時の種別を隠し日時とメニューを横�
 
 test('返信履歴はカード操作に重ならない固定高の領域で最後までスクロールできる',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
- assert.match(css,/\.notice-reply-history\[open\]\{display:grid;grid-template-rows:auto minmax\(0,1fr\);height:190px;min-height:190px;max-height:190px;overflow:hidden\}/);
- assert.match(css,/\.notice-reply-history\[open\]>\.notice-reply-list\{[^}]*min-height:0[^}]*max-height:none[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);
- assert.match(css,/\.notice-reply-history\[open\] \.notice-reply-list-inner\{[^}]*overflow:visible[^}]*padding-bottom:2px/);
+ assert.match(css,/\.notice-reply-history\[open\]\{display:block;height:190px;min-height:190px;max-height:190px;overflow:hidden\}/);
+ assert.match(css,/\.notice-reply-history\[open\]>\.notice-reply-list\{[^}]*display:block[^}]*height:142px[^}]*overflow-y:scroll!important[^}]*scrollbar-gutter:stable[^}]*touch-action:pan-y/);
+ assert.match(css,/\.notice-reply-history\[open\] \.notice-reply-list-inner\{[^}]*min-height:0[^}]*overflow:visible[^}]*padding-bottom:1px/);
 });
 
 test('連絡作成ボタンはブラウザ幅ではなくアプリカードの右端に固定する',()=>{
