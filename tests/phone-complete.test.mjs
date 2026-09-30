@@ -1033,6 +1033,18 @@ test('連絡カードは完了時の種別を隠し日時とメニューを横�
  assert.match(css,/\.notice-more>div button\{[^}]*writing-mode:horizontal-tb/);
 });
 
+test('返信履歴はカード操作に重ならない固定高の領域で最後までスクロールできる',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.notice-reply-history\[open\]\{display:grid;grid-template-rows:auto minmax\(0,1fr\);height:190px;min-height:190px;max-height:190px;overflow:hidden\}/);
+ assert.match(css,/\.notice-reply-history\[open\]>\.notice-reply-list\{[^}]*min-height:0[^}]*max-height:none[^}]*overflow-y:auto[^}]*scrollbar-gutter:stable/);
+ assert.match(css,/\.notice-reply-history\[open\] \.notice-reply-list-inner\{[^}]*overflow:visible[^}]*padding-bottom:2px/);
+});
+
+test('連絡作成ボタンはブラウザ幅ではなくアプリカードの右端に固定する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.phone-home-card>#phoneNoticeAddToggle\.notice-add-button\{right:clamp\(12px,1\.6vw,20px\)\}/);
+});
+
 test('横幅のある端末では内容量の多いモーダルだけ二列化する',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/@media\(min-width:900px\) and \(min-height:620px\)/);
