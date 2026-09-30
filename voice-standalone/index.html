@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-01-notice-modal-layout">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-01-notice-card-actions">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4246,8 +4246,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <div class="number-head"><h2 id="phoneNoticeReplyTitle">返信</h2><button id="phoneNoticeReplyClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div>
       <form id="phoneNoticeReplyForm"><p id="phoneNoticeReplyTo"></p><textarea id="phoneNoticeReplyText" maxlength="200" rows="4" placeholder="短い返信を入力" required></textarea><button class="phone-primary" type="submit"><i class="fa-solid fa-reply"></i> 返信する</button></form>
     </dialog>
-    <dialog id="phoneNoticeLaterDialog" class="number-modal notice-action-dialog" aria-labelledby="phoneNoticeLaterTitle"><div class="number-head"><h2 id="phoneNoticeLaterTitle">あとで対応</h2><button id="phoneNoticeLaterClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div><p>もう一度知らせる時間を選びます。アプリを開いている間は時刻どおりに案内します。</p><div class="notice-time-options"><button type="button" data-remind-minutes="10">10分後</button><button type="button" data-remind-minutes="30">30分後</button><button type="button" data-remind-minutes="60">1時間後</button></div></dialog>
-    <dialog id="phoneNoticeChangeDialog" class="number-modal notice-action-dialog" aria-labelledby="phoneNoticeChangeTitle"><div class="number-head"><h2 id="phoneNoticeChangeTitle">対応状況を変更</h2><button id="phoneNoticeChangeClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div><p>完了を取り消して、現在の対応状況へ戻します。</p><form id="phoneNoticeChangeForm"><label for="phoneNoticeChangeState">変更後の状態</label><select id="phoneNoticeChangeState"><option value="pending">未対応</option><option value="later">あとで対応</option></select><button class="phone-primary" type="submit"><i class="fa-solid fa-check"></i> 決定</button></form></dialog>
+    <dialog id="phoneNoticeChangeDialog" class="number-modal notice-action-dialog" aria-labelledby="phoneNoticeChangeTitle"><div class="number-head"><h2 id="phoneNoticeChangeTitle">対応に戻す</h2><button id="phoneNoticeChangeClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div><p>完了を取り消して、対応する連絡へ戻します。</p><form id="phoneNoticeChangeForm"><select id="phoneNoticeChangeState" aria-label="変更後の状態" hidden><option value="pending">未対応</option></select><button class="phone-primary" type="submit"><i class="fa-solid fa-rotate-left"></i> 対応に戻す</button></form></dialog>
     <dialog id="phoneNoticeHandoffDialog" class="number-modal notice-action-dialog" aria-labelledby="phoneNoticeHandoffTitle"><div class="number-head"><h2 id="phoneNoticeHandoffTitle">担当を引き継ぐ</h2><button id="phoneNoticeHandoffClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div><p>この連絡の宛先から、次の担当者を選びます。</p><div id="phoneNoticeHandoffPeople" class="notice-handoff-people"></div></dialog>
     <dialog id="deviceCheckDialog" class="number-modal device-check-dialog" aria-labelledby="deviceCheckTitle">
       <div class="number-head"><h2 id="deviceCheckTitle">端末チェック</h2><button id="deviceCheckClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div>
@@ -4269,7 +4268,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-user-pen"></i><span><strong>最初の設定</strong><span>初めて開いたときは、プロフィール画面で8桁の専用番号を自動で準備します。相手に表示する名前を入力して保存してください。よみがなと所属も登録すると、相手の電話帳や履歴で探しやすくなります。名前と番号が保存済みなら、次回からこの画面は自動では開きません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」の「番号入力」で、相手の8桁番号を入力します。このアプリ利用者同士の専用電話で、一般の電話番号や緊急通報には発信できません。自分の番号は画面下部に常に表示され、押すとコピーできます。番号ボタンは、端末の横幅と縦幅に合わせて、押しやすさを保ちながら自動で大きさと間隔を調整します。着信と呼び出し終了はリアルタイムで反映し、応答後は接続準備を自動で進めます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>着信・履歴・電話帳</strong><span>着信すると、相手が登録した名前・よみがな・所属を表示し、履歴と電話帳にも記録します。電話帳で自分が編集した情報は、その後も優先して使います。「よく使う」はカードを押すと発信確認が開き、星はよく使う相手への追加と解除です。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-message"></i><span><strong>連絡</strong><span>「対応する」には、いま自分が行う連絡が表示されます。以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます。タブレットやPCでは、連絡・履歴・電話帳・グループを横幅に合わせて2列で表示します。連絡の返信は「返信内容を確認」を押すとカード内に開きます。「連絡を作成する」から個人またはプロフィールの学校・所属グループを選んで送ります。自分が送った内容は「送った連絡」で確認できます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-message"></i><span><strong>連絡</strong><span>「対応する」には、いま自分が行う連絡が表示されます。以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます。タブレットやPCでは、連絡・履歴・電話帳・グループを横幅に合わせて2列で表示します。連絡の返信は「返信内容を確認」を押すとカード内に開きます。完了した連絡は「その他」から「対応に戻す」を選ぶと、お願い・急ぎなどの表示も戻ります。「連絡を作成する」から個人またはプロフィールの学校・所属グループを選んで送ります。自分が送った内容は「送った連絡」で確認できます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の準備表示が消えるまで、そのままお待ちください。参加確認、マイク、音声接続を自動で進め、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。</span></span></span>
@@ -4410,7 +4409,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <div class="admin-budget-row"><label for="adminBudgetInput">月の目安上限（円）</label><input id="adminBudgetInput" type="number" inputmode="decimal" min="0" step="100" value="500"><p id="adminBudgetStatus" role="status" aria-live="polite"></p></div>
       <section class="admin-control-card" aria-labelledby="adminNoticePermissionTitle"><h3 id="adminNoticePermissionTitle">連絡の利用設定</h3><p>この端末から使わせる送信方法を選びます。</p><label><input id="adminNoticeAllowAll" type="checkbox"> 電話帳の全員へ送る</label><label><input id="adminNoticeAllowGroup" type="checkbox"> グループ・所属へまとめて送る</label><label><input id="adminNoticeAllowUrgent" type="checkbox"> 「急ぎ」を付けて送る</label></section>
       <section class="admin-control-card" aria-labelledby="adminPasswordChangeTitle"><h3 id="adminPasswordChangeTitle">管理者パスワードを変更</h3><p>この端末で次回から使うパスワードです。文字そのものは保存しません。</p><form id="adminPasswordChangeForm"><label>新しいパスワード<input id="adminNewPassword" type="password" minlength="4" autocomplete="new-password" required></label><label>もう一度入力<input id="adminNewPasswordConfirm" type="password" minlength="4" autocomplete="new-password" required></label><button type="submit"><i class="fa-solid fa-key"></i> 変更する</button><p id="adminPasswordChangeMessage" role="status"></p></form></section>
-      <section class="admin-notice-overview" aria-labelledby="adminNoticeOverviewTitle"><h3 id="adminNoticeOverviewTitle">連絡の利用状況</h3><div id="adminNoticeStats" class="admin-notice-stats"><span><strong>0</strong>送信</span><span><strong>0</strong>未対応</span><span><strong>0</strong>通知失敗</span></div><small>このアカウントが閲覧できる連絡だけを集計します。本文は表示しません。</small></section><details class="admin-notice-cost"><summary>連絡機能の仕組みと費用</summary><p>連絡1件を1人へ送り、通知結果を記録して相手が確認を返す場合、Firestoreはおおむね書き込み3回と数回の読み取り、Push通知1回を使います。在席状態は画面を開いた時と復帰時を中心に読み、常時監視を避けています。無料枠適用前でも1人宛て1往復は約0.001円未満が目安です。本文と返答はFirestoreに保存し、通話音声は保存しません。実際の請求はアカウント全体の無料枠と利用量で決まります。</p></details><section class="admin-control-card admin-two-device-check" aria-labelledby="adminTwoDeviceTitle"><h3 id="adminTwoDeviceTitle">2端末での連絡確認</h3><p>公開前に、送信側と受信側で次の順に確認します。チェック内容はこの端末だけに保存します。</p><label><input type="checkbox" data-admin-check="delivery"> 通知とカードが受信側へ届く</label><label><input type="checkbox" data-admin-check="assignment"> 1人が担当すると他端末の操作が閉じる</label><label><input type="checkbox" data-admin-check="handoff"> 引き継ぎとあとで通知が動く</label><label><input type="checkbox" data-admin-check="call"> カードから電話できる</label><button id="adminTwoDeviceReset" type="button"><i class="fa-solid fa-rotate-left"></i> 確認をリセット</button></section>
+      <section class="admin-notice-overview" aria-labelledby="adminNoticeOverviewTitle"><h3 id="adminNoticeOverviewTitle">連絡の利用状況</h3><div id="adminNoticeStats" class="admin-notice-stats"><span><strong>0</strong>送信</span><span><strong>0</strong>未対応</span><span><strong>0</strong>通知失敗</span></div><small>このアカウントが閲覧できる連絡だけを集計します。本文は表示しません。</small></section><details class="admin-notice-cost"><summary>連絡機能の仕組みと費用</summary><p>連絡1件を1人へ送り、通知結果を記録して相手が確認を返す場合、Firestoreはおおむね書き込み3回と数回の読み取り、Push通知1回を使います。在席状態は画面を開いた時と復帰時を中心に読み、常時監視を避けています。無料枠適用前でも1人宛て1往復は約0.001円未満が目安です。本文と返答はFirestoreに保存し、通話音声は保存しません。実際の請求はアカウント全体の無料枠と利用量で決まります。</p></details><section class="admin-control-card admin-two-device-check" aria-labelledby="adminTwoDeviceTitle"><h3 id="adminTwoDeviceTitle">2端末での連絡確認</h3><p>公開前に、送信側と受信側で次の順に確認します。チェック内容はこの端末だけに保存します。</p><label><input type="checkbox" data-admin-check="delivery"> 通知とカードが受信側へ届く</label><label><input type="checkbox" data-admin-check="assignment"> 1人が担当すると他端末の操作が閉じる</label><label><input type="checkbox" data-admin-check="handoff"> 引き継ぎが動く</label><label><input type="checkbox" data-admin-check="call"> カードから電話できる</label><button id="adminTwoDeviceReset" type="button"><i class="fa-solid fa-rotate-left"></i> 確認をリセット</button></section>
       <div class="cost-tabs" role="tablist" aria-label="料金の表示">
         <button id="currentCallTab" role="tab" data-cost-tab aria-controls="currentCallPanel" aria-selected="true" type="button">今回の通話</button>
         <button id="costScenarioTab" role="tab" data-cost-tab aria-controls="costScenarioPanel" aria-selected="false" tabindex="-1" type="button">10分間の試算</button>
@@ -4563,7 +4562,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-01-notice-modal-layout", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-01-notice-card-actions", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4571,7 +4570,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-01-notice-modal-layout";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-01-notice-card-actions";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4616,7 +4615,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-01-notice-modal-layout";
+    const APP_VERSION = "2026-10-01-notice-card-actions";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -8013,7 +8012,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-01-notice-modal-layout", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-01-notice-card-actions", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);

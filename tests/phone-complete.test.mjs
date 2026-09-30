@@ -265,7 +265,7 @@ test('よく使うカード全体で発信確認を開き、電話帳の補助�
 test('連絡タブはお願いとお知らせを一枚のカードで送受信する',()=>{
  for(const id of ['phoneTab-notices','phoneNoticesPanel','phoneNoticeAddToggle','phoneNoticeCompose','phoneNoticeReply'])assert.match(html,new RegExp(`id="${id}"`));
  assert.match(app,/collection\(db,'schoolNotices'\)/);
- assert.match(app,/data-notice-accept/);assert.match(app,/data-notice-later/);assert.match(app,/data-notice-seen/);
+ assert.match(app,/data-notice-accept/);assert.doesNotMatch(app,/data-notice-later/);assert.match(app,/data-notice-seen/);
  assert.match(app,/data-notice-reply/);assert.match(app,/data-notice-call/);assert.match(app,/data-notice-done/);
  assert.match(rules,/match \/schoolNotices\/\{id\}/);
  assert.match(rules,/recipientUids\.size\(\) <= 40/);
@@ -345,7 +345,7 @@ test('職員の状態・即時返答・先着担当・不在時の折り返し�
  assert.match(app,/async function sendCallbackRequest/);
  assert.match(app,/subject:'折り返しをお願いします'/);
  assert.match(app,/data-notice-handoff/);
- assert.match(app,/data-remind-minutes/);
+ assert.doesNotMatch(app,/data-remind-minutes|data-notice-later|scheduleNoticeReminders/);
  assert.match(app,/noticeSent\.find\(item=>item\.status==='open'/);
  assert.match(rules,/match \/userPresence\/\{uid\}/);
  assert.match(rules,/request\.resource\.data\.status in \['available','class','away','urgent'\]/);
@@ -1018,7 +1018,19 @@ test('二列の連絡カードは固定高で本文を省略し返信を展開�
  assert.match(css,/height:430px;min-height:430px;max-height:430px/);
  assert.match(css,/-webkit-line-clamp:3/);
  assert.match(css,/\.notice-reply-history\[open\]>.notice-reply-list/);
- assert.match(css,/\.school-notice-card header \.notice-card-status\{flex-direction:column/);
+ assert.match(css,/\.school-notice-card header \.notice-card-status\{display:flex;flex-direction:row/);
+});
+
+test('連絡カードは完了時の種別を隠し日時とメニューを横書きで表示する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/function noticeCardTime\(value\)\{return `<time>\$\{noticeTime\(value\)\}<\/time>`;\}/);
+ assert.match(app,/done\?'':`<span class="notice-kind-badge"/);
+ assert.match(app,/response\.state==='later'\?'pending':response\.state/);
+ assert.match(app,/patch\(ref\('schoolNotices',noticeId\),\{status:'open',completedAt:null\}\)/);
+ assert.doesNotMatch(html,/phoneNoticeLaterDialog|data-remind-minutes|あとで知らせる/);
+ assert.doesNotMatch(app,/noticeReminderTimers|scheduleNoticeReminders|data-notice-later|remindAt/);
+ assert.match(css,/\.notice-card-header-meta\{display:flex;flex-flow:row nowrap/);
+ assert.match(css,/\.notice-more>div button\{[^}]*writing-mode:horizontal-tb/);
 });
 
 test('横幅のある端末では内容量の多いモーダルだけ二列化する',()=>{
