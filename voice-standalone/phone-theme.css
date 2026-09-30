@@ -816,3 +816,23 @@ body.is-in-call .participants .participant:not(.is-self) .participant-state-badg
 .incoming-caller-meta[hidden]{display:none}
 @media(max-width:430px){.phone-own-number-display{min-width:8.3rem;padding-inline:.5rem!important}.phone-own-number-display strong{font-size:.92rem}.profile-number-card{grid-template-columns:1fr}.profile-number-card>div{grid-column:1;grid-row:auto}.profile-number-card>strong{grid-column:1}}
 @media(prefers-reduced-motion:reduce){.profile-number-loading i{animation:none}}
+
+/* Notice archive and clearer create/action layout. */
+#phoneNoticeAddToggle.notice-add-button{display:flex!important;align-items:center;justify-content:center;gap:9px;width:auto;max-width:calc(100vw - 36px);height:56px;min-height:56px!important;padding:0 20px!important;border-radius:18px!important;font-size:16px;font-weight:900;white-space:nowrap}
+#phoneNoticeAddToggle.notice-add-button i{font-size:20px}
+.notice-card-header-meta{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0;margin-left:auto}
+.school-notice-card header .notice-card-status{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;padding:0;border:0;background:transparent}
+.school-notice-card header .notice-card-status>span{padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+.school-notice-card header .notice-kind-badge{background:#dcefc9;color:#416d35}
+.school-notice-card.is-urgent header .notice-kind-badge{background:#ffe0aa;color:#895519}
+.school-notice-card header .notice-status-badge{background:#edf4e6;color:#5b6d54}
+.school-notice-card header .notice-status-badge.is-waiting{background:#fff1c9;color:#795b20}
+.school-notice-card header .notice-status-badge.is-progress{background:#dff1ff;color:#37647c}
+.school-notice-card header .notice-status-badge.is-complete{background:#dff3d0;color:#36702a}
+.school-notice-list .notice-more>summary span{font-size:13px}
+.notice-day-group{margin:0;border:2px solid #91c56e;border-radius:19px;background:#f3fae9;box-shadow:0 4px 0 #d9e9ca;overflow:hidden}
+.notice-day-group>summary{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;width:auto!important;min-height:58px;margin:0!important;padding:10px 15px!important;border:0!important;border-radius:17px!important;background:linear-gradient(145deg,#eef9df,#e1f3ce)!important;color:#345c2d!important;cursor:pointer;list-style:none}
+.notice-day-group>summary::-webkit-details-marker{display:none}.notice-day-date{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:900}.notice-day-date i{color:#68a747}.notice-day-count{padding:5px 10px;border-radius:999px;background:#fff0bf;color:#765719;font-size:12px;font-weight:900;white-space:nowrap}.notice-day-chevron{font-size:13px;transition:transform .22s ease}.notice-day-group[open]>summary .notice-day-chevron{transform:rotate(180deg)}
+.notice-day-items{display:grid;gap:12px;padding:12px 10px 14px}.notice-day-group[open]>.notice-day-items{animation:notice-day-open .24s ease-out both}@keyframes notice-day-open{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:620px){.school-notice-list .school-notice-card>header{display:flex;align-items:flex-start}.notice-card-header-meta{display:grid;justify-items:end;gap:5px}.school-notice-card header .notice-card-status{flex-wrap:wrap}.school-notice-card header .notice-card-status>span{font-size:11px;padding:4px 7px}.notice-day-date{font-size:16px}.notice-day-group>summary{padding:9px 11px!important}.notice-day-count{font-size:11px;padding:4px 8px}#phoneNoticeAddToggle.notice-add-button{right:14px;padding-inline:16px!important}}
+@media(prefers-reduced-motion:reduce){.notice-day-chevron{transition:none}.notice-day-group[open]>.notice-day-items{animation:none}}

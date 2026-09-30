@@ -302,12 +302,11 @@ test('連絡の用件を保存でき失敗時は内容を残して再送方法�
  assert.match(app,/trace\('連絡送信失敗'/);
 });
 
-test('連絡の空表示を一つに絞り追加ボタンを真円で表示する',()=>{
+test('連絡の空表示を一つに絞り作成ボタンを文字付きで表示する',()=>{
  assert.doesNotMatch(html,/id="phoneNoticeSummary"/);
- assert.match(html,/id="phoneNoticeAddToggle"[^>]*aria-label="新しい連絡を作る"[^>]*><i class="fa-solid fa-plus"/);
- assert.doesNotMatch(html,/id="phoneNoticeAddToggle"[^>]*>[^<]*<span>/);
+ assert.match(html,/id="phoneNoticeAddToggle"[^>]*aria-label="連絡を作成する"[^>]*><i class="fa-solid fa-plus"[^>]*><\/i><span>連絡を作成する<\/span>/);
  const theme=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
- assert.match(theme,/#phoneNoticeAddToggle\{[^}]*width:60px[^}]*height:60px[^}]*aspect-ratio:1[^}]*border-radius:50%[^}]*font-size:26px/);
+ assert.match(theme,/#phoneNoticeAddToggle\.notice-add-button\{[^}]*width:auto[^}]*height:56px[^}]*border-radius:18px/);
 });
 
 test('連絡の絞り込みは電話ナビと同じ位置と操作で検索はその直下に置く',()=>{
@@ -366,13 +365,14 @@ test('連絡は相手と用件だけを先に選び、対応するか送った�
  assert.match(html,/id="phoneNoticeSendSummary"/);
  assert.match(app,/const purposes=\{callback:/);
  assert.match(app,/data-notice-accept/);
- assert.match(app,/私が対応する/);
+ assert.match(app,/私が対応します/);
  assert.match(app,/対応が終わりました/);
  assert.match(app,/showPastNotices/);
 });
 
 test('壊れた旧画面でもPWA更新を止めず次回起動は最新HTMLを取得する',()=>{
- assert.match(html,/service-worker\.js\?v=2026-09-30-simple-contact-flow/);
+ const version=html.match(/const APP_VERSION = "([^"]+)"/)?.[1];
+ assert.match(html,new RegExp(`service-worker\\.js\\?v=${version}`));
  assert.match(html,/updateViaCache: "none"/);
  assert.match(sw,/event\.request\.mode !== "navigate"/);
  assert.match(sw,/fetch\(event\.request, \{ cache: "no-store" \}\)/);
@@ -938,7 +938,7 @@ test('連絡を対応する画面から開き送信先表示と固定追加ボ�
  assert.doesNotMatch(css,/\.school-notice-card\.needs-action\{border-left:5px/);
  assert.match(css,/\.phone-home-card>\.phone-add-fab\{position:absolute;right:clamp\(12px,1\.6vw,20px\);bottom:86px/);
  assert.match(app,/action\.hidden=true;\$\('phoneHome'\)\.append\(action\)/);
- assert.match(html,/「対応する」には、いま自分が行う連絡だけが表示されます/);
+ assert.match(html,/以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます/);
 });
 
 test('完了・返信・状態変更を全端末の連絡一覧へ同期する',()=>{
@@ -953,19 +953,23 @@ test('完了・返信・状態変更を全端末の連絡一覧へ同期する',
 });
 
 test('起動中は別画面の追加ボタンを表示しない',()=>{
- for(const id of ['phoneNoticeAddToggle','phoneContactAddToggle','phoneGroupAddToggle'])assert.match(html,new RegExp('id="'+id+'" class="phone-add-fab" hidden'));
+ for(const id of ['phoneNoticeAddToggle','phoneContactAddToggle','phoneGroupAddToggle'])assert.match(html,new RegExp('id="'+id+'" class="phone-add-fab(?: [^"]+)?" hidden'));
  assert.match(app,/const action=\$\(actionId\);action\.hidden=true;\$\('phoneHome'\)\.append\(action\)/);
  assert.match(app,/addButton\.hidden=id!==panelId/);
 });
 
-test('連絡カードは一枚の面を送信者・状態・本文・対応の順に整理する',()=>{
+test('連絡カードは状態をヘッダーへまとめ過去分を日付単位で展開する',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(app,/class="notice-message-block"/);
  assert.match(app,/<small>送信者<\/small>/);
- assert.match(app,/<span class="notice-field-label">種類<\/span>/);
+ assert.match(app,/class="notice-card-header-meta"/);
  assert.match(app,/status==='未対応'\?'':/);
- assert.match(app,/<span class="notice-field-label">連絡内容<\/span>/);
+ assert.doesNotMatch(app,/<span class="notice-field-label">連絡内容<\/span>/);
  assert.match(app,/<span class="notice-field-label">対応<\/span>/);
+ assert.match(app,/class="notice-day-group"/);
+ assert.match(app,/未完了 \$\{unfinished\}件/);
+ assert.match(app,/noticeDateLabel\(items\[0\]\.createdAt\)/);
+ assert.match(app,/私が対応します/);
  assert.match(css,/\.school-notice-list \.school-notice-card\{[^}]*border:2px solid #82bb5d[^}]*background:#fffef9/);
  assert.match(css,/\.school-notice-list \.school-notice-card>header\{[^}]*border-bottom:1px solid/);
  assert.match(css,/\.notice-message-block\{[^}]*border:0[^}]*background:#fffef9/);
@@ -973,6 +977,8 @@ test('連絡カードは一枚の面を送信者・状態・本文・対応の�
  assert.match(css,/\.school-notice-list \.school-notice-actions \.notice-main-action\{[^}]*grid-column:1;grid-row:2/);
  assert.match(css,/\.school-notice-list \.notice-more\{[^}]*grid-column:2;grid-row:2/);
  assert.match(css,/\.school-notice-list \.notice-more\{[^}]*padding:0[^}]*border:0/);
+ assert.match(css,/#phoneNoticeAddToggle\.notice-add-button\{[^}]*display:flex!important[^}]*border-radius:18px/);
+ assert.match(css,/\.notice-day-group\{[^}]*border:2px solid #91c56e/);
 });
 
 test('電話画面のCSSと描画処理はアプリ本体と同じ更新番号で読み込む',()=>{
