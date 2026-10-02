@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-01-notice-reply-full-card">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-02-ipad-background-recovery">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4273,7 +4273,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。アプリを閉じた状態が2分続くと接続を残さないため自動退室しますが、通話時間そのものに上限はありません。</span></span></span>    </dialog>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。通話中に別のアプリやタブを開いても、戻ったときに音声と接続を自動で確認します。通話を終えるときは通話画面の終了・退室ボタンを押してください。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
@@ -4562,7 +4562,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-01-notice-reply-full-card", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-ipad-background-recovery", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4570,7 +4570,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-01-notice-reply-full-card";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-02-ipad-background-recovery";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4615,7 +4615,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-01-notice-reply-full-card";
+    const APP_VERSION = "2026-10-02-ipad-background-recovery";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4648,7 +4648,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const AUTO_RECONNECT_GIVEUP_MS = 18000;
     const AUTO_RECONNECT_MAX_ATTEMPTS = 2;
     const CLEANUP_AUDIT_DELAY_MS = 800;
-    const HIDDEN_AUTO_LEAVE_MS = 2 * 60 * 1000;
     const PASSIVE_WATCHER_IDLE_MS = 10 * 60 * 1000;
     const CONNECTION_STUCK_MS = 15000;
     const MIC_PERMISSION_TIMEOUT_MS = 12000;
@@ -4945,7 +4944,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let participantNoticeQueue = [];
     let participantNoticeTimer = null;
     let heartbeatTimer = null;
-    let hiddenAutoLeaveTimer = null;
     let passiveWatcherIdleTimer = null;
     let hiddenSince = 0;
     let lastAudioResumeAt = 0;
@@ -5263,14 +5261,17 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       window.addEventListener("pagehide", function() {
         if (captionController) captionController.stop();
         cancelOutgoingInvitation();
-        if (!isDemoMode && joined) markLeft();
+        if (!isDemoMode && joined) {
+          updatePresence();
+          noteCallBackgrounded();
+        }
       });
       document.addEventListener("visibilitychange", function() {
         if (isDemoMode) return;
         if (document.visibilityState === "hidden") {
           if (joined) {
             updatePresence();
-            scheduleHiddenAutoLeave();
+            noteCallBackgrounded();
           }
           return;
         }
@@ -5278,6 +5279,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         refreshClosedAppNotifications();
       });
       window.addEventListener("online", refreshClosedAppNotifications);
+      document.addEventListener("pointerdown", function() {
+        if (!isDemoMode && joined) resumeCallAudio("user-interaction");
+      }, { passive: true });
       window.setInterval(function() {
         if (document.visibilityState === "visible") refreshClosedAppNotifications();
       }, 15 * 60 * 1000);
@@ -6169,16 +6173,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function startCallSafetyTimers() {
       stopCallSafetyTimers();
-      if (document.visibilityState === "hidden") scheduleHiddenAutoLeave();
+      if (document.visibilityState === "hidden") noteCallBackgrounded();
     }
 
-    function scheduleHiddenAutoLeave() {
+    function noteCallBackgrounded() {
       if (!joined) return;
       hiddenSince = hiddenSince || Date.now();
-      if (hiddenAutoLeaveTimer) window.clearTimeout(hiddenAutoLeaveTimer);
-      hiddenAutoLeaveTimer = window.setTimeout(function() {
-        autoLeaveCall("画面を閉じた状態が2分続いたため、自動退室しました。");
-      }, HIDDEN_AUTO_LEAVE_MS);
+      pushDiagnostic("info", "バックグラウンドへ移動", "通話は維持し、画面へ戻ったときに音声と接続を再確認します。");
     }
 
     function handleVisibleReturn() {
@@ -6187,19 +6188,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         return;
       }
       const hiddenDuration = Date.now() - hiddenSince;
-      if (hiddenAutoLeaveTimer) {
-        window.clearTimeout(hiddenAutoLeaveTimer);
-        hiddenAutoLeaveTimer = null;
-      }
       hiddenSince = 0;
-      if (hiddenDuration >= HIDDEN_AUTO_LEAVE_MS) {
-        autoLeaveCall("画面を閉じた状態が2分以上続いたため、自動退室しました。");
-        return;
-      }
-      resumeCallAudio("visible");
+      pushDiagnostic("info", "バックグラウンドから復帰", Math.round(hiddenDuration / 1000) + "秒後に音声と接続を再確認します。");
+      resumeCallAudio("visible", true);
     }
 
-    async function resumeCallAudio(reason) {
+    async function resumeCallAudio(reason, forcePresence) {
       if (!joined) return;
       const now = Date.now();
       if (now - lastAudioResumeAt < 1000) return;
@@ -6220,13 +6214,24 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           reconnectCall();
           return;
         }
-        if (now - lastResumePresenceAt >= 60000) {
+        if (forcePresence || now - lastResumePresenceAt >= 60000) {
           lastResumePresenceAt = now;
           updatePresence();
         }
+        ensurePeersForParticipants();
+        peers.forEach(function(state, remoteId) {
+          if (!state || !state.peer || !isPeerUnstable(state.peer)) return;
+          clearReconnectTimer(state);
+          clearAutoReconnectTimer(state);
+          autoReconnectAttempts.delete(remoteId);
+          scheduleReconnect(remoteId);
+          scheduleAutoReconnect(remoteId, "background-resume");
+        });
         pushDiagnostic("info", "音声を再開", reason || "resume");
       } catch (error) {
         console.warn(error);
+        pushDiagnostic("warn", "音声の自動再開を待機", error && error.message ? error.message : String(error || "resume failed"));
+        setNotice("音声が聞こえない場合は、通話画面を一度タップしてください。");
       }
     }
 
@@ -6239,8 +6244,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     function stopCallSafetyTimers() {
-      if (hiddenAutoLeaveTimer) window.clearTimeout(hiddenAutoLeaveTimer);
-      hiddenAutoLeaveTimer = null;
       hiddenSince = 0;
     }
 
@@ -8012,7 +8015,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-01-notice-reply-full-card", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-ipad-background-recovery", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -9189,7 +9192,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (unsubParticipants) remaining.push("participants listener");
       if (unsubSignals) remaining.push("signals listener");
       if (heartbeatTimer) remaining.push("heartbeat");
-      if (hiddenAutoLeaveTimer) remaining.push("hidden auto leave");
       if (passiveWatcherIdleTimer) remaining.push("passive watcher idle");
       if (participantSweepTimer) remaining.push("participant sweep");
       if (participantWatcherRetryTimer) remaining.push("participant watcher retry");
@@ -10389,6 +10391,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function isParticipantActive(item) {
       if (!item || item.left === true) return false;
+      const peerState = item.userId ? peers.get(item.userId) : null;
+      if (peerState && isPeerConnected(peerState.peer)) return true;
       const timeValue = getTimestampMillis(item.lastSeenAt || item.updatedAt || item.joinedAt);
       if (!timeValue) return true;
       return Date.now() - timeValue <= PARTICIPANT_STALE_MS;

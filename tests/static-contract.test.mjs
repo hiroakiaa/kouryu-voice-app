@@ -28,9 +28,13 @@ test("4人制限と5人目の参加前停止がある", () => {
   assert.match(rootHtml, /参加情報やマイクを開始する前に停止しました/);
 });
 
-test("閉じた通話は整理するが通話時間では自動退室しない", () => {
-  assert.match(rootHtml, /const HIDDEN_AUTO_LEAVE_MS = 2 \* 60 \* 1000;/);
-  assert.match(rootHtml, /scheduleHiddenAutoLeave\(\)/);
+test("バックグラウンド移動だけでは自動退室せず復帰時に接続を再確認する", () => {
+  assert.doesNotMatch(rootHtml, /HIDDEN_AUTO_LEAVE_MS|画面を閉じた状態が2分/);
+  assert.match(rootHtml, /noteCallBackgrounded\(\)/);
+  assert.match(rootHtml, /resumeCallAudio\("visible", true\)/);
+  assert.match(rootHtml, /resumeCallAudio\("user-interaction"\)/);
+  assert.match(rootHtml, /scheduleAutoReconnect\(remoteId, "background-resume"\)/);
+  assert.match(rootHtml, /peerState && isPeerConnected\(peerState\.peer\)/);
   assert.doesNotMatch(rootHtml, /MAX_CALL_DURATION_MS|maxCallDurationTimer|通話が1時間続いたため/);
 });
 
