@@ -47,3 +47,35 @@ test('沈黙・ミュート・正常受信は障害として扱わない',()=>{
   assert.equal(h.recoveries.length,0);
   assert.equal(state.mediaStallSamples,0);
 });
+
+test('ICE再試行後も発話パケットが止まった時だけPeer再作成へ進む',()=>{
+  const verifySource=html.match(/    function scheduleMediaRecoveryVerification\([^]*?\n    }/)?.[0];
+  assert.ok(verifySource,'scheduleMediaRecoveryVerification');
+  let callback=null,recreated=0,diagnosed=0;
+  const state={id:'peer',mediaRecoveryPacketBaseline:10,remoteAudioPackets:10,mediaRecoveryVerifyTimer:null};
+  const context={
+    window:{clearTimeout(){},setTimeout(fn,ms){assert.equal(ms,12000);callback=fn;return 1}},
+    MEDIA_RECOVERY_VERIFY_MS:12000,
+    peers:new Map([['peer',state]]),joined:true,localStream:{},
+    realtimeParticipantState:new Map([['peer',{speaking:true,muted:false,dataAt:99000}]]),
+    DATA_CHANNEL_STALE_MS:15000,Date:{now:()=>100000},
+    requestPeerRecreation(){recreated++},pushDiagnostic(){diagnosed++}
+  };
+  vm.runInNewContext(verifySource,context);
+  context.scheduleMediaRecoveryVerification(state,'test'); callback();
+  assert.equal(recreated,1);assert.equal(diagnosed,0);
+
+  state.remoteAudioPackets=11;recreated=0;
+  context.scheduleMediaRecoveryVerification(state,'test'); callback();
+  assert.equal(recreated,0);assert.equal(diagnosed,1);
+});
+
+test('管理者の2端末比較と貼り付け診断に復旧履歴を含める',()=>{
+  assert.match(html,/id="adminCallTestRun"/);
+  assert.match(html,/id="endpointMetricsA"/);
+  assert.match(html,/id="endpointMetricsB"/);
+  assert.match(html,/"qualityHistory: "/);
+  assert.match(html,/"recentQualitySessions: "/);
+  assert.match(html,/peerRecreations: peerRecreationCount/);
+  assert.match(html,/deviceContext:/);
+});

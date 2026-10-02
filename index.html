@@ -1643,6 +1643,32 @@
       border-color: var(--accent);
       background: var(--accent-soft);
     }
+    .admin-test-run-btn {
+      min-height: 3rem;
+      padding: .7rem 1rem;
+      border: 2px solid var(--line-strong);
+      border-radius: 1rem;
+      background: var(--accent-soft);
+      color: var(--text);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .admin-test-run-btn:disabled { opacity: .65; cursor: wait; }
+    .admin-call-test-result { display: grid; gap: .5rem; margin-top: .8rem; }
+    .admin-test-row { display: flex; gap: .7rem; align-items: center; padding: .7rem .8rem; border-radius: .9rem; background: rgba(255,255,255,.72); }
+    .admin-test-row > span { display: grid; gap: .1rem; }
+    .admin-test-row small { color: var(--muted); }
+    .admin-test-row.is-ok > i { color: var(--accent); }
+    .admin-test-row.is-warning > i, .admin-test-error { color: #9b4a36; }
+    .endpoint-compare-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: .75rem 0; }
+    .endpoint-compare-inputs label { display: grid; gap: .35rem; font-weight: 800; }
+    .endpoint-compare-inputs textarea { width: 100%; resize: vertical; min-height: 7rem; padding: .7rem; border: 1px solid var(--line); border-radius: .8rem; background: rgba(255,255,255,.85); color: var(--text); font: .78rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .endpoint-compare-table { overflow-x: auto; margin-top: .8rem; border: 1px solid var(--line); border-radius: .8rem; }
+    .endpoint-compare-table > div { display: grid; grid-template-columns: minmax(7rem,.8fr) repeat(2,minmax(8rem,1fr)); border-top: 1px solid var(--line); }
+    .endpoint-compare-table > div:first-child { border-top: 0; background: var(--accent-soft); }
+    .endpoint-compare-table span, .endpoint-compare-table strong { padding: .55rem .65rem; overflow-wrap: anywhere; }
+    @media (max-width: 640px) { .endpoint-compare-inputs { grid-template-columns: 1fr; } }
 
     .metrics-value {
       margin-top: 0.16rem;
@@ -4163,13 +4189,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     .call-connect-visual{position:relative;width:112px;height:112px;margin:0 auto 20px;display:grid;place-items:center}
     .call-connect-visual::before,.call-connect-visual::after{content:"";position:absolute;inset:5px;border:2px solid rgba(97,188,59,.42);border-radius:50%;animation:callConnectPulse 1.8s ease-out infinite}
     .call-connect-visual::after{animation-delay:.6s}.call-connect-icon{width:76px;height:76px;display:grid;place-items:center;border-radius:24px;background:linear-gradient(145deg,#eaffcd,#d2f6b0);color:#3f9632;font-size:30px;box-shadow:0 6px 0 #cfe8b8}
-    .call-connect-card h2{margin:4px 0 8px;font-size:clamp(25px,5vw,32px);color:var(--ink)}.call-connect-card p{margin:0;color:var(--muted)}.call-connect-eyebrow{font-weight:800;color:var(--green-dark)!important}
+    .call-connect-card h2{margin:4px 0 8px;font-size:clamp(25px,5vw,32px);color:var(--text)}.call-connect-card p{margin:0;color:var(--muted)}.call-connect-eyebrow{font-weight:800;color:var(--green-dark)!important}
     .call-connect-steps{display:flex;justify-content:center;gap:10px;margin-top:24px}.call-connect-steps i{width:9px;height:9px;border-radius:50%;background:#d8e8c9;transition:transform .25s,background .25s}.call-connect-steps i.is-active{background:var(--green);transform:scale(1.35)}
     @keyframes callConnectPulse{0%{transform:scale(.72);opacity:.85}100%{transform:scale(1.18);opacity:0}}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-02-adaptive-media-recovery">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-02-diagnostic-recovery-suite">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4273,7 +4299,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線の混み具合に合わせて音質と通信量を自動調整し、Wi-Fi切替や音声停止を検出すると接続を自動で修復します。別のアプリやタブから戻ったときも音声と接続を確認します。通話を終えるときは終了・退室ボタンを押してください。</span></span></span>    </dialog>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは終了・退室ボタンを押してください。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
@@ -4503,6 +4529,19 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <div id="adminWebRtcStatsSummary" class="metrics-mode-summary" aria-live="polite"></div>
         <p class="caption-help">5秒ごとにブラウザー内で集計します。音声や会話内容は保存せず、通話終了時に差分計算用データを破棄します。</p>
       </section>
+      <section class="admin-connection-quality admin-call-test" aria-labelledby="adminCallTestTitle">
+        <h4 id="adminCallTestTitle"><i class="fa-solid fa-vial-circle-check"></i> 通話テスト</h4>
+        <p class="caption-help">この端末の準備状態を一度に確認します。音声や会話内容は送信・保存しません。</p>
+        <button id="adminCallTestRun" class="admin-test-run-btn" type="button"><i class="fa-solid fa-play"></i> この端末をテスト</button>
+        <div id="adminCallTestResult" class="admin-call-test-result" aria-live="polite"></div>
+      </section>
+      <section class="admin-connection-quality admin-endpoint-compare" aria-labelledby="adminEndpointCompareTitle">
+        <h4 id="adminEndpointCompareTitle"><i class="fa-solid fa-code-compare"></i> 2端末の診断を比較</h4>
+        <p class="caption-help">送信側と受信側の metricsOutput を貼ると、遅延・損失・経路・復旧回数の違いを端末内で比較します。</p>
+        <div class="endpoint-compare-inputs"><label>端末A<textarea id="endpointMetricsA" rows="5" spellcheck="false"></textarea></label><label>端末B<textarea id="endpointMetricsB" rows="5" spellcheck="false"></textarea></label></div>
+        <button id="endpointCompareRun" class="admin-test-run-btn" type="button"><i class="fa-solid fa-code-compare"></i> 比較する</button>
+        <div id="endpointCompareResult" class="admin-call-test-result" aria-live="polite"></div>
+      </section>
       <div class="metrics-breakdown">
         <button class="metrics-line" type="button" data-metric-detail="reads" aria-expanded="false"><span>推定reads</span><strong id="metricsReadsCount">0</strong><i class="fa-solid fa-chevron-down"></i></button>
         <div id="metricsDetailReads" class="metrics-detail" aria-hidden="true"></div>
@@ -4562,7 +4601,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-adaptive-media-recovery", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-diagnostic-recovery-suite", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4570,7 +4609,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-02-adaptive-media-recovery";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-02-diagnostic-recovery-suite";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4615,11 +4654,12 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-02-adaptive-media-recovery";
+    const APP_VERSION = "2026-10-02-diagnostic-recovery-suite";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
     const ADMIN_BUDGET_KEY = "wakaru-phone-admin-budget-yen-v1";
+    const QUALITY_HISTORY_KEY = "wakaru-phone-quality-history-v1";
     const NOTICE_PERMISSION_KEY = "wakaru-phone-notice-permissions-v1";
     function normalizeAdminPassword(value){return String(value||"").normalize("NFKC");}
     function effectiveAdminPasswordHash(){return localStorage.getItem(ADMIN_PASSWORD_HASH_KEY)||ADMIN_PASSWORD_SHA256;}
@@ -4646,6 +4686,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const STATS_MONITOR_MS = 5000;
     const MEDIA_STALL_SAMPLES = 2;
     const MEDIA_RECOVERY_COOLDOWN_MS = 20000;
+    const MEDIA_RECOVERY_VERIFY_MS = 12000;
     const NETWORK_CHANGE_DEBOUNCE_MS = 900;
     const AUTO_RECONNECT_DELAY_MS = 1800;
     const AUTO_RECONNECT_GIVEUP_MS = 18000;
@@ -4905,6 +4946,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let lastNetworkRecoveryAt = 0;
     let mediaRecoveryCount = 0;
     let networkRecoveryCount = 0;
+    let peerRecreationCount = 0;
+    let qualityHistory = [];
     let audioDeviceRecoveryPromise = null;
     let lastSpeakingWrite = 0;
     let lastSpeakingDataSent = 0;
@@ -5225,6 +5268,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (el.metricsCopy) el.metricsCopy.addEventListener("click", copyMetricsOutput);
       if (el.metricsHistoryOpen) el.metricsHistoryOpen.addEventListener("click", openMetricsHistoryModal);
       document.getElementById("adminLogoutBtn")?.addEventListener("click", clearAdminAccess);
+      document.getElementById("adminCallTestRun")?.addEventListener("click", runAdminCallTest);
+      document.getElementById("endpointCompareRun")?.addEventListener("click", compareEndpointMetrics);
       const noticePermissionInputs={allowAll:document.getElementById('adminNoticeAllowAll'),allowGroup:document.getElementById('adminNoticeAllowGroup'),allowUrgent:document.getElementById('adminNoticeAllowUrgent')};
       let noticePermissions={allowAll:true,allowGroup:true,allowUrgent:true};try{noticePermissions={...noticePermissions,...JSON.parse(localStorage.getItem(NOTICE_PERMISSION_KEY)||'{}')}}catch(_){}
       Object.entries(noticePermissionInputs).forEach(function([key,input]){if(!input)return;input.checked=noticePermissions[key];input.addEventListener('change',function(){noticePermissions[key]=input.checked;localStorage.setItem(NOTICE_PERMISSION_KEY,JSON.stringify(noticePermissions));window.dispatchEvent(new CustomEvent('wakaru-notice-permissions',{detail:noticePermissions}));setNotice('連絡の利用設定を保存しました。')})});
@@ -6403,7 +6448,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         reconnectTimer: null,
         reconnectGiveupTimer: null,
         mediaStallSamples: 0,
-        mediaRecoveryAt: 0
+        mediaRecoveryAt: 0,
+        mediaRecoveryVerifyTimer: null,
+        mediaRecoveryPacketBaseline: 0
       };
       peers.set(remoteId, state);
 
@@ -6603,6 +6650,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
       if (message && message.type === "media-recovery-request" && message.from === state.id && message.sessionId === state.remoteSessionId) {
         recoverPeerMedia(state, "remote-request");
+        return;
+      }
+      if (message && message.type === "peer-recreation-request" && message.from === state.id && message.sessionId === state.remoteSessionId) {
+        if (shouldCreateOffer(state.id)) recreatePeerConnection(state, "remote-request");
         return;
       }
       if (!message || message.type !== "presence" || message.from !== state.id) return;
@@ -7369,6 +7420,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (captionController) captionController.removePeer(remoteId);
       const state = peers.get(remoteId);
       if (!state) return;
+      if (state.mediaRecoveryVerifyTimer) {
+        window.clearTimeout(state.mediaRecoveryVerifyTimer);
+        state.mediaRecoveryVerifyTimer = null;
+      }
       if (state.captionChannel) {
         try { state.captionChannel.close(); } catch (_) {}
         state.captionChannel = null;
@@ -8037,7 +8092,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-adaptive-media-recovery", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-diagnostic-recovery-suite", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -8891,6 +8946,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
       lastInboundStats.clear();
       lastRtpByteStats.clear();
+      persistQualityHistory(true);
       renderTurnUsage();
       updateQualityUi({ rttMs: null, jitterMs: null, lossPct: null, quality: "idle", inboundKbps: null, outboundKbps: null, availableOutgoingKbps: null, jitterBufferMs: null, codecs: [], routes: [], packetsReceived: 0, packetsSent: 0 });
     }
@@ -9040,13 +9096,16 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const now = Date.now();
       if (now - Number(state.mediaRecoveryAt || 0) < MEDIA_RECOVERY_COOLDOWN_MS) return false;
       state.mediaRecoveryAt = now;
+      state.mediaRecoveryPacketBaseline = Number(state.remoteAudioPackets || 0);
       mediaRecoveryCount += 1;
+      persistQualityHistory(false);
       clearReconnectTimer(state);
       clearAutoReconnectTimer(state);
       autoReconnectAttempts.delete(state.id);
       pushDiagnostic("warn", "音声経路を自動修復", (state.name || "相手") + " / " + (reason || "media-stall"));
       if (!shouldCreateOffer(state.id)) {
         sendPeerData(state, { type: "media-recovery-request", reason: reason || "media-stall" });
+        scheduleMediaRecoveryVerification(state, reason);
         return true;
       }
       if (state.peer.signalingState !== "stable") {
@@ -9057,7 +9116,61 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         pushDiagnostic("error", "音声経路の自動修復に失敗", error && error.message ? error.message : "");
         scheduleAutoReconnect(state.id, reason || "media-stall");
       });
+      scheduleMediaRecoveryVerification(state, reason);
       return true;
+    }
+
+    function scheduleMediaRecoveryVerification(state, reason) {
+      if (!state) return;
+      if (state.mediaRecoveryVerifyTimer) window.clearTimeout(state.mediaRecoveryVerifyTimer);
+      const expectedState = state;
+      state.mediaRecoveryVerifyTimer = window.setTimeout(function() {
+        expectedState.mediaRecoveryVerifyTimer = null;
+        const current = peers.get(expectedState.id);
+        if (!joined || !localStream || current !== expectedState) return;
+        const realtime = realtimeParticipantState.get(current.id);
+        const voiceExpected = !!(realtime && realtime.speaking && !realtime.muted && Date.now() - Number(realtime.dataAt || 0) <= DATA_CHANNEL_STALE_MS);
+        const packetsAdvanced = Number(current.remoteAudioPackets || 0) > Number(current.mediaRecoveryPacketBaseline || 0);
+        if (packetsAdvanced || !voiceExpected) {
+          pushDiagnostic("info", "音声経路の復旧を確認", packetsAdvanced ? "受信パケットが再び進みました。" : "相手が話していないため再作成を見送りました。");
+          return;
+        }
+        requestPeerRecreation(current, reason || "media-stall-after-ice");
+      }, MEDIA_RECOVERY_VERIFY_MS);
+    }
+
+    function requestPeerRecreation(state, reason) {
+      if (!state || peers.get(state.id) !== state || !joined || !localStream) return false;
+      if (state.recreateAttempted) {
+        pushDiagnostic("warn", "接続再作成は実施済み", state.name || state.id);
+        return false;
+      }
+      if (!shouldCreateOffer(state.id)) {
+        state.recreateAttempted = true;
+        sendPeerData(state, { type: "peer-recreation-request", reason: reason || "media-stall" });
+        pushDiagnostic("warn", "接続再作成を相手へ依頼", state.name || state.id);
+        return true;
+      }
+      return recreatePeerConnection(state, reason);
+    }
+
+    function recreatePeerConnection(state, reason) {
+      if (!state || peers.get(state.id) !== state || !joined || !localStream) return false;
+      const remoteId = state.id;
+      const name = state.name || remoteId;
+      const session = state.remoteSessionId || "";
+      state.recreateAttempted = true;
+      peerRecreationCount += 1;
+      persistQualityHistory(false);
+      pushDiagnostic("warn", "音声接続を自動で作り直し", name + " / " + (reason || "media-stall"));
+      closePeer(remoteId);
+      const rebuilt = ensurePeer(remoteId, name);
+      if (rebuilt) {
+        rebuilt.remoteSessionId = session;
+        rebuilt.recreateAttempted = true;
+      }
+      startConnectionStuckTimer();
+      return !!rebuilt;
     }
 
     function scheduleNetworkPathRecovery(reason) {
@@ -9069,6 +9182,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         if (!joined || now - lastNetworkRecoveryAt < 10000) return;
         lastNetworkRecoveryAt = now;
         networkRecoveryCount += 1;
+        persistQualityHistory(false);
         updatePresence();
         resumeCallAudio(reason || "network-change", true);
         peers.forEach(function(state) {
@@ -9105,6 +9219,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       renderAdminWebRtcStats();
       updateAdaptiveAudioProfile(activeStats);
       if (activeStats.quality && activeStats.quality !== "idle" && activeStats.quality !== previousQuality) {
+        recordQualityHistory(activeStats, previousQuality);
         const detail = "RTT " + formatStat(activeStats.rttMs, "ms") + " / jitter " + formatStat(activeStats.jitterMs, "ms") + " / loss " + formatStat(activeStats.lossPct, "%");
         const advice = getQualityAdvice(activeStats);
         const now = Date.now();
@@ -9120,6 +9235,46 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         }
         maybeSuggestAudioPreset(activeStats);
       }
+    }
+
+    function recordQualityHistory(stats, previousQuality) {
+      if (!stats || !stats.quality || stats.quality === "idle") return;
+      qualityHistory.push({
+        seconds: metrics.startedAt ? Math.max(0, Math.round((Date.now() - metrics.startedAt) / 1000)) : 0,
+        from: previousQuality || "idle",
+        to: stats.quality,
+        rttMs: stats.rttMs == null ? null : Math.round(stats.rttMs),
+        jitterMs: stats.jitterMs == null ? null : Math.round(stats.jitterMs),
+        lossPct: stats.lossPct == null ? null : Math.round(stats.lossPct * 10) / 10,
+        inboundKbps: stats.inboundKbps == null ? null : Math.round(stats.inboundKbps),
+        outboundKbps: stats.outboundKbps == null ? null : Math.round(stats.outboundKbps),
+        availableOutgoingKbps: stats.availableOutgoingKbps == null ? null : Math.round(stats.availableOutgoingKbps),
+        routes: Array.isArray(stats.routes) ? stats.routes.slice(0, 4) : []
+      });
+      if (qualityHistory.length > 120) qualityHistory.splice(0, qualityHistory.length - 120);
+      persistQualityHistory(false);
+    }
+
+    function readSavedQualityHistory() {
+      try {
+        const rows = JSON.parse(localStorage.getItem(QUALITY_HISTORY_KEY) || "[]");
+        return Array.isArray(rows) ? rows.slice(-10) : [];
+      } catch (_) { return []; }
+    }
+
+    function persistQualityHistory(ended) {
+      if (!metrics.startedAt) return;
+      const rows = readSavedQualityHistory().filter(function(row) { return row && row.startedAt !== metrics.startedAt; });
+      rows.push({
+        startedAt: metrics.startedAt,
+        endedAt: ended ? Date.now() : 0,
+        version: APP_VERSION,
+        transitions: qualityHistory.slice(-120),
+        mediaRecoveries: mediaRecoveryCount,
+        networkRecoveries: networkRecoveryCount,
+        peerRecreations: peerRecreationCount
+      });
+      try { localStorage.setItem(QUALITY_HISTORY_KEY, JSON.stringify(rows.slice(-10))); } catch (_) {}
     }
 
     function updateAdaptiveAudioProfile(stats) {
@@ -9210,6 +9365,97 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         audioDeviceRecoveryPromise = null;
       });
       return audioDeviceRecoveryPromise;
+    }
+
+    async function runAdminCallTest() {
+      const button = document.getElementById("adminCallTestRun");
+      const result = document.getElementById("adminCallTestResult");
+      if (!button || !result) return;
+      button.disabled = true;
+      button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 確認中';
+      const checks = [];
+      checks.push({ label: "安全な接続", ok: window.isSecureContext, detail: window.isSecureContext ? "HTTPSで動作中" : "HTTPSが必要です" });
+      checks.push({ label: "WebRTC", ok: typeof RTCPeerConnection === "function", detail: typeof RTCPeerConnection === "function" ? "利用できます" : "このブラウザーでは利用できません" });
+      checks.push({ label: "通知の受信準備", ok: "serviceWorker" in navigator, detail: "serviceWorker" in navigator ? "対応しています" : "未対応です" });
+      checks.push({ label: "通信状態", ok: navigator.onLine !== false, detail: navigator.onLine === false ? "オフラインです" : "オンラインです" });
+      let testStream = null;
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("マイクAPIがありません");
+        const existingTrack = rawLocalStream && rawLocalStream.getAudioTracks ? rawLocalStream.getAudioTracks()[0] : null;
+        if (!existingTrack || existingTrack.readyState !== "live") testStream = await getUserMediaWithTimeout(callAudioConstraints(), MIC_PERMISSION_TIMEOUT_MS);
+        const track = existingTrack && existingTrack.readyState === "live" ? existingTrack : testStream.getAudioTracks()[0];
+        const settings = track && track.getSettings ? track.getSettings() : {};
+        checks.push({ label: "マイク", ok: !!track, detail: track ? ((settings.sampleRate ? settings.sampleRate + "Hz / " : "") + "利用できます") : "取得できません" });
+      } catch (error) {
+        checks.push({ label: "マイク", ok: false, detail: error && error.message ? error.message : "取得できません" });
+      } finally {
+        if (testStream) testStream.getTracks().forEach(function(track) { track.stop(); });
+      }
+      const connectedPeers = Array.from(peers.values()).filter(function(state) { return state && isPeerConnected(state.peer); }).length;
+      checks.push({ label: "現在の通話接続", ok: joined ? connectedPeers > 0 : true, detail: joined ? (connectedPeers + "台と接続") : "通話開始後にP2P/TURN経路も確認します" });
+      result.innerHTML = checks.map(function(check) {
+        return '<div class="admin-test-row ' + (check.ok ? 'is-ok' : 'is-warning') + '"><i class="fa-solid ' + (check.ok ? 'fa-circle-check' : 'fa-triangle-exclamation') + '"></i><span><strong>' + escapeHtml(check.label) + '</strong><small>' + escapeHtml(check.detail) + '</small></span></div>';
+      }).join("");
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-rotate"></i> もう一度テスト';
+    }
+
+    function extractMetricsJson(text, label) {
+      const source = String(text || "");
+      const marker = label + ": ";
+      const start = source.indexOf(marker);
+      if (start < 0) return null;
+      let index = start + marker.length;
+      if (source[index] !== "{" && source[index] !== "[") return null;
+      const open = source[index], close = open === "{" ? "}" : "]";
+      let depth = 0, inString = false, escaped = false;
+      for (let cursor = index; cursor < source.length; cursor += 1) {
+        const char = source[cursor];
+        if (inString) {
+          if (escaped) escaped = false;
+          else if (char === "\\") escaped = true;
+          else if (char === '"') inString = false;
+          continue;
+        }
+        if (char === '"') inString = true;
+        else if (char === open) depth += 1;
+        else if (char === close && --depth === 0) {
+          try { return JSON.parse(source.slice(index, cursor + 1)); } catch (_) { return null; }
+        }
+      }
+      return null;
+    }
+
+    function extractMetricsLine(text, label) {
+      const match = String(text || "").match(new RegExp("(?:^|\\n)" + label + ": ([^\\n]*)"));
+      return match ? match[1].trim() : "";
+    }
+
+    function compareEndpointMetrics() {
+      const result = document.getElementById("endpointCompareResult");
+      const aText = document.getElementById("endpointMetricsA")?.value || "";
+      const bText = document.getElementById("endpointMetricsB")?.value || "";
+      if (!result) return;
+      const aAudio = extractMetricsJson(aText, "audioDiagnostics");
+      const bAudio = extractMetricsJson(bText, "audioDiagnostics");
+      const aTransport = extractMetricsJson(aText, "adaptiveTransport");
+      const bTransport = extractMetricsJson(bText, "adaptiveTransport");
+      if (!aAudio || !bAudio || !aTransport || !bTransport) {
+        result.innerHTML = '<p class="admin-test-error"><i class="fa-solid fa-circle-exclamation"></i> 両方に metricsOutput 全文を貼ってください。</p>';
+        return;
+      }
+      const aWebrtc = aAudio.webrtc || {}, bWebrtc = bAudio.webrtc || {};
+      const rows = [
+        ["接続まで", extractMetricsLine(aText, "connectionDelay") || "--", extractMetricsLine(bText, "connectionDelay") || "--"],
+        ["品質", aWebrtc.quality || "--", bWebrtc.quality || "--"],
+        ["RTT", formatStat(aWebrtc.rttMs, "ms"), formatStat(bWebrtc.rttMs, "ms")],
+        ["Jitter", formatStat(aWebrtc.jitterMs, "ms"), formatStat(bWebrtc.jitterMs, "ms")],
+        ["Packet Loss", formatStat(aWebrtc.lossPct, "%"), formatStat(bWebrtc.lossPct, "%")],
+        ["接続経路", (aWebrtc.routes || []).join(" / ") || "--", (bWebrtc.routes || []).join(" / ") || "--"],
+        ["音声経路修復", String(aTransport.mediaRecoveries || 0), String(bTransport.mediaRecoveries || 0)],
+        ["Peer再作成", String(aTransport.peerRecreations || 0), String(bTransport.peerRecreations || 0)]
+      ];
+      result.innerHTML = '<div class="endpoint-compare-table"><div><strong>比較項目</strong><strong>端末A</strong><strong>端末B</strong></div>' + rows.map(function(row) { return '<div><span>' + escapeHtml(row[0]) + '</span><span>' + escapeHtml(row[1]) + '</span><span>' + escapeHtml(row[2]) + '</span></div>'; }).join("") + '</div><p class="caption-help">数値が悪い側だけで問題が出る場合は端末・回線・マイク設定、両側で同時に悪い場合は共通回線や接続経路を優先して確認します。</p>';
     }
 
     function renderAdminWebRtcStats() {
@@ -10563,6 +10809,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       metrics.startedAt = Date.now();
       mediaRecoveryCount = 0;
       networkRecoveryCount = 0;
+      peerRecreationCount = 0;
+      qualityHistory = [];
       lastNetworkRecoveryAt = 0;
       if(numberCalls){const setup=numberCalls.takeSetupUsage();metrics.estimatedReads+=setup.reads;metrics.writes.numberCalls=setup.writes;}
       renderCallElapsed();
@@ -11442,6 +11690,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       }
       el.metricsOutput.textContent =
         "version: " + APP_VERSION + "\n" +
+        "diagnosticId: " + DIAGNOSTIC_SESSION_ID + "\n" +
+        "capturedAt: " + new Date().toISOString() + "\n" +
+        "deviceContext: " + JSON.stringify({ profile: getDeviceProfile(), visibility: document.visibilityState, online: navigator.onLine !== false, connection: navigator.connection ? { effectiveType: navigator.connection.effectiveType || "", downlink: navigator.connection.downlink == null ? null : navigator.connection.downlink, rtt: navigator.connection.rtt == null ? null : navigator.connection.rtt, saveData: !!navigator.connection.saveData } : null }) + "\n" +
         "latest: " + latest.label + "\n" +
         "participantCountForEstimate: " + participantCount + "\n" +
         "estimatedReads: " + metrics.estimatedReads + "\n" +
@@ -11453,7 +11704,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "connectionDelay: " + getConnectionDelaySummary() + "\n" +
         "connectionTimeline: " + JSON.stringify(getShareableConnectionTimeline(), null, 2) + "\n" +
         "audioDiagnostics: " + JSON.stringify(getShareableAudioDiagnostics(), null, 2) + "\n" +
-        "adaptiveTransport: " + JSON.stringify({ profile: adaptiveAudioProfile, mediaRecoveries: mediaRecoveryCount, networkRecoveries: networkRecoveryCount, availableOutgoingKbps: activeStats.availableOutgoingKbps }, null, 2) + "\n" +
+        "adaptiveTransport: " + JSON.stringify({ profile: adaptiveAudioProfile, mediaRecoveries: mediaRecoveryCount, networkRecoveries: networkRecoveryCount, peerRecreations: peerRecreationCount, availableOutgoingKbps: activeStats.availableOutgoingKbps, recoveryVerifyMs: MEDIA_RECOVERY_VERIFY_MS }, null, 2) + "\n" +
+        "qualityHistory: " + JSON.stringify(qualityHistory, null, 2) + "\n" +
+        "recentQualitySessions: " + JSON.stringify(readSavedQualityHistory().slice(-3).map(function(row) { return { startedAt: row.startedAt, endedAt: row.endedAt, transitions: Array.isArray(row.transitions) ? row.transitions.length : 0, mediaRecoveries: row.mediaRecoveries || 0, networkRecoveries: row.networkRecoveries || 0, peerRecreations: row.peerRecreations || 0 }; }), null, 2) + "\n" +
         "teacherDiagnostic: " + getTeacherDiagnosticSummary() + "\n" +
         "cleanup: " + (lastCleanupSummary || "not ended") + "\n" +
         "activeListenersNow: " + getOpenListenerCount() + "\n" +
