@@ -1133,6 +1133,20 @@ test('Adaptive Audioは品質の継続を確認して段階変更し頻繁な切
  assert.match(html,/resilient: Math\.min\(VOICE_SETTINGS\.maxBitrate, 24000\)/);
  assert.match(html,/setAudioSenderBitrate\(sender, bitrates\[candidate\]\)/);
  assert.match(html,/return sender\.setParameters\(params\)[\s\S]*?catch/);
+ assert.match(html,/availableOutgoingBitrate/);
+ assert.match(html,/availableKbps < 28/);
+});
+
+test('発話中の音声パケット停止と回線切替を検出してICE経路を自動修復する',()=>{
+ assert.match(html,/const MEDIA_STALL_SAMPLES = 2/);
+ assert.match(html,/function monitorRemoteMediaFlow\(state, inboundAudioSeen, inboundAudioAdvanced\)/);
+ assert.match(html,/realtime\.speaking && !realtime\.muted/);
+ assert.match(html,/recoverPeerMedia\(state, "voice-packets-stalled"\)/);
+ assert.match(html,/type: "media-recovery-request"/);
+ assert.match(html,/navigator\.connection \|\| navigator\.mozConnection \|\| navigator\.webkitConnection/);
+ assert.match(html,/scheduleNetworkPathRecovery\("network-change"\)/);
+ assert.match(html,/createOffer\(state\.id, true\)/);
+ assert.match(html,/"adaptiveTransport: " \+ JSON\.stringify/);
 });
 
 test('入力機器が失われた時は通話中にreplaceTrackし失敗しても通話処理を止めない',()=>{

@@ -4169,7 +4169,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-02-ipad-background-recovery">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-02-adaptive-media-recovery">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4273,7 +4273,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。通話中に別のアプリやタブを開いても、戻ったときに音声と接続を自動で確認します。通話を終えるときは通話画面の終了・退室ボタンを押してください。</span></span></span>    </dialog>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線の混み具合に合わせて音質と通信量を自動調整し、Wi-Fi切替や音声停止を検出すると接続を自動で修復します。別のアプリやタブから戻ったときも音声と接続を確認します。通話を終えるときは終了・退室ボタンを押してください。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
@@ -4562,7 +4562,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-ipad-background-recovery", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-adaptive-media-recovery", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4570,7 +4570,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-02-ipad-background-recovery";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-02-adaptive-media-recovery";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4615,7 +4615,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-02-ipad-background-recovery";
+    const APP_VERSION = "2026-10-02-adaptive-media-recovery";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4644,6 +4644,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const DATA_SPEAKING_MIN_SEND_MS = 700;
     const DATA_SPEAKING_REFRESH_MS = 8000;
     const STATS_MONITOR_MS = 5000;
+    const MEDIA_STALL_SAMPLES = 2;
+    const MEDIA_RECOVERY_COOLDOWN_MS = 20000;
+    const NETWORK_CHANGE_DEBOUNCE_MS = 900;
     const AUTO_RECONNECT_DELAY_MS = 1800;
     const AUTO_RECONNECT_GIVEUP_MS = 18000;
     const AUTO_RECONNECT_MAX_ATTEMPTS = 2;
@@ -4898,6 +4901,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let adaptiveQualityCandidate = "";
     let adaptiveQualitySamples = 0;
     let adaptiveAudioChangedAt = 0;
+    let networkRecoveryTimer = null;
+    let lastNetworkRecoveryAt = 0;
+    let mediaRecoveryCount = 0;
+    let networkRecoveryCount = 0;
     let audioDeviceRecoveryPromise = null;
     let lastSpeakingWrite = 0;
     let lastSpeakingDataSent = 0;
@@ -4974,7 +4981,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let lastRtpByteStats = new Map();
     let autoReconnectTimers = new Map();
     let autoReconnectAttempts = new Map();
-    let activeStats = { rttMs: null, jitterMs: null, lossPct: null, quality: "idle", inboundKbps: null, outboundKbps: null, jitterBufferMs: null, codecs: [], routes: [], packetsReceived: 0, packetsSent: 0 };
+    let activeStats = { rttMs: null, jitterMs: null, lossPct: null, quality: "idle", inboundKbps: null, outboundKbps: null, availableOutgoingKbps: null, jitterBufferMs: null, codecs: [], routes: [], packetsReceived: 0, packetsSent: 0 };
     let deniedByCapacity = false;
     let lastCapacityWarnAt = 0;
     let staleParticipantMarks = new Map();
@@ -5278,7 +5285,14 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         handleVisibleReturn();
         refreshClosedAppNotifications();
       });
-      window.addEventListener("online", refreshClosedAppNotifications);
+      window.addEventListener("online", function() {
+        refreshClosedAppNotifications();
+        scheduleNetworkPathRecovery("online");
+      });
+      const networkInformation = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (networkInformation && typeof networkInformation.addEventListener === "function") {
+        networkInformation.addEventListener("change", function() { scheduleNetworkPathRecovery("network-change"); });
+      }
       document.addEventListener("pointerdown", function() {
         if (!isDemoMode && joined) resumeCallAudio("user-interaction");
       }, { passive: true });
@@ -6387,7 +6401,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         firstRemoteCandidateReceived: false,
         recreateAttempted: false,
         reconnectTimer: null,
-        reconnectGiveupTimer: null
+        reconnectGiveupTimer: null,
+        mediaStallSamples: 0,
+        mediaRecoveryAt: 0
       };
       peers.set(remoteId, state);
 
@@ -6583,6 +6599,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         }
         if (++state.captionCount > 12) return;
         captionController.receive(state.id, message);
+        return;
+      }
+      if (message && message.type === "media-recovery-request" && message.from === state.id && message.sessionId === state.remoteSessionId) {
+        recoverPeerMedia(state, "remote-request");
         return;
       }
       if (!message || message.type !== "presence" || message.from !== state.id) return;
@@ -7280,6 +7300,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       autoReconnectTimers.forEach(function(timerId) { window.clearTimeout(timerId); });
       autoReconnectTimers.clear();
       autoReconnectAttempts.clear();
+      if (networkRecoveryTimer) window.clearTimeout(networkRecoveryTimer);
+      networkRecoveryTimer = null;
       adaptiveAudioProfile = "full";
       adaptiveQualityCandidate = "";
       adaptiveQualitySamples = 0;
@@ -8015,7 +8037,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-ipad-background-recovery", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-adaptive-media-recovery", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -8870,22 +8892,25 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       lastInboundStats.clear();
       lastRtpByteStats.clear();
       renderTurnUsage();
-      updateQualityUi({ rttMs: null, jitterMs: null, lossPct: null, quality: "idle", inboundKbps: null, outboundKbps: null, jitterBufferMs: null, codecs: [], routes: [], packetsReceived: 0, packetsSent: 0 });
+      updateQualityUi({ rttMs: null, jitterMs: null, lossPct: null, quality: "idle", inboundKbps: null, outboundKbps: null, availableOutgoingKbps: null, jitterBufferMs: null, codecs: [], routes: [], packetsReceived: 0, packetsSent: 0 });
     }
 
     async function collectWebRtcStats() {
       if (!joined || !peers.size) return;
-      const values = { rtt: [], jitter: [], jitterBuffer: [], lost: 0, packets: 0, packetsReceived: 0, packetsSent: 0, inboundBitrates: [], outboundBitrates: [], codecs: new Set(), routes: new Set(), turnBytes: 0, relayActive: false };
+      const values = { rtt: [], jitter: [], jitterBuffer: [], availableOutgoing: [], lost: 0, packets: 0, packetsReceived: 0, packetsSent: 0, inboundBitrates: [], outboundBitrates: [], codecs: new Set(), routes: new Set(), turnBytes: 0, relayActive: false };
       let remoteAudioChanged = false;
       for (const state of peers.values()) {
         if (!state || !state.peer || !isPeerConnected(state.peer)) continue;
         try {
+          let inboundAudioSeen = false;
+          let inboundAudioAdvanced = false;
           const report = await state.peer.getStats();
           const statsById = new Map();
           report.forEach(function(item) { statsById.set(item.id, item); });
           report.forEach(function(item) {
             if (item.type === "candidate-pair" && item.state === "succeeded" && (item.nominated || item.selected || item.currentRoundTripTime)) {
               if (typeof item.currentRoundTripTime === "number") values.rtt.push(item.currentRoundTripTime * 1000);
+              if (typeof item.availableOutgoingBitrate === "number" && item.availableOutgoingBitrate > 0) values.availableOutgoing.push(item.availableOutgoingBitrate / 1000);
               const localCandidate = statsById.get(item.localCandidateId);
               const remoteCandidate = statsById.get(item.remoteCandidateId);
               const localType = localCandidate && localCandidate.candidateType ? localCandidate.candidateType : "unknown";
@@ -8897,6 +8922,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
               }
             }
             if (item.type === "inbound-rtp" && (item.kind === "audio" || item.mediaType === "audio")) {
+              inboundAudioSeen = true;
               if (typeof item.jitter === "number") values.jitter.push(item.jitter * 1000);
               if (typeof item.jitterBufferDelay === "number" && Number(item.jitterBufferEmittedCount || 0) > 0) values.jitterBuffer.push((item.jitterBufferDelay / item.jitterBufferEmittedCount) * 1000);
               const inboundCodec = statsById.get(item.codecId);
@@ -8914,11 +8940,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
                 values.lost += lostDelta;
                 values.packets += receivedDelta;
                 if (receivedDelta > 0) {
+                  inboundAudioAdvanced = true;
                   state.remoteAudioPackets = currentReceived;
                   state.remoteAudioLastPacketAt = Date.now();
                   remoteAudioChanged = true;
                 }
               } else if (currentReceived > 0) {
+                inboundAudioAdvanced = true;
                 state.remoteAudioPackets = currentReceived;
                 state.remoteAudioLastPacketAt = Date.now();
                 remoteAudioChanged = true;
@@ -8933,6 +8961,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
               values.packetsSent += Number(item.packetsSent || 0);
             }
           });
+          monitorRemoteMediaFlow(state, inboundAudioSeen, inboundAudioAdvanced);
         } catch (error) {
           pushDiagnostic("warn", "\u54c1\u8cea\u60c5\u5831\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093", error && error.message ? error.message : "");
         }
@@ -8943,6 +8972,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         lossPct: values.packets > 0 ? (values.lost / Math.max(1, values.packets + values.lost)) * 100 : null,
         inboundKbps: sum(values.inboundBitrates),
         outboundKbps: sum(values.outboundBitrates),
+        availableOutgoingKbps: average(values.availableOutgoing),
         jitterBufferMs: average(values.jitterBuffer),
         codecs: Array.from(values.codecs),
         routes: Array.from(values.routes),
@@ -8988,6 +9018,64 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       lastRtpByteStats.set(key, { bytes: currentBytes, timestamp: currentTimestamp });
       if (!previous || currentBytes < previous.bytes || currentTimestamp <= previous.timestamp) return null;
       return ((currentBytes - previous.bytes) * 8) / (currentTimestamp - previous.timestamp);
+    }
+
+    function monitorRemoteMediaFlow(state, inboundAudioSeen, inboundAudioAdvanced) {
+      if (!state || !inboundAudioSeen) return;
+      const realtime = realtimeParticipantState.get(state.id);
+      const freshRealtime = realtime && realtime.dataAt && Date.now() - realtime.dataAt <= DATA_CHANNEL_STALE_MS;
+      const expectsVoicePackets = !!(freshRealtime && realtime.speaking && !realtime.muted);
+      if (!expectsVoicePackets || inboundAudioAdvanced) {
+        state.mediaStallSamples = 0;
+        return;
+      }
+      state.mediaStallSamples = Number(state.mediaStallSamples || 0) + 1;
+      if (state.mediaStallSamples < MEDIA_STALL_SAMPLES) return;
+      state.mediaStallSamples = 0;
+      recoverPeerMedia(state, "voice-packets-stalled");
+    }
+
+    function recoverPeerMedia(state, reason) {
+      if (!state || !state.peer || !joined || !localStream) return false;
+      const now = Date.now();
+      if (now - Number(state.mediaRecoveryAt || 0) < MEDIA_RECOVERY_COOLDOWN_MS) return false;
+      state.mediaRecoveryAt = now;
+      mediaRecoveryCount += 1;
+      clearReconnectTimer(state);
+      clearAutoReconnectTimer(state);
+      autoReconnectAttempts.delete(state.id);
+      pushDiagnostic("warn", "音声経路を自動修復", (state.name || "相手") + " / " + (reason || "media-stall"));
+      if (!shouldCreateOffer(state.id)) {
+        sendPeerData(state, { type: "media-recovery-request", reason: reason || "media-stall" });
+        return true;
+      }
+      if (state.peer.signalingState !== "stable") {
+        scheduleReconnect(state.id);
+        return true;
+      }
+      createOffer(state.id, true).catch(function(error) {
+        pushDiagnostic("error", "音声経路の自動修復に失敗", error && error.message ? error.message : "");
+        scheduleAutoReconnect(state.id, reason || "media-stall");
+      });
+      return true;
+    }
+
+    function scheduleNetworkPathRecovery(reason) {
+      if (!joined) return;
+      if (networkRecoveryTimer) window.clearTimeout(networkRecoveryTimer);
+      networkRecoveryTimer = window.setTimeout(function() {
+        networkRecoveryTimer = null;
+        const now = Date.now();
+        if (!joined || now - lastNetworkRecoveryAt < 10000) return;
+        lastNetworkRecoveryAt = now;
+        networkRecoveryCount += 1;
+        updatePresence();
+        resumeCallAudio(reason || "network-change", true);
+        peers.forEach(function(state) {
+          if (state) recoverPeerMedia(state, reason || "network-change");
+        });
+        pushDiagnostic("info", "通信経路の変更を検出", "音声を止めずに接続候補を探し直します。");
+      }, NETWORK_CHANGE_DEBOUNCE_MS);
     }
 
     function classifyQuality(rttMs, jitterMs, lossPct) {
@@ -9036,7 +9124,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function updateAdaptiveAudioProfile(stats) {
       if (!AUDIO_FEATURE_FLAGS.adaptiveAudio || !joined || !stats || stats.quality === "idle") return;
-      const candidate = stats.quality === "poor" ? "resilient" : (stats.quality === "fair" ? "balanced" : "full");
+      const availableKbps = Number(stats.availableOutgoingKbps);
+      const candidate = stats.quality === "poor" || (availableKbps > 0 && availableKbps < 28)
+        ? "resilient"
+        : (stats.quality === "fair" || (availableKbps > 0 && availableKbps < 45) ? "balanced" : "full");
       if (candidate !== adaptiveQualityCandidate) {
         adaptiveQualityCandidate = candidate;
         adaptiveQualitySamples = 1;
@@ -9133,6 +9224,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         [formatStat(stats.jitterBufferMs, "ms"), "Jitter Buffer平均"],
         [formatStat(stats.inboundKbps, "kbps"), "受信ビットレート"],
         [formatStat(stats.outboundKbps, "kbps"), "送信ビットレート"],
+        [formatStat(stats.availableOutgoingKbps, "kbps"), "利用可能な送信帯域"],
         [String(Number(stats.packetsReceived || 0)), "累計受信パケット"],
         [String(Number(stats.packetsSent || 0)), "累計送信パケット"],
         [codec, "Audio Codec"],
@@ -9195,6 +9287,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (passiveWatcherIdleTimer) remaining.push("passive watcher idle");
       if (participantSweepTimer) remaining.push("participant sweep");
       if (participantWatcherRetryTimer) remaining.push("participant watcher retry");
+      if (networkRecoveryTimer) remaining.push("network recovery");
       if (participantNoticeTimer) remaining.push("participant notice");
       if (metricTimers.length) remaining.push("metrics timer " + metricTimers.length);
       if (statsTimer) remaining.push("stats monitor");
@@ -10468,6 +10561,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       callCost.start();endedCostExtras=null;turnUsage={relayActive:false,bytes:0};
       Object.assign(metrics, createMetrics());
       metrics.startedAt = Date.now();
+      mediaRecoveryCount = 0;
+      networkRecoveryCount = 0;
+      lastNetworkRecoveryAt = 0;
       if(numberCalls){const setup=numberCalls.takeSetupUsage();metrics.estimatedReads+=setup.reads;metrics.writes.numberCalls=setup.writes;}
       renderCallElapsed();
       lastCleanupSummary = "";
@@ -11357,6 +11453,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "connectionDelay: " + getConnectionDelaySummary() + "\n" +
         "connectionTimeline: " + JSON.stringify(getShareableConnectionTimeline(), null, 2) + "\n" +
         "audioDiagnostics: " + JSON.stringify(getShareableAudioDiagnostics(), null, 2) + "\n" +
+        "adaptiveTransport: " + JSON.stringify({ profile: adaptiveAudioProfile, mediaRecoveries: mediaRecoveryCount, networkRecoveries: networkRecoveryCount, availableOutgoingKbps: activeStats.availableOutgoingKbps }, null, 2) + "\n" +
         "teacherDiagnostic: " + getTeacherDiagnosticSummary() + "\n" +
         "cleanup: " + (lastCleanupSummary || "not ended") + "\n" +
         "activeListenersNow: " + getOpenListenerCount() + "\n" +
