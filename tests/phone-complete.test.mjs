@@ -882,6 +882,17 @@ test('1対1と既存グループのどちらからも通話中に参加者を追
  assert.match(rules,/phoneGroups\/\$\(request\.resource\.data\.callId\)\)\.data\.sourceCallId == resource\.data\.callId/);
 });
 
+test('参加者欄から人を追加し招待相手を電話帳と履歴へ保存する',()=>{
+ assert.doesNotMatch(html,/id="phoneToGroup"/);
+ assert.match(html,/id="participantAddButton"[\s\S]*?人を追加/);
+ assert.match(html,/wakaru-open-call-add/);
+ assert.match(app,/window\.addEventListener\('wakaru-open-call-add',openCallAddParticipant\)/);
+ assert.match(app,/async function rememberGroupAddedPerson\(target\)/);
+ assert.match(app,/contacts',number\),\{number,uid:target\.uid,name:displayName,reading,organization,department,favorite:false\}/);
+ assert.match(app,/history\('group-add_'/);
+ assert.match(app,/await writeQuickGroupInvite\(group,targetUid\);await rememberGroupAddedPerson\(target\)/);
+});
+
 test('番号ボタンは電話パネルの横幅と高さに応じて押しやすい大きさへ変わる',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#phoneDialPanel\{container-name:phone-dial-panel;container-type:size;\}/);

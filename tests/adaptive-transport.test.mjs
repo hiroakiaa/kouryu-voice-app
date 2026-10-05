@@ -119,26 +119,27 @@ test('終話後も通話中の最大参加人数で料金を計算する',()=>{
   assert.equal(context.getParticipantCountForEstimate(),2);
 });
 
-test('音声状態を参加者カードへ集約してスマホ操作を二列にする',()=>{
+test('参加者カードに追加導線を集約し接続時間をヘッダーへ移す',()=>{
   assert.doesNotMatch(html,/id="audioHealth"/);
-  assert.match(html,/participants-call-time/);
+  assert.match(html,/id="connectionPill"[\s\S]*?id="callElapsed" class="connection-elapsed"/);
   assert.doesNotMatch(html,/participant-mic-level mic-level/);
-  assert.match(html,/class="participants-call-time"/);
+  assert.match(html,/id="participantAddButton"/);
+  assert.match(html,/人を追加/);
   assert.match(html,/data-copy-participant-number/);
   assert.match(html,/micMeterRemoved/);
   assert.match(html,/muteButtonRemoved/);
   assert.match(html,/@media \(max-width:640px\)[\s\S]*?secondary-controls\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(html,/secondary-controls #phoneToGroup\{grid-column:1\/-1/);
+  assert.doesNotMatch(html,/id="phoneToGroup"/);
 });
 
 test('通話中の操作を重複なく分かりやすく表示する',()=>{
   assert.doesNotMatch(html,/id="shareBtn"/);
   assert.doesNotMatch(html,/id="phoneHomeBtn"/);
   assert.doesNotMatch(html,/id="muteBtn"/);
-  assert.match(html,/id="callOwnNumberButton"/);
+  assert.doesNotMatch(html,/id="callOwnNumberButton"/);
   assert.match(html,/自分のアイコンまたは、その下の状態表示を押す/);
   assert.match(html,/callControls:/);
-  assert.match(html,/body\.is-in-call \.controls>\.primary-action\{height:3\.35rem/);
+  assert.match(html,/body\.is-in-call \.controls>\.primary-action\{grid-row:3;height:3\.35rem/);
 });
 
 test('参加者ツールチップを画面内へ収め状態バッジを文字だけにする',()=>{
