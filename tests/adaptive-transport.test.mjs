@@ -122,8 +122,11 @@ test('終話後も通話中の最大参加人数で料金を計算する',()=>{
 test('音声状態を参加者カードへ集約してスマホ操作を二列にする',()=>{
   assert.doesNotMatch(html,/id="audioHealth"/);
   assert.match(html,/participants-call-time/);
-  assert.match(html,/participant-mic-level mic-level/);
-  assert.match(html,/micMeterInSelfParticipant/);
+  assert.doesNotMatch(html,/participant-mic-level mic-level/);
+  assert.match(html,/class="participants-call-time"/);
+  assert.match(html,/data-copy-participant-number/);
+  assert.match(html,/micMeterRemoved/);
+  assert.match(html,/muteButtonRemoved/);
   assert.match(html,/@media \(max-width:640px\)[\s\S]*?secondary-controls\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(html,/secondary-controls #phoneToGroup\{grid-column:1\/-1/);
 });
@@ -131,9 +134,9 @@ test('音声状態を参加者カードへ集約してスマホ操作を二列�
 test('通話中の操作を重複なく分かりやすく表示する',()=>{
   assert.doesNotMatch(html,/id="shareBtn"/);
   assert.doesNotMatch(html,/id="phoneHomeBtn"/);
+  assert.doesNotMatch(html,/id="muteBtn"/);
   assert.match(html,/id="callOwnNumberButton"/);
-  assert.match(html,/ミュートにする/);
-  assert.match(html,/ミュートを解除/);
+  assert.match(html,/自分のアイコンまたは、その下の状態表示を押す/);
   assert.match(html,/callControls:/);
   assert.match(html,/body\.is-in-call \.controls>\.primary-action\{height:3\.35rem/);
 });

@@ -587,7 +587,7 @@ service cloud.firestore {
 
     function validParticipant(data) {
       return data.keys().hasOnly([
-          'userId', 'authUid', 'sessionId', 'slot', 'userName', 'joined', 'left', 'muted',
+          'userId', 'authUid', 'sessionId', 'slot', 'userName', 'phoneNumber', 'joined', 'left', 'muted',
           'connected', 'speaking', 'stale', 'joinedAt', 'leftAt',
           'lastSeenAt', 'updatedAt'
         ])
@@ -603,6 +603,7 @@ service cloud.firestore {
         && (!('slot' in data) || data.slot in ['A', 'B', 'C', 'D'])
         && data.userName is string
         && data.userName.size() <= 20
+        && (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.matches('^[0-9]{8}$')))
         && (!('joined' in data) || data.joined is bool)
         && (!('left' in data) || data.left is bool)
         && (!('muted' in data) || data.muted is bool)

@@ -139,7 +139,7 @@ test("通話だけモードでも料金計測を先に初期化して起動を�
 
 test("通話中の終了ボタンは接続状態にかかわらず必ず退室する", () => {
   const clickStart = rootHtml.indexOf('el.join.addEventListener("click"');
-  const clickEnd = rootHtml.indexOf('el.mute.addEventListener("click"', clickStart);
+  const clickEnd = rootHtml.indexOf('el.reconnect.addEventListener("click"', clickStart);
   const handler = rootHtml.slice(clickStart, clickEnd);
   assert.match(handler, /if \(isLocallyInCall\(\)\) \{\s*leaveCall\(\);\s*\}/);
   assert.doesNotMatch(handler, /reconnectCall\(\)/);
