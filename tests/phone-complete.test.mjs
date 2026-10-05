@@ -880,6 +880,15 @@ test('1対1と既存グループのどちらからも通話中に参加者を追
  assert.match(html,/handoff:handoffPhoneCallWithoutReload/);
  assert.match(html,/function handoffPhoneCallWithoutReload/);
  assert.match(html,/function scheduleGroupHandoffRecovery/);
+ assert.match(html,/async function completeGroupHandoff/);
+ assert.match(html,/async function rollbackGroupHandoff/);
+ assert.match(html,/oldCallKeptUntilJoined: true/);
+ assert.match(html,/rollbackOnFailure: true/);
+ assert.match(app,/sourceMembers=group\.members\|\|\[\]/);
+ assert.match(app,/sourceMembers\.every\(member=>activeUids\.has\(member\)\)/);
+ assert.match(app,/await handoff\(group\.id,group\.supportMode,'group'\);scheduleSourceCallClose\(group\)/);
+ assert.match(app,/failedHandoffGroupIds\.add\(group\.id\)/);
+ assert.doesNotMatch(html,/setDoc\(previousParticipant, \{ sessionId, left: true[\s\S]{0,300}?releaseCallSlot\(slotToRelease\)/);
  assert.match(html,/groupUpgrade:[\s\S]*?inviteScope: "selected-user-only"/);
  assert.match(rules,/sourceCallId/);
  assert.doesNotMatch(rules,/handoffCallId/);
