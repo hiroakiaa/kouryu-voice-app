@@ -246,6 +246,22 @@ test('履歴操作は登録・削除・電話の順でアイコンを持ち狭�
  assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/@media\(max-width:540px\)\{\.history-row>button span\{display:none\}/);
 });
 
+test('履歴は重複見出しを置かず日付ごとの一列で表示する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.doesNotMatch(html,/id="historyListTitle"/);
+ assert.match(app,/groupHistoryDates\(shown\)/);
+ assert.match(app,/history-date-section/);
+ assert.match(css,/#phoneHistory\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(css,/\.history-date-list\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+});
+
+test('起動直後の履歴操作を遅い初期化で番号入力へ戻さない',()=>{
+ const firstTab=app.indexOf("const initialPhoneTab=");
+ const profileRead=app.indexOf("const p=await read(profile)");
+ assert.ok(firstTab>=0&&firstTab<profileRead);
+ assert.equal((app.match(/tab\(\['notices','history','contacts','dial','groups'\]/g)||[]).length,0);
+});
+
 test('よく使うカード全体で発信確認を開き、電話帳の補助操作はメニューへまとめる',()=>{
  assert.match(app,/<button class="frequent-card" data-dial=/);
  assert.doesNotMatch(app,/<article class="frequent-card"/);
@@ -900,7 +916,7 @@ test('連絡カードは送信者と状態をバッジで示し操作対象を�
 test('アプリ更新の再読み込み後もユーザーが選んだ電話画面を復元する',()=>{
  assert.match(app,/route\.searchParams\.set\('tab',id\)/);
  assert.match(app,/window\.history\.replaceState\(window\.history\.state,'',route\)/);
- assert.match(app,/tab\(\['notices','history','contacts','dial','groups'\]\.includes\(params\.get\('tab'\)\)\?params\.get\('tab'\):'dial'\)/);
+ assert.match(app,/const initialPhoneTab=\['notices','history','contacts','dial','groups'\]\.includes\(params\.get\('tab'\)\)\?params\.get\('tab'\):'dial';tab\(initialPhoneTab\)/);
  assert.match(html,/controllerchange[\s\S]*?location\.reload\(\)/);
 });
 

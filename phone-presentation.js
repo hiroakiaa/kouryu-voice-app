@@ -2,6 +2,8 @@ export const historyLabels={ringing:'呼び出し中',accepted:'通話',declined
 export function formatDuration(seconds=0){const s=Math.max(0,Math.floor(Number(seconds)||0));if(s<60)return `${s}秒`;const m=Math.floor(s/60),rest=s%60;return rest?`${m}分${rest}秒`:`${m}分`;}
 export function groupHistory(items=[]){const sorted=[...items].sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,40),groups=[];for(const item of sorted){const prev=groups.at(-1),day=new Date(item.at||0).toDateString(),target=item.groupId||item.number;if(prev&&(prev.groupId||prev.number)===target&&prev.direction===item.direction&&prev.day===day){prev.count++;prev.entries.push(item);continue;}groups.push({...item,count:1,day,entries:[item]});}return groups.slice(0,20);}
 
+export function groupHistoryDates(items=[]){const groups=[],weekdays=['日','月','火','水','木','金','土'];for(const item of items){const date=new Date(Number(item?.at)||Date.now()),key=[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');let group=groups.at(-1);if(!group||group.key!==key){group={key,label:`${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日（${weekdays[date.getDay()]}）`,items:[]};groups.push(group);}group.items.push(item);}return groups;}
+
 export function preferredHistoryName(item={},contacts=[]){const contact=contacts.find(entry=>entry.number===item.number);return contact?.name||item.name||item.number||'相手';}
 
 export function formatHistoryDate(value){const date=new Date(Number(value)||Date.now());return `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;}
