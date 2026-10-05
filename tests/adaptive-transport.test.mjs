@@ -118,3 +118,21 @@ test('終話後も通話中の最大参加人数で料金を計算する',()=>{
   context.participants=[];context.joined=false;
   assert.equal(context.getParticipantCountForEstimate(),2);
 });
+
+test('通話中の操作を重複なく分かりやすく表示する',()=>{
+  assert.doesNotMatch(html,/id="shareBtn"/);
+  assert.doesNotMatch(html,/id="phoneHomeBtn"/);
+  assert.match(html,/id="callOwnNumberButton"/);
+  assert.match(html,/ミュートにする/);
+  assert.match(html,/ミュートを解除/);
+  assert.match(html,/callControls:/);
+  assert.match(html,/body\.is-in-call \.controls>\.primary-action\{height:3\.35rem/);
+});
+
+test('参加者ツールチップを画面内へ収め状態バッジを文字だけにする',()=>{
+  assert.match(html,/const halfWidth = Math\.min\(el\.avatarTooltip\.offsetWidth \/ 2/);
+  assert.match(html,/window\.innerWidth - halfWidth - 8/);
+  assert.match(html,/classList\.toggle\("is-below", showBelow\)/);
+  assert.match(html,/\.avatar-tooltip\.is-showing\.is-below/);
+  assert.match(html,/body\.is-in-call \.participants \.participant-state-badge[\s\S]*?border:0;border-radius:0[\s\S]*?background:transparent/);
+});

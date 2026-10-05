@@ -451,6 +451,16 @@ body.is-in-call .participants-card .participants{
 }
 body.is-in-call .participants .participant:not(.is-self){flex:0 0 3.35rem;width:3.35rem;height:3.35rem;}
 body.is-in-call .participants .participant:not(.is-self) .participant-state-badge{font-size:10px;}
+
+/* Participant state is a quiet text label; the avatar already provides the visual container. */
+body.is-in-call .participants .participant-state-badge,
+body.is-in-call .participants .participant.is-self .participant-state-badge,
+body.is-in-call .participants .participant-state-badge.is-waiting,
+body.is-in-call .participants .participant-state-badge.is-connected,
+body.is-in-call .participants .participant-state-badge.is-speaking,
+body.is-in-call .participants .participant-state-badge.is-muted{
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
 @media(max-width:670px){
  .group-detail-dialog{width:calc(100% - 18px);max-height:calc(100dvh - 18px);padding:18px 14px;}
  .group-detail-dialog>.number-head{top:-18px;}

@@ -2192,6 +2192,8 @@
     .avatar-tooltip {
       position: fixed;
       z-index: 10;
+      box-sizing: border-box;
+      width: max-content;
       max-width: min(18rem, calc(100vw - 2rem));
       padding: 0.45rem 0.65rem;
       border: 0.08rem solid var(--line-strong);
@@ -2204,12 +2206,18 @@
       transform: translate(-50%, calc(-100% + 0.25rem));
       pointer-events: none;
       transition: opacity 160ms ease, transform 160ms ease;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      text-align: center;
     }
 
     .avatar-tooltip.is-showing {
       opacity: 1;
       transform: translate(-50%, -100%);
+    }
+
+    .avatar-tooltip.is-showing.is-below {
+      transform: translate(-50%, 0);
     }
 
     @media (max-width: 640px) {
@@ -4098,16 +4106,16 @@
     body.is-in-call .participants .participant.is-self .participant-state-badge {
       left:50%;right:auto;top:calc(100% + 7px);bottom:auto;
       transform:translateX(-50%);
-      gap:4px;max-width:none;padding:3px 8px;
-      border:1px solid #b7d99a;border-radius:999px;
-      background:#fffef8;color:#486640;
-      box-shadow:0 2px 0 rgba(129,181,84,.14);
+      gap:4px;max-width:none;padding:3px 2px;
+      border:0;border-radius:0;
+      background:transparent;color:#486640;
+      box-shadow:none;
       font-size:11px;line-height:1.25;letter-spacing:.01em;
     }
-    body.is-in-call .participants .participant-state-badge.is-waiting {background:#f4f9e9;color:#5d7354;}
-    body.is-in-call .participants .participant-state-badge.is-connected {background:#e8f7d8;color:#356b2d;border-color:#94c96d;}
-    body.is-in-call .participants .participant-state-badge.is-speaking {background:#def5cf;color:#276227;border-color:#72bd52;}
-    body.is-in-call .participants .participant-state-badge.is-muted {background:#f1f1e9;color:#667060;border-color:#c5cfb9;}
+    body.is-in-call .participants .participant-state-badge.is-waiting {background:transparent;color:#5d7354;}
+    body.is-in-call .participants .participant-state-badge.is-connected {background:transparent;color:#356b2d;border:0;}
+    body.is-in-call .participants .participant-state-badge.is-speaking {background:transparent;color:#276227;border:0;}
+    body.is-in-call .participants .participant-state-badge.is-muted {background:transparent;color:#667060;border:0;}
     .participants-card {position:relative;}
     .participants-card .notice {display:block;position:absolute;z-index:6;left:50%;bottom:10px;width:max-content;max-width:calc(100% - 24px);min-height:0;max-height:none;box-sizing:border-box;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,254,248,.96);box-shadow:0 6px 20px rgba(52,69,47,.14);opacity:0;transform:translate(-50%,8px);transition:opacity .22s ease,transform .22s ease;pointer-events:none;white-space:normal;}
     .participants-card .notice.is-visible {opacity:1;transform:translate(-50%,0);}
@@ -4172,12 +4180,12 @@
       body.is-in-call main>#audioHealth{grid-area:call-health;align-self:start;width:100%;min-width:0;}
       body.is-in-call main>.participants-card{grid-area:call-people;min-width:0;min-height:0;overflow:hidden;}
       body.is-in-call main>#captionsPanel{grid-area:call-content;min-width:0;min-height:0;height:100%;overflow:hidden;}
-      body.is-in-call main>.controls{grid-area:call-controls;align-self:stretch;min-width:0;min-height:0;margin:0;overflow:auto;}
+      body.is-in-call main>.controls{grid-area:call-controls;align-self:start;grid-template-rows:auto auto;align-content:start;min-width:0;min-height:0;margin:0;overflow:visible;}
       body.is-in-call:not(.has-captions) main>.participants-card{grid-row:1/4;}
       body.is-in-call .secondary-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:.5rem;overflow:visible;padding:.08rem;}
       body.is-in-call .secondary-controls .audio-preset-control,
       body.is-in-call .secondary-controls button{width:100%;min-width:0;flex:none;}
-      body.is-in-call .controls>.primary-action{min-height:3.35rem;}
+      body.is-in-call .controls>.primary-action{height:3.35rem;min-height:3.35rem;max-height:3.35rem;align-self:start;}
       body.is-in-call .captions-card .term-list{min-height:0;max-height:none;overflow:auto;}
       body.is-in-call .participants-card .participants{align-content:center;}
       body.is-in-call.is-one-to-one .participants-card .participants{min-height:8rem;}
@@ -4203,8 +4211,24 @@
       body.is-in-call .secondary-controls button,
       body.is-in-call .secondary-controls .audio-preset-control{min-height:2.35rem;font-size:.76rem;}
       body.is-in-call .controls{gap:.38rem;}
-      body.is-in-call .controls>.primary-action{min-height:2.85rem;}
+      body.is-in-call .controls>.primary-action{height:2.85rem;min-height:2.85rem;max-height:2.85rem;}
     }
+
+    body.is-in-call #muteBtn.is-muted {
+      border-color:#d88a97;
+      background:#fff0f1;
+      color:#a9364b;
+    }
+    body.is-in-call .call-own-number-button {
+      display:grid;
+      grid-template-columns:auto auto;
+      gap:.05rem .4rem;
+      min-width:0;
+      text-align:left;
+    }
+    body.is-in-call .call-own-number-button>span {grid-column:1;font-size:.66rem;font-weight:700;color:var(--muted);}
+    body.is-in-call .call-own-number-button>strong {grid-column:1;font-size:.82rem;letter-spacing:.08em;white-space:nowrap;}
+    body.is-in-call .call-own-number-button>i {grid-column:2;grid-row:1/3;align-self:center;}
 .phone-home-card {display:none;padding:20px;background:#fffef8;border:2px solid #8bc85b;border-radius:24px;color:#30462d;min-height:320px;overflow:auto;}
 .phone-home .phone-home-card {display:block;}
 .phone-home main>.participants-card,.phone-home main>#captionsPanel,.phone-home main>#audioHealth,.phone-home main>.controls {display:none!important;}
@@ -4243,7 +4267,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-tablet-call-layout">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-call-controls-polish">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4347,7 +4371,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは終了・退室ボタンを押してください。</span></span></span>    </dialog>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話中は「ミュートにする」「ミュートを解除」で現在の操作を区別でき、自分の8桁番号も通話操作からコピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは退室ボタンを押してください。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
@@ -4408,11 +4432,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
             <option value="nearby">近距離テスト</option>
           </select>
         </label>
-        <button id="muteBtn" type="button" disabled><i class="fa-solid fa-microphone-slash"></i><span>ミュート</span></button>
-        <button id="shareBtn" type="button"><i class="fa-solid fa-link"></i><span>URL</span></button>
+        <button id="muteBtn" type="button" disabled aria-pressed="false"><i class="fa-solid fa-microphone-slash"></i><span>ミュートにする</span></button>
+        <button id="callOwnNumberButton" class="call-own-number-button" type="button" disabled aria-label="自分の番号をコピー"><span>自分の番号</span><strong id="callOwnNumber">準備中…</strong><i class="fa-regular fa-copy" aria-hidden="true"></i></button>
         <button id="contactsBtn" type="button"><i class="fa-solid fa-address-book"></i><span>電話帳</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
-        <button id="phoneHomeBtn" type="button">電話ホーム</button><button id="phoneToGroup" type="button">グループで話す</button>
+        <button id="phoneToGroup" type="button">グループで話す</button>
         <button id="numberOpen" type="button">番号で電話</button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規URL</span></button>
       </div>
@@ -4649,7 +4673,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-tablet-call-layout", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-call-controls-polish", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4657,7 +4681,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-tablet-call-layout";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-call-controls-polish";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4702,7 +4726,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-tablet-call-layout";
+    const APP_VERSION = "2026-10-06-call-controls-polish";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4936,7 +4960,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       name: document.getElementById("nameInput"),
       join: document.getElementById("joinBtn"),
       mute: document.getElementById("muteBtn"),
-      share: document.getElementById("shareBtn"),
       reconnect: document.getElementById("reconnectBtn"),
       newCall: document.getElementById("newCallBtn"),
       contacts: document.getElementById("contactsBtn"),
@@ -5257,13 +5280,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           toggleMute();
         });
       }
-      el.share.addEventListener("click", function() {
-        if (isDemoMode) {
-          copyDemoShareUrl();
-          return;
-        }
-        copyShareUrl();
-      });
       el.reconnect.addEventListener("click", function() {
         if (isDemoMode) {
           reconnectDemoCall();
@@ -5627,8 +5643,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       participants = createDemoParticipants(true);
       renderParticipants(participants);
       el.mute.innerHTML = muted
-        ? '<i class="fa-solid fa-microphone"></i><span>解除</span>'
-        : '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
+        ? '<i class="fa-solid fa-microphone"></i><span>ミュートを解除</span>'
+        : '<i class="fa-solid fa-microphone-slash"></i><span>ミュートにする</span>';
+      el.mute.classList.toggle("is-muted", muted);
+      el.mute.setAttribute("aria-pressed", muted ? "true" : "false");
+      el.mute.setAttribute("aria-label", muted ? "ミュート中。押すと解除します" : "マイクON。押すとミュートにします");
       updateAudioHealth(muted ? 0 : 0.032, !muted, muted ? "ミュート中" : "デモ音声");
       setNotice(muted ? "デモ上でミュートにしました。" : "デモ上でミュートを解除しました。");
     }
@@ -5643,18 +5662,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       updateConnectionPill("デモ");
       setStatus("デモ再接続", "再接続表示だけをローカルで確認しました。");
       setNotice("デモ再接続です。FirestoreとWebRTCには触れていません。");
-    }
-
-    async function copyDemoShareUrl() {
-      const url = new URL(location.href);
-      url.searchParams.set("demo", "1");
-      try {
-        await navigator.clipboard.writeText(url.toString());
-        flashButton(el.share, '<i class="fa-solid fa-check"></i><span>済み</span>');
-        setNotice("デモURLをコピーしました。このURLではFirestoreに接続しません。");
-      } catch (error) {
-        setNotice("Demo URL: " + url.toString());
-      }
     }
 
     function openDemoNewCall() {
@@ -7012,7 +7019,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           ? "相手が通話に参加すると、ここに表示されます。"
           : "グループ通話は最大4人です。";
         const emptyTip = joined
-          ? '<span class="empty-participants-tip"><i class="fa-solid fa-link"></i>URLボタンで共有できます</span>'
+          ? '<span class="empty-participants-tip"><i class="fa-solid fa-copy"></i>自分の番号は通話操作からコピーできます</span>'
           : "";
         el.participants.classList.remove("has-self");
         el.participants.innerHTML = '<div class="empty-participants">' +
@@ -7293,8 +7300,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (captionController) captionController.sync();
       if (!muted) micUnlockHintDismissed = true;
       el.mute.innerHTML = muted
-        ? '<i class="fa-solid fa-microphone"></i><span>解除</span>'
-        : '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
+        ? '<i class="fa-solid fa-microphone"></i><span>ミュートを解除</span>'
+        : '<i class="fa-solid fa-microphone-slash"></i><span>ミュートにする</span>';
+      el.mute.classList.toggle("is-muted", muted);
+      el.mute.setAttribute("aria-pressed", muted ? "true" : "false");
+      el.mute.setAttribute("aria-label", muted ? "ミュート中。押すと解除します" : "マイクON。押すとミュートにします");
       updateSoftNoiseGuard(0, false);
       updateAudioHealth(0, false, muted ? "ミュート中" : "ノイズ抑制中");
       renderParticipants(participants);
@@ -7435,7 +7445,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       updateJoinButton();
       el.mute.disabled = true;
       el.reconnect.disabled = true;
-      el.mute.innerHTML = '<i class="fa-solid fa-microphone-slash"></i><span>ミュート</span>';
+      el.mute.innerHTML = '<i class="fa-solid fa-microphone-slash"></i><span>ミュートにする</span>';
+      el.mute.classList?.remove("is-muted");
+      el.mute.setAttribute?.("aria-pressed", "false");
+      el.mute.setAttribute?.("aria-label", "マイクON。押すとミュートにします");
       updateConnectionPill("待機");
       setCallPhase("ended", "\u901a\u8a71\u306f\u7d42\u4e86\u3057\u307e\u3057\u305f\u3002Firestore listener: " + activeListeners);
       const cleanupText = activeListeners === 0
@@ -7505,18 +7518,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       setRemoteAudioVolume(audio);
       document.body.appendChild(audio);
       return audio;
-    }
-
-    async function copyShareUrl() {
-      const url = getShareUrl();
-      try {
-        await navigator.clipboard.writeText(url);
-        flashButton(el.share, '<i class="fa-solid fa-check"></i><span>コピー済み</span>');
-        setNotice("通話URLをコピーしました。通話ID: " + callId + "。新規URLボタンを押すまでは同じURLを使えます。", true);
-        pushDiagnostic("info", "通話URLをコピー", "通話ID: " + callId);
-      } catch (error) {
-        setNotice("コピーできない場合は、ブラウザのURLをそのまま共有してください。同じURLなら同じ通話に入れます。", true);
-      }
     }
 
     function flashButton(button, html, ms) {
@@ -8140,7 +8141,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-tablet-call-layout", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-call-controls-polish", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -8680,7 +8681,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (callPhase === "waiting" && joined) {
         waitingHelpTimer = window.setTimeout(function() {
           if (callPhase !== "waiting" || !joined) return;
-          setNotice("相手が同じURLで参加すると始まります。URLボタンで共有できます。");
+          setNotice("相手の参加を待っています。自分の番号は通話操作からコピーできます。");
           pushDiagnostic("info", "相手待ちが続いています", "相手が同じURLを開いて参加ボタンを押しているか確認してください。");
         }, WAITING_HELP_DELAY_MS);
       }
@@ -10191,15 +10192,20 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!el.avatarTooltip) return;
       const rect = button.getBoundingClientRect();
       el.avatarTooltip.textContent = name + " / " + status;
-      el.avatarTooltip.style.left = Math.min(window.innerWidth - 16, Math.max(8, rect.left + rect.width / 2)) + "px";
-      el.avatarTooltip.style.top = Math.max(8, rect.top - 10) + "px";
       el.avatarTooltip.classList.add("is-showing");
       el.avatarTooltip.setAttribute("aria-hidden", "false");
+      const halfWidth = Math.min(el.avatarTooltip.offsetWidth / 2, Math.max(0, window.innerWidth / 2 - 8));
+      const center = Math.min(window.innerWidth - halfWidth - 8, Math.max(halfWidth + 8, rect.left + rect.width / 2));
+      const tooltipHeight = el.avatarTooltip.offsetHeight;
+      const showBelow = rect.top < tooltipHeight + 16;
+      el.avatarTooltip.style.left = center + "px";
+      el.avatarTooltip.style.top = (showBelow ? Math.min(window.innerHeight - tooltipHeight - 8, rect.bottom + 10) : rect.top - 10) + "px";
+      el.avatarTooltip.classList.toggle("is-below", showBelow);
     }
 
     function hideAvatarTooltip() {
       if (!el.avatarTooltip) return;
-      el.avatarTooltip.classList.remove("is-showing");
+      el.avatarTooltip.classList.remove("is-showing", "is-below");
       el.avatarTooltip.setAttribute("aria-hidden", "true");
     }
 
@@ -11775,6 +11781,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "capturedAt: " + new Date().toISOString() + "\n" +
         "deviceContext: " + JSON.stringify({ profile: getDeviceProfile(), visibility: document.visibilityState, online: navigator.onLine !== false, connection: navigator.connection ? { effectiveType: navigator.connection.effectiveType || "", downlink: navigator.connection.downlink == null ? null : navigator.connection.downlink, rtt: navigator.connection.rtt == null ? null : navigator.connection.rtt, saveData: !!navigator.connection.saveData } : null }) + "\n" +
         "callLayout: " + JSON.stringify({ mode: getCallLayoutMode(), width: window.innerWidth, height: window.innerHeight }) + "\n" +
+        "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberVisible: !!document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live" }) + "\n" +
         "latest: " + latest.label + "\n" +
         "participantCountForEstimate: " + participantCount + "\n" +
         "participantCountNow: " + currentParticipantCount + "\n" +
