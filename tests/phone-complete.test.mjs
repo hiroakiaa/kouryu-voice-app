@@ -6,6 +6,22 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../phone-app.js',import.meta.url),'utf8');
 const rules=fs.readFileSync(new URL('../firestore.rules',import.meta.url),'utf8');
 const sw=fs.readFileSync(new URL('../service-worker.js',import.meta.url),'utf8');
+const tabCoordinator=fs.readFileSync(new URL('../single-tab-coordinator.js',import.meta.url),'utf8');
+
+test('同じブラウザの複数タブでは通話機能を一つのタブだけに制限する',()=>{
+ assert.match(html,/id="singleTabDialog"/);
+ assert.match(html,/別のタブで開いています/);
+ assert.match(html,/id="singleTabTakeover"/);
+ assert.match(html,/await singleTabCoordinator\.start\(\)/);
+ assert.match(html,/onReleaseRequested: releaseCurrentTabRuntime/);
+ assert.match(html,/onOwnershipLost: releaseCurrentTabRuntime/);
+ assert.match(html,/"tabCoordination: " \+ JSON\.stringify\(singleTabCoordinator\.getState\(\)\)/);
+ assert.match(html,/同じブラウザでアプリを2つ開いた場合/);
+ assert.match(tabCoordinator,/BroadcastChannel/);
+ assert.match(tabCoordinator,/takeover-request/);
+ assert.match(tabCoordinator,/leaseTimeoutMs = 7000/);
+ assert.match(tabCoordinator,/window\.addEventListener\("storage", handleStorage\)/);
+});
 
 
 test('プロフィール設定はスマホ幅で横にはみ出さず項目ごとに読みやすく並ぶ',()=>{
