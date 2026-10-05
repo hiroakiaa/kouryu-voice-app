@@ -4047,24 +4047,6 @@
     #captionsPanel [data-term-status]:empty,
     #captionsPanel [data-term-discovery-status]:empty {display:none;}
 
-    /* Keep the audio meter's intrinsic height when the call column overflows. */
-    #audioHealth {
-      flex: 0 0 auto; min-height: 60px; height: auto; box-sizing: border-box;
-      grid-template-columns: auto minmax(0,1fr) auto;
-      align-items: center; align-content: center; gap: 12px;
-      padding: 8px 16px; line-height: 1.4;
-    }
-    #audioHealth .mic-state-toggle {
-      min-height: 44px; height: auto; margin: 0; padding: 8px;
-      display: inline-flex; align-items: center; justify-content: center;
-    }
-    #audioHealth .mic-level {min-width:0;align-self:center;}
-    #audioHealth .noise-guard {grid-column:auto;align-self:center;}
-    @media(max-width:480px) {
-      #audioHealth {grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:8px 12px;}
-      #audioHealth .noise-guard {grid-column:1/-1;justify-self:end;font-size:12px;white-space:normal;}
-    }
-
     /* One icon row during a call; keep room only for badges and active notices. */
     body.is-in-call .participants-card {
       height:auto;min-height:0;grid-template-rows:auto auto auto;
@@ -4119,7 +4101,6 @@
     .participants-card {position:relative;}
     .participants-card .notice {display:block;position:absolute;z-index:6;left:50%;bottom:10px;width:max-content;max-width:calc(100% - 24px);min-height:0;max-height:none;box-sizing:border-box;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,254,248,.96);box-shadow:0 6px 20px rgba(52,69,47,.14);opacity:0;transform:translate(-50%,8px);transition:opacity .22s ease,transform .22s ease;pointer-events:none;white-space:normal;}
     .participants-card .notice.is-visible {opacity:1;transform:translate(-50%,0);}
-    #audioHealth {grid-template-columns:auto minmax(0,1fr);min-height:54px;padding:4px 12px;gap:12px;}
     @media(max-width:480px) {
       body.is-in-call .participants-card {padding:10px 12px;}
     }
@@ -4133,7 +4114,6 @@
     #tipsCloseBtn {flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;border:1px solid #cad8b9;border-radius:10px;background:#fffef8;color:#30462d;font-size:14px;box-shadow:none !important;outline:none;transform:none;}
     #tipsCloseBtn::before,#tipsCloseBtn::after {display:none;}
     #tipsCloseBtn:focus-visible {outline:2px solid #548d3c;outline-offset:3px;}
-    #audioHealth {grid-template-columns:auto minmax(0,1fr) auto;gap:10px;}
     #callElapsed {font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;line-height:1.4;min-width:3.5em;text-align:right;}
     .call-meta {display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:max-content;}
     .active-support-mode {display:inline-flex;align-items:center;min-height:30px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--accent-soft);color:var(--text);font-size:12px;font-weight:700;white-space:nowrap;}
@@ -4141,7 +4121,6 @@
     body.is-one-to-one.is-in-call .participants .participant,
     body.is-one-to-one.is-in-call .participants .participant.is-self {flex-basis:4.5rem;width:4.5rem;height:4.5rem;margin-left:0;}
     @media(max-width:480px) {
-      #audioHealth {grid-template-columns:auto minmax(0,1fr) auto;}
       .call-meta {gap:5px;}
       .active-support-mode {padding:2px 7px;font-size:11px;}
       body.is-one-to-one.is-in-call .participants-card .participants {gap:clamp(22px,12vw,52px);}
@@ -4177,7 +4156,6 @@
         gap:.65rem;overflow:hidden;
       }
       body.is-in-call main>header{grid-area:call-header;align-self:start;min-width:0;}
-      body.is-in-call main>#audioHealth{grid-area:call-health;align-self:start;width:100%;min-width:0;}
       body.is-in-call main>.participants-card{grid-area:call-people;min-width:0;min-height:0;overflow:hidden;}
       body.is-in-call main>#captionsPanel{grid-area:call-content;min-width:0;min-height:0;height:100%;overflow:hidden;}
       body.is-in-call main>.controls{grid-area:call-controls;align-self:start;grid-template-rows:auto auto;align-content:start;min-width:0;min-height:0;margin:0;overflow:visible;}
@@ -4199,7 +4177,6 @@
       body.is-in-call header .app-icon,
       body.is-in-call header .header-icon-btn{width:2.35rem;height:2.35rem;min-height:2.35rem;border-radius:.72rem;}
       body.is-in-call header .brand h1{font-size:1.08rem;}
-      body.is-in-call #audioHealth{min-height:2.9rem;padding:.3rem .65rem;}
       body.is-in-call .participants-card{padding:.55rem .7rem;gap:.28rem;border-radius:1.05rem;}
       body.is-in-call .participants-card h2{margin:0;font-size:.94rem;}
       body.is-in-call.is-one-to-one .participants-card .participants{min-height:5.8rem;padding:.2rem .5rem 1.4rem;}
@@ -4212,6 +4189,32 @@
       body.is-in-call .secondary-controls .audio-preset-control{min-height:2.35rem;font-size:.76rem;}
       body.is-in-call .controls{gap:.38rem;}
       body.is-in-call .controls>.primary-action{height:2.85rem;min-height:2.85rem;max-height:2.85rem;}
+    }
+
+    /* 通話時間とマイク音量を参加者カードの中へ集約する。 */
+    .participants-card>h2{display:flex;align-items:center;justify-content:space-between;gap:.7rem;width:100%;}
+    .participants-title{display:inline-flex;align-items:center;flex-wrap:wrap;gap:.42rem;min-width:0;}
+    .participants-call-time{margin-left:auto;color:#65745f;font-size:.82rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
+    body.is-in-call .participants .participant.is-self{width:4.15rem;height:4.15rem;flex-basis:4.15rem;bottom:2.4rem;}
+    body.is-in-call .participants .participant.is-self .participant-state-badge{width:4.15rem;min-width:4.15rem;}
+    .participant-mic-level{position:absolute;left:0;top:calc(100% + 2.05rem);width:100%;height:.38rem;box-sizing:border-box;}
+    .participants-card.is-speaking .participant-mic-level .mic-level-bar{background:var(--ok);}
+
+    @media (min-width:720px) {
+      body.is-in-call main,
+      body.is-in-call.has-captions main{
+        grid-template-rows:auto minmax(0,1fr);
+        grid-template-areas:"call-header call-people" "call-controls call-content";
+      }
+      body.is-in-call:not(.has-captions) main>.participants-card{grid-row:1/3;}
+    }
+    @media (max-width:640px) {
+      body.is-in-call .secondary-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;overflow:visible;padding:.05rem;}
+      body.is-in-call .secondary-controls button,
+      body.is-in-call .secondary-controls .audio-preset-control{width:100%;min-width:0;min-height:2.85rem;flex:none;padding:.42rem .5rem;white-space:normal;line-height:1.25;}
+      body.is-in-call .secondary-controls #phoneToGroup{grid-column:1/-1;}
+      body.is-in-call .participants .participant.is-self{width:3.85rem;height:3.85rem;flex-basis:3.85rem;right:.45rem;bottom:2.35rem;}
+      body.is-in-call .participants .participant.is-self .participant-state-badge{width:3.85rem;min-width:3.85rem;}
     }
 
     body.is-in-call #muteBtn.is-muted {
@@ -4231,7 +4234,7 @@
     body.is-in-call .call-own-number-button>i {grid-column:2;grid-row:1/3;align-self:center;}
 .phone-home-card {display:none;padding:20px;background:#fffef8;border:2px solid #8bc85b;border-radius:24px;color:#30462d;min-height:320px;overflow:auto;}
 .phone-home .phone-home-card {display:block;}
-.phone-home main>.participants-card,.phone-home main>#captionsPanel,.phone-home main>#audioHealth,.phone-home main>.controls {display:none!important;}
+.phone-home main>.participants-card,.phone-home main>#captionsPanel,.phone-home main>.controls {display:none!important;}
 .phone-home .brand-subline{display:none;}
 .phone-home main {height:auto;min-height:calc(100dvh - 32px);}
 .phone-tabs,.phone-form-row,.phone-own,.phone-setup,.phone-row {display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
@@ -4267,7 +4270,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-call-controls-polish">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-participant-health-layout">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4371,15 +4374,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話中は「ミュートにする」「ミュートを解除」で現在の操作を区別でき、自分の8桁番号も通話操作からコピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは退室ボタンを押してください。</span></span></span>    </dialog>
-
-    <section id="audioHealth" class="audio-health" hidden aria-live="polite">
-      <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
-      <span class="call-meta"><span id="callElapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span></span>
-    </section>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間と自分のマイク音量は参加者欄にまとまっています。「ミュートにする」「ミュートを解除」で現在の操作を区別でき、自分の8桁番号も通話操作からコピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは退室ボタンを押してください。</span></span></span>    </dialog>
 
     <section class="card participants-card">
-      <h2><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span><span id="activeSupportMode" class="participant-limit">通常通話</span></h2>
+      <h2><span class="participants-title"><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span><span id="activeSupportMode" class="participant-limit">通常通話</span></span><span id="callElapsed" class="participants-call-time" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span></h2>
       <div id="participants" class="participants"></div>
       <div id="notice" class="notice" role="status" aria-live="polite"></div>
     </section>
@@ -4673,7 +4671,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-call-controls-polish", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-participant-health-layout", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4681,7 +4679,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-call-controls-polish";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-participant-health-layout";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4726,7 +4724,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-call-controls-polish";
+    const APP_VERSION = "2026-10-06-participant-health-layout";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4898,7 +4896,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       versionPill: document.getElementById("versionPill"),
       freshnessStatus: document.getElementById("freshnessStatus"),
       connectionTooltip: document.getElementById("connectionTooltip"),
-      audioHealth: document.getElementById("audioHealth"),
       callTips: document.getElementById("callTips"),
       tipsToggle: document.getElementById("tipsToggleBtn"),
       metricsToggle: document.getElementById("metricsToggleBtn"),
@@ -5585,7 +5582,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       participants = createDemoParticipants(false);
       el.mute.disabled = true;
       el.reconnect.disabled = false;
-      if (el.audioHealth) el.audioHealth.hidden = false;
       setStatus("デモ表示中", "Firestore、マイク、WebRTCを使わずに画面だけ確認できます。");
       setNotice("デモモードです。Firestoreの読み取り・書き込みは発生しません。");
       updateConnectionPill("デモ");
@@ -5653,7 +5649,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     function runDemoMicTest() {
-      if (el.audioHealth) el.audioHealth.hidden = false;
       updateAudioHealth(0.044, true, "デモテスト");
       setNotice("デモのマイクテストです。ブラウザのマイク許可は求めません。");
     }
@@ -7050,6 +7045,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           '<span class="speaking-bars" aria-hidden="true"><span></span><span></span><span></span></span>' +
           '<i class="fa-solid fa-user avatar-mark ' + statusClass + '"></i>' +
           '<span class="participant-state-badge ' + escapeHtml(statusMeta.className) + '"><i class="fa-solid ' + escapeHtml(statusMeta.icon) + '"></i><span>' + escapeHtml(statusMeta.label) + '</span></span>' +
+          (isSelf ? '<span class="participant-mic-level mic-level" aria-label="自分のマイク音量"><span id="micLevelBar" class="mic-level-bar"></span></span>' : '') +
           '</button>';
       }).join("") + micHint;
     }
@@ -8141,7 +8137,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-call-controls-polish", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-participant-health-layout", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -10150,14 +10146,15 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function updateAudioHealth(rms, isSpeaking, label) {
       renderCallElapsed();
-      if (!el.audioHealth) return;
-      el.audioHealth.hidden = !joined && label !== "テスト中";
+      const audioHealth = el.participants ? el.participants.closest('.participants-card') : null;
+      if (!audioHealth) return;
       const meterMuted = muted || (!joined && label !== "テスト中");
       const visibleRms = meterMuted ? 0 : rms;
       const safeSpeaking = !meterMuted && !!isSpeaking;
       const level = Math.max(0, Math.min(100, Math.round(visibleRms * 520)));
-      if (el.micLevelBar) el.micLevelBar.style.width = level + "%";
-      el.audioHealth.classList.toggle("is-speaking", safeSpeaking);
+      const micLevelBar = document.getElementById('micLevelBar');
+      if (micLevelBar) micLevelBar.style.width = level + "%";
+      audioHealth.classList.toggle("is-speaking", safeSpeaking);
       if (el.micState) {
         const icon = muted ? "fa-microphone-slash" : (safeSpeaking ? "fa-microphone-lines" : "fa-microphone");
         const text = muted ? "マイクOFF" : (safeSpeaking ? "話しています" : "待機中");
@@ -11781,7 +11778,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "capturedAt: " + new Date().toISOString() + "\n" +
         "deviceContext: " + JSON.stringify({ profile: getDeviceProfile(), visibility: document.visibilityState, online: navigator.onLine !== false, connection: navigator.connection ? { effectiveType: navigator.connection.effectiveType || "", downlink: navigator.connection.downlink == null ? null : navigator.connection.downlink, rtt: navigator.connection.rtt == null ? null : navigator.connection.rtt, saveData: !!navigator.connection.saveData } : null }) + "\n" +
         "callLayout: " + JSON.stringify({ mode: getCallLayoutMode(), width: window.innerWidth, height: window.innerHeight }) + "\n" +
-        "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberVisible: !!document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live" }) + "\n" +
+        "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberVisible: !!document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterInSelfParticipant: !!document.querySelector(".participant.is-self .participant-mic-level") }) + "\n" +
         "latest: " + latest.label + "\n" +
         "participantCountForEstimate: " + participantCount + "\n" +
         "participantCountNow: " + currentParticipantCount + "\n" +

@@ -461,6 +461,14 @@ body.is-in-call .participants .participant-state-badge.is-speaking,
 body.is-in-call .participants .participant-state-badge.is-muted{
  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
 }
+/* 通話中の自分アイコンと音量計は、参加者カード内で一つのまとまりにする。 */
+body.is-in-call .participants .participant.is-self,
+body.is-one-to-one.is-in-call .participants .participant.is-self{
+ width:4.15rem;height:4.15rem;flex-basis:4.15rem;bottom:2.4rem;
+}
+body.is-in-call .participants .participant.is-self .participant-state-badge{
+ width:4.15rem;min-width:4.15rem;
+}
 @media(max-width:670px){
  .group-detail-dialog{width:calc(100% - 18px);max-height:calc(100dvh - 18px);padding:18px 14px;}
  .group-detail-dialog>.number-head{top:-18px;}
@@ -469,6 +477,13 @@ body.is-in-call .participants .participant-state-badge.is-muted{
  .group-detail-dialog .group-invite-area>div{grid-template-columns:minmax(0,1fr);}
  .group-detail-dialog .group-invite-area select,.group-detail-dialog .group-invite-area button{width:100%;max-width:100%;}
  body.is-in-call .participants-card .participants{flex-wrap:wrap;row-gap:28px;}
+}
+@media(max-width:640px){
+ body.is-in-call .participants .participant.is-self,
+ body.is-one-to-one.is-in-call .participants .participant.is-self{
+  width:3.85rem;height:3.85rem;flex-basis:3.85rem;right:.45rem;bottom:2.35rem;
+ }
+ body.is-in-call .participants .participant.is-self .participant-state-badge{width:3.85rem;min-width:3.85rem;}
 }
 @media(max-width:380px){
  .group-detail-dialog{width:calc(100% - 10px);padding-inline:10px;border-radius:20px;}

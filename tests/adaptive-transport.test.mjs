@@ -102,7 +102,7 @@ test('接続時間の内訳から通話開始後の終了処理を除外する',
 
 test('横長・低いタブレットの通話画面を二列にして一画面へ収める',()=>{
   assert.match(html,/@media \(min-width:720px\)/);
-  assert.match(html,/grid-template-areas:"call-header call-people" "call-health call-people" "call-controls call-content"/);
+  assert.match(html,/grid-template-areas:"call-header call-people" "call-controls call-content"/);
   assert.match(html,/@media \(min-width:720px\) and \(max-height:700px\)/);
   assert.match(html,/body\.is-in-call main>\.controls\{grid-area:call-controls/);
   assert.match(html,/"callLayout: " \+ JSON\.stringify/);
@@ -117,6 +117,15 @@ test('終話後も通話中の最大参加人数で料金を計算する',()=>{
   assert.equal(context.getParticipantCountForEstimate(),2);
   context.participants=[];context.joined=false;
   assert.equal(context.getParticipantCountForEstimate(),2);
+});
+
+test('音声状態を参加者カードへ集約してスマホ操作を二列にする',()=>{
+  assert.doesNotMatch(html,/id="audioHealth"/);
+  assert.match(html,/participants-call-time/);
+  assert.match(html,/participant-mic-level mic-level/);
+  assert.match(html,/micMeterInSelfParticipant/);
+  assert.match(html,/@media \(max-width:640px\)[\s\S]*?secondary-controls\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(html,/secondary-controls #phoneToGroup\{grid-column:1\/-1/);
 });
 
 test('通話中の操作を重複なく分かりやすく表示する',()=>{
