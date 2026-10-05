@@ -1066,3 +1066,9 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 /* Anchor the create button to the app card, independent of the browser viewport width. */
 .phone-home-card>#phoneNoticeAddToggle.notice-add-button{right:clamp(12px,1.6vw,20px)}
 @media(max-width:540px){.phone-home-card>#phoneNoticeAddToggle.notice-add-button{right:12px}}
+.call-handoff-active #participantAddButton,
+.call-handoff-active #callAddParticipantStart {
+  pointer-events: none;
+  opacity: .58;
+  cursor: wait;
+}
