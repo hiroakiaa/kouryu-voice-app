@@ -898,7 +898,7 @@ test('参加者欄から人を追加し招待相手を電話帳と履歴へ保�
  assert.match(app,/function clearCallAddTarget\(\)/);
  assert.match(app,/for\(const person of item\.participants\|\|\[\]\)/);
  assert.match(app,/function groupHistoryParticipants\(group\)/);
- assert.match(css,/\.call-add-choice-list\[hidden\],\.call-add-number\[hidden\]\{display:none!important\}/);
+ assert.match(css,/\.call-add-choice-list\[hidden\],\.call-add-number\[hidden\],\.call-add-selected\[hidden\]\{display:none!important\}/);
  assert.match(app,/async function rememberGroupAddedPerson\(target\)/);
  assert.match(app,/contacts',number\),\{number,uid:target\.uid,name:displayName,reading,organization,department,favorite:false\}/);
  assert.match(app,/history\('group-add_'/);
