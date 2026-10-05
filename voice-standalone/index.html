@@ -4157,6 +4157,54 @@
     .number-modal input {min-width:0;flex:1;width:160px;font-size:20px;padding:10px;border:1px solid #a4ce83;border-radius:12px;background:white;color:#30462d;}
     .number-own strong{font-size:28px;letter-spacing:2px;font-variant-numeric:tabular-nums;}.number-note{font-size:13px;line-height:1.6;color:#596b51;}.number-dial{margin-top:8px;}
     #numberAccept{background:#ccefaa;} .number-modal :focus-visible{outline:2px solid #548d3c;outline-offset:3px;}
+
+    /* 横幅のある端末では、通話操作と会話内容を分けて一画面に収める。 */
+    @media (min-width:720px) {
+      body.is-in-call {place-items:center;overflow:hidden;}
+      body.is-in-call main,
+      body.is-in-call.has-captions main {
+        width:min(100%,76rem);height:min(calc(100dvh - 1.2rem),52rem);min-height:0;max-height:none;
+        display:grid;grid-template-columns:minmax(16rem,.68fr) minmax(26rem,1.55fr);grid-template-rows:auto auto minmax(0,1fr);
+        grid-template-areas:"call-header call-people" "call-health call-people" "call-controls call-content";
+        gap:.65rem;overflow:hidden;
+      }
+      body.is-in-call main>header{grid-area:call-header;align-self:start;min-width:0;}
+      body.is-in-call main>#audioHealth{grid-area:call-health;align-self:start;width:100%;min-width:0;}
+      body.is-in-call main>.participants-card{grid-area:call-people;min-width:0;min-height:0;overflow:hidden;}
+      body.is-in-call main>#captionsPanel{grid-area:call-content;min-width:0;min-height:0;height:100%;overflow:hidden;}
+      body.is-in-call main>.controls{grid-area:call-controls;align-self:stretch;min-width:0;min-height:0;margin:0;overflow:auto;}
+      body.is-in-call:not(.has-captions) main>.participants-card{grid-row:1/4;}
+      body.is-in-call .secondary-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:.5rem;overflow:visible;padding:.08rem;}
+      body.is-in-call .secondary-controls .audio-preset-control,
+      body.is-in-call .secondary-controls button{width:100%;min-width:0;flex:none;}
+      body.is-in-call .controls>.primary-action{min-height:3.35rem;}
+      body.is-in-call .captions-card .term-list{min-height:0;max-height:none;overflow:auto;}
+      body.is-in-call .participants-card .participants{align-content:center;}
+      body.is-in-call.is-one-to-one .participants-card .participants{min-height:8rem;}
+    }
+
+    @media (min-width:720px) and (max-height:700px) {
+      body.is-in-call{padding:.35rem;}
+      body.is-in-call main,
+      body.is-in-call.has-captions main{width:100%;height:calc(100dvh - .7rem);padding:.55rem;gap:.42rem;grid-template-columns:minmax(14.5rem,.62fr) minmax(24rem,1.65fr);}
+      body.is-in-call main>header{padding:.48rem .62rem;border-radius:1rem;}
+      body.is-in-call header .app-icon,
+      body.is-in-call header .header-icon-btn{width:2.35rem;height:2.35rem;min-height:2.35rem;border-radius:.72rem;}
+      body.is-in-call header .brand h1{font-size:1.08rem;}
+      body.is-in-call #audioHealth{min-height:2.9rem;padding:.3rem .65rem;}
+      body.is-in-call .participants-card{padding:.55rem .7rem;gap:.28rem;border-radius:1.05rem;}
+      body.is-in-call .participants-card h2{margin:0;font-size:.94rem;}
+      body.is-in-call.is-one-to-one .participants-card .participants{min-height:5.8rem;padding:.2rem .5rem 1.4rem;}
+      body.is-in-call.is-one-to-one .participants .participant,
+      body.is-in-call.is-one-to-one .participants .participant.is-self{flex-basis:3.65rem;width:3.65rem;height:3.65rem;}
+      body.is-in-call .captions-card{min-height:0;padding:.55rem;border-radius:1.05rem;}
+      body.is-in-call .captions-card .term-list{margin-top:.25rem;padding:.25rem .1rem;}
+      body.is-in-call .secondary-controls{gap:.36rem;}
+      body.is-in-call .secondary-controls button,
+      body.is-in-call .secondary-controls .audio-preset-control{min-height:2.35rem;font-size:.76rem;}
+      body.is-in-call .controls{gap:.38rem;}
+      body.is-in-call .controls>.primary-action{min-height:2.85rem;}
+    }
 .phone-home-card {display:none;padding:20px;background:#fffef8;border:2px solid #8bc85b;border-radius:24px;color:#30462d;min-height:320px;overflow:auto;}
 .phone-home .phone-home-card {display:block;}
 .phone-home main>.participants-card,.phone-home main>#captionsPanel,.phone-home main>#audioHealth,.phone-home main>.controls {display:none!important;}
@@ -4195,7 +4243,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-02-diagnostic-recovery-suite">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-tablet-call-layout">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4299,7 +4347,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>グループを作って招待すると、承認した最大4人で繰り返し話せます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは終了・退室ボタンを押してください。</span></span></span>    </dialog>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは終了・退室ボタンを押してください。</span></span></span>    </dialog>
 
     <section id="audioHealth" class="audio-health" hidden aria-live="polite">
       <div class="mic-level" aria-hidden="true"><div id="micLevelBar" class="mic-level-bar"></div></div>
@@ -4601,7 +4649,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-diagnostic-recovery-suite", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-tablet-call-layout", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4609,7 +4657,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-02-diagnostic-recovery-suite";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-tablet-call-layout";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4654,7 +4702,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-02-diagnostic-recovery-suite";
+    const APP_VERSION = "2026-10-06-tablet-call-layout";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -8092,7 +8140,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-02-diagnostic-recovery-suite", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-tablet-call-layout", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -8944,6 +8992,11 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         window.clearInterval(statsTimer);
         statsTimer = null;
       }
+      if (activeStats && activeStats.quality && activeStats.quality !== "idle") {
+        metrics.finalWebRtcStats = JSON.parse(JSON.stringify(activeStats));
+        metrics.finalAdaptiveProfile = adaptiveAudioProfile;
+        metrics.finalTurnUsage = { relayActive: !!turnUsage.relayActive, bytes: Number(turnUsage.bytes || 0) };
+      }
       lastInboundStats.clear();
       lastRtpByteStats.clear();
       persistQualityHistory(true);
@@ -9460,7 +9513,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
 
     function renderAdminWebRtcStats() {
       if (!el.adminWebRtcStatsSummary || !AUDIO_FEATURE_FLAGS.detailedDiagnostics) return;
-      const stats = activeStats || {};
+      const stats = getDiagnosticWebRtcStats() || {};
       const route = stats.routes && stats.routes.length ? stats.routes.join(" / ") : (turnUsage.relayActive ? "relay" : "計測待ち");
       const codec = stats.codecs && stats.codecs.length ? stats.codecs.join(" / ") : "計測待ち";
       const rows = [
@@ -10771,6 +10824,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         ice: { sent: 0, received: 0, duplicateSendSkipped: 0, duplicateReceiveSkipped: 0 },
         connectionTimeline: [],
         audioDiagnostics: { samples: 0, speakingSamples: 0, rmsSum: 0, rmsMin: null, rmsMax: 0, vadProbabilitySum: 0, vadProbabilityMin: null, vadProbabilityMax: 0, noiseFloorMin: null, noiseFloorMax: 0, gainTargetMin: null, gainTargetMax: 0 },
+        maxParticipantCount: 1,
+        finalWebRtcStats: null,
+        finalAdaptiveProfile: "",
+        finalTurnUsage: null,
         milestones: [],
         historySaved: false
       };
@@ -10794,13 +10851,26 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         vadProbability: { min: source.vadProbabilityMin, average: Math.round((Number(source.vadProbabilitySum || 0) / samples) * 1000) / 1000, max: source.vadProbabilityMax },
         noiseFloor: { min: source.noiseFloorMin, max: source.noiseFloorMax },
         gainTarget: { min: source.gainTargetMin, max: source.gainTargetMax },
-        adaptiveProfile: adaptiveAudioProfile,
-        webrtc: activeStats
+        adaptiveProfile: metrics.finalAdaptiveProfile || adaptiveAudioProfile,
+        webrtc: getDiagnosticWebRtcStats()
       };
     }
 
+    function getDiagnosticWebRtcStats() {
+      return metrics.finalWebRtcStats || activeStats;
+    }
+
+    function getCallLayoutMode() {
+      if (window.matchMedia && window.matchMedia("(min-width: 720px) and (max-height: 700px)").matches) return "wide-short-two-column";
+      if (window.matchMedia && window.matchMedia("(min-width: 720px)").matches) return "wide-two-column";
+      return "single-column";
+    }
+
     function getShareableConnectionTimeline() {
-      return (metrics.connectionTimeline || []).map(function(item) { return { label: item.label, seconds: item.seconds }; });
+      const connectedSeconds = metrics.connectedAt ? Math.round(((metrics.connectedAt - metrics.startedAt) / 1000) * 10) / 10 : null;
+      return (metrics.connectionTimeline || []).map(function(item) {
+        return { label: item.label, seconds: item.seconds, stage: connectedSeconds != null && item.seconds > connectedSeconds ? "in-call-or-cleanup" : "connection" };
+      });
     }
 
     function resetMetrics() {
@@ -10877,9 +10947,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     function getConnectionDelaySummary() {
-      const list = metrics.connectionTimeline || [];
+      const connectedSeconds = metrics.connectedAt ? Math.round(((metrics.connectedAt - metrics.startedAt) / 1000) * 10) / 10 : null;
+      const list = (metrics.connectionTimeline || []).filter(function(item) { return connectedSeconds == null || item.seconds <= connectedSeconds; });
       if (!list.length) return "まだ接続タイムラインはありません。";
-      const connected = metrics.connectedAt ? Math.round(((metrics.connectedAt - metrics.startedAt) / 1000) * 10) / 10 : 0;
+      const connected = connectedSeconds || 0;
       const phases = [];
       for (let i = 1; i < list.length; i += 1) {
         const delta = Math.round((list[i].seconds - list[i - 1].seconds) * 10) / 10;
@@ -10894,7 +10965,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     function getConnectionStageAnalysis() {
-      const list = metrics.connectionTimeline || [];
+      const connectedSeconds = metrics.connectedAt ? Math.round(((metrics.connectedAt - metrics.startedAt) / 1000) * 10) / 10 : null;
+      const list = (metrics.connectionTimeline || []).filter(function(item) { return connectedSeconds == null || item.seconds <= connectedSeconds; });
       let slowest = null;
       for (let i = 1; i < list.length; i += 1) {
         const seconds = Math.round((list[i].seconds - list[i - 1].seconds) * 10) / 10;
@@ -11172,7 +11244,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const tenMinuteReads = fixedReads + readsPerMinute * 10;
       const tenMinuteWrites = fixedWrites + writesPerMinute * 10;
       const tenMinuteDeletes = fixedDeletes + deletesPerMinute * 10;
-      const participantCount = getActiveParticipantCount();
+      const participantCount = getParticipantCountForEstimate();
       const freeCandidates = [];
       if (tenMinuteReads > 0) freeCandidates.push(FIRESTORE_FREE_READS_PER_DAY / (tenMinuteReads * participantCount));
       if (tenMinuteWrites > 0) freeCandidates.push(FIRESTORE_FREE_WRITES_PER_DAY / (tenMinuteWrites * participantCount));
@@ -11201,7 +11273,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const active = participants.filter(function(person) {
         return person && person.left !== true && isParticipantActive(person);
       }).length;
-      return Math.max(1, active || (joined ? 1 : 0));
+      const count = Math.max(1, active || (joined ? 1 : 0));
+      if (metrics && count > Number(metrics.maxParticipantCount || 1)) metrics.maxParticipantCount = count;
+      return count;
+    }
+
+    function getParticipantCountForEstimate() {
+      return Math.max(getActiveParticipantCount(), Number(metrics.maxParticipantCount || 1));
     }
 
     function recordCallCostHistory(snapshot) {
@@ -11636,7 +11714,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const reads = metrics.estimatedReads;
       const writes = sumMetric(metrics.writes);
       const deletes = sumMetric(metrics.deletes);
-      const participantCount = getActiveParticipantCount();
+      const participantCount = getParticipantCountForEstimate();
+      const currentParticipantCount = getActiveParticipantCount();
+      const diagnosticStats = getDiagnosticWebRtcStats() || activeStats;
+      const diagnosticProfile = metrics.finalAdaptiveProfile || adaptiveAudioProfile;
       const totalYen = firestoreCostYen(reads * participantCount, writes * participantCount, deletes * participantCount, yenPerDollar);
       const connected = getConnectedMetricSnapshot();
       const minutes = connected ? Math.max(0.1, (latest.seconds - connected.seconds) / 60) : Math.max(0.1, latest.seconds / 60);
@@ -11693,8 +11774,13 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "diagnosticId: " + DIAGNOSTIC_SESSION_ID + "\n" +
         "capturedAt: " + new Date().toISOString() + "\n" +
         "deviceContext: " + JSON.stringify({ profile: getDeviceProfile(), visibility: document.visibilityState, online: navigator.onLine !== false, connection: navigator.connection ? { effectiveType: navigator.connection.effectiveType || "", downlink: navigator.connection.downlink == null ? null : navigator.connection.downlink, rtt: navigator.connection.rtt == null ? null : navigator.connection.rtt, saveData: !!navigator.connection.saveData } : null }) + "\n" +
+        "callLayout: " + JSON.stringify({ mode: getCallLayoutMode(), width: window.innerWidth, height: window.innerHeight }) + "\n" +
         "latest: " + latest.label + "\n" +
         "participantCountForEstimate: " + participantCount + "\n" +
+        "participantCountNow: " + currentParticipantCount + "\n" +
+        "maxParticipantCount: " + Number(metrics.maxParticipantCount || 1) + "\n" +
+        "statsSnapshot: " + (metrics.finalWebRtcStats ? "final-before-cleanup" : "live") + "\n" +
+        "turnSnapshot: " + JSON.stringify(metrics.finalTurnUsage || turnUsage) + "\n" +
         "estimatedReads: " + metrics.estimatedReads + "\n" +
         "connectedFixedReads: " + (connected ? connected.estimatedReads : 0) + "\n" +
         "ongoingPerMinute: " + JSON.stringify({ reads: readsPerMinute, writes: writesPerMinute, deletes: deletesPerMinute }) + "\n" +
@@ -11704,7 +11790,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "connectionDelay: " + getConnectionDelaySummary() + "\n" +
         "connectionTimeline: " + JSON.stringify(getShareableConnectionTimeline(), null, 2) + "\n" +
         "audioDiagnostics: " + JSON.stringify(getShareableAudioDiagnostics(), null, 2) + "\n" +
-        "adaptiveTransport: " + JSON.stringify({ profile: adaptiveAudioProfile, mediaRecoveries: mediaRecoveryCount, networkRecoveries: networkRecoveryCount, peerRecreations: peerRecreationCount, availableOutgoingKbps: activeStats.availableOutgoingKbps, recoveryVerifyMs: MEDIA_RECOVERY_VERIFY_MS }, null, 2) + "\n" +
+        "adaptiveTransport: " + JSON.stringify({ profile: diagnosticProfile, mediaRecoveries: mediaRecoveryCount, networkRecoveries: networkRecoveryCount, peerRecreations: peerRecreationCount, availableOutgoingKbps: diagnosticStats.availableOutgoingKbps, recoveryVerifyMs: MEDIA_RECOVERY_VERIFY_MS }, null, 2) + "\n" +
         "qualityHistory: " + JSON.stringify(qualityHistory, null, 2) + "\n" +
         "recentQualitySessions: " + JSON.stringify(readSavedQualityHistory().slice(-3).map(function(row) { return { startedAt: row.startedAt, endedAt: row.endedAt, transitions: Array.isArray(row.transitions) ? row.transitions.length : 0, mediaRecoveries: row.mediaRecoveries || 0, networkRecoveries: row.networkRecoveries || 0, peerRecreations: row.peerRecreations || 0 }; }), null, 2) + "\n" +
         "teacherDiagnostic: " + getTeacherDiagnosticSummary() + "\n" +

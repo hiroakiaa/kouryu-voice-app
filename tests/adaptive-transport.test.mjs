@@ -79,3 +79,42 @@ test('管理者の2端末比較と貼り付け診断に復旧履歴を含める'
   assert.match(html,/peerRecreations: peerRecreationCount/);
   assert.match(html,/deviceContext:/);
 });
+
+test('終了後も最終WebRTC統計と最大参加人数を診断へ残す',()=>{
+  assert.match(html,/metrics\.finalWebRtcStats = JSON\.parse\(JSON\.stringify\(activeStats\)\)/);
+  assert.match(html,/maxParticipantCount: 1/);
+  assert.match(html,/participantCountForEstimate: " \+ participantCount/);
+  assert.match(html,/maxParticipantCount: " \+ Number\(metrics\.maxParticipantCount/);
+  assert.match(html,/webrtc: getDiagnosticWebRtcStats\(\)/);
+});
+
+test('接続時間の内訳から通話開始後の終了処理を除外する',()=>{
+  const source=html.match(/    function getConnectionDelaySummary\(\) \{[^]*?\n    }/)?.[0];
+  assert.ok(source,'getConnectionDelaySummary');
+  const context={metrics:{startedAt:1000,connectedAt:5700,connectionTimeline:[
+    {label:'Peer作成',seconds:2},{label:'音声到着',seconds:4.7},{label:'通話状態初期化',seconds:308.4}
+  ]}};
+  vm.runInNewContext(source,context);
+  const summary=context.getConnectionDelaySummary();
+  assert.match(summary,/接続まで約4\.7秒/);
+  assert.doesNotMatch(summary,/302|通話状態初期化/);
+});
+
+test('横長・低いタブレットの通話画面を二列にして一画面へ収める',()=>{
+  assert.match(html,/@media \(min-width:720px\)/);
+  assert.match(html,/grid-template-areas:"call-header call-people" "call-health call-people" "call-controls call-content"/);
+  assert.match(html,/@media \(min-width:720px\) and \(max-height:700px\)/);
+  assert.match(html,/body\.is-in-call main>\.controls\{grid-area:call-controls/);
+  assert.match(html,/"callLayout: " \+ JSON\.stringify/);
+});
+
+test('終話後も通話中の最大参加人数で料金を計算する',()=>{
+  const activeSource=html.match(/    function getActiveParticipantCount\(\) \{[^]*?\n    }/)?.[0];
+  const estimateSource=html.match(/    function getParticipantCountForEstimate\(\) \{[^]*?\n    }/)?.[0];
+  assert.ok(activeSource&&estimateSource);
+  const context={participants:[{left:false},{left:false}],joined:true,metrics:{maxParticipantCount:1},isParticipantActive:()=>true};
+  vm.runInNewContext(activeSource+'\n'+estimateSource,context);
+  assert.equal(context.getParticipantCountForEstimate(),2);
+  context.participants=[];context.joined=false;
+  assert.equal(context.getParticipantCountForEstimate(),2);
+});
