@@ -952,6 +952,16 @@ test('自動参加URLは一度開始した時点で消費し起動時に古い�
  assert.match(app,/await repairOwnBusyLease\(\/\^n_\|\^g_\/\.test\(state\(\)\.callId\)\?state\(\)\.callId:''\)\.catch/);
 });
 
+test('発信か応答の直後に作った一度限りの証明がなければ起動時に自動参加しない',()=>{
+ assert.match(html,/const AUTO_JOIN_SESSION_KEY = "wakaru-auto-join-session-v1"/);
+ assert.match(html,/savedAutoJoin\.callId === startupCallParam/);
+ assert.match(html,/sessionStorage\.removeItem\(AUTO_JOIN_SESSION_KEY\)/);
+ assert.match(html,/!startupAutoJoinSession \|\| !startupAutoJoinAt/);
+ assert.match(html,/sessionStorage\.setItem\(AUTO_JOIN_SESSION_KEY, JSON\.stringify\(\{ callId: nextCallId, at: Date\.now\(\) \}\)\)/);
+ assert.match(html,/sessionStorage\.setItem\(AUTO_JOIN_SESSION_KEY, JSON\.stringify\(\{ callId: acceptedCallId, at: Date\.now\(\) \}\)\)/);
+ assert.match(html,/startupAutoJoinSession: startupAutoJoinSession/);
+});
+
 test('終了済み通話の参加状態を次の発信と着信の直前に解除する',()=>{
  assert.match(app,/async function recoverEndedLocalCall\(reason\)/);
  assert.match(app,/valid=await allowed\(\)/);
