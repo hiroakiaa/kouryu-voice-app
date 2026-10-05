@@ -914,6 +914,23 @@ test('参加者欄から人を追加し招待相手を電話帳と履歴へ保�
  assert.match(app,/await writeQuickGroupInvite\(group,targetUid\);await rememberGroupAddedPerson\(target\)/);
 });
 
+test('グループ切替は二重操作を防ぎ失敗データと古い利用中状態を自己修復する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/function setGroupHandoffUi\(active,text=''/);
+ assert.match(app,/if\(callHandoffInProgress\)return/);
+ assert.match(app,/async function cleanupFailedGroupHandoff/);
+ assert.match(app,/status:'cancelled',cancelledAt:Date\.now\(\),cancelReason:reason/);
+ assert.match(app,/async function repairOwnBusyLease\(desiredCallId\)/);
+ assert.match(app,/participant_stale/);
+ assert.match(app,/getReliabilityState\(\)/);
+ assert.match(html,/handoffTraceId/);
+ assert.match(html,/lastGroupHandoffOutcome/);
+ assert.match(html,/phoneReliability:/);
+ assert.match(css,/\.call-handoff-active #participantAddButton/);
+ assert.match(rules,/handoffTraceId/);
+ assert.match(rules,/cancelledAt/);
+});
+
 test('番号ボタンは電話パネルの横幅と高さに応じて押しやすい大きさへ変わる',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#phoneDialPanel\{container-name:phone-dial-panel;container-type:size;\}/);
