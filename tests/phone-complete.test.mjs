@@ -943,6 +943,15 @@ test('過去のグループURLと古い簡易招待を起動時に自動参加�
  assert.match(rules,/callId\.matches\('\^g_\.\*'\)[\s\S]*?phoneGroups[\s\S]*?active == false/);
 });
 
+test('自動参加URLは一度開始した時点で消費し起動時に古い利用中情報も修復する',()=>{
+ assert.match(html,/function consumeAutoJoinUrl\(\)/);
+ assert.match(html,/\["autoJoin", "autoJoinAt", "outgoingInvite"\]\.forEach/);
+ assert.match(html,/history\.replaceState\(history\.state, "", cleanUrl\)/);
+ assert.match(html,/autoJoinStarted = true;[\s\S]*?consumeAutoJoinUrl\(\);/);
+ assert.match(html,/autoJoinUrlConsumed: autoJoinUrlConsumed/);
+ assert.match(app,/await repairOwnBusyLease\(\/\^n_\|\^g_\/\.test\(state\(\)\.callId\)\?state\(\)\.callId:''\)\.catch/);
+});
+
 test('番号ボタンは電話パネルの横幅と高さに応じて押しやすい大きさへ変わる',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#phoneDialPanel\{container-name:phone-dial-panel;container-type:size;\}/);
