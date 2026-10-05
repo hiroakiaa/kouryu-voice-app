@@ -758,6 +758,15 @@ test('相手側の終了時は保存処理より先に終了モーダルを開�
  assert.match(app,/const endedNotice=remoteEnded\(remoteName,message\);await leave\(\);await endedNotice/);
 });
 
+test('アプリ終了は退室扱いにし、単なるバックグラウンド移動では通話を維持する',()=>{
+ assert.match(html,/window\.addEventListener\("beforeunload", function\(\) \{\s*leaveOnPageExit\("beforeunload"\)/);
+ assert.match(html,/window\.addEventListener\("pagehide", function\(event\) \{\s*if \(!event\.persisted\) \{\s*leaveOnPageExit\("pagehide"\)/);
+ assert.match(html,/function leaveOnPageExit\(source\)[\s\S]*?if \(pageExitLeaveStarted\) return;[\s\S]*?markLeft\(\);[\s\S]*?stopLocalCall\(false, false\)/);
+ assert.match(html,/document\.visibilityState === "hidden"[\s\S]*?updatePresence\(\);[\s\S]*?noteCallBackgrounded\(\)/);
+ assert.match(html,/appCloseActsAsLeave: true, backgroundKeepsCall: true, pageExitPersistedGuard: true/);
+ assert.match(html,/アプリやタブを閉じた場合も退室として相手へ反映します/);
+});
+
 test('発着信の各段階を匿名で診断し、復帰時に着信を再確認する',()=>{
  assert.match(app,/trace=\(\)=>\{\}/);
  for(const label of ['発信操作','発信データ作成','Push通知送信','Push通知到着','着信データ受信','着信画面表示','応答操作','通話状態初期化']) assert.match(app,new RegExp(label));
