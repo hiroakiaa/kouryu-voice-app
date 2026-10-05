@@ -4135,6 +4135,16 @@
     #callTips:not([open]) {display:none;}
     #callTips[open] {display:grid;opacity:1;pointer-events:auto;}
     #callTips::backdrop {background:rgba(30,35,38,.58);}
+    .single-tab-dialog {position:fixed;inset:0;margin:auto;width:min(30rem,calc(100% - 32px));padding:0;border:2px solid #79ba4d;border-radius:1.5rem;background:#fffef8;color:#294629;box-shadow:0 18px 70px rgb(21 48 24 / 35%);text-align:center;overflow:hidden;}
+    .single-tab-dialog[open] {display:grid;gap:1rem;}
+    .single-tab-dialog::backdrop {background:rgb(24 38 22 / 62%);backdrop-filter:blur(2px);}
+    .single-tab-dialog-icon {display:grid;place-items:center;width:4.5rem;height:4.5rem;margin:1.6rem auto 0;border-radius:1.25rem;background:#e7f7d5;color:#4d9635;font-size:2rem;}
+    .single-tab-dialog h2 {margin:0;padding:0 1.25rem;font-size:clamp(1.25rem,4vw,1.65rem);}
+    .single-tab-dialog p {margin:0;padding:0 1.5rem;line-height:1.75;color:#536950;}
+    .single-tab-dialog-actions {display:grid;gap:.55rem;padding:0 1.25rem 1.4rem;}
+    .single-tab-dialog button {min-height:3.4rem;border:2px solid #73ad50;border-radius:1rem;background:#d9f4b8;color:#294629;font:inherit;font-weight:800;}
+    .single-tab-dialog button:disabled {opacity:.68;cursor:wait;}
+    .single-tab-dialog small {display:block;font-weight:500;font-size:.78rem;margin-top:.18rem;}
     .tips-modal-head {grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:2;background:var(--panel);padding:8px 0 12px;border-bottom:1px solid #cad8b9;}
     .tips-modal-head h2 {margin:0;font-size:18px;}
     #tipsCloseBtn {flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;border:1px solid #cad8b9;border-radius:10px;background:#fffef8;color:#30462d;font-size:14px;box-shadow:none !important;outline:none;transform:none;}
@@ -4280,7 +4290,7 @@
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-one-time-auto-join">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-single-tab-guard">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4341,6 +4351,7 @@
 </dialog><dialog id="phoneQrScanDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrScanTitle"><div class="number-head"><h2 id="phoneQrScanTitle">QRコードを読み取る</h2><button id="phoneQrScanClose" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><video id="phoneQrVideo" playsinline muted></video><canvas id="phoneQrCanvas" hidden></canvas><p id="phoneQrScanStatus">カメラをQRコードへ向けてください。</p></dialog>
     <dialog id="phoneConfirmDialog" class="number-modal action-confirm" aria-labelledby="phoneConfirmTitle"><div class="number-head"><h2 id="phoneConfirmTitle">確認</h2><button id="phoneConfirmClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><p id="phoneConfirmMessage" class="action-confirm-message"></p><div class="action-confirm-actions"><button id="phoneConfirmCancel" type="button">やめる</button><button id="phoneConfirmOk" type="button">続ける</button></div></dialog>
     <dialog id="remoteEndedDialog" class="remote-ended-dialog" aria-labelledby="remoteEndedTitle" aria-describedby="remoteEndedMessage"><div class="remote-ended-icon" aria-hidden="true"><i class="fa-solid fa-phone-slash"></i></div><h2 id="remoteEndedTitle">通話が終了しました</h2><p id="remoteEndedMessage"></p></dialog>
+    <dialog id="singleTabDialog" class="single-tab-dialog" aria-labelledby="singleTabTitle" aria-describedby="singleTabMessage"><div class="single-tab-dialog-icon" aria-hidden="true"><i class="fa-solid fa-window-restore"></i></div><h2 id="singleTabTitle">別のタブで開いています</h2><p id="singleTabMessage">通話が重ならないように、操作できる画面を1つにしています。こちらのタブへ切り替えることもできます。</p><div class="single-tab-dialog-actions"><button id="singleTabTakeover" type="button"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i> このタブで使う<small>先に開いたタブの通話とマイクを安全に終了します</small></button></div></dialog>
     <dialog id="phoneQrDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrTitle"><div class="number-head"><h2 id="phoneQrTitle">番号を交換</h2><button id="phoneQrClose" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><p>相手のカメラで読み取ると、電話帳の登録画面が開きます。</p><div id="phoneQrImage" class="phone-qr-image"></div><strong id="phoneQrNumber"></strong></dialog>
     <dialog id="appInfoTooltip" class="app-info-tooltip metrics-modal-card admin-login-dialog" aria-labelledby="appInfoTitle" aria-hidden="true">
       <div class="modal-head">
@@ -4399,7 +4410,7 @@
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>最初からグループで話すことも、通話中に参加者欄の「人を追加」から相手を加えることもできます。「最近」には個別通話と過去のグループ通話で話した人が、同じ人を重ねずに表示されます。「電話帳」または「番号入力」からも選べます。選び直すときは同じカードをもう一度押すか、「選択解除」を押してください。選ばれた人だけに参加確認が届きます。切替中は二重操作を防ぎ、新しいグループへ接続できてから元の通話を終了します。失敗時は準備途中の招待を整理して元の通話へ戻ります。通話を終えると通話用URLも消えるため、次の起動で過去のグループへ勝手に戻りません。古い通話中情報が残った場合も、着信への応答時と次の参加時に安全を確認して自動修復します。最大4人です。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は上部の接続状態の右に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは画面下の退室ボタンを1回押してください。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。同じブラウザでアプリを2つ開いた場合は、通話や着信が重ならないように片方だけを使います。「このタブで使う」で安全に切り替えられます。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は上部の接続状態の右に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは画面下の退室ボタンを1回押してください。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
 
     <section class="card participants-card">
       <h2><span class="participants-title"><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span><span id="activeSupportMode" class="participant-limit">通常通話</span></span></h2>
@@ -4693,7 +4704,7 @@
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-one-time-auto-join", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-single-tab-guard", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4701,7 +4712,8 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-one-time-auto-join";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-single-tab-guard";
+    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-06-single-tab-guard";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4746,7 +4758,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-one-time-auto-join";
+    const APP_VERSION = "2026-10-06-single-tab-guard";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -5290,9 +5302,51 @@
       }).catch(function() { /* captions remain unavailable; phone initialization continues */ });
     }
 
+    let tabRuntimeStarted = false;
+    let tabReleaseInProgress = false;
+    const singleTabDialog = document.getElementById("singleTabDialog");
+    const singleTabTakeover = document.getElementById("singleTabTakeover");
+    async function releaseCurrentTabRuntime() {
+      if (tabReleaseInProgress) return;
+      tabReleaseInProgress = true;
+      try {
+        cancelOutgoingInvitation();
+        if (joined) await Promise.race([markLeft().catch(function() {}), new Promise(function(resolve) { window.setTimeout(resolve, 900); })]);
+        else await numberCalls?.leave?.().catch(function() {});
+        stopLocalCall(false, false);
+        if (captionController) captionController.stop();
+      } finally {
+        window.setTimeout(function() { location.reload(); }, 350);
+      }
+    }
+    const singleTabCoordinator = createSingleTabCoordinator({
+      onRoleChange: function(tabState) {
+        if (!singleTabDialog) return;
+        const waiting = tabState.role === "standby" || tabState.role === "taking-over" || tabState.role === "releasing";
+        singleTabTakeover.disabled = tabState.role === "taking-over" || tabState.role === "releasing";
+        if (tabState.role === "taking-over") {
+          singleTabTakeover.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> 切り替えています…<small>先に開いたタブを安全に終了しています</small>';
+        } else {
+          singleTabTakeover.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i> このタブで使う<small>先に開いたタブの通話とマイクを安全に終了します</small>';
+        }
+        if (waiting) {
+          try { if (!singleTabDialog.open) singleTabDialog.showModal(); } catch (_) { singleTabDialog.setAttribute("open", ""); }
+        } else if (singleTabDialog.open) {
+          try { singleTabDialog.close(); } catch (_) { singleTabDialog.removeAttribute("open"); }
+        }
+      },
+      onReleaseRequested: releaseCurrentTabRuntime,
+      onOwnershipLost: releaseCurrentTabRuntime
+    });
+    window.wakaruSingleTabCoordinator = singleTabCoordinator;
+    singleTabTakeover?.addEventListener("click", function() { singleTabCoordinator.takeOver(); });
+    singleTabDialog?.addEventListener("cancel", function(event) { event.preventDefault(); });
+
     init();
 
     async function init() {
+      if (!isDemoMode) await singleTabCoordinator.start();
+      tabRuntimeStarted = true;
       bindCostTabs(document);
       el.join.addEventListener("click", function() {
         if (isDemoMode) {
@@ -5409,6 +5463,7 @@
       runPassivePreflightCheck();
       document.addEventListener("click", handleOutsideTooltipClick);
       window.addEventListener("beforeunload", function() {
+        singleTabCoordinator.release();
         if (captionController) captionController.stop();
         cancelOutgoingInvitation();
         if (!isDemoMode && joined) markLeft();
@@ -8336,7 +8391,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-one-time-auto-join", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-single-tab-guard", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -12026,6 +12081,7 @@
         "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberButtonRemoved: !document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterRemoved: !document.querySelector(".participant-mic-level"), muteButtonRemoved: !document.getElementById("muteBtn"), selfParticipantMuteToggle: true, participantPhoneTooltip: true, callTimeBesideConnection: !!document.querySelector("#connectionPill + #callElapsed"), leaveAnchoredBottom: true, singleTapLeave: true, groupDepartureNotice: true }) + "\n" +
         "groupUpgrade: " + JSON.stringify({ available: !!document.getElementById("participantAddButton") && !document.getElementById("participantAddButton").disabled, entryPoint: "participants-first-item", sourceType: callId.startsWith("g_") ? "group" : callId.startsWith("n_") ? "one-to-one" : "standalone", pickerOpen: !!document.getElementById("callAddParticipantDialog")?.open, selectionSources: ["recent","contacts","number"], activeSource: document.querySelector("[data-call-add-source][aria-selected=\"true\"]")?.dataset.callAddSource||"", selectedTarget: document.getElementById("callAddParticipantSelected")?.hidden===false, duplicateRecentPeopleMerged: true, groupHistoryPeopleIncluded: true, selectionCanBeCleared: true, autoSaveInviteeToContactsAndHistory: true, inviteScope: "selected-user-only", handoffState: pendingGroupHandoff ? "switching" : "idle", handoffTarget: pendingGroupHandoff?.nextCallId || "", handoffTraceId: pendingGroupHandoff?.traceId || lastGroupHandoffOutcome?.traceId || "", lastOutcome: lastGroupHandoffOutcome, interactionLockedWhileSwitching: true, oldCallKeptUntilJoined: true, rollbackOnFailure: true, sourceCloseRequiresAllOriginalMembers: true, participantPricing: "live-participant-count", maxParticipants: 4 }) + "\n" +
         "phoneReliability: " + JSON.stringify(numberCalls?.getReliabilityState?.() || {}) + "\n" +
+        "tabCoordination: " + JSON.stringify(singleTabCoordinator.getState()) + "\n" +
         "startupRouteRecovery: " + JSON.stringify({ staleCallRouteRemoved: !!staleStartupCallId, staleCallIdType: staleStartupCallId.startsWith("g_") ? "group" : staleStartupCallId.startsWith("n_") ? "one-to-one" : "none", startupAutoJoinSession: startupAutoJoinSession, autoJoinUrlConsumed: autoJoinUrlConsumed, autoJoinIntentMaxMs: AUTO_JOIN_INTENT_MAX_MS, quickInviteAutoOpenMaxMs: 120000 }) + "\n" +
         "phoneNavigation: " + JSON.stringify({ activeTab: document.querySelector("[data-phone-tab][aria-current=\"page\"]")?.dataset.phoneTab || "", historyDateSections: document.querySelectorAll(".history-date-section").length, historySingleColumn: true }) + "\n" +
         "latest: " + latest.label + "\n" +
