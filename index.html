@@ -4271,7 +4271,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-participant-controls">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-single-tap-leave">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4389,7 +4389,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>最初からグループで話すことも、1対1の途中で「グループで話す」から相手を追加することもできます。追加する人は電話帳・履歴・8桁番号から選べます。現在通話中の人は確認操作なしで同じグループへ移り、選ばれた人だけに参加確認が届きます。承認すると自動で通話に加わります。最大4人です。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は自分のアイコンの上に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。自分の8桁番号も通話操作からコピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは退室ボタンを押してください。</span></span></span>    </dialog>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は自分のアイコンの上に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。自分の8桁番号も通話操作からコピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは退室ボタンを1回押してください。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
 
     <section class="card participants-card">
       <h2><span class="participants-title"><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span><span id="activeSupportMode" class="participant-limit">通常通話</span></span></h2>
@@ -4685,7 +4685,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-participant-controls", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-single-tap-leave", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4693,7 +4693,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-participant-controls";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-single-tap-leave";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4738,7 +4738,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-participant-controls";
+    const APP_VERSION = "2026-10-06-single-tap-leave";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -5058,6 +5058,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     let micUnlockHintDismissed = false;
     let joinBusy = false;
     let joinBusyLabel = "参加準備中…";
+    let leaveInProgress = false;
     let participants = [];
     let currentStatusTitle = "準備中です";
     let currentStatusText = "通話URLを開いた人だけで話せます。";
@@ -5267,7 +5268,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           toggleDemoJoin();
           return;
         }
-        if (isLocallyInCall()) {
+        if (leaveInProgress) return;
+        const leaveControlVisible = el.join.classList.contains("is-leaving") || el.join.getAttribute("aria-label") === "退室する";
+        if (joined || isLocallyInCall() || leaveControlVisible) {
           leaveCall();
         } else {
           joinCall();
@@ -5886,7 +5889,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     async function joinCall() {
-      if (joined) return;
+      if (joined || leaveInProgress) return;
       if(!/^n_|^g_/.test(callId)){setNotice("電話番号から発信するか、グループを選んでください。",true);return;}
       if (!runPassivePreflightCheck()) return;
       setJoinBusy(true, "参加準備中…");
@@ -6233,7 +6236,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         knownParticipantNames.forEach(function(name, id) {
           if (id !== userId && !nextMap.has(id)) {
             queueParticipantNotice(name + "さんが退室しました。");
-            if (params.get("callRole") && phonebookRemoteSeen && joined) endPhonebookCallAfterRemoteLeave(name);
+            const remainingRemoteCount = Array.from(nextMap.keys()).filter(function(nextId) { return nextId !== userId; }).length;
+            if (params.get("callRole") && phonebookRemoteSeen && joined && callId.startsWith("n_") && remainingRemoteCount === 0) {
+              endPhonebookCallAfterRemoteLeave(name);
+            }
           }
         });
       }
@@ -7388,8 +7394,17 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     function leaveCall() {
+      if (leaveInProgress) return;
+      leaveInProgress = true;
+      el.join.disabled = true;
+      el.join.setAttribute("aria-label", "退室しています");
       try { cancelOutgoingInvitation(); } catch(error) { console.warn(error); }
-      try { Promise.resolve(markLeft()).catch(console.warn); } catch(error) { console.warn(error); }
+      try {
+        Promise.resolve(markLeft()).catch(console.warn).finally(function() { leaveInProgress = false; });
+      } catch(error) {
+        leaveInProgress = false;
+        console.warn(error);
+      }
       finally { stopLocalCall(true); }
     }
 
@@ -8200,7 +8215,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-participant-controls", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-single-tap-leave", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -11870,7 +11885,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "capturedAt: " + new Date().toISOString() + "\n" +
         "deviceContext: " + JSON.stringify({ profile: getDeviceProfile(), visibility: document.visibilityState, online: navigator.onLine !== false, connection: navigator.connection ? { effectiveType: navigator.connection.effectiveType || "", downlink: navigator.connection.downlink == null ? null : navigator.connection.downlink, rtt: navigator.connection.rtt == null ? null : navigator.connection.rtt, saveData: !!navigator.connection.saveData } : null }) + "\n" +
         "callLayout: " + JSON.stringify({ mode: getCallLayoutMode(), width: window.innerWidth, height: window.innerHeight }) + "\n" +
-        "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberVisible: !!document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterRemoved: !document.querySelector(".participant-mic-level"), muteButtonRemoved: !document.getElementById("muteBtn"), selfParticipantMuteToggle: true, participantPhoneTooltip: true, callTimeAboveSelf: !!document.querySelector(".participant.is-self #callElapsed") }) + "\n" +
+        "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberVisible: !!document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterRemoved: !document.querySelector(".participant-mic-level"), muteButtonRemoved: !document.getElementById("muteBtn"), selfParticipantMuteToggle: true, participantPhoneTooltip: true, callTimeAboveSelf: !!document.querySelector(".participant.is-self #callElapsed"), singleTapLeave: true, groupDepartureNotice: true }) + "\n" +
         "groupUpgrade: " + JSON.stringify({ available: !!document.getElementById("phoneToGroup") && !document.getElementById("phoneToGroup").hidden, sourceType: callId.startsWith("g_") ? "group" : callId.startsWith("n_") ? "one-to-one" : "standalone", pickerOpen: !!document.getElementById("callAddParticipantDialog")?.open, selectionSources: ["contacts","history","number"], inviteScope: "selected-user-only", participantPricing: "live-participant-count", maxParticipants: 4 }) + "\n" +
         "phoneNavigation: " + JSON.stringify({ activeTab: document.querySelector("[data-phone-tab][aria-current=\"page\"]")?.dataset.phoneTab || "", historyDateSections: document.querySelectorAll(".history-date-section").length, historySingleColumn: true }) + "\n" +
         "latest: " + latest.label + "\n" +

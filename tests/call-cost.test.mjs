@@ -21,7 +21,7 @@ test('history with saved records draws a graph without the removed free-quota fo
  assert.match(el.metricsHistoryChart.innerHTML,/<svg/);assert.match(el.metricsHistoryChart.innerHTML,/<polyline/);assert.match(el.metricsHistoryRecent.innerHTML,/0.020/);
 });
 test('leave always stops locally when presence or invitation cleanup throws',()=>{
- for(const failed of ['cancel','mark']){let stopped=false;vm.runInNewContext(fn('leaveCall')+'\nleaveCall();',{console:{warn(){}},cancelOutgoingInvitation(){if(failed==='cancel')throw Error('offline')},markLeft(){if(failed==='mark')throw Error('offline')},stopLocalCall(){stopped=true}});assert.equal(stopped,true)}
+ for(const failed of ['cancel','mark']){let stopped=false;vm.runInNewContext(fn('leaveCall')+'\nleaveCall();',{console:{warn(){}},leaveInProgress:false,el:{join:{disabled:false,setAttribute(){}}},cancelOutgoingInvitation(){if(failed==='cancel')throw Error('offline')},markLeft(){if(failed==='mark')throw Error('offline');return Promise.resolve()},stopLocalCall(){stopped=true},Promise});assert.equal(stopped,true)}
 });
 
 test('microphone, peer and UI cleanup completes even when history or captions throw',()=>{
