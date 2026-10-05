@@ -75,6 +75,8 @@ service cloud.firestore {
     function leaseFree(uid) {
       return !exists(/databases/$(database)/documents/phoneBusy/$(uid))
         || get(/databases/$(database)/documents/phoneBusy/$(uid)).data.until <= request.time
+        || (get(/databases/$(database)/documents/phoneBusy/$(uid)).data.callId.matches('^g_.*')
+          && get(/databases/$(database)/documents/phoneGroups/$(get(/databases/$(database)/documents/phoneBusy/$(uid)).data.callId)).data.active == false)
         || (get(/databases/$(database)/documents/phoneBusy/$(uid)).data.callId.matches('^n_.*')
           && get(/databases/$(database)/documents/numberVoiceCalls/$(get(/databases/$(database)/documents/phoneBusy/$(uid)).data.callId)).data.active == false);
     }
