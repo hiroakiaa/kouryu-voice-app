@@ -952,6 +952,15 @@ test('自動参加URLは一度開始した時点で消費し起動時に古い�
  assert.match(app,/await repairOwnBusyLease\(\/\^n_\|\^g_\/\.test\(state\(\)\.callId\)\?state\(\)\.callId:''\)\.catch/);
 });
 
+test('終了済み通話の参加状態を次の発信と着信の直前に解除する',()=>{
+ assert.match(app,/async function recoverEndedLocalCall\(reason\)/);
+ assert.match(app,/valid=await allowed\(\)/);
+ assert.match(app,/await leave\(\)\.catch\(\(\)=>\{\}\);stop\(\);return true/);
+ assert.match(app,/if\(state\(\)\.joined\)\{await recoverEndedLocalCall\('発信'\)/);
+ assert.match(app,/if\(hasRinging\)[\s\S]*?await recoverEndedLocalCall\('着信'\)/);
+ assert.match(app,/lastStaleLocalCallRecovery/);
+});
+
 test('番号ボタンは電話パネルの横幅と高さに応じて押しやすい大きさへ変わる',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#phoneDialPanel\{container-name:phone-dial-panel;container-type:size;\}/);
