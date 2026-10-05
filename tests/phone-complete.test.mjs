@@ -931,6 +931,18 @@ test('グループ切替は二重操作を防ぎ失敗データと古い利用�
  assert.match(rules,/cancelledAt/);
 });
 
+test('過去のグループURLと古い簡易招待を起動時に自動参加させない',()=>{
+ assert.match(html,/const AUTO_JOIN_INTENT_MAX_MS = 2 \* 60 \* 1000/);
+ assert.match(html,/const staleStartupCallId = \/\^n_\|\^g_\//);
+ assert.match(html,/\["call", "support", "autoJoin", "autoJoinAt", "callRole", "contactName", "outgoingInvite"\]/);
+ assert.match(html,/history\.replaceState\(\{ phoneHome: true \}/);
+ assert.match(html,/url\.searchParams\.set\("autoJoinAt", String\(Date\.now\(\)\)\)/);
+ assert.match(app,/invite\.quickJoin&&invite\.handoffTraceId&&now-Number\(invite\.createdAt\|\|0\)<=120000/);
+ assert.match(app,/await repairOwnBusyLease\(callId\)\.catch\(\(\)=>false\);await tx/);
+ assert.match(html,/startupRouteRecovery:/);
+ assert.match(rules,/callId\.matches\('\^g_\.\*'\)[\s\S]*?phoneGroups[\s\S]*?active == false/);
+});
+
 test('番号ボタンは電話パネルの横幅と高さに応じて押しやすい大きさへ変わる',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/#phoneDialPanel\{container-name:phone-dial-panel;container-type:size;\}/);

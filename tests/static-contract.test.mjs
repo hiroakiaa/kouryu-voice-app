@@ -144,7 +144,7 @@ test("通話中の終了ボタンは接続状態にかかわらず必ず退室�
   assert.match(handler, /if \(leaveInProgress\) return/);
   assert.match(handler, /if \(joined \|\| isLocallyInCall\(\) \|\| leaveControlVisible\) \{\s*leaveCall\(\);\s*\}/);
   assert.doesNotMatch(handler, /reconnectCall\(\)/);
-  assert.match(rootHtml, /joined = false;\s*if \(returnToPhoneHome !== false && typeof callId !== "undefined" && \/\^n_\|\^g_\/\.test\(callId\)\) document\.body\.classList\.add\("phone-home"\)/);
+  assert.match(rootHtml, /joined = false;\s*if \(returnToPhoneHome !== false && typeof callId !== "undefined" && \/\^n_\|\^g_\/\.test\(callId\)\) \{[\s\S]*?document\.body\.classList\.add\("phone-home"\)[\s\S]*?history\.replaceState\(\{ phoneHome: true \}/);
 });
 
 test("マイク接続が生きている間は参加済みとして退室ボタンを表示する", () => {
