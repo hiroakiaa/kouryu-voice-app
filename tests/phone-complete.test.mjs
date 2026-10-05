@@ -862,16 +862,23 @@ test('発信確定直後に呼び出し準備画面へ切り替える',()=>{
 
 test('1対1と既存グループのどちらからも通話中に参加者を追加できる',()=>{
  assert.match(html,/id="callAddParticipantDialog"/);
- assert.match(html,/id="callAddParticipantSelect"/);
+ assert.match(html,/data-call-add-source="contacts"/);
+ assert.match(html,/data-call-add-source="history"/);
+ assert.match(html,/data-call-add-source="number"/);
+ assert.match(html,/id="callAddParticipantNumber"/);
  assert.match(app,/if\(state\(\)\.callId\.startsWith\('g_'\)\)/);
  assert.match(app,/sourceCallId:oldCallId/);
- assert.match(app,/handoffCallId:oldCallId/);
  assert.match(app,/quickJoin:true/);
  assert.match(app,/acceptCurrentCallHandoff/);
+ assert.match(app,/group\.ownerUid!==uid&&group\.sourceCallId===state\(\)\.callId/);
+ assert.doesNotMatch(app,/handoffCallId/);
+ assert.doesNotMatch(app,/partnerUid/);
  assert.match(html,/handoff:handoffPhoneCallWithoutReload/);
  assert.match(html,/function handoffPhoneCallWithoutReload/);
+ assert.match(html,/function scheduleGroupHandoffRecovery/);
+ assert.match(html,/groupUpgrade:[\s\S]*?inviteScope: "selected-user-only"/);
  assert.match(rules,/sourceCallId/);
- assert.match(rules,/handoffCallId/);
+ assert.doesNotMatch(rules,/handoffCallId/);
  assert.match(rules,/phoneGroups\/\$\(request\.resource\.data\.callId\)\)\.data\.sourceCallId == resource\.data\.callId/);
 });
 
