@@ -4280,7 +4280,7 @@
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-participant-add-layout">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-simple-add-person">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4326,18 +4326,18 @@
 
     <dialog id="phoneOutgoingDialog" class="number-modal outgoing-call-dialog" aria-labelledby="phoneOutgoingName"><div class="outgoing-call-pulse" aria-hidden="true"><i class="fa-solid fa-phone"></i></div><p>呼び出し中</p><h2 id="phoneOutgoingName">相手</h2><strong id="phoneOutgoingNumber"></strong><div class="outgoing-call-wave" aria-hidden="true"><i></i><i></i><i></i></div><button id="phoneCancel" type="button"><i class="fa-solid fa-phone-slash" aria-hidden="true"></i><span>呼び出しをやめる</span></button></dialog><dialog id="phoneDialConfirm" class="number-modal incoming-call dial-confirm-dialog" aria-labelledby="phoneDialConfirmName"><button id="phoneDialConfirmClose" class="dial-confirm-close" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button><div class="dial-confirm-person"><strong id="phoneDialConfirmName"></strong><span id="phoneDialConfirmNumber"></span></div><div class="dial-mode-row"><fieldset class="support-mode-picker dial-mode-toggle"><legend class="visually-hidden">通話の種類</legend><label><input type="radio" name="phoneSupportMode" value="support" checked><span><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> サポートあり</span></label><label><input type="radio" name="phoneSupportMode" value="plain"><span><i class="fa-solid fa-phone" aria-hidden="true"></i> 通常通話</span></label></fieldset><button id="phoneSupportHelpToggle" class="dial-support-help" type="button" aria-label="サポートありについて" aria-controls="phoneSupportHelpPanel" aria-expanded="false"><i class="fa-solid fa-question" aria-hidden="true"></i></button></div><div id="phoneSupportHelpPanel" class="dial-support-help-panel phone-collapsible" inert aria-hidden="true"><strong>サポートありとは</strong><p>会話に出た専門用語を見つけ、押すと意味を確認できる通話です。通常通話では音声通話だけを行います。</p></div><div class="dial-confirm-actions"><button id="phoneDialConfirmCall" type="button"><i class="fa-solid fa-phone"></i><span>電話する</span></button></div></dialog><dialog id="phoneCallResultDialog" class="number-modal incoming-call call-result-dialog" aria-labelledby="phoneCallResultStatus"><div class="number-head"><h2 id="phoneCallResultStatus">応答なし</h2><button id="phoneCallResultClose" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><strong id="phoneCallResultName"></strong><span id="phoneCallResultNumber"></span><div class="call-result-actions"><button id="phoneCallResultNotify" type="button"><i class="fa-solid fa-message"></i> 折り返しをお願いする</button><button id="phoneCallResultHistory" type="button"><i class="fa-solid fa-clock-rotate-left"></i> 履歴へ戻る</button><button id="phoneCallResultRegister" type="button"><i class="fa-solid fa-address-book"></i> 電話帳に登録</button><button id="phoneCallResultRedial" type="button"><i class="fa-solid fa-phone"></i> もう一度かける</button></div></dialog><dialog id="callAddParticipantDialog" class="number-modal call-add-participant-dialog" aria-labelledby="callAddParticipantTitle">
   <div class="number-head"><h2 id="callAddParticipantTitle">一緒に話す人を追加</h2><button id="callAddParticipantClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
-  <p>追加する人を1人選びます。現在通話中の人には確認画面を出さず、そのままグループ通話へ移ります。</p>
+  <p class="call-add-lead">追加する人を1人選んでください。</p>
   <div class="call-add-source-tabs" role="tablist" aria-label="相手の選び方">
-    <button id="callAddSourceContacts" type="button" role="tab" aria-selected="true" data-call-add-source="contacts"><i class="fa-solid fa-address-book" aria-hidden="true"></i>電話帳</button>
-    <button id="callAddSourceHistory" type="button" role="tab" aria-selected="false" data-call-add-source="history"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>履歴</button>
-    <button id="callAddSourceNumber" type="button" role="tab" aria-selected="false" data-call-add-source="number"><i class="fa-solid fa-keyboard" aria-hidden="true"></i>番号入力</button>
+    <button id="callAddSourceHistory" type="button" role="tab" aria-selected="true" data-call-add-source="history"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span><strong>最近</strong><small>最近話した人</small></span></button>
+    <button id="callAddSourceContacts" type="button" role="tab" aria-selected="false" data-call-add-source="contacts"><i class="fa-solid fa-address-book" aria-hidden="true"></i><span><strong>電話帳</strong><small>登録した人</small></span></button>
   </div>
-  <div id="callAddContacts" class="call-add-choice-list" data-call-add-panel="contacts"></div>
-  <div id="callAddHistory" class="call-add-choice-list" data-call-add-panel="history" hidden></div>
-  <div id="callAddNumber" class="call-add-number" data-call-add-panel="number" hidden><label for="callAddParticipantNumber">相手の8桁番号</label><input id="callAddParticipantNumber" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="1234 5678"><button id="callAddNumberSelect" type="button"><i class="fa-solid fa-user-check" aria-hidden="true"></i>この番号を選ぶ</button></div>
+  <div id="callAddHistory" class="call-add-choice-list" data-call-add-panel="history"></div>
+  <div id="callAddContacts" class="call-add-choice-list" data-call-add-panel="contacts" hidden></div>
+  <button id="callAddNumberToggle" class="call-add-number-toggle" type="button" aria-expanded="false" aria-controls="callAddNumber"><i class="fa-solid fa-keyboard" aria-hidden="true"></i><span>8桁番号で追加</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+  <div id="callAddNumber" class="call-add-number" hidden><label for="callAddParticipantNumber">相手の8桁番号</label><input id="callAddParticipantNumber" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="1234 5678"><button id="callAddNumberSelect" type="button">選ぶ</button></div>
   <div id="callAddParticipantSelected" class="call-add-selected" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span></span></div>
   <p id="callAddParticipantMessage" class="phone-note" role="status"></p>
-  <div class="call-add-participant-actions"><button id="callAddParticipantCancel" type="button">やめる</button><button id="callAddParticipantStart" type="button" disabled><i class="fa-solid fa-user-plus" aria-hidden="true"></i>この人を追加</button></div>
+  <div class="call-add-participant-actions"><button id="callAddParticipantStart" type="button" disabled><i class="fa-solid fa-user-plus" aria-hidden="true"></i>選んだ人を追加</button></div>
 </dialog><dialog id="phoneQrScanDialog" class="number-modal qr-dialog" aria-labelledby="phoneQrScanTitle"><div class="number-head"><h2 id="phoneQrScanTitle">QRコードを読み取る</h2><button id="phoneQrScanClose" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><video id="phoneQrVideo" playsinline muted></video><canvas id="phoneQrCanvas" hidden></canvas><p id="phoneQrScanStatus">カメラをQRコードへ向けてください。</p></dialog>
     <dialog id="phoneConfirmDialog" class="number-modal action-confirm" aria-labelledby="phoneConfirmTitle"><div class="number-head"><h2 id="phoneConfirmTitle">確認</h2><button id="phoneConfirmClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><p id="phoneConfirmMessage" class="action-confirm-message"></p><div class="action-confirm-actions"><button id="phoneConfirmCancel" type="button">やめる</button><button id="phoneConfirmOk" type="button">続ける</button></div></dialog>
     <dialog id="remoteEndedDialog" class="remote-ended-dialog" aria-labelledby="remoteEndedTitle" aria-describedby="remoteEndedMessage"><div class="remote-ended-icon" aria-hidden="true"><i class="fa-solid fa-phone-slash"></i></div><h2 id="remoteEndedTitle">通話が終了しました</h2><p id="remoteEndedMessage"></p></dialog>
@@ -4397,7 +4397,7 @@
       <span class="tip-item"><i class="fa-solid fa-message"></i><span><strong>連絡</strong><span>「対応する」には、いま自分が行う連絡が表示されます。以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます。タブレットやPCでは、連絡・履歴・電話帳・グループを横幅に合わせて2列で表示します。連絡の返信はカード上部の「返信内容を確認」を押すと、カード上部から対応ボタンの手前まで返信一覧が広がり、最後までスクロールできます。完了した連絡は「その他」から「対応に戻す」を選ぶと、お願い・急ぎなどの表示も戻ります。「連絡を作成する」から個人またはプロフィールの学校・所属グループを選んで送ります。自分が送った内容は「送った連絡」で確認できます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の準備表示が消えるまで、そのままお待ちください。参加確認、マイク、音声接続を自動で進め、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>最初からグループで話すことも、通話中に参加者欄の「人を追加」から相手を加えることもできます。追加する人は電話帳・履歴・8桁番号から選べます。番号で追加した相手も履歴と電話帳へ自動で保存されます。現在通話中の人は確認操作なしで同じグループへ移り、選ばれた人だけに参加確認が届きます。承認すると自動で通話に加わります。最大4人です。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>最初からグループで話すことも、通話中に参加者欄の「人を追加」から相手を加えることもできます。通話中は「最近」または「電話帳」から1人選びます。見つからない場合だけ「8桁番号で追加」を開いてください。選ばれた人だけに参加確認が届き、承認すると自動で通話に加わります。番号で追加した相手も履歴と電話帳へ保存されます。最大4人です。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は上部の接続状態の右に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは画面下の退室ボタンを1回押してください。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
 
@@ -4693,7 +4693,7 @@
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-participant-add-layout", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-simple-add-person", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4701,7 +4701,7 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-participant-add-layout";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-simple-add-person";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4746,7 +4746,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-participant-add-layout";
+    const APP_VERSION = "2026-10-06-simple-add-person";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -8225,7 +8225,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-participant-add-layout", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-simple-add-person", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -11900,7 +11900,7 @@
         "deviceContext: " + JSON.stringify({ profile: getDeviceProfile(), visibility: document.visibilityState, online: navigator.onLine !== false, connection: navigator.connection ? { effectiveType: navigator.connection.effectiveType || "", downlink: navigator.connection.downlink == null ? null : navigator.connection.downlink, rtt: navigator.connection.rtt == null ? null : navigator.connection.rtt, saveData: !!navigator.connection.saveData } : null }) + "\n" +
         "callLayout: " + JSON.stringify({ mode: getCallLayoutMode(), width: window.innerWidth, height: window.innerHeight }) + "\n" +
         "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberButtonRemoved: !document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterRemoved: !document.querySelector(".participant-mic-level"), muteButtonRemoved: !document.getElementById("muteBtn"), selfParticipantMuteToggle: true, participantPhoneTooltip: true, callTimeBesideConnection: !!document.querySelector("#connectionPill + #callElapsed"), leaveAnchoredBottom: true, singleTapLeave: true, groupDepartureNotice: true }) + "\n" +
-        "groupUpgrade: " + JSON.stringify({ available: !!document.getElementById("participantAddButton") && !document.getElementById("participantAddButton").disabled, entryPoint: "participants-first-item", sourceType: callId.startsWith("g_") ? "group" : callId.startsWith("n_") ? "one-to-one" : "standalone", pickerOpen: !!document.getElementById("callAddParticipantDialog")?.open, selectionSources: ["contacts","history","number"], autoSaveInviteeToContactsAndHistory: true, inviteScope: "selected-user-only", participantPricing: "live-participant-count", maxParticipants: 4 }) + "\n" +
+        "groupUpgrade: " + JSON.stringify({ available: !!document.getElementById("participantAddButton") && !document.getElementById("participantAddButton").disabled, entryPoint: "participants-first-item", sourceType: callId.startsWith("g_") ? "group" : callId.startsWith("n_") ? "one-to-one" : "standalone", pickerOpen: !!document.getElementById("callAddParticipantDialog")?.open, primarySources: ["recent","contacts"], numberEntryExpanded: document.getElementById("callAddNumberToggle")?.getAttribute("aria-expanded")==="true", selectedTarget: document.getElementById("callAddParticipantSelected")?.hidden===false, autoSaveInviteeToContactsAndHistory: true, inviteScope: "selected-user-only", participantPricing: "live-participant-count", maxParticipants: 4 }) + "\n" +
         "phoneNavigation: " + JSON.stringify({ activeTab: document.querySelector("[data-phone-tab][aria-current=\"page\"]")?.dataset.phoneTab || "", historyDateSections: document.querySelectorAll(".history-date-section").length, historySingleColumn: true }) + "\n" +
         "latest: " + latest.label + "\n" +
         "participantCountForEstimate: " + participantCount + "\n" +
