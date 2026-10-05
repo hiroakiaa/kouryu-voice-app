@@ -4280,7 +4280,7 @@
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-bidirectional-call-recovery">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-one-time-auto-join">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4693,7 +4693,7 @@
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-bidirectional-call-recovery", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-one-time-auto-join", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4701,7 +4701,7 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-bidirectional-call-recovery";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-one-time-auto-join";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4746,7 +4746,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-bidirectional-call-recovery";
+    const APP_VERSION = "2026-10-06-one-time-auto-join";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -4873,10 +4873,18 @@
 
     const params = new URLSearchParams(location.search);
     const AUTO_JOIN_INTENT_MAX_MS = 2 * 60 * 1000;
+    const AUTO_JOIN_SESSION_KEY = "wakaru-auto-join-session-v1";
     const startupCallParam = params.get("call") || "";
     const startupAutoJoinAt = Number(params.get("autoJoinAt") || 0);
+    let startupAutoJoinSession = false;
+    try {
+      const savedAutoJoin = JSON.parse(sessionStorage.getItem(AUTO_JOIN_SESSION_KEY) || "null");
+      startupAutoJoinSession = !!savedAutoJoin && savedAutoJoin.callId === startupCallParam
+        && Date.now() - Number(savedAutoJoin.at || 0) < 30000;
+      sessionStorage.removeItem(AUTO_JOIN_SESSION_KEY);
+    } catch (_) { try { sessionStorage.removeItem(AUTO_JOIN_SESSION_KEY); } catch (_) {} }
     const staleStartupCallId = /^n_|^g_/.test(startupCallParam) && params.get("autoJoin") === "1"
-      && (!startupAutoJoinAt || Date.now() - startupAutoJoinAt > AUTO_JOIN_INTENT_MAX_MS)
+      && (!startupAutoJoinSession || !startupAutoJoinAt || Date.now() - startupAutoJoinAt > AUTO_JOIN_INTENT_MAX_MS)
       ? startupCallParam : "";
     if (staleStartupCallId) {
       ["call", "support", "autoJoin", "autoJoinAt", "callRole", "contactName", "outgoingInvite"].forEach(function(key) { params.delete(key); });
@@ -8127,6 +8135,7 @@
         url.searchParams.set("callRole", "caller");
         url.searchParams.set("contactName", contact.name);
         url.searchParams.set("outgoingInvite", invitationRef.id);
+        sessionStorage.setItem(AUTO_JOIN_SESSION_KEY, JSON.stringify({ callId: nextCallId, at: Date.now() }));
         if (joined) {
           await Promise.race([markLeft().catch(function() {}), new Promise(function(resolve) { window.setTimeout(resolve, 1200); })]);
           stopLocalCall(false);
@@ -8327,7 +8336,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-bidirectional-call-recovery", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-one-time-auto-join", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -8435,11 +8444,13 @@
 
     function navigateToAcceptedCall(incoming) {
       const url = new URL(location.origin + location.pathname);
-      url.searchParams.set("call", ensureCallId(incoming.callId));
+      const acceptedCallId = ensureCallId(incoming.callId);
+      url.searchParams.set("call", acceptedCallId);
       url.searchParams.set("autoJoin", "1");
       url.searchParams.set("autoJoinAt", String(Date.now()));
       url.searchParams.set("callRole", "callee");
       url.searchParams.set("contactName", incoming.callerName || "相手");
+      sessionStorage.setItem(AUTO_JOIN_SESSION_KEY, JSON.stringify({ callId: acceptedCallId, at: Date.now() }));
       location.assign(url.toString());
     }
 
@@ -12015,7 +12026,7 @@
         "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberButtonRemoved: !document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterRemoved: !document.querySelector(".participant-mic-level"), muteButtonRemoved: !document.getElementById("muteBtn"), selfParticipantMuteToggle: true, participantPhoneTooltip: true, callTimeBesideConnection: !!document.querySelector("#connectionPill + #callElapsed"), leaveAnchoredBottom: true, singleTapLeave: true, groupDepartureNotice: true }) + "\n" +
         "groupUpgrade: " + JSON.stringify({ available: !!document.getElementById("participantAddButton") && !document.getElementById("participantAddButton").disabled, entryPoint: "participants-first-item", sourceType: callId.startsWith("g_") ? "group" : callId.startsWith("n_") ? "one-to-one" : "standalone", pickerOpen: !!document.getElementById("callAddParticipantDialog")?.open, selectionSources: ["recent","contacts","number"], activeSource: document.querySelector("[data-call-add-source][aria-selected=\"true\"]")?.dataset.callAddSource||"", selectedTarget: document.getElementById("callAddParticipantSelected")?.hidden===false, duplicateRecentPeopleMerged: true, groupHistoryPeopleIncluded: true, selectionCanBeCleared: true, autoSaveInviteeToContactsAndHistory: true, inviteScope: "selected-user-only", handoffState: pendingGroupHandoff ? "switching" : "idle", handoffTarget: pendingGroupHandoff?.nextCallId || "", handoffTraceId: pendingGroupHandoff?.traceId || lastGroupHandoffOutcome?.traceId || "", lastOutcome: lastGroupHandoffOutcome, interactionLockedWhileSwitching: true, oldCallKeptUntilJoined: true, rollbackOnFailure: true, sourceCloseRequiresAllOriginalMembers: true, participantPricing: "live-participant-count", maxParticipants: 4 }) + "\n" +
         "phoneReliability: " + JSON.stringify(numberCalls?.getReliabilityState?.() || {}) + "\n" +
-        "startupRouteRecovery: " + JSON.stringify({ staleCallRouteRemoved: !!staleStartupCallId, staleCallIdType: staleStartupCallId.startsWith("g_") ? "group" : staleStartupCallId.startsWith("n_") ? "one-to-one" : "none", autoJoinUrlConsumed: autoJoinUrlConsumed, autoJoinIntentMaxMs: AUTO_JOIN_INTENT_MAX_MS, quickInviteAutoOpenMaxMs: 120000 }) + "\n" +
+        "startupRouteRecovery: " + JSON.stringify({ staleCallRouteRemoved: !!staleStartupCallId, staleCallIdType: staleStartupCallId.startsWith("g_") ? "group" : staleStartupCallId.startsWith("n_") ? "one-to-one" : "none", startupAutoJoinSession: startupAutoJoinSession, autoJoinUrlConsumed: autoJoinUrlConsumed, autoJoinIntentMaxMs: AUTO_JOIN_INTENT_MAX_MS, quickInviteAutoOpenMaxMs: 120000 }) + "\n" +
         "phoneNavigation: " + JSON.stringify({ activeTab: document.querySelector("[data-phone-tab][aria-current=\"page\"]")?.dataset.phoneTab || "", historyDateSections: document.querySelectorAll(".history-date-section").length, historySingleColumn: true }) + "\n" +
         "latest: " + latest.label + "\n" +
         "participantCountForEstimate: " + participantCount + "\n" +
@@ -12188,5 +12199,6 @@
 <!-- kouryu voice standalone deploy marker 2026-08-07-001 -->
 </body>
 </html>
+
 
 
