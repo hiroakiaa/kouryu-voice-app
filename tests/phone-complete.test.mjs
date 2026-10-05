@@ -594,7 +594,7 @@ test('グループ詳細の共通開閉処理は詳細ボタンから参照で�
 
 test('着信応答ではアプリを再読み込みせず同じ画面で通話へ移る',()=>{
  assert.match(app,/function prepareCallNavigation\(\)/);
- assert.match(app,/for\(const id of \['numberIncoming','phoneOutgoingDialog','phoneDialConfirm','phoneCallResultDialog','groupDialog','phoneConfirmDialog'\]\)/);
+ assert.match(app,/for\(const id of \['numberIncoming','phoneOutgoingDialog','phoneDialConfirm','phoneCallResultDialog','groupDialog','phoneConfirmDialog','callAddParticipantDialog'\]\)/);
  assert.match(app,/go\(callId,supportMode,'callee'\)/);
  assert.match(html,/navigate:enterPhoneCallWithoutReload/);
  assert.match(html,/function enterPhoneCallWithoutReload\(id, supportMode, role\)/);
@@ -858,6 +858,21 @@ test('発信確定直後に呼び出し準備画面へ切り替える',()=>{
  assert.match(app,/busy=true;\$\('phoneOutgoingName'\)\.textContent=targetName;\$\('phoneOutgoingNumber'\)\.textContent='発信を準備しています'/);
  assert.match(app,/if\(!\$\('phoneOutgoingDialog'\)\.open\)\$\('phoneOutgoingDialog'\)\.showModal\(\);\s*try\{const check=await preflight/);
  assert.match(app,/\$\('phoneCancel'\)\.disabled=true/);
+});
+
+test('1対1と既存グループのどちらからも通話中に参加者を追加できる',()=>{
+ assert.match(html,/id="callAddParticipantDialog"/);
+ assert.match(html,/id="callAddParticipantSelect"/);
+ assert.match(app,/if\(state\(\)\.callId\.startsWith\('g_'\)\)/);
+ assert.match(app,/sourceCallId:oldCallId/);
+ assert.match(app,/handoffCallId:oldCallId/);
+ assert.match(app,/quickJoin:true/);
+ assert.match(app,/acceptCurrentCallHandoff/);
+ assert.match(html,/handoff:handoffPhoneCallWithoutReload/);
+ assert.match(html,/function handoffPhoneCallWithoutReload/);
+ assert.match(rules,/sourceCallId/);
+ assert.match(rules,/handoffCallId/);
+ assert.match(rules,/phoneGroups\/\$\(request\.resource\.data\.callId\)\)\.data\.sourceCallId == resource\.data\.callId/);
 });
 
 test('番号ボタンは電話パネルの横幅と高さに応じて押しやすい大きさへ変わる',()=>{

@@ -84,6 +84,10 @@ service cloud.firestore {
       allow create, update: if request.auth != null && request.resource.data.keys().hasOnly(['callId','until'])
         && request.resource.data.until > request.time && request.resource.data.until <= request.time + duration.value(270,'s')
         && (leaseFree(uid) || (resource != null && resource.data.callId == request.resource.data.callId)
+          || (request.auth.uid == uid && resource != null
+            && request.resource.data.callId.matches('^g_.*')
+            && get(/databases/$(database)/documents/phoneGroups/$(request.resource.data.callId)).data.sourceCallId == resource.data.callId
+            && groupMember(request.resource.data.callId))
           || (request.resource.data.callId.matches('^n_.*')
             && getAfter(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.callId)).data.ownerUid == request.auth.uid
             && (request.auth.uid == uid
@@ -169,15 +173,22 @@ service cloud.firestore {
       let g = get(/databases/$(database)/documents/phoneGroups/$(id)).data;
       return request.auth != null && g.active && request.auth.uid in g.members;
     }
-      function validGroup(d) { return d.keys().hasOnly(['name','ownerUid','members','memberNames','supportMode','active']) && shortName(d.name)
+      function validGroup(d) { return d.keys().hasOnly(['name','ownerUid','members','memberNames','supportMode','active','sourceCallId']) && shortName(d.name)
         && d.active is bool && d.members is list && d.members.size() >= 1 && d.members.size() <= 4 && d.members.toSet().size() == d.members.size() && d.ownerUid in d.members
         && (!('memberNames' in d) || d.memberNames is map)
-        && (!('supportMode' in d) || d.supportMode in ['support','plain']); }
+        && (!('supportMode' in d) || d.supportMode in ['support','plain'])
+        && (!('sourceCallId' in d) || d.sourceCallId.matches('^n_[a-zA-Z0-9_-]{10,40}$')); }
     match /phoneGroups/{id} {
       allow get: if request.auth != null;
       allow list: if request.auth != null && request.auth.uid in resource.data.members;
       allow create: if request.auth != null && id.matches('^g_[a-f0-9]{32}$') && validGroup(request.resource.data)
-        && request.resource.data.ownerUid == request.auth.uid && request.resource.data.members == [request.auth.uid] && request.resource.data.active;
+        && request.resource.data.ownerUid == request.auth.uid && request.resource.data.active
+        && (request.resource.data.members == [request.auth.uid]
+          || (request.resource.data.sourceCallId is string
+            && get(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.sourceCallId)).data.active
+            && request.auth.uid in get(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.sourceCallId)).data.members
+            && request.resource.data.supportMode == get(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.sourceCallId)).data.supportMode
+            && request.resource.data.members == get(/databases/$(database)/documents/numberVoiceCalls/$(request.resource.data.sourceCallId)).data.members));
       allow update: if request.auth != null && resource.data.active && validGroup(request.resource.data)
         && ((resource.data.ownerUid == request.auth.uid
               && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','active','supportMode'])
@@ -190,7 +201,7 @@ service cloud.firestore {
     }
     match /phoneGroupInvites/{id} {
       allow read: if request.auth != null && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
-      allow create, update: if request.auth != null && request.resource.data.keys().hasOnly(['groupId','to','from','fromName','name','memberCount','supportMode','status','createdAt','expiresAt'])
+      allow create, update: if request.auth != null && request.resource.data.keys().hasOnly(['groupId','to','from','fromName','name','memberCount','supportMode','status','createdAt','expiresAt','quickJoin','handoffCallId'])
         && groupMember(request.resource.data.groupId) && request.resource.data.from == request.auth.uid
         && id == request.resource.data.groupId + '_' + request.resource.data.to && shortName(request.resource.data.name)
         && (!('fromName' in request.resource.data) || shortName(request.resource.data.fromName))
@@ -198,6 +209,8 @@ service cloud.firestore {
         && (!('supportMode' in request.resource.data) || request.resource.data.supportMode in ['support','plain'])
         && (!('createdAt' in request.resource.data) || request.resource.data.createdAt is number)
         && (!('expiresAt' in request.resource.data) || request.resource.data.expiresAt is number)
+        && (!('quickJoin' in request.resource.data) || request.resource.data.quickJoin is bool)
+        && (!('handoffCallId' in request.resource.data) || request.resource.data.handoffCallId.matches('^n_[a-zA-Z0-9_-]{10,40}$'))
         && request.resource.data.status == 'invited';
       allow update: if request.auth != null && resource.data.from == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])

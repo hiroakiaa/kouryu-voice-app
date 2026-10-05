@@ -403,6 +403,8 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
  box-shadow:0 1px 7px rgba(47,77,43,.16)!important;
 }
 .group-detail-dialog .group-mode-toggle input:disabled+span{opacity:.7;cursor:default;}
+.call-add-participant-dialog{display:none;gap:14px}.call-add-participant-dialog[open]{display:grid}.call-add-participant-dialog>p{margin:0;line-height:1.65;color:#607057}.call-add-participant-dialog>label{display:grid;gap:7px;font-weight:800}.call-add-participant-dialog select{width:100%;min-height:50px;padding:9px 12px;border:1px solid #a4ce83;border-radius:13px;background:#fffef8;color:#30462d;font:inherit}.call-add-participant-actions{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:10px}.call-add-participant-actions button{width:100%}.call-add-participant-actions #callAddParticipantStart{background:#dff5ba;font-weight:800}
+@media(max-width:430px){.call-add-participant-actions{grid-template-columns:1fr}.call-add-participant-dialog{width:calc(100% - 18px);padding:18px 14px}}
 @media(max-width:390px){
  .group-detail-dialog .group-mode-toggle span{gap:5px;padding-inline:7px;font-size:12px;}
 }
