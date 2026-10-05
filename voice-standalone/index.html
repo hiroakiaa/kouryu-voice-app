@@ -4090,6 +4090,26 @@
       font-size:1.05rem;
       line-height:1;
     }
+    body.is-in-call .participants .participant-add .avatar-initial {
+      display:grid;
+      place-items:center;
+      align-content:center;
+      gap:.14rem;
+      width:100%;
+      height:100%;
+    }
+    body.is-in-call .participants .participant-add .avatar-initial i {font-size:1.05rem;}
+    body.is-in-call .participants .participant-add .avatar-initial small {
+      max-width:calc(100% - .45rem);
+      overflow:hidden;
+      color:#486640;
+      font-size:.5rem;
+      font-weight:900;
+      line-height:1.05;
+      text-align:center;
+      white-space:nowrap;
+    }
+    body.is-in-call .participants .participant-add:disabled {opacity:.48;cursor:not-allowed;}
     body.is-in-call .participants .participant-state-badge,
     body.is-in-call .participants .participant.is-self .participant-state-badge {
       left:50%;right:auto;top:calc(100% + 7px);bottom:auto;
@@ -4120,7 +4140,10 @@
     #tipsCloseBtn {flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;border:1px solid #cad8b9;border-radius:10px;background:#fffef8;color:#30462d;font-size:14px;box-shadow:none !important;outline:none;transform:none;}
     #tipsCloseBtn::before,#tipsCloseBtn::after {display:none;}
     #tipsCloseBtn:focus-visible {outline:2px solid #548d3c;outline-offset:3px;}
-    #callElapsed {font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;line-height:1.4;min-width:3.5em;text-align:right;}
+    #callElapsed {font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;line-height:1.4;min-width:3.5em;text-align:left;}
+    .connection-elapsed{display:none;color:var(--muted);font-weight:800;}
+    body.is-in-call .connection-elapsed{display:inline-flex;align-items:center;}
+    body.is-in-call .brand-subline{width:max-content;flex-wrap:nowrap;}
     .call-meta {display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:max-content;}
     .active-support-mode {display:inline-flex;align-items:center;min-height:30px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--accent-soft);color:var(--text);font-size:12px;font-weight:700;white-space:nowrap;}
     body.is-one-to-one.is-in-call .participants-card .participants {justify-content:center;align-items:center;gap:clamp(28px,10vw,92px);padding:12px 12px 28px;}
@@ -4164,12 +4187,12 @@
       body.is-in-call main>header{grid-area:call-header;align-self:start;min-width:0;}
       body.is-in-call main>.participants-card{grid-area:call-people;min-width:0;min-height:0;overflow:hidden;}
       body.is-in-call main>#captionsPanel{grid-area:call-content;min-width:0;min-height:0;height:100%;overflow:hidden;}
-      body.is-in-call main>.controls{grid-area:call-controls;align-self:start;grid-template-rows:auto auto;align-content:start;min-width:0;min-height:0;margin:0;overflow:visible;}
+      body.is-in-call main>.controls{grid-area:call-controls;align-self:stretch;display:grid;grid-template-rows:auto minmax(0,1fr) auto;align-content:stretch;min-width:0;min-height:0;height:100%;margin:0;overflow:visible;}
       body.is-in-call:not(.has-captions) main>.participants-card{grid-row:1/4;}
       body.is-in-call .secondary-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:.5rem;overflow:visible;padding:.08rem;}
       body.is-in-call .secondary-controls .audio-preset-control,
       body.is-in-call .secondary-controls button{width:100%;min-width:0;flex:none;}
-      body.is-in-call .controls>.primary-action{height:3.35rem;min-height:3.35rem;max-height:3.35rem;align-self:start;}
+      body.is-in-call .controls>.primary-action{grid-row:3;height:3.35rem;min-height:3.35rem;max-height:3.35rem;align-self:end;}
       body.is-in-call .captions-card .term-list{min-height:0;max-height:none;overflow:auto;}
       body.is-in-call .participants-card .participants{align-content:center;}
       body.is-in-call.is-one-to-one .participants-card .participants{min-height:8rem;}
@@ -4197,10 +4220,9 @@
       body.is-in-call .controls>.primary-action{height:2.85rem;min-height:2.85rem;max-height:2.85rem;}
     }
 
-    /* 通話時間とマイク操作を自分の参加者表示へ集約する。 */
+    /* 参加者アイコンへマイク操作と追加導線を集約する。 */
     .participants-card>h2{display:flex;align-items:center;justify-content:space-between;gap:.7rem;width:100%;}
     .participants-title{display:inline-flex;align-items:center;flex-wrap:wrap;gap:.42rem;min-width:0;}
-    .participants-call-time{position:absolute;left:50%;bottom:calc(100% + .36rem);transform:translateX(-50%);color:#65745f;font-size:.76rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;}
     body.is-in-call .participants .participant.is-self{width:4.15rem;height:4.15rem;flex-basis:4.15rem;bottom:2.4rem;}
     body.is-in-call .participants .participant.is-self .participant-state-badge{width:4.15rem;min-width:4.15rem;}
     body.is-in-call .participants .participant.is-self{cursor:pointer;}
@@ -4218,21 +4240,10 @@
       body.is-in-call .secondary-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;overflow:visible;padding:.05rem;}
       body.is-in-call .secondary-controls button,
       body.is-in-call .secondary-controls .audio-preset-control{width:100%;min-width:0;min-height:2.85rem;flex:none;padding:.42rem .5rem;white-space:normal;line-height:1.25;}
-      body.is-in-call .secondary-controls #phoneToGroup{grid-column:1/-1;}
       body.is-in-call .participants .participant.is-self{width:3.85rem;height:3.85rem;flex-basis:3.85rem;right:.45rem;bottom:2.35rem;}
       body.is-in-call .participants .participant.is-self .participant-state-badge{width:3.85rem;min-width:3.85rem;}
     }
 
-    body.is-in-call .call-own-number-button {
-      display:grid;
-      grid-template-columns:auto auto;
-      gap:.05rem .4rem;
-      min-width:0;
-      text-align:left;
-    }
-    body.is-in-call .call-own-number-button>span {grid-column:1;font-size:.66rem;font-weight:700;color:var(--muted);}
-    body.is-in-call .call-own-number-button>strong {grid-column:1;font-size:.82rem;letter-spacing:.08em;white-space:nowrap;}
-    body.is-in-call .call-own-number-button>i {grid-column:2;grid-row:1/3;align-self:center;}
 .phone-home-card {display:none;padding:20px;background:#fffef8;border:2px solid #8bc85b;border-radius:24px;color:#30462d;min-height:320px;overflow:auto;}
 .phone-home .phone-home-card {display:block;}
 .phone-home main>.participants-card,.phone-home main>#captionsPanel,.phone-home main>.controls {display:none!important;}
@@ -4254,11 +4265,9 @@
 .phone-note{font-size:13px;line-height:1.7;}#phoneMessage:empty{display:none;}#phoneMessage{background:#f3f9e8;padding:10px;border-radius:10px;}
 #groupInviteContact{max-width:100%;padding:10px;margin:10px;}
 #contactsBtn,#numberOpen,#newCallBtn{display:none!important;}
-body:not(.is-in-call) #phoneToGroup{display:none;}
 @media(max-width:480px){.phone-home-card{padding:14px;}.phone-tabs{gap:5px;}.phone-tabs button{padding:10px 7px;}.phone-form-row>button{flex:1;} .phone-home main{min-height:calc(100dvh - 16px);}}
 
     .phone-home .name-box{display:none;}
-    #phoneToGroup[hidden]{display:none!important;}
     .call-connect-overlay{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:24px;background:rgba(45,63,43,.68);backdrop-filter:blur(7px);opacity:0;visibility:hidden;transition:opacity .24s ease,visibility .24s ease}
     .call-connect-overlay.is-visible{opacity:1;visibility:visible}
     .call-connect-card{width:min(88vw,430px);padding:34px 28px 30px;border:3px solid var(--green);border-radius:32px;background:var(--paper);box-shadow:0 18px 55px rgba(34,72,31,.24);text-align:center}
@@ -4271,7 +4280,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-single-tap-leave">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-participant-add-layout">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4285,6 +4294,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         <h1>わかる電話</h1>
         <div class="brand-subline">
           <button id="connectionPill" class="connection-pill" type="button" aria-expanded="false" aria-label="接続状態の詳細"><i class="fa-solid fa-signal"></i><span>相手待ち</span></button>
+          <span id="callElapsed" class="connection-elapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span>
         </div>
       </div>
       <div class="header-actions">
@@ -4387,9 +4397,9 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       <span class="tip-item"><i class="fa-solid fa-message"></i><span><strong>連絡</strong><span>「対応する」には、いま自分が行う連絡が表示されます。以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます。タブレットやPCでは、連絡・履歴・電話帳・グループを横幅に合わせて2列で表示します。連絡の返信はカード上部の「返信内容を確認」を押すと、カード上部から対応ボタンの手前まで返信一覧が広がり、最後までスクロールできます。完了した連絡は「その他」から「対応に戻す」を選ぶと、お願い・急ぎなどの表示も戻ります。「連絡を作成する」から個人またはプロフィールの学校・所属グループを選んで送ります。自分が送った内容は「送った連絡」で確認できます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の準備表示が消えるまで、そのままお待ちください。参加確認、マイク、音声接続を自動で進め、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>最初からグループで話すことも、1対1の途中で「グループで話す」から相手を追加することもできます。追加する人は電話帳・履歴・8桁番号から選べます。現在通話中の人は確認操作なしで同じグループへ移り、選ばれた人だけに参加確認が届きます。承認すると自動で通話に加わります。最大4人です。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>最初からグループで話すことも、通話中に参加者欄の「人を追加」から相手を加えることもできます。追加する人は電話帳・履歴・8桁番号から選べます。番号で追加した相手も履歴と電話帳へ自動で保存されます。現在通話中の人は確認操作なしで同じグループへ移り、選ばれた人だけに参加確認が届きます。承認すると自動で通話に加わります。最大4人です。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
-      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は自分のアイコンの上に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。自分の8桁番号も通話操作からコピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは退室ボタンを1回押してください。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
+      <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は上部の接続状態の右に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは画面下の退室ボタンを1回押してください。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
 
     <section class="card participants-card">
       <h2><span class="participants-title"><i class="fa-solid fa-user-group"></i> 参加者 <span class="participant-limit">最大4人</span><span id="activeSupportMode" class="participant-limit">通常通話</span></span></h2>
@@ -4445,10 +4455,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
             <option value="nearby">近距離テスト</option>
           </select>
         </label>
-        <button id="callOwnNumberButton" class="call-own-number-button" type="button" disabled aria-label="自分の番号をコピー"><span>自分の番号</span><strong id="callOwnNumber">準備中…</strong><i class="fa-regular fa-copy" aria-hidden="true"></i></button>
         <button id="contactsBtn" type="button"><i class="fa-solid fa-address-book"></i><span>電話帳</span></button>
         <button id="reconnectBtn" type="button" disabled><i class="fa-solid fa-rotate"></i><span>再接続</span></button>
-        <button id="phoneToGroup" type="button">グループで話す</button>
         <button id="numberOpen" type="button">番号で電話</button>
         <button id="newCallBtn" type="button"><i class="fa-solid fa-plus"></i><span>新規URL</span></button>
       </div>
@@ -4685,7 +4693,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-single-tap-leave", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-participant-add-layout", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4693,7 +4701,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-single-tap-leave";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-participant-add-layout";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4738,7 +4746,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-single-tap-leave";
+    const APP_VERSION = "2026-10-06-participant-add-layout";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -5673,8 +5681,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       return [
         { userId, userName: selfName, phoneNumber: "12345678", muted, connected: true, speaking: !muted },
         { userId: "demo-teacher", userName: "Teacher", phoneNumber: "23456789", muted: false, connected: true, speaking: true },
-        { userId: "demo-student", userName: "Student", phoneNumber: "34567890", muted: true, connected: false, speaking: false },
-        { userId: "demo-guest", userName: "Guest", phoneNumber: "45678901", muted: false, connected: true, speaking: false }
+        { userId: "demo-student", userName: "Student", phoneNumber: "34567890", muted: true, connected: false, speaking: false }
       ];
     }
 
@@ -6005,7 +6012,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
           lastSeenAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
-        const ownPhoneNumber = String(document.getElementById("callOwnNumber")?.textContent || "").replace(/\D/g, "");
+        const ownPhoneNumber = String(document.getElementById("phoneOwnNumber")?.textContent || "").replace(/\D/g, "");
         if (/^\d{8}$/.test(ownPhoneNumber)) participantData.phoneNumber = ownPhoneNumber;
         if (callSlot) participantData.slot = callSlot;
         await setDoc(participantRef(userId), participantData, { merge: true });
@@ -7080,16 +7087,20 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const participantsCard = el.participants.closest(".participants-card");
       if (participantsCard) participantsCard.classList.toggle("is-empty", !items.length);
       const micHint = shouldShowMicUnlockHint() ? getMicUnlockHintHtml() : "";
+      const canOfferParticipantAdd = joined && (isDemoMode || /^(n_|g_)/.test(callId));
+      const participantAddHtml = canOfferParticipantAdd
+        ? '<button id="participantAddButton" class="participant participant-add" type="button"' + (items.length >= 4 ? ' disabled' : '') + ' aria-label="人を追加してグループ通話にする"><span class="avatar-initial"><i class="fa-solid fa-plus" aria-hidden="true"></i><small>人を追加</small></span></button>'
+        : '';
       if (!items.length) {
         const emptyTitle = joined ? "相手を待っています" : "";
         const emptyText = joined
           ? "相手が通話に参加すると、ここに表示されます。"
           : "グループ通話は最大4人です。";
         const emptyTip = joined
-          ? '<span class="empty-participants-tip"><i class="fa-solid fa-copy"></i>自分の番号は通話操作からコピーできます</span>'
+          ? '<span class="empty-participants-tip"><i class="fa-solid fa-user-plus"></i>「人を追加」から参加者を招待できます</span>'
           : "";
         el.participants.classList.remove("has-self");
-        el.participants.innerHTML = '<div class="empty-participants">' +
+        el.participants.innerHTML = participantAddHtml + '<div class="empty-participants">' +
           (emptyTitle ? '<strong>' + escapeHtml(emptyTitle) + '</strong>' : '') +
           '<span>' + escapeHtml(emptyText) + '</span>' +
           emptyTip +
@@ -7101,7 +7112,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       const selfItems = items.filter(function(item) { return item.userId === userId; });
       const otherItems = items.filter(function(item) { return item.userId !== userId; });
       el.participants.classList.toggle("has-self", !!selfItems.length);
-      el.participants.innerHTML = otherItems.concat(selfItems).map(function(item) {
+      el.participants.innerHTML = participantAddHtml + otherItems.concat(selfItems).map(function(item) {
         const isSelf = item.userId === userId;
         const name = getDisplayName(item.userName || "匿名さん");
         const initialHtml = isSelf
@@ -7115,7 +7126,6 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         const phoneNumber = /^\d{8}$/.test(String(item.phoneNumber || "")) ? String(item.phoneNumber) : "";
         const actionDescription = isSelf ? (item.muted ? "押すとマイクをONにします" : "押すとミュートにします") : "押すと名前と番号を表示します";
         return '<button class="' + classes.join(" ") + '" type="button" data-participant-id="' + escapeHtml(String(item.userId || "")) + '" data-name="' + escapeHtml(name) + '" data-number="' + escapeHtml(phoneNumber) + '" data-status="' + escapeHtml(statusMeta.detail) + '"' + (isSelf ? ' aria-pressed="' + (item.muted ? "true" : "false") + '"' : ' aria-haspopup="true"') + ' aria-label="' + escapeHtml(name + " " + statusMeta.detail + "。" + actionDescription) + '">' +
-          (isSelf ? '<span id="callElapsed" class="participants-call-time" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span>' : '') +
           '<span class="avatar-initial">' + initialHtml + '</span>' +
           '<span class="speaking-bars" aria-hidden="true"><span></span><span></span><span></span></span>' +
           '<i class="fa-solid fa-user avatar-mark ' + statusClass + '"></i>' +
@@ -7219,7 +7229,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
     }
 
     function getParticipantsRenderSignature(items) {
-      const hintKey = shouldShowMicUnlockHint() ? "hint-on" : "hint-off";
+      const hintKey = (shouldShowMicUnlockHint() ? "hint-on" : "hint-off") + ":" + (joined ? "joined" : "idle") + ":" + callId;
       if (!items || !items.length) return "empty:" + hintKey;
       return hintKey + "|" + items.map(function(item) {
         return [
@@ -8215,7 +8225,7 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-single-tap-leave", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-participant-add-layout", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -10256,6 +10266,10 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
       if (!button) return;
       event.stopPropagation();
       hideCallTips();
+      if (button.classList.contains("participant-add")) {
+        window.dispatchEvent(new CustomEvent("wakaru-open-call-add"));
+        return;
+      }
       if (button.classList.contains("is-self")) {
         hideAvatarTooltip();
         if (isDemoMode) {
@@ -11885,8 +11899,8 @@ body:not(.is-in-call) #phoneToGroup{display:none;}
         "capturedAt: " + new Date().toISOString() + "\n" +
         "deviceContext: " + JSON.stringify({ profile: getDeviceProfile(), visibility: document.visibilityState, online: navigator.onLine !== false, connection: navigator.connection ? { effectiveType: navigator.connection.effectiveType || "", downlink: navigator.connection.downlink == null ? null : navigator.connection.downlink, rtt: navigator.connection.rtt == null ? null : navigator.connection.rtt, saveData: !!navigator.connection.saveData } : null }) + "\n" +
         "callLayout: " + JSON.stringify({ mode: getCallLayoutMode(), width: window.innerWidth, height: window.innerHeight }) + "\n" +
-        "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberVisible: !!document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterRemoved: !document.querySelector(".participant-mic-level"), muteButtonRemoved: !document.getElementById("muteBtn"), selfParticipantMuteToggle: true, participantPhoneTooltip: true, callTimeAboveSelf: !!document.querySelector(".participant.is-self #callElapsed"), singleTapLeave: true, groupDepartureNotice: true }) + "\n" +
-        "groupUpgrade: " + JSON.stringify({ available: !!document.getElementById("phoneToGroup") && !document.getElementById("phoneToGroup").hidden, sourceType: callId.startsWith("g_") ? "group" : callId.startsWith("n_") ? "one-to-one" : "standalone", pickerOpen: !!document.getElementById("callAddParticipantDialog")?.open, selectionSources: ["contacts","history","number"], inviteScope: "selected-user-only", participantPricing: "live-participant-count", maxParticipants: 4 }) + "\n" +
+        "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberButtonRemoved: !document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterRemoved: !document.querySelector(".participant-mic-level"), muteButtonRemoved: !document.getElementById("muteBtn"), selfParticipantMuteToggle: true, participantPhoneTooltip: true, callTimeBesideConnection: !!document.querySelector("#connectionPill + #callElapsed"), leaveAnchoredBottom: true, singleTapLeave: true, groupDepartureNotice: true }) + "\n" +
+        "groupUpgrade: " + JSON.stringify({ available: !!document.getElementById("participantAddButton") && !document.getElementById("participantAddButton").disabled, entryPoint: "participants-first-item", sourceType: callId.startsWith("g_") ? "group" : callId.startsWith("n_") ? "one-to-one" : "standalone", pickerOpen: !!document.getElementById("callAddParticipantDialog")?.open, selectionSources: ["contacts","history","number"], autoSaveInviteeToContactsAndHistory: true, inviteScope: "selected-user-only", participantPricing: "live-participant-count", maxParticipants: 4 }) + "\n" +
         "phoneNavigation: " + JSON.stringify({ activeTab: document.querySelector("[data-phone-tab][aria-current=\"page\"]")?.dataset.phoneTab || "", historyDateSections: document.querySelectorAll(".history-date-section").length, historySingleColumn: true }) + "\n" +
         "latest: " + latest.label + "\n" +
         "participantCountForEstimate: " + participantCount + "\n" +
