@@ -864,11 +864,12 @@ test('1対1と既存グループのどちらからも通話中に参加者を追
  assert.match(html,/id="callAddParticipantDialog"/);
  assert.match(html,/data-call-add-source="contacts"/);
  assert.match(html,/data-call-add-source="history"/);
- assert.doesNotMatch(html,/data-call-add-source="number"/);
- assert.match(html,/id="callAddNumberToggle"[\s\S]*?8桁番号で追加/);
+ assert.match(html,/data-call-add-source="number"/);
+ assert.match(html,/番号入力[\s\S]*?8桁番号から探す/);
  assert.match(html,/最近話した人/);
  assert.match(html,/登録した人/);
  assert.match(html,/id="callAddParticipantNumber"/);
+ assert.match(html,/id="callAddParticipantClear"[\s\S]*?選択解除/);
  assert.match(app,/if\(state\(\)\.callId\.startsWith\('g_'\)\)/);
  assert.match(app,/sourceCallId:oldCallId/);
  assert.match(app,/quickJoin:true/);
@@ -886,12 +887,18 @@ test('1対1と既存グループのどちらからも通話中に参加者を追
 });
 
 test('参加者欄から人を追加し招待相手を電話帳と履歴へ保存する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.doesNotMatch(html,/id="phoneToGroup"/);
  assert.match(html,/id="participantAddButton"[\s\S]*?人を追加/);
  assert.match(html,/wakaru-open-call-add/);
  assert.match(app,/window\.addEventListener\('wakaru-open-call-add',openCallAddParticipant\)/);
- assert.match(app,/function toggleCallAddNumber\(force\)/);
- assert.match(html,/primarySources:\s*\["recent","contacts"\]/);
+ assert.doesNotMatch(app,/function toggleCallAddNumber\(force\)/);
+ assert.match(html,/selectionSources:\s*\["recent","contacts","number"\]/);
+ assert.match(app,/function sameCallAddTarget\(a,b\)/);
+ assert.match(app,/function clearCallAddTarget\(\)/);
+ assert.match(app,/for\(const person of item\.participants\|\|\[\]\)/);
+ assert.match(app,/function groupHistoryParticipants\(group\)/);
+ assert.match(css,/\.call-add-choice-list\[hidden\],\.call-add-number\[hidden\]\{display:none!important\}/);
  assert.match(app,/async function rememberGroupAddedPerson\(target\)/);
  assert.match(app,/contacts',number\),\{number,uid:target\.uid,name:displayName,reading,organization,department,favorite:false\}/);
  assert.match(app,/history\('group-add_'/);
