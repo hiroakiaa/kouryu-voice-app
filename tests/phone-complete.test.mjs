@@ -28,6 +28,18 @@ test('起動直後の診断表示は複数タブ管理の初期化完了前で�
  assert.doesNotMatch(html,/"tabCoordination: " \+ JSON\.stringify\(singleTabCoordinator\.getState\(\)\)/);
 });
 
+test('実機UX評価で見つかった迷いや重なりをまとめて防ぐ',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/#phoneSaveName\{position:sticky/);
+ assert.match(css,/\.school-notice-compose \.notice-send-button\{position:sticky/);
+ assert.match(css,/@media\(max-width:600px\)[\s\S]*?\.contact-row-menu\.is-visible\{position:fixed/);
+ assert.match(css,/#callTips \.tip-item>span>span\{display:none/);
+ assert.match(css,/body\.is-in-call \.participants-card \.participants\{display:grid!important/);
+ assert.match(html,/知りたい項目を押すと、短い説明が開きます。/);
+ assert.match(html,/dialog\.toggleAttribute\('inert',!open\)/);
+ assert.match(html,/item\.setAttribute\('aria-expanded','false'\)/);
+});
+
 
 test('プロフィール設定はスマホ幅で横にはみ出さず項目ごとに読みやすく並ぶ',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
