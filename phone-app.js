@@ -4,7 +4,7 @@ import {doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,collection,query,where,
 import {getAuth,EmailAuthProvider,linkWithCredential,signInWithEmailAndPassword,sendPasswordResetEmail,sendEmailVerification,signOut} from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js';
 import {normalizeNumber,formatNumber} from './number-call-policy.js';
 import {isLeaseLive,canJoinGroup} from './phone-policy.js';
-import {historyLabels,historyStatusLabel,formatDuration,groupHistory,groupHistoryDates,filterPhoneItems,preferredHistoryName,formatHistoryDate,frequentHistoryTargets,groupContacts} from './phone-presentation.js?v=2026-10-06-stress-polish';
+import {historyLabels,historyStatusLabel,formatDuration,groupHistory,groupHistoryDates,filterPhoneItems,preferredHistoryName,formatHistoryDate,frequentHistoryTargets,groupContacts} from './phone-presentation.js?v=2026-10-06-leave-tabs-polish';
 export function createPhoneApp({db,user,state,name,navigate,handoff=async(id,supportMode,role)=>navigate(id,supportMode,role),warm=()=>{},phase=()=>{},stop,remoteEnded=async()=>{stop();},notice,push,notifications={},preflight=async()=>({ok:true}),usage:report=()=>{},trace=()=>{}}){
  const NOTICE_PERMISSION_KEY='wakaru-phone-notice-permissions-v1';let noticePermissions={allowAll:true,allowGroup:true,allowUrgent:true};try{noticePermissions={...noticePermissions,...JSON.parse(localStorage.getItem(NOTICE_PERMISSION_KEY)||'{}')}}catch(_){}
  const $=id=>document.getElementById(id),uid=user.uid,auth=getAuth(db.app),params=new URLSearchParams(location.search);
