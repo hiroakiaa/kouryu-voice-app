@@ -84,10 +84,15 @@ test('phoneHomeは縦スクロールを邪魔せず左右スワイプで各タ�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(app,/function bindPhoneSwipe\(\)/);
  assert.match(app,/\{tab:'notices',filter:'action'\},\{tab:'notices',filter:'sent'\},\{tab:'dial'\},\{tab:'history'\},\{tab:'contacts'\},\{tab:'groups'\}/);
- assert.match(app,/Math\.abs\(dx\)<55\|\|Math\.abs\(dx\)<Math\.abs\(dy\)\*1\.35/);
+ assert.match(app,/distanceThreshold=Math\.min\(96,Math\.max\(48,width\*\.16\)\)/);
+ assert.match(app,/event\.preventDefault\(\)/);
  assert.match(app,/button,a,input,textarea,select,label,summary,dialog/);
  assert.match(app,/bindPhoneSwipe\(\)/);
  assert.match(css,/phone-section-swipe-next/);
+ assert.match(app,/addEventListener\('touchmove'/);
+ assert.match(app,/phone-section-dragging/);
+ assert.match(app,/velocity/);
+ assert.match(css,/phone-section-drag-return/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
 test('初回は番号を自動準備し名前と番号が保存されるまでプロフィールを閉じない',()=>{
