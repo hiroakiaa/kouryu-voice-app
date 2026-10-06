@@ -72,6 +72,13 @@ test('保存済みプロフィールを起動直後から表示し変更の保�
  assert.match(css,/#phoneSaveName:disabled/);
  assert.match(css,/@media\(max-width:540px\)[\s\S]*?min-height:44px/);
 });
+test('電話と連絡のタブ領域・スクロールバーをアプリ共通色へそろえる',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/\.phone-home-card>\.phone-tabs\{[^}]*background:var\(--panel-raised\)/);
+ assert.match(css,/\.phone-home-card>\.phone-dial-shortcuts,\.phone-home-card>\.phone-notice-filters\{[^}]*background:var\(--panel-soft\)/);
+ assert.match(css,/scrollbar-color:var\(--line-strong\) var\(--panel-soft\)/);
+ assert.match(css,/\[role="tabpanel"\]::\-webkit-scrollbar-thumb[\s\S]*?background:var\(--line-strong\)/);
+});
 test('初回は番号を自動準備し名前と番号が保存されるまでプロフィールを閉じない',()=>{
  assert.match(html,/id="profileOwnNumber"/);
  assert.match(html,/id="phoneName" maxlength="8"/);

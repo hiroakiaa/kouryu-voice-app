@@ -142,13 +142,20 @@ test("通話中の終了ボタンは接続状態にかかわらず必ず退室�
   const clickEnd = rootHtml.indexOf('el.reconnect.addEventListener("click"', clickStart);
   const handler = rootHtml.slice(clickStart, clickEnd);
   assert.match(handler, /if \(leaveInProgress\) return/);
-  assert.match(handler, /if \(joined \|\| isLocallyInCall\(\) \|\| leaveControlVisible\) \{\s*leaveCall\(\);\s*\}/);
+  assert.match(handler, /if \(leaveControlIsActive\(\)\) \{\s*activateLeaveControl\("click"\);\s*\}/);
   assert.doesNotMatch(handler, /reconnectCall\(\)/);
   assert.match(rootHtml, /joined = false;\s*if \(returnToPhoneHome !== false && typeof callId !== "undefined" && \/\^n_\|\^g_\/\.test\(callId\)\) \{[\s\S]*?document\.body\.classList\.add\("phone-home"\)[\s\S]*?history\.replaceState\(\{ phoneHome: true \}/);
 });
 
+test("タッチ端末の退室は最初の短いタップを直接処理しclickとの二重実行を防ぐ", () => {
+  assert.match(rootHtml, /el\.join\.addEventListener\("pointerdown"[\s\S]*?event\.pointerType !== "touch"/);
+  assert.match(rootHtml, /el\.join\.addEventListener\("pointerup"[\s\S]*?Math\.hypot[\s\S]*?activateLeaveControl\("touch-pointer"\)/);
+  assert.match(rootHtml, /function activateLeaveControl\(source\) \{\s*if \(leaveInProgress \|\| !leaveControlIsActive\(\)\) return false;/);
+  assert.match(rootHtml, /touchLeaveFallback: true, leaveAttemptCount: leaveAttemptCount, lastLeaveActivation: lastLeaveActivation/);
+});
+
 test("マイク接続が生きている間は参加済みとして退室ボタンを表示する", () => {
-  assert.match(rootHtml, /joined \|\| isLocallyInCall\(\) \|\| leaveControlVisible/);
+  assert.match(rootHtml, /return joined \|\| isLocallyInCall\(\) \|\| el\.join\.classList\.contains\("is-leaving"\)/);
   assert.match(rootHtml, /const inCall = isLocallyInCall\(\);\s*document\.body\.classList\.toggle\("is-in-call", inCall\)/);
   assert.match(rootHtml, /localStream\.getAudioTracks\(\)\.some/);
   assert.match(phoneApp, /inThisCall=state\(\)\.joined&&state\(\)\.callId===id/);
@@ -159,7 +166,7 @@ test("グループ通話は1回で退室し残った参加者へ名前付きで�
   assert.match(rootHtml, /function leaveCall\(\) \{\s*if \(leaveInProgress\) return;/);
   assert.match(rootHtml, /queueParticipantNotice\(name \+ "さんが退室しました。"\)/);
   assert.match(rootHtml, /callId\.startsWith\("n_"\) && remainingRemoteCount === 0/);
-  assert.match(rootHtml, /singleTapLeave: true, groupDepartureNotice: true/);
+  assert.match(rootHtml, /singleTapLeave: true[\s\S]*?groupDepartureNotice: true/);
 });
 
 test("参加操作の通信待ちは回転表示を保ち、完了後に退室表示へ切り替える", () => {
