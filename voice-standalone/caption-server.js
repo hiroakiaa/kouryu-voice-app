@@ -11,9 +11,9 @@ export function encodeWav(samples) {
 }
 
 export function createServerRecognition({ endpoint, getStream, getToken, fetcher = fetch, onUsage = () => {},
-  Context = window.AudioContext || window.webkitAudioContext, Worklet = window.AudioWorkletNode }) {
+  onDiagnostic = () => {}, Context = window.AudioContext || window.webkitAudioContext, Worklet = window.AudioWorkletNode }) {
   return class ServerRecognition {
-    constructor() { this.active = false; this.queue = []; this.sending = false; this.index = 0; this.getHints = () => []; }
+    constructor() { this.active = false; this.queue = []; this.sending = false; this.index = 0; this.getHints = () => []; this.resumeAttempts = 0; }
     setHints(getHints) { this.getHints = typeof getHints === 'function' ? getHints : () => []; }
     start() {
       this.active = true;
@@ -36,17 +36,28 @@ export function createServerRecognition({ endpoint, getStream, getToken, fetcher
         this.node = new Worklet(this.context, 'caption-pcm');
         this.node.port.onmessage = event => {
           if (!this.active) return;
-          if (this.queue.length >= 2) { event.data.fill(0); this.fail('overloaded'); return; }
+          // A slow transcription request must not disable detection for the rest
+          // of the call. Discard the oldest unsent fragment and keep listening.
+          if (this.queue.length >= 2) {
+            const dropped=this.queue.shift();dropped?.samples?.fill(0);
+            onDiagnostic({type:'audio-drop',reason:'backpressure'});
+          }
           this.queue.push({ samples: event.data, at: Date.now() });
           void this.drain();
         };
         this.source.connect(this.node); this.node.connect(this.context.destination);
-        this.context.onstatechange = () => {
-          if (this.active && this.context.state !== 'running') this.fail('interrupted');
-        };
-        if (this.context.state !== 'running') { this.fail('interrupted'); return; }
-        clearTimeout(this.startTimer);this.onstart?.();
+        this.context.onstatechange = () => { if (this.active && this.context.state !== 'running') void this.resumeContext(); };
+        if (this.context.state !== 'running') { await this.resumeContext(); if (!this.active || this.context.state !== 'running') return; }
+        clearTimeout(this.startTimer);onDiagnostic({type:'recognition-start'});this.onstart?.();
       } catch (_) { if (this.active) this.fail('audio-capture'); }
+    }
+    async resumeContext() {
+      if (!this.active || !this.context || this.context.state === 'closed') return;
+      const attempt=++this.resumeAttempts;onDiagnostic({type:'audio-resume',attempt,state:this.context.state});
+      try { await this.context.resume(); } catch (_) {}
+      if (!this.active || this.context.state === 'running') { this.resumeAttempts=0; return; }
+      if (attempt < 4) { clearTimeout(this.resumeTimer);this.resumeTimer=setTimeout(()=>void this.resumeContext(),Math.min(1600,250*attempt));return; }
+      this.fail('interrupted');
     }
     async drain() {
       if (this.sending || !this.active || !this.queue.length) return;
@@ -68,7 +79,12 @@ export function createServerRecognition({ endpoint, getStream, getToken, fetcher
             ...(encodedHints ? { 'X-Term-Hints': encodedHints } : {}) },
           body, signal: controller.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'
         });
-        if (!response.ok) { this.fail(response.status === 429 ? 'quota' : response.status === 401 ? 'auth' : 'network'); return; }
+        if (!response.ok) {
+          const error=response.status === 429 ? 'quota' : response.status === 401 ? 'auth' : 'network';
+          onDiagnostic({type:'request-error',reason:error});
+          if(error==='quota')this.fail(error);
+          return;
+        }
         const data = await response.json();
         if (!this.active || controller.signal.aborted || Date.now() - chunk.at > 15000) return;
         const text = typeof data.text === 'string' ? data.text.trim().slice(0, 600) : '';
@@ -78,15 +94,15 @@ export function createServerRecognition({ endpoint, getStream, getToken, fetcher
           const results = { length: this.index + 1, [this.index]: result };
           this.onresult?.({ resultIndex: this.index++, results });
         }
-      } catch (_) { if (this.active) this.fail('network'); }
+      } catch (_) { if (this.active) onDiagnostic({type:'request-error',reason:'network'}); }
       finally {
         chunk.samples.fill(0); clearTimeout(timeout); this.request = null; this.sending = false;
         if (this.active) void this.drain();
       }
     }
-    fail(error) { const notify = this.onerror; this.abort(); notify?.({ error }); }
+    fail(error) { onDiagnostic({type:'recognition-stop',reason:error});const notify = this.onerror; this.abort(); notify?.({ error }); }
     abort() {
-      clearTimeout(this.startTimer);
+      clearTimeout(this.startTimer);clearTimeout(this.resumeTimer);
       this.active = false; this.request?.abort();
       for (const chunk of this.queue) chunk.samples.fill(0); this.queue=[];
       if (this.node) { this.node.port.onmessage = null; this.node.port.postMessage('stop'); this.node.disconnect(); }
