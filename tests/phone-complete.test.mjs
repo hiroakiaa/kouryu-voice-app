@@ -15,12 +15,17 @@ test('同じブラウザの複数タブでは通話機能を一つのタブだ�
  assert.match(html,/await singleTabCoordinator\.start\(\)/);
  assert.match(html,/onReleaseRequested: releaseCurrentTabRuntime/);
  assert.match(html,/onOwnershipLost: releaseCurrentTabRuntime/);
- assert.match(html,/"tabCoordination: " \+ JSON\.stringify\(singleTabCoordinator\.getState\(\)\)/);
+ assert.match(html,/"tabCoordination: " \+ JSON\.stringify\(window\.wakaruSingleTabCoordinator\?\.getState\?\.\(\)/);
  assert.match(html,/同じブラウザでアプリを2つ開いた場合/);
  assert.match(tabCoordinator,/BroadcastChannel/);
  assert.match(tabCoordinator,/takeover-request/);
  assert.match(tabCoordinator,/leaseTimeoutMs = 7000/);
  assert.match(tabCoordinator,/window\.addEventListener\("storage", handleStorage\)/);
+});
+
+test('起動直後の診断表示は複数タブ管理の初期化完了前でも停止しない',()=>{
+ assert.match(html,/window\.wakaruSingleTabCoordinator\?\.getState\?\.\(\) \|\| \{ role: "initializing" \}/);
+ assert.doesNotMatch(html,/"tabCoordination: " \+ JSON\.stringify\(singleTabCoordinator\.getState\(\)\)/);
 });
 
 
