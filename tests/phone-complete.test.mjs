@@ -79,6 +79,17 @@ test('電話と連絡のタブ領域・スクロールバーをアプリ共通�
  assert.match(css,/scrollbar-color:var\(--line-strong\) var\(--panel-soft\)/);
  assert.match(css,/\[role="tabpanel"\]::\-webkit-scrollbar-thumb[\s\S]*?background:var\(--line-strong\)/);
 });
+
+test('phoneHomeは縦スクロールを邪魔せず左右スワイプで各タブを順に切り替える',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/function bindPhoneSwipe\(\)/);
+ assert.match(app,/\{tab:'notices',filter:'action'\},\{tab:'notices',filter:'sent'\},\{tab:'dial'\},\{tab:'history'\},\{tab:'contacts'\},\{tab:'groups'\}/);
+ assert.match(app,/Math\.abs\(dx\)<55\|\|Math\.abs\(dx\)<Math\.abs\(dy\)\*1\.35/);
+ assert.match(app,/button,a,input,textarea,select,label,summary,dialog/);
+ assert.match(app,/bindPhoneSwipe\(\)/);
+ assert.match(css,/phone-section-swipe-next/);
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+});
 test('初回は番号を自動準備し名前と番号が保存されるまでプロフィールを閉じない',()=>{
  assert.match(html,/id="profileOwnNumber"/);
  assert.match(html,/id="phoneName" maxlength="8"/);
