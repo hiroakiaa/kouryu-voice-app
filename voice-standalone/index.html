@@ -4290,7 +4290,7 @@
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-app-close-leave">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-startup-diagnostic-fix">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4704,7 +4704,7 @@
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-app-close-leave", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-startup-diagnostic-fix", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4712,8 +4712,8 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-app-close-leave";
-    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-06-app-close-leave";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-startup-diagnostic-fix";
+    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-06-startup-diagnostic-fix";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4758,7 +4758,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-app-close-leave";
+    const APP_VERSION = "2026-10-06-startup-diagnostic-fix";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -8403,7 +8403,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-app-close-leave", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-startup-diagnostic-fix", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -12093,7 +12093,7 @@
         "callControls: " + JSON.stringify({ phoneHomeVisible: false, shareButtonVisible: false, ownNumberButtonRemoved: !document.getElementById("callOwnNumberButton"), muteState: muted ? "muted" : "live", audioHealthIntegrated: !document.getElementById("audioHealth"), micMeterRemoved: !document.querySelector(".participant-mic-level"), muteButtonRemoved: !document.getElementById("muteBtn"), selfParticipantMuteToggle: true, participantPhoneTooltip: true, callTimeBesideConnection: !!document.querySelector("#connectionPill + #callElapsed"), leaveAnchoredBottom: true, singleTapLeave: true, groupDepartureNotice: true, appCloseActsAsLeave: true, backgroundKeepsCall: true, pageExitPersistedGuard: true, pageExitLeaveStarted: pageExitLeaveStarted }) + "\n" +
         "groupUpgrade: " + JSON.stringify({ available: !!document.getElementById("participantAddButton") && !document.getElementById("participantAddButton").disabled, entryPoint: "participants-first-item", sourceType: callId.startsWith("g_") ? "group" : callId.startsWith("n_") ? "one-to-one" : "standalone", pickerOpen: !!document.getElementById("callAddParticipantDialog")?.open, selectionSources: ["recent","contacts","number"], activeSource: document.querySelector("[data-call-add-source][aria-selected=\"true\"]")?.dataset.callAddSource||"", selectedTarget: document.getElementById("callAddParticipantSelected")?.hidden===false, duplicateRecentPeopleMerged: true, groupHistoryPeopleIncluded: true, selectionCanBeCleared: true, autoSaveInviteeToContactsAndHistory: true, inviteScope: "selected-user-only", handoffState: pendingGroupHandoff ? "switching" : "idle", handoffTarget: pendingGroupHandoff?.nextCallId || "", handoffTraceId: pendingGroupHandoff?.traceId || lastGroupHandoffOutcome?.traceId || "", lastOutcome: lastGroupHandoffOutcome, interactionLockedWhileSwitching: true, oldCallKeptUntilJoined: true, rollbackOnFailure: true, sourceCloseRequiresAllOriginalMembers: true, participantPricing: "live-participant-count", maxParticipants: 4 }) + "\n" +
         "phoneReliability: " + JSON.stringify(numberCalls?.getReliabilityState?.() || {}) + "\n" +
-        "tabCoordination: " + JSON.stringify(singleTabCoordinator.getState()) + "\n" +
+        "tabCoordination: " + JSON.stringify(window.wakaruSingleTabCoordinator?.getState?.() || { role: "initializing" }) + "\n" +
         "startupRouteRecovery: " + JSON.stringify({ staleCallRouteRemoved: !!staleStartupCallId, staleCallIdType: staleStartupCallId.startsWith("g_") ? "group" : staleStartupCallId.startsWith("n_") ? "one-to-one" : "none", startupAutoJoinSession: startupAutoJoinSession, autoJoinUrlConsumed: autoJoinUrlConsumed, autoJoinIntentMaxMs: AUTO_JOIN_INTENT_MAX_MS, quickInviteAutoOpenMaxMs: 120000 }) + "\n" +
         "phoneNavigation: " + JSON.stringify({ activeTab: document.querySelector("[data-phone-tab][aria-current=\"page\"]")?.dataset.phoneTab || "", historyDateSections: document.querySelectorAll(".history-date-section").length, historySingleColumn: true }) + "\n" +
         "latest: " + latest.label + "\n" +
