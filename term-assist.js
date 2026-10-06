@@ -23,7 +23,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
   const form=node('form'), input=node('input'), submit=node('submit'), searchToggle=node('search-toggle');
   const entries=new Map(), cache=new Map();
   let enabled=false, speech=null, generation=0, failed=false, selected=null, request=null, requestId=0, timeout=null, expiry=null;
-  let sequence=0,lastJoined=null,searchOpen=false;
+  let sequence=0,lastJoined=null,searchOpen=false,restartTimer=null,restartAttempts=0;
   const canLookup=()=>getCall().joined;
   const instance=Math.random().toString(36).slice(2,10);
   const offText='';
@@ -41,7 +41,7 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
     if(dialog.open)dialog.close();dialog.hidden=true;
   }
   function stopSpeech() {
-    generation++;discovery.stop();
+    generation++;clearTimeout(restartTimer);restartTimer=null;discovery.stop();
     if(speech){const old=speech;speech=null;old.onresult=old.onstart=old.onerror=old.onend=null;try{old.abort()}catch(_){}}
   }
   function render() {
@@ -112,15 +112,27 @@ export function createTermAssist({root, getCall, send, speakerName, Recognition,
       current.onstart=()=>{if(token===generation)status.textContent='検出中'};
       current.onresult=event=>{
         if(token!==generation||!enabled||!getCall().joined||getCall().muted)return;
+        restartAttempts=0;
         for(let i=event.resultIndex;i<event.results.length;i++){const r=event.results[i];if(r?.isFinal)publish(r[0]?.transcript)}
       };
-      const failure=event=>{if(token!==generation)return;stopSpeech();failed=true;toggle.hidden=false;status.textContent=event?.error==='quota'?'自動検出の利用上限に達しました。通話と受信は続けられます。':'検出が止まりました。「検出を再開」を押してください。'};
-      current.onerror=failure;current.onend=failure;current.start();
+      const failure=event=>{
+        if(token!==generation)return;
+        const reason=event?.error||'ended',fatal=reason==='quota'||reason==='auth';
+        stopSpeech();
+        if(!fatal&&enabled&&getCall().joined&&!getCall().muted&&restartAttempts<4){
+          const wait=Math.min(2400,350*Math.pow(2,restartAttempts++));
+          status.textContent='検出を自動で再開しています…';
+          restartTimer=setTimeout(()=>{restartTimer=null;failed=false;sync()},wait);
+          return;
+        }
+        failed=true;toggle.hidden=false;status.textContent=reason==='quota'?'自動検出の利用上限に達しました。通話と受信は続けられます。':reason==='auth'?'検出の認証を更新できませんでした。「検出を再開」を押してください。':'検出が止まりました。「検出を再開」を押してください。';
+      };
+      current.onerror=failure;current.onend=()=>failure({error:'ended'});current.start();
     }catch(_){stopSpeech();failed=true;toggle.hidden=false;status.textContent='検出を開始できません。「検出を再開」を押してください。'}
   }
   toggle.addEventListener('click',()=>{
     if(!getCall().joined||!failed)return;
-    failed=false;toggle.hidden=true;sync();
+    failed=false;restartAttempts=0;toggle.hidden=true;sync();
   });
   searchToggle.addEventListener('click',()=>{searchOpen=!searchOpen;searchToggle.setAttribute('aria-expanded',String(searchOpen));form.hidden=!searchOpen;if(searchOpen)input.focus?.()});
   form.addEventListener('submit',event=>{

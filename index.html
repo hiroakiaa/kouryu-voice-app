@@ -4213,8 +4213,6 @@
       body.is-in-call main,
       body.is-in-call.has-captions main{width:100%;height:calc(100dvh - .7rem);padding:.55rem;gap:.42rem;grid-template-columns:minmax(14.5rem,.62fr) minmax(24rem,1.65fr);}
       body.is-in-call main>header{padding:.48rem .62rem;border-radius:1rem;}
-      body.is-in-call header .app-icon,
-      body.is-in-call header .header-icon-btn{width:2.35rem;height:2.35rem;min-height:2.35rem;border-radius:.72rem;}
       body.is-in-call header .brand h1{font-size:1.08rem;}
       body.is-in-call .participants-card{padding:.55rem .7rem;gap:.28rem;border-radius:1.05rem;}
       body.is-in-call .participants-card h2{margin:0;font-size:.94rem;}
@@ -4228,6 +4226,13 @@
       body.is-in-call .secondary-controls .audio-preset-control{min-height:2.35rem;font-size:.76rem;}
       body.is-in-call .controls{gap:.38rem;}
       body.is-in-call .controls>.primary-action{height:2.85rem;min-height:2.85rem;max-height:2.85rem;}
+    }
+
+    /* 通話前後でヘッダーの3ボタンの押しやすさを変えない。 */
+    body.is-in-call header .app-icon,
+    body.is-in-call header .header-icon-btn{
+      width:48px;height:48px;min-width:48px;min-height:48px;flex:0 0 48px;
+      box-sizing:border-box;font-size:19px;
     }
 
     /* 参加者アイコンへマイク操作と追加導線を集約する。 */
@@ -4252,6 +4257,12 @@
       body.is-in-call .secondary-controls .audio-preset-control{width:100%;min-width:0;min-height:2.85rem;flex:none;padding:.42rem .5rem;white-space:normal;line-height:1.25;}
       body.is-in-call .participants .participant.is-self{width:3.85rem;height:3.85rem;flex-basis:3.85rem;right:.45rem;bottom:2.35rem;}
       body.is-in-call .participants .participant.is-self .participant-state-badge{width:3.85rem;min-width:3.85rem;}
+    }
+    @media (max-width:540px) {
+      body{padding:0!important;}
+      main,body.phone-home main,body.is-in-call main,body.is-in-call.has-captions main{
+        width:100%;height:100dvh;min-height:100dvh;margin:0;border:0!important;border-radius:0!important;box-shadow:none!important;
+      }
     }
 
 .phone-home-card {display:none;padding:20px;background:#fffef8;border:2px solid #8bc85b;border-radius:24px;color:#30462d;min-height:320px;overflow:auto;}
@@ -4290,7 +4301,7 @@
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-leave-tabs-polish">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-06-term-recovery-mobile-frame">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4408,7 +4419,7 @@
       <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>着信・履歴・電話帳</strong><span>着信すると、相手が登録した名前・よみがな・所属を表示し、履歴と電話帳にも記録します。履歴は日付ごとに区切り、終了した呼び出しは「呼び出し終了」または「不在着信」と表示します。電話帳で自分が編集した情報は、その後も優先して使います。「よく使う」はカードを押すと発信確認が開き、星はよく使う相手への追加と解除です。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-message"></i><span><strong>連絡</strong><span>「対応する」には、いま自分が行う連絡が表示されます。以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます。タブレットやPCでは、連絡・履歴・電話帳・グループを横幅に合わせて2列で表示します。連絡の返信はカード上部の「返信内容を確認」を押すと、カード上部から対応ボタンの手前まで返信一覧が広がり、最後までスクロールできます。完了した連絡は「その他」から「対応に戻す」を選ぶと、お願い・急ぎなどの表示も戻ります。「連絡を作成する」から個人またはプロフィールの学校・所属グループを選んで送ります。自分が送った内容は「送った連絡」で確認できます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の準備表示が消えるまで、そのままお待ちください。参加確認、マイク、音声接続を自動で進め、通話できる状態になると通話画面へ切り替わります。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。iPhoneで音声処理が一時中断しても自動で再開し、処理が混み合った場合も次の発話の検出を続けます。手動操作が必要なときだけ「検出を再開」を表示します。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>最初からグループで話すことも、通話中に参加者欄の「人を追加」から相手を加えることもできます。「最近」には個別通話と過去のグループ通話で話した人が、同じ人を重ねずに表示されます。「電話帳」または「番号入力」からも選べます。選び直すときは同じカードをもう一度押すか、「選択解除」を押してください。選ばれた人だけに参加確認が届きます。切替中は二重操作を防ぎ、新しいグループへ接続できてから元の通話を終了します。失敗時は準備途中の招待を整理して元の通話へ戻ります。通話を終えると通話用URLも消えるため、次の起動で過去のグループへ勝手に戻りません。古い通話中情報が残った場合も、着信への応答時と次の参加時に安全を確認して自動修復します。最大4人です。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。同じブラウザでアプリを2つ開いた場合は、通話や着信が重ならないように片方だけを使います。「このタブで使う」で安全に切り替えられます。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は上部の接続状態の右に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは画面下の退室ボタンを1回押してください。タッチ端末でも最初のタップを直接受け取り、すぐに終了画面へ切り替えます。アプリやタブを閉じた場合も退室として相手へ反映します。別のアプリや画面へ切り替えただけなら通話を維持します。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
@@ -4705,7 +4716,7 @@
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-leave-tabs-polish", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-term-recovery-mobile-frame", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4713,8 +4724,8 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-leave-tabs-polish";
-    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-06-leave-tabs-polish";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-06-term-recovery-mobile-frame";
+    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-06-term-recovery-mobile-frame";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4759,7 +4770,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-06-leave-tabs-polish";
+    const APP_VERSION = "2026-10-06-term-recovery-mobile-frame";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -5226,6 +5237,7 @@
     }
 
     let captionController = null;
+    const captionDiagnostics = { starts:0, automaticResumes:0, audioDrops:0, requestErrors:0, stops:0, lastReason:"" };
     if (CAPTIONS_ENABLED) {
       // Dynamic import is isolated: a missing caption asset cannot stop the phone.
       Promise.all([import('./term-assist.js?v=' + APP_VERSION), import('./caption-server.js?v=' + APP_VERSION)]).then(function(modules) {
@@ -5250,6 +5262,15 @@
           discoverTerms: (text, options) => termRequest('discover', {text}, options),
           Recognition: modules[1].createServerRecognition({
             onUsage: seconds => trackCallUsage('speechSeconds',seconds),
+            onDiagnostic: function(event) {
+              const type=event?.type||"",reason=event?.reason||"";
+              if(type==='recognition-start') captionDiagnostics.starts++;
+              else if(type==='audio-resume') captionDiagnostics.automaticResumes++;
+              else if(type==='audio-drop') captionDiagnostics.audioDrops++;
+              else if(type==='request-error') captionDiagnostics.requestErrors++;
+              else if(type==='recognition-stop') captionDiagnostics.stops++;
+              if(reason)captionDiagnostics.lastReason=reason;
+            },
             endpoint: 'https://kouryu-captions.allinone-hiroakiaa.workers.dev/transcribe',
             getStream: function() { return localStream; },
             getToken: function() { if (!authUser) throw new Error('auth'); return authUser.getIdToken(); }
@@ -8446,7 +8467,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-leave-tabs-polish", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-06-term-recovery-mobile-frame", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -12154,6 +12175,7 @@
         "connectionDelay: " + getConnectionDelaySummary() + "\n" +
         "connectionTimeline: " + JSON.stringify(getShareableConnectionTimeline(), null, 2) + "\n" +
         "audioDiagnostics: " + JSON.stringify(getShareableAudioDiagnostics(), null, 2) + "\n" +
+        "termDetection: " + JSON.stringify(captionDiagnostics, null, 2) + "\n" +
         "adaptiveTransport: " + JSON.stringify({ profile: diagnosticProfile, mediaRecoveries: mediaRecoveryCount, networkRecoveries: networkRecoveryCount, peerRecreations: peerRecreationCount, availableOutgoingKbps: diagnosticStats.availableOutgoingKbps, recoveryVerifyMs: MEDIA_RECOVERY_VERIFY_MS }, null, 2) + "\n" +
         "qualityHistory: " + JSON.stringify(qualityHistory, null, 2) + "\n" +
         "recentQualitySessions: " + JSON.stringify(readSavedQualityHistory().slice(-3).map(function(row) { return { startedAt: row.startedAt, endedAt: row.endedAt, transitions: Array.isArray(row.transitions) ? row.transitions.length : 0, mediaRecoveries: row.mediaRecoveries || 0, networkRecoveries: row.networkRecoveries || 0, peerRecreations: row.peerRecreations || 0 }; }), null, 2) + "\n" +
