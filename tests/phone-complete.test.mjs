@@ -61,6 +61,17 @@ test('プロフィール設定はスマホ幅で横にはみ出さず項目ご�
  assert.match(css,/#profileSettingsHost \.notification-setting-card\{grid-template-columns:minmax\(0,1fr\)/);
  assert.match(html,/いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます/);
 });
+test('保存済みプロフィールを起動直後から表示し変更の保存状態を明示する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(app,/wakaru-phone-profile-cache-v1/);
+ assert.match(app,/localStorage\.getItem\(profileCacheKey\)/);
+ assert.match(app,/function cacheProfile\(\)/);
+ assert.match(app,/button\.textContent=changed\?'変更を保存':'保存済み'/);
+ assert.match(app,/finally\{syncProfileSaveState\(\);\}/);
+ assert.match(html,/次回の起動直後から表示できます/);
+ assert.match(css,/#phoneSaveName:disabled/);
+ assert.match(css,/@media\(max-width:540px\)[\s\S]*?min-height:44px/);
+});
 test('初回は番号を自動準備し名前と番号が保存されるまでプロフィールを閉じない',()=>{
  assert.match(html,/id="profileOwnNumber"/);
  assert.match(html,/id="phoneName" maxlength="8"/);
