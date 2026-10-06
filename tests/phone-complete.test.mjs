@@ -324,7 +324,10 @@ test('履歴操作は登録・削除・電話の順でアイコンを持ち狭�
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(history,/history-row-actions/);
  assert.match(history,/history-row-time/);
- assert.match(css,/@media\(max-width:540px\)\{\.phone-home-card \.history-row\{display:grid/);
+ assert.match(history,/history-row-meta/);
+ assert.match(css,/@media\(max-width:540px\)\{\.phone-home-card \.history-row\{position:relative;display:grid/);
+ assert.match(css,/\.history-row-time\{position:absolute;top:10px;right:12px/);
+ assert.match(css,/\.history-row-meta>\.history-details>summary\{position:absolute;top:0;right:0\}/);
  assert.match(css,/\.history-row-actions\{grid-column:1 \/ -1;grid-row:2;display:grid/);
  assert.match(css,/grid-template-columns:repeat\(auto-fit,minmax\(44px,1fr\)\)/);
 });
