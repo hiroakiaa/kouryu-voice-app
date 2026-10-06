@@ -46,10 +46,12 @@ test('参加時に一度だけ自動開始し、ミュート中も受信、解�
  h.call.joined=false;h.api.sync();assert.equal(h.instances[1].aborted,true);assert.equal(h.node('count').textContent,'0語');
  h.call.joined=true;h.api.sync();assert.equal(h.instances.length,3);h.api.stop();
 });
-test('エラーは無限再試行せず、利用者の再開操作で復帰する',()=>{
- const h=setup();h.instances[0].onerror({error:'quota'});assert.equal(h.node('toggle').hidden,false);
- h.api.sync();h.api.sync();assert.equal(h.instances.length,1);
- h.node('toggle').click();assert.equal(h.instances.length,2);assert.equal(h.node('toggle').hidden,true);h.api.stop();
+test('一時停止は自動復帰し、利用上限だけ利用者の再開操作を待つ',async()=>{
+ const h=setup();h.instances[0].onend();assert.match(h.node('status').textContent,/自動で再開/);
+ await new Promise(r=>setTimeout(r,380));assert.equal(h.instances.length,2);assert.equal(h.node('toggle').hidden,true);
+ h.instances[1].onerror({error:'quota'});assert.equal(h.node('toggle').hidden,false);
+ h.api.sync();h.api.sync();assert.equal(h.instances.length,2);
+ h.node('toggle').click();assert.equal(h.instances.length,3);assert.equal(h.node('toggle').hidden,true);h.api.stop();
 });
 
 test('共有辞書の語を認識・送信し、相手の共有語は照合後にだけ追加する',async()=>{

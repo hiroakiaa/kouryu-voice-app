@@ -226,6 +226,22 @@ test("用語の手入力は参加後に検索アイコンから開く", () => {
   assert.match(termAssist, /form\.hidden=!call\.joined\|\|!searchOpen/);
 });
 
+test("専門用語検出は一時中断から自動復帰し、診断値を出力する", () => {
+  assert.match(termAssist, /検出を自動で再開しています/);
+  assert.match(termAssist, /restartAttempts<4/);
+  assert.match(rootHtml, /termDetection:/);
+  assert.match(rootHtml, /automaticResumes/);
+});
+
+test("通話中のヘッダー操作も通常画面と同じ48pxを保つ", () => {
+  assert.match(rootHtml, /body\.is-in-call header \.app-icon,[\s\S]*?width:48px;height:48px/);
+});
+
+test("狭い画面ではmain外枠と外側余白をなくす", () => {
+  assert.match(rootHtml, /@media \(max-width:540px\)[\s\S]*?body\{padding:0!important;\}/);
+  assert.match(rootHtml, /body\.phone-home main,body\.is-in-call main[\s\S]*?border:0!important/);
+});
+
 test("料金推移グラフに軸名と数値目盛りがある", () => {
   assert.match(rootHtml, /縦軸：概算料金（円）／横軸：通話記録（古い→新しい）/);
   assert.match(rootHtml, /chart-axis-label/);
