@@ -5191,6 +5191,7 @@
     };
     const metrics = createMetrics();
     const callCost = createCallCost();
+    const captionDiagnostics = { starts:0, automaticResumes:0, audioDrops:0, requestErrors:0, stops:0, lastReason:"" };
     let endedCostExtras = null;
     function currentCostExtras(){return endedCostExtras || {reads:metrics.estimatedReads,writes:sumMetric(metrics.writes),deletes:sumMetric(metrics.deletes),turnBytes:turnUsage.bytes}}
     function adjustSharedAnalogy(){renderCurrentCallCost();costEstimator.render();broadcastLocalRealtimeState(true)}
@@ -5237,7 +5238,6 @@
     }
 
     let captionController = null;
-    const captionDiagnostics = { starts:0, automaticResumes:0, audioDrops:0, requestErrors:0, stops:0, lastReason:"" };
     if (CAPTIONS_ENABLED) {
       // Dynamic import is isolated: a missing caption asset cannot stop the phone.
       Promise.all([import('./term-assist.js?v=' + APP_VERSION), import('./caption-server.js?v=' + APP_VERSION)]).then(function(modules) {
