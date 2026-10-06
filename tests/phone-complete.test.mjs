@@ -40,6 +40,17 @@ test('実機UX評価で見つかった迷いや重なりをまとめて防ぐ',(
  assert.match(html,/item\.setAttribute\('aria-expanded','false'\)/);
 });
 
+test('仕上げ改善で履歴の誤表示と広い画面の見づらさを防ぐ',()=>{
+ const presentation=fs.readFileSync(new URL('../phone-presentation.js',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(presentation,/function historyStatusLabel/);
+ assert.match(presentation,/status==='ringing'.*90000/);
+ assert.match(app,/historyStatusLabel\(h\)/);
+ assert.match(css,/body\.phone-home main\{width:min\(100%,78rem\)\}/);
+ assert.match(css,/\.history-row>button span,.group-row-actions button span\{display:inline!important\}/);
+ assert.match(css,/inset 0 -4px 0 #76b953/);
+});
+
 
 test('プロフィール設定はスマホ幅で横にはみ出さず項目ごとに読みやすく並ぶ',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
