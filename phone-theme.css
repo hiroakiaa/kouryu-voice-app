@@ -904,6 +904,11 @@ body.is-in-call .participants-card .participants>.mic-unlock-hint{grid-column:1/
 .incoming-caller-meta[hidden]{display:none}
 @media(max-width:430px){.phone-own-number-display{min-width:8.3rem;padding-inline:.5rem!important}.phone-own-number-display strong{font-size:.92rem}.profile-number-card{grid-template-columns:1fr}.profile-number-card>div{grid-column:1;grid-row:auto}.profile-number-card>strong{grid-column:1}}
 @media(prefers-reduced-motion:reduce){.profile-number-loading i{animation:none}}
+#phoneNameMessage{min-height:1.4em}
+#phoneSaveName:disabled{border-color:#c7d5bc!important;background:#edf3e6!important;color:#63705e!important;box-shadow:none!important;cursor:default}
+@media(max-width:540px){
+ .phone-home-card .phone-dial-shortcuts button,.phone-home-card .phone-notice-filters button,.phone-presence-toggle{min-height:44px}
+}
 
 /* Notice archive and clearer create/action layout. */
 #phoneNoticeAddToggle.notice-add-button{display:flex!important;align-items:center;justify-content:center;gap:9px;width:auto;max-width:calc(100vw - 36px);height:56px;min-height:56px!important;padding:0 20px!important;border-radius:18px!important;font-size:16px;font-weight:900;white-space:nowrap}
