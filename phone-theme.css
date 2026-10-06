@@ -1126,6 +1126,22 @@ body.is-in-call .participants-card .participants>.mic-unlock-hint{grid-column:1/
 /* Anchor the create button to the app card, independent of the browser viewport width. */
 .phone-home-card>#phoneNoticeAddToggle.notice-add-button{right:clamp(12px,1.6vw,20px)}
 @media(max-width:540px){.phone-home-card>#phoneNoticeAddToggle.notice-add-button{right:12px}}
+
+/* 2026-10-06 usability finish: clearer states, labelled actions and better use of wide screens. */
+body.phone-home{--phone-muted:#53664d;--phone-quiet:#5d7055}
+.phone-home-card .phone-row small,.history-details time,.group-card-status,.notice-card-time{color:#53664d}
+.phone-dial-shortcuts button[aria-selected="true"],.phone-notice-filters button[aria-selected="true"],.profile-settings-tabs button[aria-selected="true"]{color:#244f1d!important;background:#fffef9!important;border-color:#68a945!important;box-shadow:inset 0 -4px 0 #76b953,0 2px 8px rgba(47,86,34,.16)!important}
+.phone-home-card .phone-row{border:1px solid #c4dcae;box-shadow:none}
+.phone-home-card .phone-row:focus-within{border-color:#6ea94e;box-shadow:0 0 0 3px rgba(110,169,78,.17)}
+@media(min-width:700px){
+ body.phone-home main{width:min(100%,78rem)}
+ .history-row>button,.group-row-actions button{display:inline-flex!important;align-items:center;justify-content:center;gap:.42rem;min-width:6.2rem;padding-inline:.8rem}
+ .history-row>button span,.group-row-actions button span{display:inline!important}
+}
+@media(min-width:1100px){
+ body.phone-home main{width:min(100%,82rem)}
+ .phone-home-card{padding-inline:clamp(1.25rem,2.4vw,2.2rem)}
+}
 .call-handoff-active #participantAddButton,
 .call-handoff-active #callAddParticipantStart {
   pointer-events: none;
