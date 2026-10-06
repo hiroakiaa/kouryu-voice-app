@@ -746,6 +746,66 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 .notice-deadline-help p{margin:3px 0;font-size:12px;line-height:1.55;color:#5f7057}.notice-deadline-help.is-visible{max-height:220px!important;margin:0!important;padding:11px 12px!important;border:1px solid #d6e5c8!important;border-radius:12px;background:#fffef9}.notice-deadline-range{display:grid;grid-template-columns:1fr 1fr;gap:8px}.notice-deadline-range label,.notice-deadline-text{display:grid!important;gap:5px;font-size:12px;font-weight:700!important;color:#61725a}.school-notice-compose .notice-deadline-text input{width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;border:1px solid #aacb89;border-radius:12px;background:#fff;color:#30462d;font:inherit}
 .notice-send-button{position:relative;display:flex!important;align-items:center;justify-content:center;gap:9px}.notice-send-spinner{display:none}.notice-send-button.is-loading .fa-paper-plane{display:none}.notice-send-button.is-loading .notice-send-spinner{display:inline-block}.notice-send-button.is-loading span{font-size:0}.notice-send-button.is-loading span::before{content:'送信中';font-size:17px}
 @media(max-width:540px){.phone-home-card .contact-message-button{min-width:48px;width:48px;padding:0}.contact-message-button span{display:none}.notice-deadline-options{grid-template-columns:repeat(3,minmax(0,1fr))}.notice-deadline-range{grid-template-columns:1fr}.history-row [data-message-number] span,.group-row [data-message-group] span{display:none}}
+
+/* 2026-10-06 UX review: keep important actions visible and reduce visual/reading noise. */
+#phoneNameForm{display:flex;flex-direction:column;min-height:100%}
+#phoneSaveName{position:sticky;z-index:8;bottom:0;width:100%;min-height:54px;margin-top:16px;border-width:2px;background:#d7f5b3;box-shadow:0 -10px 18px rgba(255,254,248,.94),0 4px 0 #c9dfb8;font-size:17px;font-weight:900}
+.school-notice-compose .number-head{position:sticky;z-index:9;top:-20px;margin:-20px -20px 12px;padding:14px 20px;border-bottom:1px solid #d5e6c5;background:#fffef8}
+.school-notice-compose #phoneNoticeForm{padding-bottom:0}
+.school-notice-compose .notice-send-button{position:sticky;z-index:8;bottom:-1px;width:100%;min-height:54px;margin:14px 0 -1px;border-width:2px;box-shadow:0 -10px 18px rgba(255,254,248,.94),0 4px 0 #c9dfb8;font-size:17px}
+
+/* Daily settings first; account transfer and blocked users remain available below. */
+#phoneSettingsPanel>.setting-title-row:first-child{order:10}
+#phoneSettingsPanel>.settings-mode-row{order:11}
+#phoneSettingsPanel>#defaultModeHelpPanel{order:12}
+#phoneSettingsPanel>.setting-subtitle-row:has(#notificationHelpToggle){order:20}
+#phoneSettingsPanel>#notificationHelpPanel{order:21}
+#phoneSettingsPanel>.notification-setting-card{order:22}
+#phoneSettingsPanel>.ringtone-title-row{order:30}
+#phoneSettingsPanel>.ringtone-picker{order:31}
+#phoneSettingsPanel>.setting-subtitle-row:not(:has(#notificationHelpToggle)){order:40}
+#phoneSettingsPanel>.device-check-card{order:41}
+#phoneSettingsPanel>.account-help-head{order:80;margin-top:36px!important}
+#phoneSettingsPanel>#accountHelpPanel{order:81}
+#phoneSettingsPanel>.account-fields{order:82}
+#phoneSettingsPanel>#accountActions{order:83}
+#phoneSettingsPanel>h3{order:90}
+#phoneSettingsPanel>#phoneBlocks{order:91}
+
+.tips-intro{grid-column:1/-1;margin:0 0 4px;color:#687861;font-size:13px;line-height:1.5}
+#callTips .tip-item{display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;gap:10px;padding:11px 12px;border:1px solid #d4e4c5;border-radius:14px;background:#f8fbf3;cursor:pointer;transition:border-color .18s ease,background-color .18s ease,box-shadow .18s ease}
+#callTips .tip-item:focus-visible{outline:3px solid #315fbd;outline-offset:2px}
+#callTips .tip-item>i{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#e0f2cc;color:#4e8b38}
+#callTips .tip-item>span{display:grid;gap:0}
+#callTips .tip-item>span>strong{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#355831}
+#callTips .tip-item>span>strong::after{content:'＋';font-size:17px;color:#6c8063}
+#callTips .tip-item>span>span{display:none;margin-top:8px;padding-top:8px;border-top:1px solid #dbe8d0;color:#4f614a;line-height:1.7}
+#callTips .tip-item.is-expanded{border-color:#8fc36d;background:#f2fae8;box-shadow:0 3px 0 #e0ecd5}
+#callTips .tip-item.is-expanded>span>strong::after{content:'−'}
+#callTips .tip-item.is-expanded>span>span{display:block}
+
+/* A contact menu becomes a distinct sheet on phones instead of blending into the next card. */
+@media(max-width:600px){
+ .contact-menu-wrap:has(.contact-row-menu.is-visible)::before{content:'';position:fixed;z-index:98;inset:0;background:rgba(31,43,29,.34);backdrop-filter:blur(1px);pointer-events:none}
+ .contact-row-menu,.contact-row-menu.is-visible{position:fixed;z-index:99;left:12px;right:12px;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);width:auto;max-width:none;min-width:0;padding:10px;border:2px solid #8fbe6d;border-radius:20px;background:#fffef9;box-shadow:0 18px 60px rgba(30,50,25,.34);transform:translateY(16px)}
+ .contact-row-menu.is-visible{transform:none}
+ .phone-home-card .contact-row-menu button{min-height:48px;padding:10px 13px;border-radius:12px;color:#30462d;font-size:15px;font-weight:800}
+}
+
+/* Keep two to four callers visually together on every call layout. */
+body.is-in-call .participants-card .participants{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(4.35rem,5.1rem));grid-auto-rows:min-content;align-content:center;justify-content:center!important;align-items:start;gap:2rem clamp(1.15rem,4vw,2.8rem);padding:1rem!important}
+body.is-in-call .participants-card .participants>.participant{position:relative!important;inset:auto!important;bottom:auto!important;right:auto!important;left:auto!important;margin:0!important;justify-self:center}
+body.is-in-call .participants-card .participants>.empty-participants{grid-column:1/-1}
+body.is-in-call .participants-card .participants>.mic-unlock-hint{grid-column:1/-1}
+@media(max-width:480px){body.is-in-call .participants-card .participants{grid-template-columns:repeat(auto-fit,minmax(4rem,4.65rem));gap:1.8rem .9rem;padding:.7rem .35rem 1.8rem!important}}
+
+@media(min-width:760px) and (max-height:720px){
+ .school-notice-compose{width:min(900px,calc(100% - 32px))}
+ .school-notice-compose #phoneNoticeForm{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:12px 16px;align-items:start}
+ .school-notice-compose #phoneNoticeForm>.notice-compose-step:first-child{grid-column:1;grid-row:1/5}
+ .school-notice-compose #phoneNoticeForm>.notice-compose-step:nth-child(2),.school-notice-compose #phoneNoticeDetailLabel,.school-notice-compose .notice-compose-options,.school-notice-compose #phoneNoticeSendSummary,.school-notice-compose #phoneNoticeReview,.school-notice-compose .notice-send-button{grid-column:2}
+ .school-notice-compose .notice-recipient-list{max-height:21rem;overflow:auto;overscroll-behavior:contain}
+}
 .notice-deadline-range[hidden]{display:none!important}.notice-deadline-options input{width:1px!important;height:1px!important;min-height:0!important;margin:0!important}.school-notice-compose{box-sizing:border-box;overflow-x:hidden}
 /* Notice cards identify the sender, state and action target at a glance. */
 .notice-card-badges{display:flex;align-items:center;flex-wrap:wrap;gap:6px}.school-notice-card header .notice-status-badge{background:#edf4e6;color:#5b6d54}.school-notice-card header .notice-status-badge.is-waiting{background:#fff1c9;color:#795b20}.school-notice-card header .notice-status-badge.is-progress{background:#dff1ff;color:#37647c}.school-notice-card header .notice-status-badge.is-complete{background:#dff3d0;color:#36702a}.notice-sender-badge{display:inline-flex;align-items:center;gap:6px;margin:11px 0 2px;padding:6px 10px;border:1px solid #c4dda9;border-radius:999px;background:#eff8e5;color:#42663a;font-size:12px;font-weight:800}.notice-sender-badge i{color:#6ba64c}.notice-delivery-summary{display:block;margin-top:7px}.school-notice-card.is-done{opacity:1;background:#f7f9f3}.school-notice-card.is-done>h3,.school-notice-card.is-done>p{color:#667260}
