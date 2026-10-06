@@ -47,7 +47,7 @@ test('仕上げ改善で履歴の誤表示と広い画面の見づらさを防�
  assert.match(presentation,/status==='ringing'.*90000/);
  assert.match(app,/historyStatusLabel\(h\)/);
  assert.match(css,/body\.phone-home main\{width:min\(100%,78rem\)\}/);
- assert.match(css,/\.history-row>button span,.group-row-actions button span\{display:inline!important\}/);
+ assert.match(css,/\.history-row-actions button span,.group-row-actions button span\{display:inline!important\}/);
  assert.match(css,/inset 0 -4px 0 #76b953/);
 });
 
@@ -321,7 +321,12 @@ test('履歴操作は登録・削除・電話の順でアイコンを持ち狭�
  const register=history.indexOf('fa-address-book'),remove=history.indexOf('fa-trash-can'),dial=history.indexOf('data-dial="${esc(h.number)}"');
  assert.ok(register>=0&&register<remove&&remove<dial);
  assert.match(html,/phone-theme\.css/);
- assert.match(fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8'),/@media\(max-width:540px\)\{\.history-row>button span\{display:none\}/);
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(history,/history-row-actions/);
+ assert.match(history,/history-row-time/);
+ assert.match(css,/@media\(max-width:540px\)\{\.phone-home-card \.history-row\{display:grid/);
+ assert.match(css,/\.history-row-actions\{grid-column:1 \/ -1;grid-row:2;display:grid/);
+ assert.match(css,/grid-template-columns:repeat\(auto-fit,minmax\(44px,1fr\)\)/);
 });
 
 test('履歴は重複見出しを置かず日付ごとの一列で表示する',()=>{
