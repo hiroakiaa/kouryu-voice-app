@@ -1169,3 +1169,31 @@ body.phone-home{--phone-muted:#53664d;--phone-quiet:#5d7055}
 @keyframes phone-section-from-right{from{opacity:.45;transform:translateX(5%)}to{opacity:1;transform:translateX(0)}}
 @keyframes phone-section-from-left{from{opacity:.45;transform:translateX(-5%)}to{opacity:1;transform:translateX(0)}}
 @media(prefers-reduced-motion:reduce){.phone-home-card>section.phone-section-swipe-next,.phone-home-card>section.phone-section-swipe-previous{animation:none}.phone-home-card>section.phone-section-dragging.phone-section-drag-return{transition-duration:.01ms!important}}
+
+/* 2026-10-07 flat visual system: hierarchy comes from spacing, borders and color. */
+body.phone-home .phone-home-card,
+body.phone-home .phone-home-card button,
+body.phone-home .phone-home-card .phone-row,
+body.phone-home .phone-home-card .frequent-card,
+body.phone-home .phone-home-card .phone-empty-state{box-shadow:none!important}
+body.phone-home .phone-home-card button:focus-visible,
+body.phone-home .phone-home-card summary:focus-visible{outline:3px solid rgba(82,145,55,.32);outline-offset:2px}
+.history-date-section>h3{background:#fffef9;border-bottom-color:#8fbd68;backdrop-filter:none}
+.phone-home-card .history-row{background:#fbfdf8;border-color:#bfd7aa}
+.phone-home-card .history-row.is-missed{background:#fff9f7;border-color:#e4bbb8}
+.history-row>i{background:#e5f2d9;color:#477b34}
+.history-row.is-missed>i{background:#f8dfdf;color:#a63d49}
+.history-row-content>strong{color:#294f25}
+.history-row-time{color:#63745d}
+.history-row-meta>.history-details>summary{padding:1px 5px;border-radius:6px;color:#3f7132;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.history-row-meta>.history-details>summary:hover{background:#edf6e5}
+.history-row-actions button{border-width:1px;background:#f8fbf4;color:#315c2a}
+.history-row-actions [data-remove-history]{border-color:#ddb9b7;background:#fff8f7;color:#9a3944}
+.history-row-actions [data-message-number]{border-color:#c7dcae;background:#f3f9ea;color:#3f6d32}
+.history-row-actions [data-dial]{border-color:#4d9135;background:#579f39;color:#fff}
+.history-row-actions [data-dial]:hover{background:#498832}
+@media(max-width:540px){
+ .phone-home-card .history-row{border-radius:14px}
+ .history-row-actions{padding-top:2px;border-top:1px solid #dfebd5}
+ .phone-home-card .history-row-actions button{border-radius:10px}
+}
