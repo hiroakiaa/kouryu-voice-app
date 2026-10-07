@@ -5,7 +5,7 @@
   --metrics-border:#cad8b9;
   --metrics-ink:#30462d;
   --metrics-muted:#607158;
-  width:min(100%,36rem);max-height:88dvh;padding:20px;gap:16px;
+  width:min(100%,48rem);max-height:88dvh;padding:20px;gap:16px;
   border:1px solid var(--metrics-border);border-radius:20px;
   background:var(--metrics-surface);color:var(--metrics-ink);
   font-size:14px;line-height:1.6;
@@ -66,7 +66,17 @@
 
 
 .metrics-modal-card [role="tabpanel"][hidden] {display:none;}
-.cost-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;position:sticky;top:57px;z-index:3;padding:8px 0;background:var(--metrics-surface);}
+.admin-main-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;position:sticky;top:57px;z-index:5;padding:8px 0;background:var(--metrics-surface)}
+.admin-main-tabs button{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;padding:9px 7px;white-space:nowrap}
+.admin-main-tabs button[aria-selected="true"]{border-color:#70a64a;background:#e4f2d5;color:#2e5727}
+.admin-main-tabs i{font-size:14px}.admin-main-panel{display:grid;gap:14px;min-width:0}.admin-main-panel[hidden]{display:none}
+.admin-disclosure{overflow:hidden;border:1px solid var(--metrics-border);border-radius:14px;background:var(--metrics-card)}
+.admin-disclosure>summary{display:flex;align-items:center;gap:9px;padding:13px 14px;cursor:pointer;font-size:14px;font-weight:700;list-style:none}
+.admin-disclosure>summary::-webkit-details-marker{display:none}.admin-disclosure>summary::after{content:"＋";margin-left:auto;font-size:20px;font-weight:400}.admin-disclosure[open]>summary::after{content:"－"}
+.admin-disclosure>summary i{width:20px;color:#5e9c40;text-align:center}.admin-disclosure>:not(summary){margin-left:14px;margin-right:14px}.admin-disclosure>:last-child{margin-bottom:14px}
+.admin-technical-disclosure .metrics-breakdown{margin-top:0}.admin-technical-disclosure .metrics-output{max-height:18rem;overflow:auto}
+.admin-main-panel .admin-control-card,.admin-main-panel .admin-notice-overview{margin:0}.admin-main-panel .admin-notice-cost{padding:0 14px;border:1px solid var(--metrics-border);border-radius:14px;background:var(--metrics-card)}
+.cost-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;position:static;padding:8px 0;background:var(--metrics-surface);}
 .cost-tabs button {flex:1;padding:10px;}
 .metrics-modal-card .cost-tabs [aria-selected="true"] {background:#e4f2d5;border-color:#70a64a;}
 #currentCallPanel {min-width:0;}
@@ -77,7 +87,7 @@
 .free-usage-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.free-usage-card{display:grid;align-content:start;gap:9px;padding:13px;border:1px solid var(--metrics-border);border-radius:12px;background:var(--metrics-card)}.free-usage-card>div:first-child{display:grid;gap:2px}.free-usage-card strong{font-size:14px}.free-usage-card span,.free-usage-card small{color:var(--metrics-muted);font-size:11px}.free-usage-meter{height:8px;overflow:hidden;border-radius:999px;background:#dfe8d5}.free-usage-meter i{display:block;height:100%;border-radius:inherit;background:#62aa43;transition:width .25s ease}.free-usage-card.is-warning .free-usage-meter i{background:#d69b35}.free-usage-card.is-danger .free-usage-meter i{background:#ce5360}.free-usage-notes{border-top:1px solid var(--metrics-border)}.free-usage-notes p{color:var(--metrics-muted);font-size:12px}
 
 /* Native dialog provides the dimmed backdrop and keyboard focus containment. */
-#appInfoTooltip {position:fixed;inset:0;margin:auto;width:min(36rem,calc(100% - 32px));max-height:88dvh;transform:none;transition:none;overflow:auto;background:var(--metrics-surface);}
+#appInfoTooltip {position:fixed;inset:0;margin:auto;width:min(48rem,calc(100% - 32px));max-height:88dvh;transform:none;transition:none;overflow:auto;background:var(--metrics-surface);}
 #appInfoTooltip:not([open]) {display:none;}
 #appInfoTooltip[open] {display:grid;opacity:1;pointer-events:auto;}
 #appInfoTooltip::backdrop {background:rgba(30,35,38,.58);}
@@ -87,5 +97,6 @@
 .admin-budget-row label{font-size:13px;font-weight:700}.admin-budget-row p{grid-column:1/-1;margin:0;color:var(--metrics-muted);font-size:12px}.admin-budget-row p.is-over{color:#b22d3b;font-weight:700}
 @media(max-width:540px){.modal-head-actions{gap:6px}.modal-head-actions .metrics-history-open-btn span{display:none}.admin-budget-row{grid-template-columns:minmax(0,1fr) 100px}}
 @media(max-width:540px){.cost-tabs{gap:4px;top:53px}.cost-tabs button{min-height:48px;padding:7px 3px;font-size:11px;line-height:1.25}.free-usage-cards{grid-template-columns:1fr}.free-usage-head button span{display:none}.free-usage-summary strong{font-size:18px}}
+@media(max-width:540px){.admin-main-tabs{top:53px;gap:3px}.admin-main-tabs button{min-height:48px;gap:4px;padding:7px 3px;font-size:11px}.admin-main-tabs i{font-size:13px}.admin-disclosure>summary{min-height:48px}.cost-tabs{position:static}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media(forced-colors:active){button,input,select,dialog,.card{border:1px solid ButtonText!important}.phone-primary,.accept,#phoneDialCall{forced-color-adjust:auto}}
