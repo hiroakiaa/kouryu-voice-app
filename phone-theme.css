@@ -330,8 +330,12 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 @media(max-width:480px){#phoneSettingsPanel>.account-help-head,#phoneSettingsPanel>.setting-subtitle-row,#phoneSettingsPanel>h3{margin-top:28px!important}}
 
 #phoneContactTools.is-visible{display:flex;padding:14px!important;margin-bottom:14px!important}
-#phoneContactsPanel,#phoneGroupsPanel{position:relative;padding-bottom:90px!important}
-#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{position:absolute;right:14px;bottom:14px}
+#phoneContactsPanel{position:relative;padding-bottom:90px!important}
+#phoneContactsPanel .phone-add-fab{position:absolute;right:14px;bottom:14px}
+.phone-book-tabs{margin-bottom:14px;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.phone-book-tabs button{min-width:0}
+.phone-book-view{min-width:0}
+.phone-book-view[hidden]{display:none!important}
 .phone-empty-state button{min-height:42px!important;padding:8px 14px!important;border-radius:14px!important}
 .history-details>p{margin:6px 0;color:#64725e;font-size:12px;overflow-wrap:anywhere}
 #phoneSettingsPanel{display:flex;flex-direction:column}
@@ -565,6 +569,10 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 @media(max-width:430px){.phone-dial-scope-note{left:8px;top:12px;padding:5px 8px;font-size:10px}}
 /* Notice workflow: one clear inbox with progressive disclosure. */
 .notice-filter-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 10px;padding:5px;border:1px solid #d6e5c8;border-radius:16px;background:#f1f7e9}
+.phone-home-card>.phone-dial-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.phone-book-tabs.notice-filter-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;margin:0 0 14px}
+.phone-book-tabs button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:12px;background:transparent;color:var(--muted);font-weight:800;box-shadow:none}
+.phone-book-tabs button[aria-selected="true"]{background:var(--control)!important;color:var(--accent-deep);border:1px solid var(--line-strong);box-shadow:inset 0 -3px 0 #76b953!important}
 .notice-filter-tabs button{min-width:0;min-height:42px;padding:7px 8px;border:0;border-radius:12px;background:transparent;box-shadow:none;color:#64745c;font-size:13px;font-weight:800}
 .notice-filter-tabs button[aria-selected="true"]{background:#fff;color:#35612d;box-shadow:0 2px 8px rgba(62,99,46,.12)}
 .notice-search-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;margin:0 0 7px}.notice-search-toggle-row .phone-panel-icon{margin:0}.notice-presence-control{display:flex;align-items:center;gap:9px;min-width:0}.notice-presence-label{color:#62745b;font-size:12px;font-weight:700;white-space:nowrap}.phone-presence-toggle{display:flex;align-items:center;gap:7px;min-height:42px;padding:7px 12px!important;border-radius:999px!important;font-size:12px;font-weight:800}.phone-presence-toggle i{font-size:9px;color:#62af42}.phone-presence-toggle[data-status="class"] i{color:#df9c34}.phone-presence-toggle[data-status="away"] i{color:#86927e}.phone-presence-toggle[data-status="urgent"] i{color:#d65260}.notice-search-wrap{margin:0 0 10px}.notice-search-wrap input{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid #bdd5a7;border-radius:13px;background:#fff;font:inherit;color:#30462d}
@@ -606,7 +614,7 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 @media(max-width:540px){.phone-home-card>.phone-tabs button{min-height:48px;font-size:16px}.phone-home-card>.phone-dial-shortcuts,.phone-home-card>.phone-notice-filters{gap:3px;margin:7px 0;padding:4px}.phone-home-card .phone-dial-shortcuts button,.phone-home-card .phone-notice-filters button{min-height:40px;padding:6px 2px;font-size:10px;gap:4px}.phone-dial-shortcuts button i{width:16px;flex-basis:16px;font-size:14px}}
 @media(max-width:340px){.phone-home-card .phone-dial-shortcuts button{font-size:11px;letter-spacing:-.04em}}
 #phoneHistoryPanel{padding-bottom:8px!important}
-#phoneContactsPanel,#phoneGroupsPanel{padding-bottom:96px!important}
+#phoneContactsPanel{padding-bottom:96px!important}
 .phone-home-card>#phoneDialUtility{order:3;position:relative;z-index:13;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;gap:12px;width:100%;min-height:58px;box-sizing:border-box;padding:7px 12px;border-top:1px solid #cad8b9;background:#fffef8}
 .phone-home-card>#phoneDialUtility[hidden]{display:none!important}
 #phoneDialUtility .phone-dial-scope-note{position:static;min-width:0;white-space:normal}
@@ -826,9 +834,9 @@ body.is-in-call .participants-card .participants>.mic-unlock-hint{grid-column:1/
 @media(prefers-reduced-motion:reduce){#phoneHome>[role="tabpanel"]:not([hidden]),.school-notice-card{animation:none}.phone-tabs button,.notice-filter-tabs button{transition:none}}
 
 /* Keep creation actions in reach while only the panel content scrolls. */
-.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{position:fixed;right:max(22px,calc((100vw - 1180px)/2 + 30px));bottom:calc(env(safe-area-inset-bottom,0px) + 84px);left:auto;z-index:24}
+.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab{position:fixed;right:max(22px,calc((100vw - 1180px)/2 + 30px));bottom:calc(env(safe-area-inset-bottom,0px) + 84px);left:auto;z-index:24}
 .notice-self-sent-badge{display:inline-flex;align-items:center;gap:6px;margin:11px 0 2px;padding:6px 10px;border:1px solid #bcd8a3;border-radius:999px;background:#e8f5dc;color:#3e6735;font-size:12px;font-weight:800}.notice-self-sent-badge i{color:#65a946}
-@media(max-width:540px){.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 74px)}}
+@media(max-width:540px){.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab{right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 74px)}}
 /* Add actions belong to phoneHome, so they stay at the visible section corner at every width. */
 .phone-home-card>.phone-add-fab{position:absolute;right:clamp(12px,1.6vw,20px);bottom:86px;left:auto;z-index:24}
 @media(max-width:540px){.phone-home-card>.phone-add-fab{right:12px;bottom:74px}}
