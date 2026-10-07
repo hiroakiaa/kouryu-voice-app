@@ -67,7 +67,7 @@ test('保存済みプロフィールを起動直後から表示し変更の保�
  assert.match(app,/localStorage\.getItem\(profileCacheKey\)/);
  assert.match(app,/function cacheProfile\(\)/);
  assert.match(app,/button\.textContent=changed\?'変更を保存':'保存済み'/);
- assert.match(app,/finally\{syncProfileSaveState\(\);\}/);
+ assert.match(app,/finally\{button\.removeAttribute\('aria-busy'\);syncProfileSaveState\(\);\}/);
  assert.match(html,/次回の起動直後から表示できます/);
  assert.match(css,/#phoneSaveName:disabled/);
  assert.match(css,/@media\(max-width:540px\)[\s\S]*?min-height:44px/);
@@ -1388,4 +1388,45 @@ test('入力機器が失われた時は通話中にreplaceTrackし失敗して�
  assert.match(html,/sender\.replaceTrack\(nextTrack\)/);
  assert.match(html,/Promise\.allSettled\(replacements\)/);
  assert.match(html,/if \(!joined\) \{[\s\S]*?nextRawStream\.getTracks\(\)/);
+});
+
+test('全画面を影に頼らない共通デザインへ統一する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/2026-10-07 app-wide usability system/);
+ assert.match(css,/body\.phone-home :is\(dialog,[\s\S]*?box-shadow:none!important/);
+ assert.match(css,/body\.is-in-call :is\(button,\.participant,[\s\S]*?box-shadow:none!important/);
+ assert.match(css,/#callTips \.tip-item\.is-expanded\{box-shadow:none!important\}/);
+});
+
+test('操作の役割と処理中状態を全画面で一貫表示する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/--phone-primary:#579f39/);
+ assert.match(css,/--phone-danger:#a43e49/);
+ assert.match(css,/button\[aria-busy="true"\][^}]*cursor:progress/);
+ assert.match(app,/phoneSaveName'[\s\S]*?setAttribute\('aria-busy','true'\)/);
+ assert.match(app,/removeAttribute\('aria-busy'\)/);
+});
+
+test('小型端末と横長学校端末向けの専用レイアウトを持つ',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/@media\(min-width:700px\) and \(max-height:720px\)/);
+ assert.match(css,/@media\(max-width:380px\)/);
+ assert.match(css,/min-height:44px/);
+});
+
+test('キーボード・高コントラスト・動きを減らす設定へ対応する',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/:focus-visible\{outline:3px solid var\(--phone-focus\)!important/);
+ assert.match(css,/@media\(prefers-contrast:more\)/);
+ assert.match(css,/@media\(forced-colors:active\)/);
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+});
+
+test('診断出力と使い方に今回の品質項目を残す',()=>{
+ assert.match(html,/flatAppDesign: true/);
+ assert.match(html,/unifiedActionColors: true/);
+ assert.match(html,/operationStateFeedback: true/);
+ assert.match(html,/responsiveQaSuite: true/);
+ assert.match(html,/accessibilityQa: true/);
+ assert.match(html,/緑のボタンは進む・決定、淡い赤は取消・終了です。/);
 });
