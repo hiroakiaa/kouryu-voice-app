@@ -69,7 +69,7 @@
 .admin-main-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;position:sticky;top:57px;z-index:5;padding:8px 0;background:var(--metrics-surface)}
 .admin-main-tabs button{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;padding:9px 7px;white-space:nowrap}
 .admin-main-tabs button[aria-selected="true"]{border-color:#70a64a;background:#e4f2d5;color:#2e5727}
-.admin-main-tabs i{font-size:14px}.admin-main-panel{display:grid;gap:14px;min-width:0}.admin-main-panel[hidden]{display:none}
+.admin-main-tabs i{font-size:14px}.admin-main-panel{display:grid;align-content:start;gap:14px;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:4px}.admin-main-panel[hidden]{display:none}
 .admin-disclosure{overflow:hidden;border:1px solid var(--metrics-border);border-radius:14px;background:var(--metrics-card)}
 .admin-disclosure>summary{display:flex;align-items:center;gap:9px;padding:13px 14px;cursor:pointer;font-size:14px;font-weight:700;list-style:none}
 .admin-disclosure>summary::-webkit-details-marker{display:none}.admin-disclosure>summary::after{content:"＋";margin-left:auto;font-size:20px;font-weight:400}.admin-disclosure[open]>summary::after{content:"－"}
@@ -88,6 +88,7 @@
 
 /* Native dialog provides the dimmed backdrop and keyboard focus containment. */
 #appInfoTooltip {position:fixed;inset:0;margin:auto;width:min(48rem,calc(100% - 32px));max-height:88dvh;transform:none;transition:none;overflow:auto;background:var(--metrics-surface);}
+#metricsModal>.metrics-modal-card{height:min(56rem,calc(100dvh - 32px));max-height:none;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden}
 #appInfoTooltip:not([open]) {display:none;}
 #appInfoTooltip[open] {display:grid;opacity:1;pointer-events:auto;}
 #appInfoTooltip::backdrop {background:rgba(30,35,38,.58);}
