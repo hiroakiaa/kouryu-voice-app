@@ -1197,3 +1197,97 @@ body.phone-home .phone-home-card summary:focus-visible{outline:3px solid rgba(82
  .history-row-actions{padding-top:2px;border-top:1px solid #dfebd5}
  .phone-home-card .history-row-actions button{border-radius:10px}
 }
+
+/* 2026-10-07 app-wide usability system. Flat, predictable and accessible. */
+:root{--phone-focus:#2f6fbd;--phone-primary:#579f39;--phone-primary-hover:#498832;--phone-danger:#a43e49;--phone-danger-bg:#fff4f3;--phone-border:#b9d59f;--phone-surface:#fffef9;--phone-soft:#f2f8eb}
+body.phone-home :is(dialog,.number-modal,.contact-form-dialog,.device-check-dialog,.onboarding-dialog,.app-info-tooltip,.metrics-modal-card,.call-tips),
+body.is-in-call :is(.card,.number-modal,.contact-form-dialog,.caption-dialog,.app-info-tooltip,.metrics-modal-card){box-shadow:none!important}
+body.phone-home :is(.phone-add-fab,.phone-help-icon,.support-mode-picker input:checked+span,.profile-number-card,.settings-section,.device-check-results>div),
+body.is-in-call :is(button,.participant,.participant-limit,.connection-pill,.call-time,.notice,.term-item){box-shadow:none!important}
+body.phone-home dialog,body.is-in-call dialog{border:2px solid #79b756!important;background:var(--phone-surface)}
+body.phone-home :is(button,[role="button"],summary,input,select,textarea):focus-visible,
+body.is-in-call :is(button,[role="button"],summary,input,select,textarea):focus-visible{outline:3px solid var(--phone-focus)!important;outline-offset:3px!important}
+body.phone-home button,body.phone-home [role="button"],body.is-in-call button,body.is-in-call [role="button"]{min-height:44px}
+body.phone-home button[aria-busy="true"],body.is-in-call button[aria-busy="true"]{cursor:progress;opacity:.78;pointer-events:none}
+body.phone-home button[disabled],body.is-in-call button[disabled]{cursor:not-allowed;opacity:.6}
+body.phone-home :is(.phone-primary,.notice-send-button,#phoneSaveName,#numberDial,#phoneOnboardingStart),
+body.is-in-call :is(.primary,#joinBtn){border-color:var(--phone-primary)!important;background:var(--phone-primary)!important;color:#fff!important}
+body.phone-home :is(.phone-primary,.notice-send-button,#phoneSaveName,#numberDial,#phoneOnboardingStart):hover,
+body.is-in-call :is(.primary,#joinBtn):hover{background:var(--phone-primary-hover)!important}
+body.phone-home :is(.is-danger,[data-remove-history],#numberDecline),
+body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!important;background:var(--phone-danger-bg)!important;color:var(--phone-danger)!important}
+.phone-dial-shortcuts button[aria-selected="true"],.phone-notice-filters button[aria-selected="true"],.profile-settings-tabs button[aria-selected="true"]{box-shadow:inset 0 -3px 0 #76b953!important}
+.phone-home-card .phone-row:focus-within{box-shadow:none!important;outline:3px solid rgba(47,111,189,.22);outline-offset:1px}
+.is-online .group-presence-dot{box-shadow:none!important}
+#callTips .tip-item.is-expanded{box-shadow:none!important}
+
+/* Wide but short school devices: use the available width and preserve controls. */
+@media(min-width:700px) and (max-height:720px){
+ body.phone-home main{padding-block:.5rem}
+ body.phone-home .phone-home-card{padding-block:.75rem}
+ .phone-dial-content{gap:.45rem!important}
+ .phone-keypad{gap:.32rem!important}
+ body.is-in-call main{gap:.65rem!important;padding:.65rem!important}
+ body.is-in-call .card{padding:.75rem!important}
+}
+@media(max-width:380px){
+ body.phone-home .phone-home-card{padding-inline:.55rem}
+ .phone-dial-shortcuts,.phone-notice-filters{gap:.25rem}
+ .phone-dial-shortcuts button,.phone-notice-filters button{padding-inline:.3rem;font-size:.82rem}
+}
+@media(prefers-contrast:more){
+ body.phone-home :is(.phone-row,button,input,select,textarea,dialog),body.is-in-call :is(.card,button,input,select,textarea,dialog){border-color:currentColor!important}
+ body.phone-home .phone-row,body.is-in-call .card{background:#fff!important;color:#173b18!important}
+}
+@media(forced-colors:active){
+ body.phone-home *,body.is-in-call *{box-shadow:none!important}
+ body.phone-home :is(button,input,select,textarea,dialog),body.is-in-call :is(button,input,select,textarea,dialog){forced-color-adjust:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ body.phone-home *,body.phone-home *::before,body.phone-home *::after,body.is-in-call *,body.is-in-call *::before,body.is-in-call *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* 2026-10-07 wide history: compact rows without horizontal scrolling. */
+.history-row-side{order:2;display:flex;flex:0 0 auto;align-items:center;gap:.45rem}
+.history-row-side .history-details{margin-top:0}
+.history-row-side .history-details>div{min-width:13rem}
+.history-section,#phoneHistory{min-width:0;max-width:100%;overflow-x:hidden}
+.phone-home-card .history-row{max-width:100%;box-sizing:border-box}
+@media(max-width:540px){
+ .history-row-side{position:absolute;top:9px;right:12px;display:grid;justify-items:end;gap:2px}
+ .history-row-side .history-details>summary{position:static}
+ .history-row-side .history-details[open]>summary{position:static}
+ .history-row-side .history-details>div{min-width:0}
+ .history-row-meta{margin-right:0;padding-right:0}
+}
+@media(min-width:960px){
+ #phoneHistoryPanel .frequent-list{grid-template-columns:minmax(0,1fr)}
+ #phoneHistoryPanel .frequent-empty{grid-column:1}
+ #phoneHistoryPanel .frequent-card{min-height:96px!important}
+ #phoneHistoryPanel .history-row{display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"history-icon history-content history-side" "history-actions history-actions history-actions";align-items:center;gap:.45rem .7rem;overflow:hidden}
+ #phoneHistoryPanel .history-row>i{grid-area:history-icon}
+ #phoneHistoryPanel .history-row-content{grid-area:history-content;min-width:0}
+ #phoneHistoryPanel .history-row-side{grid-area:history-side;align-self:center;display:grid;justify-items:end;gap:.18rem;min-width:3.5rem}
+ #phoneHistoryPanel .history-row-time{font-size:.72rem;line-height:1.15;text-align:right}
+ #phoneHistoryPanel .history-row-side .history-details>summary{position:static;padding:.05rem .3rem}
+ #phoneHistoryPanel .history-row-side .history-details[open]>summary{position:static}
+ #phoneHistoryPanel .history-row-actions{grid-area:history-actions;display:flex;justify-content:flex-end;min-width:0;padding-top:.35rem;border-top:1px solid #dfebd5}
+ #phoneHistoryPanel .history-row-actions button{min-width:5.2rem}
+}
+
+/* Mid-size phones and tablets: keep every history action inside the card. */
+@media(min-width:541px) and (max-width:959px){
+ #phoneHistoryPanel .history-row{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"history-icon history-content history-side" "history-actions history-actions history-actions";align-items:center;gap:.5rem .65rem;max-width:100%;overflow:hidden}
+ #phoneHistoryPanel .history-row>i{grid-area:history-icon}
+ #phoneHistoryPanel .history-row-content{grid-area:history-content;min-width:0}
+ #phoneHistoryPanel .history-row-side{grid-area:history-side;display:grid;justify-items:end;gap:.1rem;min-width:3.2rem}
+ #phoneHistoryPanel .history-row-side .history-details>summary{position:static;padding:.05rem .25rem}
+ #phoneHistoryPanel .history-row-side .history-details[open]>summary{position:static}
+ #phoneHistoryPanel .history-row-side .history-details>div{min-width:0}
+ #phoneHistoryPanel .history-row-meta{margin:0;padding:0}
+ #phoneHistoryPanel .history-row-actions{grid-area:history-actions;display:grid;grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:.4rem;width:100%;min-width:0;padding-top:.45rem;border-top:1px solid #dfebd5}
+ #phoneHistoryPanel .history-row-actions button{width:100%;min-width:0!important;max-width:none;padding-inline:.35rem}
+}
+@media(min-width:541px) and (max-width:700px){
+ #phoneHistoryPanel .history-row-actions button span{display:none!important}
+}
