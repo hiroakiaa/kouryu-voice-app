@@ -1246,3 +1246,31 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
 @media(prefers-reduced-motion:reduce){
  body.phone-home *,body.phone-home *::before,body.phone-home *::after,body.is-in-call *,body.is-in-call *::before,body.is-in-call *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* 2026-10-07 wide history: compact rows without horizontal scrolling. */
+.history-row-side{order:2;display:flex;flex:0 0 auto;align-items:center;gap:.45rem}
+.history-row-side .history-details{margin-top:0}
+.history-row-side .history-details>div{min-width:13rem}
+.history-section,#phoneHistory{min-width:0;max-width:100%;overflow-x:hidden}
+.phone-home-card .history-row{max-width:100%;box-sizing:border-box}
+@media(max-width:540px){
+ .history-row-side{position:absolute;top:9px;right:12px;display:grid;justify-items:end;gap:2px}
+ .history-row-side .history-details>summary{position:static}
+ .history-row-side .history-details[open]>summary{position:static}
+ .history-row-side .history-details>div{min-width:0}
+ .history-row-meta{margin-right:0;padding-right:0}
+}
+@media(min-width:960px){
+ #phoneHistoryPanel .frequent-list{grid-template-columns:minmax(0,1fr)}
+ #phoneHistoryPanel .frequent-empty{grid-column:1}
+ #phoneHistoryPanel .frequent-card{min-height:96px!important}
+ #phoneHistoryPanel .history-row{display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"history-icon history-content history-side" "history-actions history-actions history-actions";align-items:center;gap:.45rem .7rem;overflow:hidden}
+ #phoneHistoryPanel .history-row>i{grid-area:history-icon}
+ #phoneHistoryPanel .history-row-content{grid-area:history-content;min-width:0}
+ #phoneHistoryPanel .history-row-side{grid-area:history-side;align-self:center;display:grid;justify-items:end;gap:.18rem;min-width:3.5rem}
+ #phoneHistoryPanel .history-row-time{font-size:.72rem;line-height:1.15;text-align:right}
+ #phoneHistoryPanel .history-row-side .history-details>summary{position:static;padding:.05rem .3rem}
+ #phoneHistoryPanel .history-row-side .history-details[open]>summary{position:static}
+ #phoneHistoryPanel .history-row-actions{grid-area:history-actions;display:flex;justify-content:flex-end;min-width:0;padding-top:.35rem;border-top:1px solid #dfebd5}
+ #phoneHistoryPanel .history-row-actions button{min-width:5.2rem}
+}
