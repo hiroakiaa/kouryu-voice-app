@@ -341,6 +341,16 @@ test('履歴は重複見出しを置かず日付ごとの一列で表示する',
  assert.match(css,/\.history-date-list\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
 });
 
+test('履歴画面は影を使わず罫線と色で操作の優先度を示す',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/body\.phone-home \.phone-home-card button,[\s\S]*?box-shadow:none!important/);
+ assert.match(css,/\.phone-home-card \.history-row\{background:#fbfdf8;border-color:#bfd7aa\}/);
+ assert.match(css,/\.history-row-actions \[data-remove-history\]/);
+ assert.match(css,/\.history-row-actions \[data-message-number\]/);
+ assert.match(css,/\.history-row-actions \[data-dial\][\s\S]*?background:#579f39;color:#fff/);
+ assert.match(css,/summary:focus-visible\{outline:3px solid/);
+});
+
 test('起動直後の履歴操作を遅い初期化で番号入力へ戻さない',()=>{
  const firstTab=app.indexOf("const initialPhoneTab=");
  const profileRead=app.indexOf("const p=await read(profile)");
