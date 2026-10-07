@@ -4301,7 +4301,7 @@
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
   <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-07-mid-history-actions-fit">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-07-history-meta-spacing">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4416,7 +4416,7 @@
       <p class="tips-intro">知りたい項目を押すと、短い説明が開きます。</p>
       <span class="tip-item"><i class="fa-solid fa-user-pen"></i><span><strong>最初の設定</strong><span>初めて開いたときは、プロフィール画面で8桁の専用番号を自動で準備します。相手に表示する名前を入力して保存してください。よみがなと所属も登録すると、相手の電話帳や履歴で探しやすくなります。名前と番号はこの端末にも安全に控えるため、次回の起動直後から表示できます。保存後はボタンが「保存済み」になり、内容を変えると「変更を保存」に切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」の「番号入力」で、相手の8桁番号を入力します。このアプリ利用者同士の専用電話で、一般の電話番号や緊急通報には発信できません。自分の番号は画面下部に常に表示され、押すとコピーできます。スマホやタブレットでは内容部分を左右へ動かすと、内容が指に追従します。そのままスワイプして、連絡・番号入力・履歴・電話帳・グループを順に切り替えられます。短く動かして離した場合は元の画面へ滑らかに戻ります。縦スクロール中やボタン操作中は切り替わりません。番号ボタンは、端末の横幅と縦幅に合わせて、押しやすさを保ちながら自動で大きさと間隔を調整します。着信と呼び出し終了はリアルタイムで反映し、応答後は接続準備を自動で進めます。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>着信・履歴・電話帳</strong><span>着信すると、相手が登録した名前・よみがな・所属を表示し、履歴と電話帳にも記録します。履歴は日付ごとに区切り、終了した呼び出しは「呼び出し終了」または「不在着信」と表示します。スマホでは日時をカード右上へ置きます。541〜959pxでは削除・連絡・電話をカード幅内に均等配置し、狭い幅ではアイコンを優先します。960px以上では「よく使う」を縦一列にし、日時を詳細ボタンの上へまとめて、履歴欄が横スクロールしないようにしています。電話帳で自分が編集した情報は、その後も優先して使います。「よく使う」はカードを押すと発信確認が開き、星はよく使う相手への追加と解除です。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>着信・履歴・電話帳</strong><span>着信すると、相手が登録した名前・よみがな・所属を表示し、履歴と電話帳にも記録します。履歴は日付ごとに区切り、終了した呼び出しは「呼び出し終了」または「不在着信」と表示します。日時と「詳細」は読み分けやすい間隔でカード右側にまとめています。541〜959pxでは削除・連絡・電話をカード幅内に均等配置し、狭い幅ではアイコンを優先します。960px以上では「よく使う」を縦一列にして、履歴欄が横スクロールしないようにしています。電話帳で自分が編集した情報は、その後も優先して使います。「よく使う」はカードを押すと発信確認が開き、星はよく使う相手への追加と解除です。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-message"></i><span><strong>連絡</strong><span>「対応する」には、いま自分が行う連絡が表示されます。以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます。タブレットやPCでは、連絡・履歴・電話帳・グループを横幅に合わせて2列で表示します。連絡の返信はカード上部の「返信内容を確認」を押すと、カード上部から対応ボタンの手前まで返信一覧が広がり、最後までスクロールできます。完了した連絡は「その他」から「対応に戻す」を選ぶと、お願い・急ぎなどの表示も戻ります。「連絡を作成する」から個人またはプロフィールの学校・所属グループを選んで送ります。自分が送った内容は「送った連絡」で確認できます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の準備表示が消えるまで、そのままお待ちください。参加確認、マイク、音声接続を自動で進め、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。iPhoneで音声処理が一時中断しても自動で再開し、処理が混み合った場合も次の発話の検出を続けます。手動操作が必要なときだけ「検出を再開」を表示します。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
@@ -4716,7 +4716,7 @@
   <script>
     // Run before the module app so an older broken module cannot prevent PWA recovery.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-07-mid-history-actions-fit", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-07-history-meta-spacing", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4724,8 +4724,8 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-07-mid-history-actions-fit";
-    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-07-mid-history-actions-fit";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-07-history-meta-spacing";
+    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-07-history-meta-spacing";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -4770,7 +4770,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-07-mid-history-actions-fit";
+    const APP_VERSION = "2026-10-07-history-meta-spacing";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -8467,7 +8467,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-07-mid-history-actions-fit", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-07-history-meta-spacing", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -12159,7 +12159,7 @@
         "phoneReliability: " + JSON.stringify(numberCalls?.getReliabilityState?.() || {}) + "\n" +
         "tabCoordination: " + JSON.stringify(window.wakaruSingleTabCoordinator?.getState?.() || { role: "initializing" }) + "\n" +
         "startupRouteRecovery: " + JSON.stringify({ staleCallRouteRemoved: !!staleStartupCallId, staleCallIdType: staleStartupCallId.startsWith("g_") ? "group" : staleStartupCallId.startsWith("n_") ? "one-to-one" : "none", startupAutoJoinSession: startupAutoJoinSession, autoJoinUrlConsumed: autoJoinUrlConsumed, autoJoinIntentMaxMs: AUTO_JOIN_INTENT_MAX_MS, quickInviteAutoOpenMaxMs: 120000 }) + "\n" +
-        "phoneNavigation: " + JSON.stringify({ activeTab: document.querySelector("[data-phone-tab][aria-current=\"page\"]")?.dataset.phoneTab || "", historyDateSections: document.querySelectorAll(".history-date-section").length, historySingleColumn: true, compactMobileHistory: true, historyTimeTopRight: true, historyDetailsInline: true, historyActionsInline: true, flatPhoneDesign: true, shadowFreeHistory: true, flatAppDesign: true, unifiedActionColors: true, operationStateFeedback: true, responsiveQaSuite: true, accessibilityQa: true, wideHistorySingleFrequentColumn: true, historyHorizontalScrollPrevented: true, historyTimeAboveDetails: true, midWidthHistoryActionGrid: true, narrowMidWidthActionIcons: true, swipeNavigation: true, swipeDragPreview: true, swipeVelocityNavigation: true, swipeThresholdPx: 48 }) + "\n" +
+        "phoneNavigation: " + JSON.stringify({ activeTab: document.querySelector("[data-phone-tab][aria-current=\"page\"]")?.dataset.phoneTab || "", historyDateSections: document.querySelectorAll(".history-date-section").length, historySingleColumn: true, compactMobileHistory: true, historyTimeTopRight: true, historyDetailsInline: true, historyActionsInline: true, flatPhoneDesign: true, shadowFreeHistory: true, flatAppDesign: true, unifiedActionColors: true, operationStateFeedback: true, responsiveQaSuite: true, accessibilityQa: true, wideHistorySingleFrequentColumn: true, historyHorizontalScrollPrevented: true, historyTimeAboveDetails: true, historyTimeDetailSpacing: true, midWidthHistoryActionGrid: true, narrowMidWidthActionIcons: true, swipeNavigation: true, swipeDragPreview: true, swipeVelocityNavigation: true, swipeThresholdPx: 48 }) + "\n" +
         "latest: " + latest.label + "\n" +
         "participantCountForEstimate: " + participantCount + "\n" +
         "participantCountNow: " + currentParticipantCount + "\n" +
