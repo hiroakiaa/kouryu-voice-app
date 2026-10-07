@@ -1274,3 +1274,20 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
  #phoneHistoryPanel .history-row-actions{grid-area:history-actions;display:flex;justify-content:flex-end;min-width:0;padding-top:.35rem;border-top:1px solid #dfebd5}
  #phoneHistoryPanel .history-row-actions button{min-width:5.2rem}
 }
+
+/* Mid-size phones and tablets: keep every history action inside the card. */
+@media(min-width:541px) and (max-width:959px){
+ #phoneHistoryPanel .history-row{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"history-icon history-content history-side" "history-actions history-actions history-actions";align-items:center;gap:.5rem .65rem;max-width:100%;overflow:hidden}
+ #phoneHistoryPanel .history-row>i{grid-area:history-icon}
+ #phoneHistoryPanel .history-row-content{grid-area:history-content;min-width:0}
+ #phoneHistoryPanel .history-row-side{grid-area:history-side;display:grid;justify-items:end;gap:.1rem;min-width:3.2rem}
+ #phoneHistoryPanel .history-row-side .history-details>summary{position:static;padding:.05rem .25rem}
+ #phoneHistoryPanel .history-row-side .history-details[open]>summary{position:static}
+ #phoneHistoryPanel .history-row-side .history-details>div{min-width:0}
+ #phoneHistoryPanel .history-row-meta{margin:0;padding:0}
+ #phoneHistoryPanel .history-row-actions{grid-area:history-actions;display:grid;grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:.4rem;width:100%;min-width:0;padding-top:.45rem;border-top:1px solid #dfebd5}
+ #phoneHistoryPanel .history-row-actions button{width:100%;min-width:0!important;max-width:none;padding-inline:.35rem}
+}
+@media(min-width:541px) and (max-width:700px){
+ #phoneHistoryPanel .history-row-actions button span{display:none!important}
+}
