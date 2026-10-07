@@ -1430,3 +1430,20 @@ test('診断出力と使い方に今回の品質項目を残す',()=>{
  assert.match(html,/accessibilityQa: true/);
  assert.match(html,/緑のボタンは進む・決定、淡い赤は取消・終了です。/);
 });
+
+test('960px以上の履歴はよく使うを縦並びにし横スクロールを発生させない',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/@media\(min-width:960px\)[\s\S]*?#phoneHistoryPanel \.frequent-list\{grid-template-columns:minmax\(0,1fr\)\}/);
+ assert.match(css,/\.history-section,#phoneHistory\{min-width:0;max-width:100%;overflow-x:hidden\}/);
+ assert.match(app,/class="history-row-side"><time class="history-row-time">/);
+ assert.match(css,/#phoneHistoryPanel \.history-row-side\{grid-area:history-side;[\s\S]*?display:grid;justify-items:end/);
+ assert.match(css,/#phoneHistoryPanel \.history-row-side \.history-details>summary\{position:static/);
+});
+
+test('541pxから959pxの履歴操作はカード幅内の均等グリッドに収める',()=>{
+ const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
+ assert.match(css,/@media\(min-width:541px\) and \(max-width:959px\)/);
+ assert.match(css,/#phoneHistoryPanel \.history-row-actions\{grid-area:history-actions;display:grid;grid-template-columns:repeat\(auto-fit,minmax\(44px,1fr\)\)/);
+ assert.match(css,/#phoneHistoryPanel \.history-row-actions button\{width:100%;min-width:0!important;max-width:none/);
+ assert.match(css,/@media\(min-width:541px\) and \(max-width:700px\)[\s\S]*?#phoneHistoryPanel \.history-row-actions button span\{display:none!important\}/);
+});
