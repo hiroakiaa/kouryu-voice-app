@@ -66,11 +66,15 @@
 
 
 .metrics-modal-card [role="tabpanel"][hidden] {display:none;}
-.cost-tabs {display:flex;gap:8px;}
+.cost-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;position:sticky;top:57px;z-index:3;padding:8px 0;background:var(--metrics-surface);}
 .cost-tabs button {flex:1;padding:10px;}
 .metrics-modal-card .cost-tabs [aria-selected="true"] {background:#e4f2d5;border-color:#70a64a;}
 #currentCallPanel {min-width:0;}
 #currentCallPanel .cost-scenario-breakdown dd {overflow-wrap:anywhere;}
+.free-usage-panel{display:grid;gap:14px;min-width:0}
+.free-usage-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.free-usage-head h3,.free-usage-head p{margin:0}.free-usage-head p{color:var(--metrics-muted);font-size:12px}.free-usage-head button{display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;padding:8px 12px}
+.free-usage-summary{display:grid;gap:3px;padding:16px;border:2px solid #88b967;border-radius:14px;background:#e8f6d8}.free-usage-summary strong{font-size:21px}.free-usage-summary span{color:var(--metrics-muted);font-size:12px}
+.free-usage-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.free-usage-card{display:grid;align-content:start;gap:9px;padding:13px;border:1px solid var(--metrics-border);border-radius:12px;background:var(--metrics-card)}.free-usage-card>div:first-child{display:grid;gap:2px}.free-usage-card strong{font-size:14px}.free-usage-card span,.free-usage-card small{color:var(--metrics-muted);font-size:11px}.free-usage-meter{height:8px;overflow:hidden;border-radius:999px;background:#dfe8d5}.free-usage-meter i{display:block;height:100%;border-radius:inherit;background:#62aa43;transition:width .25s ease}.free-usage-card.is-warning .free-usage-meter i{background:#d69b35}.free-usage-card.is-danger .free-usage-meter i{background:#ce5360}.free-usage-notes{border-top:1px solid var(--metrics-border)}.free-usage-notes p{color:var(--metrics-muted);font-size:12px}
 
 /* Native dialog provides the dimmed backdrop and keyboard focus containment. */
 #appInfoTooltip {position:fixed;inset:0;margin:auto;width:min(36rem,calc(100% - 32px));max-height:88dvh;transform:none;transition:none;overflow:auto;background:var(--metrics-surface);}
@@ -82,5 +86,6 @@
 .admin-budget-row{display:grid;grid-template-columns:minmax(0,1fr) 120px;align-items:center;gap:8px 12px;padding:12px 14px;border:1px solid var(--metrics-border);border-radius:14px;background:var(--metrics-soft)}
 .admin-budget-row label{font-size:13px;font-weight:700}.admin-budget-row p{grid-column:1/-1;margin:0;color:var(--metrics-muted);font-size:12px}.admin-budget-row p.is-over{color:#b22d3b;font-weight:700}
 @media(max-width:540px){.modal-head-actions{gap:6px}.modal-head-actions .metrics-history-open-btn span{display:none}.admin-budget-row{grid-template-columns:minmax(0,1fr) 100px}}
+@media(max-width:540px){.cost-tabs{gap:4px;top:53px}.cost-tabs button{min-height:48px;padding:7px 3px;font-size:11px;line-height:1.25}.free-usage-cards{grid-template-columns:1fr}.free-usage-head button span{display:none}.free-usage-summary strong{font-size:18px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media(forced-colors:active){button,input,select,dialog,.card{border:1px solid ButtonText!important}.phone-primary,.accept,#phoneDialCall{forced-color-adjust:auto}}

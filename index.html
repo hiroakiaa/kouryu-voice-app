@@ -4300,8 +4300,8 @@
     @keyframes callConnectPulse{0%{transform:scale(.72);opacity:.85}100%{transform:scale(1.18);opacity:0}}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
-  <link rel="stylesheet" href="./metrics-theme.css?v=2026-09-03-info-modal">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-07-contact-book-groups">
+  <link rel="stylesheet" href="./metrics-theme.css?v=2026-10-07-free-usage">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-07-free-usage-dashboard">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4420,7 +4420,7 @@
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の準備表示が消えるまで、そのままお待ちください。参加確認、マイク、音声接続を自動で進め、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。iPhoneで音声処理が一時中断しても自動で再開し、処理が混み合った場合も次の発話の検出を続けます。手動操作が必要なときだけ「検出を再開」を表示します。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>電話帳の「グループ」から最初からグループで話すことも、通話中に参加者欄の「人を追加」から相手を加えることもできます。「最近」には個別通話と過去のグループ通話で話した人が、同じ人を重ねずに表示されます。「電話帳」または「番号入力」からも選べます。選び直すときは同じカードをもう一度押すか、「選択解除」を押してください。選ばれた人だけに参加確認が届きます。切替中は二重操作を防ぎ、新しいグループへ接続できてから元の通話を終了します。失敗時は準備途中の招待を整理して元の通話へ戻ります。通話を終えると通話用URLも消えるため、次の起動で過去のグループへ勝手に戻りません。古い通話中情報が残った場合も、着信への応答時と次の参加時に安全を確認して自動修復します。最大4人です。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。管理者メニューの「使用上限目安」では、この端末の通話記録から無料枠の使用量と、10分通話をあと何回使えるかを確認できます。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。同じブラウザでアプリを2つ開いた場合は、通話や着信が重ならないように片方だけを使います。「このタブで使う」で安全に切り替えられます。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は上部の接続状態の右に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。緑のボタンは進む・決定、淡い赤は取消・終了です。保存や送信などの処理中はボタンに待機状態を表示し、連打を防ぎます。キーボード操作では青い枠で現在位置を示し、文字を大きくした端末や動きを減らす設定にも対応します。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは画面下の退室ボタンを1回押してください。タッチ端末でも最初のタップを直接受け取り、すぐに終了画面へ切り替えます。アプリやタブを閉じた場合も退室として相手へ反映します。別のアプリや画面へ切り替えただけなら通話を維持します。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
 
     <section class="card participants-card">
@@ -4553,6 +4553,7 @@
       <div class="cost-tabs" role="tablist" aria-label="料金の表示">
         <button id="currentCallTab" role="tab" data-cost-tab aria-controls="currentCallPanel" aria-selected="true" type="button">今回の通話</button>
         <button id="costScenarioTab" role="tab" data-cost-tab aria-controls="costScenarioPanel" aria-selected="false" tabindex="-1" type="button">10分間の試算</button>
+        <button id="freeUsageTab" role="tab" data-cost-tab aria-controls="freeUsagePanel" aria-selected="false" tabindex="-1" type="button">使用上限目安</button>
       </div>
       <section id="costScenarioPanel" role="tabpanel" aria-labelledby="costScenarioTab" hidden class="cost-scenario" aria-labelledby="costScenarioTitle">
         <h3 id="costScenarioTitle">10分間の料金試算</h3>
@@ -4586,9 +4587,20 @@
         <p id="costAssumptions" class="caption-help"></p>
         <details><summary>計算条件と無料枠について</summary>
           <p class="caption-help">実際は発話時間、AIの出力、検出回数、中継の有無で変わります。登録済み用語は端末内ですぐ照合し、未知の候補だけを15秒単位でまとめてAIへ送ります。説明とたとえは共有済みなら再利用します。</p>
-          <p class="caption-help">接続管理は全体で読み取り1,000回・書き込み200回・削除20回。中継は直接接続の0円から、片方向64kbpsで全組み合わせを両端中継する場合まで。Whisperには発話区間だけを送り、共有保存とWorkers実行は無料枠内を仮定しています。</p>
+          <p class="caption-help">接続管理は安全側に全体で読み取り1,120回・書き込み260回・削除20回。中継は直接接続の0円から、片方向64kbpsで全組み合わせを両端中継する場合まで。Whisperには発話区間だけを送り、共有保存とWorkers実行は無料枠内を仮定しています。</p>
           <p class="caption-help">AIはアカウント全体で1日10,000ニューロンの無料枠を共有します。現在のWorkers Freeでは超過時にAI処理が停止します。ほかのサービスには別の無料枠があります。残り枠や請求額は取得していません。携帯回線の通信料は含みません。</p>
           <p class="caption-help">単価確認：2026年9月3日。<a href="https://developers.cloudflare.com/workers-ai/platform/pricing/" target="_blank" rel="noopener noreferrer">AI料金表</a> · <a href="https://developers.cloudflare.com/durable-objects/platform/pricing/" target="_blank" rel="noopener noreferrer">共有保存料金表</a></p>
+        </details>
+      </section>
+      <section id="freeUsagePanel" role="tabpanel" aria-labelledby="freeUsageTab" hidden class="free-usage-panel">
+        <div class="free-usage-head"><div><h3>無料枠の使用上限目安</h3><p>この端末に残っている通話記録から自動計算します。</p></div><button id="freeUsageRefresh" type="button"><i class="fa-solid fa-rotate"></i><span>再計算</span></button></div>
+        <div id="freeUsageSummary" class="free-usage-summary" aria-live="polite"></div>
+        <div id="freeUsageCards" class="free-usage-cards"></div>
+        <p id="freeUsageUpdated" class="caption-help"></p>
+        <details class="free-usage-notes"><summary>数字の見方</summary>
+          <p>「あと約○回」は、10分通話1回を読み取り1,120回・書き込み260回・削除20回として安全側に計算します。理解サポートでは、選択中の人数と利用条件に応じたAI利用分も差し引きます。</p>
+          <p>表示はこの端末で終了した通話と、現在通話中の計測値の合計です。別端末やCloudflare・Firebaseのほかの利用は取得できないため、アカウント全体の確定残量ではありません。</p>
+          <p>公式無料枠：Firestoreは1日50,000 reads・20,000 writes・20,000 deletes、Workers AIは1日10,000ニューロン、TURNは月1,000GBです。通常通話はAIを使いません。</p>
         </details>
       </section>
       <section id="currentCallPanel" role="tabpanel" aria-labelledby="currentCallTab">
@@ -4723,10 +4735,10 @@
           return;
         }
         bootWorkerRefreshStarted = true;
-        sessionStorage.setItem("wakaru-worker-refreshed", "2026-10-07-contact-book-groups");
+        sessionStorage.setItem("wakaru-worker-refreshed", "2026-10-07-free-usage-dashboard");
         location.reload();
       });
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-07-contact-book-groups", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-10-07-free-usage-dashboard", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4734,9 +4746,10 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-07-contact-book-groups";
-    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-07-contact-book-groups";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-07-free-usage-dashboard";
+    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-07-free-usage-dashboard";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
+    import {createFreeUsageDashboard,aiNeurons as estimateAiNeurons} from "./free-usage.js?v=2026-10-07-free-usage";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
@@ -4780,7 +4793,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-07-contact-book-groups";
+    const APP_VERSION = "2026-10-07-free-usage-dashboard";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -5201,6 +5214,7 @@
     };
     const metrics = createMetrics();
     const callCost = createCallCost();
+    let freeUsageDashboard = null;
     const captionDiagnostics = { starts:0, automaticResumes:0, audioDrops:0, requestErrors:0, stops:0, lastReason:"" };
     let endedCostExtras = null;
     function currentCostExtras(){return endedCostExtras || {reads:metrics.estimatedReads,writes:sumMetric(metrics.writes),deletes:sumMetric(metrics.deletes),turnBytes:turnUsage.bytes}}
@@ -5217,8 +5231,16 @@
       for(const key of Object.keys(count))text('current-'+key,c[key].toFixed(4)+'円（'+count[key]+'）');
       text('current-shared',((data.values.shared||0)+(data.values.sharedExplanation||0))+'回（生成費0円）');
       text('currentSupportProof',CAPTIONS_ENABLED?'理解サポートの利用量を通話中に集計しています。':'AI処理なし：音声認識0秒・用語AI補助0回・説明0回・たとえ0回');
+      freeUsageDashboard?.render();
     }
     const costEstimator = createCostEstimator(document, getYenPerDollar, () => callCost.snapshot(currentCostExtras()));
+    freeUsageDashboard = createFreeUsageDashboard(document,{
+      getHistory:()=>loadCostHistory(),
+      getCurrent:()=>{const snapshot=callCost.snapshot(currentCostExtras());return {values:snapshot.values,saved:!!metrics.historySaved||!snapshot.started}},
+      getParticipants:()=>Number(document.getElementById('costParticipants')?.value)||2,
+      getMode:()=>document.getElementById('costScenario')?.value||'new'
+    });
+    freeUsageDashboard.render();
     if (!CAPTIONS_ENABLED) {
       document.getElementById('costScenario').value = 'plain';
       costEstimator.render();
@@ -5529,6 +5551,9 @@
       if (el.metricsModal) el.metricsModal.addEventListener("click", handleMetricsDetailClick);
       if (el.metricsHistoryModal) el.metricsHistoryModal.addEventListener("click", handleMetricsHistoryModalClick);
       if (el.metricsRateInput) el.metricsRateInput.addEventListener("input", renderMetrics);
+      document.getElementById('freeUsageRefresh')?.addEventListener('click',function(){freeUsageDashboard?.render();});
+      document.getElementById('costParticipants')?.addEventListener('change',function(){freeUsageDashboard?.render();});
+      document.getElementById('costScenario')?.addEventListener('change',function(){freeUsageDashboard?.render();});
       bindHorizontalWheel(document.querySelector(".secondary-controls"));
       initExchangeRate();
       initAudioPreset();
@@ -8477,7 +8502,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-07-contact-book-groups", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-07-free-usage-dashboard", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
@@ -11710,6 +11735,7 @@
         analogyCostYen: roundCostValue(fullCost.analogy),
         firestoreCostYen: roundCostValue(fullCost.firestore),
         turnCostYen: roundCostValue(fullCost.turn),
+        aiNeurons: roundCostValue(estimateAiNeurons(usageSnapshot.values || {})),
         connectionMethod: turnUsage.relayActive ? "TURN中継" : "直接接続",
         turnBytes: Math.round(turnUsage.bytes),
         connectionSeconds: getConnectionStageAnalysis().connectedSeconds,

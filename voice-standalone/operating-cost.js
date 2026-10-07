@@ -39,7 +39,7 @@ export function createCostEstimator(root,getRate,getSnapshot=()=>null){
   text('tipsTenMinuteCost',range);text('tipsCostConditions',c.participants+'人・'+conditions+'の試算。実際の請求額ではありません。');
   for(const key of ['speech','explanation','discovery','analogy','firestore'])text('cost-'+key,money(c[key]));
   text('cost-turn','0円〜'+money(c.turn));
-  text('costAssumptions',c.participants+'人・'+(mode.value==='plain'?'音声認識、用語検出、説明、たとえを使わない通話です。':('発話区間だけをWhisperへ送信（通話全体で約'+Math.min(c.participants*10,Math.max(7,5+c.participants))+'分）、説明は全体で5回。'+(mode.value==='cached'?'登録済み用語を端末内で検出し、AI補助0回・たとえは再利用。':'未登録候補を15秒単位でまとめ、AI補助は通話全体で最大12回。たとえは'+(mode.value==='new'?'全体で2回新規生成。':'すべて再利用。'))))+' 番号・電話帳・グループ・通話中の状態管理の余裕分として全体で120 reads・60 writesを含みます。1ドル＝'+c.rate.toFixed(2)+'円。');
+  text('costAssumptions',c.participants+'人・'+(mode.value==='plain'?'音声認識、用語検出、説明、たとえを使わない通話です。':('発話区間だけをWhisperへ送信（通話全体で約'+Math.min(c.participants*10,Math.max(7,5+c.participants))+'分）、説明は全体で5回。'+(mode.value==='cached'?'登録済み用語を端末内で検出し、AI補助0回・たとえは再利用。':'未登録候補を15秒単位でまとめ、AI補助は通話全体で最大12回。たとえは'+(mode.value==='new'?'全体で2回新規生成。':'すべて再利用。'))))+' 番号・電話帳・グループ・通話中の状態管理の安全側試算として、全体で1,120 reads・260 writes・20 deletesを含みます。1ドル＝'+c.rate.toFixed(2)+'円。');
   root.defaultView?.dispatchEvent(new root.defaultView.CustomEvent('kouryu-cost-estimate',{detail:{low:c.low,high:c.high,projected:projected?.total??null}}));
  }
  people?.addEventListener('change',render);mode?.addEventListener('change',render);
