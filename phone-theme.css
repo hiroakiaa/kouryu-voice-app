@@ -1256,7 +1256,7 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
 @media(max-width:540px){
  .history-row-side{display:contents;position:static}
  .history-row-side .history-row-time{position:absolute;top:10px;right:12px}
- .history-row-side .history-details{grid-column:1 / -1;grid-row:2;width:100%;min-width:0;margin:.15rem 0 0;box-sizing:border-box}
+ .history-row-side .history-details{grid-column:1 / -1;grid-row:2;width:100%;min-width:0;margin:-.2rem 0 0;box-sizing:border-box}
  .history-row-side .history-details>summary{position:static;display:block;width:max-content;margin-left:auto;padding:.2rem .35rem}
  .history-row-side .history-details[open]{padding:.55rem .65rem .65rem;border:1px solid #c8ddaE;border-radius:.75rem;background:#f3f9ea;color:#30462d}
  .history-row-side .history-details[open]>summary{position:static;margin-bottom:.4rem;background:#e5f2d9}
