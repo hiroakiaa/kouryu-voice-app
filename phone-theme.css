@@ -798,6 +798,128 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 #callTips .tip-item.is-expanded>span>span::-webkit-scrollbar-thumb{background:#8fba72;border:2px solid #e9f2df;border-radius:999px}
 @media(max-height:620px){#callTips .tip-item.is-expanded>span>span{max-height:30dvh}}
 
+/* 2026-10-29 one-hundred-point usability pass.
+   The numbered rules map directly to docs/2026-10-29-100-improvements.md. */
+/* 001-010: predictable touch and keyboard interaction */
+:where(button,[role="button"],summary,a,input,select,textarea){-webkit-tap-highlight-color:transparent}
+:where(button,[role="button"],summary){touch-action:manipulation}
+:where(button,[role="button"],summary):not(:disabled){cursor:pointer}
+:where(button,[role="button"]):disabled{cursor:not-allowed}
+:where(button,[role="button"],summary):focus-visible{outline:3px solid #2f6fbd!important;outline-offset:3px!important}
+:where(input,select,textarea):focus-visible{outline:3px solid rgba(47,111,189,.35)!important;outline-offset:2px!important}
+:where(button,[role="button"],summary){-webkit-user-select:none;user-select:none}
+:where(input,textarea,[contenteditable="true"]){-webkit-user-select:text;user-select:text}
+:where(button,[role="button"]):active:not(:disabled){transform:translateY(1px)}
+@media(pointer:coarse){:where(button,[role="button"],summary,input,select){min-height:44px}}
+
+/* 011-020: typography and information hierarchy */
+body{font-kerning:normal;text-rendering:optimizeLegibility}
+:where(p,li,dd,.phone-note,.notice){line-height:1.65}
+:where(h1,h2,h3,strong){text-wrap:balance}
+:where(p,.notice-message-block,.notice-conversation-item){overflow-wrap:anywhere}
+:where(time,.phone-own-number-display strong,.history-row-time){font-variant-numeric:tabular-nums}
+.phone-home-card h2{line-height:1.3}
+.phone-home-card h3{line-height:1.4}
+.phone-note{max-width:72ch}
+.phone-empty-state span{max-width:36ch}
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+/* 021-030: forms are easier to scan and complete */
+:where(input,select,textarea){font:inherit}
+:where(input,select,textarea){color:#30462d;background:#fffef9}
+:where(input,select,textarea)::placeholder{color:#788970;opacity:1}
+:where(input,select,textarea):disabled{opacity:.68;background:#eef3e8}
+label{line-height:1.45}
+label>small{line-height:1.4}
+textarea{resize:vertical}
+input[type="checkbox"],input[type="radio"]{accent-color:#579f39}
+.phone-form-row{min-width:0}
+.phone-form-row>*{min-width:0}
+
+/* 031-040: dialogs stay usable on every viewport */
+dialog{max-width:calc(100vw - 1.25rem);max-height:calc(100dvh - 1.25rem);box-sizing:border-box}
+dialog[open]{overscroll-behavior:contain}
+dialog::backdrop{backdrop-filter:blur(2px)}
+.tips-modal-head,.modal-head,.number-head{position:sticky;top:0;z-index:4;background:inherit}
+.modal-close{flex:0 0 44px}
+.modal-close i{pointer-events:none}
+.call-tips{scroll-padding-top:4.5rem}
+.call-tips .tip-item{scroll-margin-top:4.5rem}
+.call-tips .tip-item>span{min-width:0}
+@media(max-width:420px){dialog{max-width:calc(100vw - .75rem);max-height:calc(100dvh - .75rem)}}
+
+/* 041-050: stable phone-home layout */
+.phone-home-card{isolation:isolate}
+.phone-home-card>[role="tabpanel"]{scrollbar-gutter:stable}
+.phone-home-card>[role="tabpanel"]{overscroll-behavior-y:contain}
+.phone-home-card>.phone-tabs{padding-bottom:max(.25rem,env(safe-area-inset-bottom))}
+.phone-home-card>.phone-tabs button{min-width:0}
+.phone-home-card>.phone-tabs button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phone-dial-shortcuts button{min-width:0}
+.phone-dial-shortcuts button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phone-dial-utility{min-width:0}
+.phone-dial-scope-note{min-width:0;overflow-wrap:anywhere}
+
+/* 051-060: dial controls remain clear and reachable */
+#phoneDialForm{max-width:100%}
+#phoneDialForm .phone-key{contain:layout paint}
+#phoneDialForm .phone-key:focus-visible{outline-offset:4px!important}
+#phoneDialNumber{font-variant-numeric:tabular-nums}
+#phoneDialNumber{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.phone-call{isolation:isolate}
+.phone-call i{pointer-events:none}
+#phoneBackspace{isolation:isolate}
+#phoneBackspace i{pointer-events:none}
+@media(max-width:350px){#phoneDialForm .phone-keypad{column-gap:clamp(.45rem,4vw,.8rem)}}
+
+/* 061-070: list cards scan quickly without accidental overflow */
+.phone-row{min-width:0}
+.phone-row>*{min-width:0}
+.history-row-content,.contact-row-person{overflow:hidden}
+.history-row-content>strong,.contact-row-person>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-row-actions,.contact-row-actions{min-width:0}
+.history-row-actions button,.contact-row-actions button{min-width:44px}
+.history-date-section,.contact-section{scroll-margin-top:.5rem}
+.frequent-card{min-width:0}
+.frequent-card strong{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:540px){.history-row-actions,.contact-row-actions{gap:.4rem}}
+
+/* 071-080: notices and replies keep task context visible */
+.school-notice-card{min-width:0}
+.school-notice-card>header{min-width:0}
+.notice-card-header-meta{min-width:max-content}
+.notice-message-block{min-width:0}
+.notice-message-block h3{overflow-wrap:anywhere}
+.notice-conversation-panel{min-width:0}
+.notice-conversation-list{scrollbar-gutter:stable}
+.notice-conversation-list{scroll-padding-block:1rem}
+.notice-inline-reply-form textarea{line-height:1.55}
+.notice-inline-reply-form button{white-space:nowrap}
+
+/* 081-090: call screen remains calm on phones and short tablets */
+body.is-in-call main{min-width:0}
+body.is-in-call .card{min-width:0}
+body.is-in-call .participants-card{isolation:isolate}
+body.is-in-call .participants{min-width:0}
+body.is-in-call .participant{touch-action:manipulation}
+body.is-in-call .participant:focus-visible{outline:3px solid #2f6fbd;outline-offset:4px}
+body.is-in-call .connection-pill{min-width:0}
+body.is-in-call .connection-pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.is-in-call #leaveBtn{min-height:52px}
+@media(min-width:641px) and (max-height:620px){body.is-in-call main{gap:.45rem!important;padding:.45rem!important}}
+
+/* 091-100: resilience, motion, contrast and safe areas */
+img,svg,video,canvas{max-width:100%}
+[hidden]{display:none!important}
+[aria-busy="true"]{cursor:progress}
+[aria-disabled="true"]{cursor:not-allowed}
+.phone-message,.notice[role="status"]{overflow-wrap:anywhere}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media(prefers-contrast:more){:where(button,input,select,textarea,dialog,.phone-row,.card){border-color:currentColor!important}}
+@media(forced-colors:active){:where(button,input,select,textarea,summary){forced-color-adjust:auto}}
+@supports(padding:max(0px)){body{padding-bottom:max(env(safe-area-inset-bottom),.35rem)}}
+
 /* A contact menu becomes a distinct sheet on phones instead of blending into the next card. */
 @media(max-width:600px){
  .contact-menu-wrap:has(.contact-row-menu.is-visible)::before{content:'';position:fixed;z-index:98;inset:0;background:rgba(31,43,29,.34);backdrop-filter:blur(1px);pointer-events:none}
