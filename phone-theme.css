@@ -792,7 +792,11 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 #callTips .tip-item>span>span{display:none;margin-top:8px;padding-top:8px;border-top:1px solid #dbe8d0;color:#4f614a;line-height:1.7}
 #callTips .tip-item.is-expanded{border-color:#8fc36d;background:#f2fae8;box-shadow:0 3px 0 #e0ecd5}
 #callTips .tip-item.is-expanded>span>strong::after{content:'−'}
-#callTips .tip-item.is-expanded>span>span{display:block}
+#callTips .tip-item.is-expanded>span>span{display:block;max-height:min(18rem,38dvh);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:8px;touch-action:pan-y}
+#callTips .tip-item.is-expanded>span>span::-webkit-scrollbar{width:8px}
+#callTips .tip-item.is-expanded>span>span::-webkit-scrollbar-track{background:#e9f2df;border-radius:999px}
+#callTips .tip-item.is-expanded>span>span::-webkit-scrollbar-thumb{background:#8fba72;border:2px solid #e9f2df;border-radius:999px}
+@media(max-height:620px){#callTips .tip-item.is-expanded>span>span{max-height:30dvh}}
 
 /* A contact menu becomes a distinct sheet on phones instead of blending into the next card. */
 @media(max-width:600px){
@@ -1302,4 +1306,44 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
 }
 @media(min-width:541px) and (max-width:700px){
  #phoneHistoryPanel .history-row-actions button span{display:none!important}
+}
+
+/* 2026-10-29 notice workspace: separate a new notice from an in-context reply. */
+.school-notice-card[data-notice-open]{cursor:pointer;transition:border-color .18s ease,background-color .18s ease}
+.school-notice-card[data-notice-open]:is(:hover,:focus-visible){border-color:#69a947!important;background:#fbfff6!important;outline:3px solid rgba(105,169,71,.2);outline-offset:2px}
+.notice-card-reply-summary{display:flex;align-items:center;gap:.55rem;padding:.7rem 1rem;border-top:1px solid #d9e8cc;background:#f3f9eb;color:#3f6a36;font-weight:800}
+.notice-card-reply-summary .fa-chevron-right{margin-left:auto;font-size:.78rem}
+.notice-detail-workspace{grid-column:1/-1;display:grid;grid-template-columns:1fr;gap:0;min-width:0;overflow:hidden;border:2px solid #78b956;border-radius:1.35rem;background:#f9fcf4}
+.notice-detail-workspace:focus{outline:none}
+.notice-detail-toolbar{display:flex;align-items:center;gap:.85rem;padding:.75rem;border-bottom:1px solid #d6e6c8;background:#eef7e4}
+.notice-detail-toolbar>button{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;padding:.55rem .8rem;border:1px solid #8fc66e;border-radius:.85rem;background:#fff;color:#315c2a;font-weight:800}
+.notice-detail-toolbar>div{display:grid;min-width:0;line-height:1.25}.notice-detail-toolbar small{color:#6f806a}.notice-detail-toolbar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notice-detail-left{min-width:0;padding:.85rem;background:#f8fbf4}
+.notice-detail-left>.school-notice-card{height:auto!important;min-height:0!important;margin:0;overflow:visible;box-shadow:none!important}
+.notice-detail-left .school-notice-actions{margin-top:0}
+.notice-conversation-panel{display:flex;flex-direction:column;min-width:0;min-height:25rem;border-top:1px solid #d6e6c8;background:#fffef9}
+.notice-conversation-panel>header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem;border-bottom:1px solid #dce8d2;background:#f4f9ee}
+.notice-conversation-panel>header div{display:grid}.notice-conversation-panel>header small{color:#6b7c66}.notice-conversation-panel>header h3{margin:.1rem 0 0;font-size:1.15rem;color:#315c2a}
+.notice-conversation-panel>header>span{flex:0 0 auto;padding:.25rem .65rem;border-radius:999px;background:#dff1ce;color:#315c2a;font-weight:800}
+.notice-conversation-list{display:flex;flex:1 1 auto;flex-direction:column;gap:.65rem;min-height:9rem;max-height:min(38dvh,24rem);padding:1rem;overflow-y:auto;overscroll-behavior:contain;scrollbar-color:#82b967 #eef5e8}
+.notice-conversation-item{position:relative;padding:.8rem .9rem 1.5rem;border:1px solid #d7e5cd;border-radius:1rem;background:#f9fcf5}
+.notice-conversation-item>div{display:flex;align-items:center;gap:.45rem;color:#3e6b35}.notice-conversation-item p{margin:.45rem 0 0;white-space:pre-wrap;overflow-wrap:anywhere;color:#283a27}.notice-conversation-item time{position:absolute;right:.8rem;bottom:.45rem;color:#74816f;font-size:.75rem}
+.notice-conversation-empty{display:grid;place-items:center;align-content:center;gap:.35rem;min-height:9rem;padding:1rem;text-align:center;color:#6b7d66}.notice-conversation-empty i{font-size:1.5rem;color:#78b956}.notice-conversation-empty span{font-size:.86rem}
+.notice-inline-reply-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.55rem;padding:1rem;border-top:1px solid #dce8d2;background:#f2f8eb}
+.notice-inline-reply-form label{grid-column:1/-1;color:#526c4c;font-size:.82rem;font-weight:800}
+.notice-inline-reply-form textarea{width:100%;min-height:4.8rem;max-height:9rem;resize:vertical;box-sizing:border-box;border:1px solid #a9cd90;border-radius:.85rem;background:#fff;padding:.75rem;color:#253d23;font:inherit}
+.notice-inline-reply-form button{align-self:stretch;min-width:7rem;border-radius:.85rem}.notice-inline-reply-form button[aria-busy="true"]{opacity:.7}
+.notice-conversation-closed{margin:0;padding:1rem;border-top:1px solid #dce8d2;background:#f3f7ef;color:#596a55}
+#phoneNoticesPanel.is-detail-open>#phoneNoticeAddToggle{display:none!important}
+@media(min-width:900px){
+ .notice-detail-workspace{grid-template-columns:minmax(0,.9fr) minmax(22rem,1.1fr);max-height:calc(100dvh - 15rem)}
+ .notice-detail-toolbar{grid-column:1/-1}
+ .notice-detail-left{overflow-y:auto}
+ .notice-conversation-panel{min-height:0;border-top:0;border-left:1px solid #d6e6c8;overflow:hidden}
+ .notice-conversation-list{max-height:none;min-height:0}
+}
+@media(max-width:620px){
+ .notice-detail-toolbar{align-items:flex-start}.notice-detail-toolbar>button span{display:none}.notice-detail-toolbar>button{width:44px;min-width:44px;justify-content:center;padding:0}
+ .notice-detail-left{padding:.55rem}.notice-conversation-panel{min-height:22rem}
+ .notice-inline-reply-form{grid-template-columns:1fr}.notice-inline-reply-form button{min-height:48px}
 }
