@@ -13,7 +13,7 @@ self.addEventListener("activate", function(event) {
   }).then(function() { return self.clients.claim(); }));
 });
 
-// インストールされた PWA は、古い壊れた HTML シェル上に留まってはなりません。
+// Installed PWAs must not stay on an older broken HTML shell.
 self.addEventListener("fetch", function(event) {
   if (event.request.mode !== "navigate") return;
   event.respondWith(fetch(event.request, { cache: "no-store" }).catch(function() {
@@ -45,20 +45,20 @@ self.addEventListener("push", function(event) {
     }
     const hasVisibleApp = !isTest && windows.some(function(client) { return client.visibilityState === "visible"; });
     if (hasVisibleApp) return;
-    return self.registration.showNotification(isTest ? "聞こえる電話のテスト通知" : action === "notice" ? "新しい連絡があります" : callerName + "さんから着信です", {
-    本体: isTest ? "アプリを閉じていても通知を受けられる状態です。" : action === "notice" ? "アプリを開いて内容を確認してください。" : "タップして応答画面を開きます。",
-    アイコン: "./app-icon.svg",
-    バッジ: "./app-icon.svg",
-    タグ: isTest ? "kouryu-notification-test" : (action === "notice" ? "kouryu-notice-" : "kouryu-call-") + (invitationId || callId || "incoming"),
-    再通知: true、
-    requireInteraction: true、
-    データ: { url: target.toString(), callerUid, callerName, callId, invitationId, action }
+    return self.registration.showNotification(isTest ? "わかる電話のテスト通知" : action === "notice" ? "新しい連絡があります" : callerName + "さんから着信です", {
+    body: isTest ? "アプリを閉じていても通知を受け取れる状態です。" : action === "notice" ? "アプリを開いて内容を確認してください。" : "タップして応答画面を開きます。",
+    icon: "./app-icon.svg",
+    badge: "./app-icon.svg",
+    tag: isTest ? "kouryu-notification-test" : (action === "notice" ? "kouryu-notice-" : "kouryu-call-") + (invitationId || callId || "incoming"),
+    renotify: true,
+    requireInteraction: true,
+    data: { url: target.toString(), callerUid, callerName, callId, invitationId, action }
     });
   }));
 });
 
 self.addEventListener("notificationclick", function(event) {
-  イベント.通知を閉じる;
+  event.notification.close();
   const notificationData = event.notification.data || {};
   const targetUrl = notificationData.url || APP_SCOPE_URL;
   event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(windows) {
