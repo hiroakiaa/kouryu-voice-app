@@ -1469,3 +1469,34 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
  .notice-detail-left{padding:.55rem}.notice-conversation-panel{min-height:22rem}
  .notice-inline-reply-form{grid-template-columns:1fr}.notice-inline-reply-form button{min-height:48px}
 }
+
+/* 2026-10-30: keep availability beside the brand and make one notice a focused workspace. */
+.notice-header-presence{display:none;align-items:center;gap:.55rem;min-width:0;margin-right:auto}
+body:has(#phoneTab-notices[aria-selected="true"]) .notice-header-presence{display:flex}
+.notice-header-presence .notice-presence-label{font-size:.78rem;white-space:nowrap}
+.notice-header-presence .phone-presence-toggle{min-width:0;white-space:nowrap;box-shadow:none}
+.notice-search-toggle-row>span{color:#687b61;font-size:.82rem;font-weight:700}
+
+main:has(#phoneNoticesPanel.is-detail-open)>header{display:none}
+.phone-home-card:has(#phoneNoticesPanel.is-detail-open){padding:0!important;border-radius:inherit;box-shadow:none}
+.phone-home-card:has(#phoneNoticesPanel.is-detail-open)>:not(#phoneNoticesPanel){display:none!important}
+#phoneNoticesPanel.is-detail-open{display:flex!important;flex:1 1 auto!important;width:100%;height:100%;padding:0!important;overflow:hidden!important}
+#phoneNoticesPanel.is-detail-open>.notice-search-toggle-row,
+#phoneNoticesPanel.is-detail-open>#phoneNoticeSearchWrap,
+#phoneNoticesPanel.is-detail-open>#phoneNoticePastToggle{display:none!important}
+#phoneNoticesPanel.is-detail-open>#phoneNotices{display:flex;flex:1 1 auto;min-width:0;min-height:0;width:100%}
+#phoneNoticesPanel.is-detail-open .notice-detail-workspace{flex:1 1 auto;width:100%;height:100%;max-height:none;border:0;border-radius:inherit}
+#phoneNoticesPanel.is-detail-open .notice-detail-left,
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel{min-height:0}
+
+@media(min-width:900px){
+ #phoneNoticesPanel.is-detail-open .notice-detail-workspace{grid-template-columns:minmax(18rem,.88fr) minmax(24rem,1.12fr)}
+}
+@media(max-width:760px){
+ .phone-home header{grid-template-columns:auto minmax(0,1fr) auto}
+ .notice-header-presence{grid-column:1/-1;justify-content:flex-end;width:100%;margin-top:.25rem}
+ .notice-header-presence .notice-presence-label{font-size:.72rem}
+ .notice-header-presence .phone-presence-toggle{min-height:40px;padding:5px 10px!important}
+ #phoneNoticesPanel.is-detail-open .notice-detail-workspace{overflow-y:auto}
+ #phoneNoticesPanel.is-detail-open .notice-conversation-panel{min-height:26rem}
+}
