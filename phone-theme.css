@@ -1500,3 +1500,47 @@ main:has(#phoneNoticesPanel.is-detail-open)>header{display:none}
  #phoneNoticesPanel.is-detail-open .notice-detail-workspace{overflow-y:auto}
  #phoneNoticesPanel.is-detail-open .notice-conversation-panel{min-height:26rem}
 }
+
+/* 2026-10-30: a simpler notice detail with two unmistakable work areas. */
+#phoneNoticesPanel.is-detail-open .notice-detail-workspace{display:grid;grid-template-rows:auto minmax(0,1fr);gap:0;background:#f4f7f1;color:#2d432b}
+#phoneNoticesPanel.is-detail-open .notice-detail-toolbar{min-height:4rem;padding:.55rem .75rem;border-bottom:1px solid #cbd9c2;background:#fff;box-sizing:border-box}
+#phoneNoticesPanel.is-detail-open .notice-detail-toolbar>button{min-width:7.5rem;border:1px solid #91b77b;border-radius:.7rem;box-shadow:none;background:#fff;color:#31552c}
+#phoneNoticesPanel.is-detail-open .notice-detail-toolbar>h2{margin:0;font-size:1.15rem;color:#294a27}
+#phoneNoticesPanel.is-detail-open .notice-detail-left{display:flex;flex-direction:column;gap:.65rem;padding:1rem;border:0;background:#f4f7f1}
+.notice-detail-section-title{display:flex;align-items:center;gap:.5rem;margin:0!important;color:#345d30!important;font-size:1.05rem!important}
+.notice-detail-section-title i,.notice-conversation-panel>header h2 i{color:#65a848}
+#phoneNoticesPanel.is-detail-open .notice-detail-left>.school-notice-card{border:1px solid #afcba0;border-radius:1rem;background:#fff;overflow:hidden!important}
+#phoneNoticesPanel.is-detail-open .notice-detail-left>.school-notice-card>header{border-radius:0;background:#edf5e8}
+#phoneNoticesPanel.is-detail-open .notice-message-block{padding:1.1rem 1rem;background:#fff}
+#phoneNoticesPanel.is-detail-open .notice-message-block h3{margin:0 0 .65rem;font-size:1.35rem}
+#phoneNoticesPanel.is-detail-open .school-notice-actions{border-top:1px solid #dbe6d4;background:#f7faf4}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel{margin:1rem 1rem 1rem 0;border:1px solid #afcba0;border-radius:1rem;background:#fff;overflow:hidden}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header{min-height:4.2rem;padding:.75rem 1rem;border-bottom:1px solid #dbe6d4;background:#edf5e8}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header h2{display:flex;align-items:center;gap:.5rem;margin:0;color:#345d30;font-size:1.15rem}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header small{margin-top:.1rem;font-size:.76rem}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header>span{background:#fff;border:1px solid #bfd5b2}
+#phoneNoticesPanel.is-detail-open .notice-conversation-list{background:#fff;padding:1rem}
+#phoneNoticesPanel.is-detail-open .notice-conversation-empty{min-height:7rem;color:#667561}
+#phoneNoticesPanel.is-detail-open .notice-inline-reply-form{padding:.8rem 1rem 1rem;background:#f7faf4}
+#phoneNoticesPanel.is-detail-open .notice-inline-reply-form textarea{min-height:4.2rem}
+#phoneNoticesPanel.is-detail-open .notice-inline-reply-form button{min-width:6rem;box-shadow:none}
+
+@media(min-width:900px){
+ #phoneNoticesPanel.is-detail-open .notice-detail-workspace{grid-template-columns:minmax(20rem,.82fr) minmax(24rem,1.18fr)}
+ #phoneNoticesPanel.is-detail-open .notice-detail-toolbar{grid-column:1/-1}
+ #phoneNoticesPanel.is-detail-open .notice-detail-left{border-right:1px solid #cbd9c2}
+}
+@media(max-width:899px){
+ #phoneNoticesPanel.is-detail-open{overflow-y:auto!important}
+ #phoneNoticesPanel.is-detail-open>#phoneNotices{display:block}
+ #phoneNoticesPanel.is-detail-open .notice-detail-workspace{height:auto;min-height:100%;overflow:visible}
+ #phoneNoticesPanel.is-detail-open .notice-detail-left{padding:.75rem}
+ #phoneNoticesPanel.is-detail-open .notice-conversation-panel{margin:0 .75rem .75rem;min-height:20rem}
+}
+@media(max-width:620px){
+ #phoneNoticesPanel.is-detail-open .notice-detail-toolbar{position:sticky;top:0;z-index:4;min-height:3.6rem}
+ #phoneNoticesPanel.is-detail-open .notice-detail-toolbar>button{min-width:44px;width:44px}
+ #phoneNoticesPanel.is-detail-open .notice-detail-toolbar>h2{font-size:1.05rem}
+ #phoneNoticesPanel.is-detail-open .notice-message-block h3{font-size:1.15rem}
+ #phoneNoticesPanel.is-detail-open .notice-inline-reply-form{grid-template-columns:1fr}
+}
