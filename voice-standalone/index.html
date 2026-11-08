@@ -4300,8 +4300,8 @@
     @keyframes callConnectPulse{0%{transform:scale(.72);opacity:.85}100%{transform:scale(1.18);opacity:0}}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
-  <link rel="stylesheet" href="./metrics-theme.css?v=2026-10-08-admin-fixed-height">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-10-08-admin-fixed-height">
+  <link rel="stylesheet" href="./metrics-theme.css?v=2026-11-08-turn-auth-hardening">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-11-08-turn-auth-hardening">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4318,6 +4318,12 @@
           <span id="callElapsed" class="connection-elapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span>
         </div>
       </div>
+      <div id="noticeHeaderPresence" class="notice-header-presence">
+        <span class="notice-presence-label">現在の状況</span>
+        <button id="phonePresenceToggle" class="phone-presence-toggle" type="button" aria-haspopup="dialog">
+          <i class="fa-solid fa-circle" aria-hidden="true"></i><span>対応できます</span>
+        </button>
+      </div>
       <div class="header-actions">
         <button id="phoneNameOpen" class="header-icon-btn" type="button" aria-label="プロフィールと設定" aria-haspopup="dialog" aria-controls="phoneNameDialog"><i class="fa-solid fa-user-pen" aria-hidden="true"></i></button>
         <button id="tipsToggleBtn" class="header-icon-btn tips-toggle" type="button" aria-controls="callTips" aria-expanded="false" aria-label="使い方のヒント">
@@ -4331,7 +4337,7 @@
     </header>
 <section id="phoneHome" class="phone-home-card">
  <p id="phoneMessage" role="status" aria-live="polite"></p>
- <nav id="phoneNoticeFilters" class="phone-notice-filters notice-filter-tabs" role="tablist" aria-label="連絡の表示" hidden><button type="button" role="tab" tabindex="0" data-notice-filter="action" aria-selected="true" aria-current="page"><i class="fa-solid fa-inbox" aria-hidden="true"></i><span>対応する</span><span id="phoneNoticeActionCount" class="notice-filter-count" hidden>0</span></button><button type="button" role="tab" tabindex="-1" data-notice-filter="sent" aria-selected="false" aria-current="false"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i><span>送った連絡</span></button></nav><section id="phoneNoticesPanel" role="tabpanel" aria-labelledby="phoneTab-notices" hidden><div class="notice-search-toggle-row"><div class="notice-presence-control"><button id="phonePresenceToggle" class="phone-presence-toggle" type="button" aria-haspopup="dialog"><i class="fa-solid fa-circle" aria-hidden="true"></i><span>対応できます</span></button><span class="notice-presence-label">現在の状況を選択</span></div><button id="phoneNoticeSearchToggle" class="phone-panel-icon" type="button" aria-label="連絡を検索" aria-controls="phoneNoticeSearchWrap" aria-expanded="false"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button></div><div id="phoneNoticeSearchWrap" class="phone-collapsible notice-search-wrap" inert aria-hidden="true"><input id="phoneNoticeSearch" type="search" placeholder="内容・差出人で検索" aria-label="連絡を検索"></div><div id="phoneNotices" class="school-notice-list"></div><button id="phoneNoticePastToggle" class="notice-past-toggle" type="button" aria-expanded="false"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span>過去の連絡を見る</span></button><button id="phoneNoticeAddToggle" class="phone-add-fab notice-add-button" hidden type="button" aria-label="連絡を作成する" aria-controls="phoneNoticeCompose"><i class="fa-solid fa-plus" aria-hidden="true"></i><span>連絡を作成する</span></button></section>
+ <nav id="phoneNoticeFilters" class="phone-notice-filters notice-filter-tabs" role="tablist" aria-label="連絡の表示" hidden><button type="button" role="tab" tabindex="0" data-notice-filter="action" aria-selected="true" aria-current="page"><i class="fa-solid fa-inbox" aria-hidden="true"></i><span>対応する</span><span id="phoneNoticeActionCount" class="notice-filter-count" hidden>0</span></button><button type="button" role="tab" tabindex="-1" data-notice-filter="sent" aria-selected="false" aria-current="false"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i><span>送った連絡</span></button></nav><section id="phoneNoticesPanel" role="tabpanel" aria-labelledby="phoneTab-notices" hidden><div class="notice-search-toggle-row"><span>連絡を選ぶと、内容と返信を大きく表示します</span><button id="phoneNoticeSearchToggle" class="phone-panel-icon" type="button" aria-label="連絡を検索" aria-controls="phoneNoticeSearchWrap" aria-expanded="false"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button></div><div id="phoneNoticeSearchWrap" class="phone-collapsible notice-search-wrap" inert aria-hidden="true"><input id="phoneNoticeSearch" type="search" placeholder="内容・差出人で検索" aria-label="連絡を検索"></div><div id="phoneNotices" class="school-notice-list"></div><button id="phoneNoticePastToggle" class="notice-past-toggle" type="button" aria-expanded="false"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span>過去の連絡を見る</span></button><button id="phoneNoticeAddToggle" class="phone-add-fab notice-add-button" hidden type="button" aria-label="新たな連絡を作成" aria-controls="phoneNoticeCompose"><i class="fa-solid fa-plus" aria-hidden="true"></i><span>新たな連絡を作成</span></button></section>
  <section id="phoneHistoryPanel" role="tabpanel" aria-labelledby="phoneTab-history" hidden><div class="phone-panel-head"><h2>履歴</h2><button id="phoneHistoryToolsToggle" class="phone-panel-icon" type="button" aria-label="履歴を検索" aria-controls="phoneHistoryTools" aria-expanded="false"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button></div><div id="phoneHistoryTools" class="phone-list-tools phone-collapsible" inert aria-hidden="true"><input id="phoneHistorySearch" type="search" placeholder="名前・番号で検索" aria-label="履歴を検索"><button id="phoneHistoryClear" type="button">履歴をすべて削除</button></div><section class="frequent-section" aria-labelledby="frequentTitle"><h3 id="frequentTitle">よく使う</h3><div id="phoneFrequent" class="frequent-list"></div></section><section class="history-section" aria-label="発着信履歴"><div id="phoneHistory"></div></section></section>
  <section id="phoneDialPanel" role="tabpanel" aria-labelledby="phoneTab-dial"><div class="phone-dial-content"><form id="phoneDialForm" class="phone-dialer"><div class="phone-number-entry"><output id="phoneDialNumber" aria-label="入力した相手の8桁の番号" aria-live="polite"></output></div><div class="phone-keypad"><button type="button" class="phone-key" data-phone-key="1" aria-label="1"><span>1</span><small aria-hidden="true">&nbsp;</small></button><button type="button" class="phone-key" data-phone-key="2" aria-label="2"><span>2</span><small aria-hidden="true">ABC</small></button><button type="button" class="phone-key" data-phone-key="3" aria-label="3"><span>3</span><small aria-hidden="true">DEF</small></button><button type="button" class="phone-key" data-phone-key="4" aria-label="4"><span>4</span><small aria-hidden="true">GHI</small></button><button type="button" class="phone-key" data-phone-key="5" aria-label="5"><span>5</span><small aria-hidden="true">JKL</small></button><button type="button" class="phone-key" data-phone-key="6" aria-label="6"><span>6</span><small aria-hidden="true">MNO</small></button><button type="button" class="phone-key" data-phone-key="7" aria-label="7"><span>7</span><small aria-hidden="true">PQRS</small></button><button type="button" class="phone-key" data-phone-key="8" aria-label="8"><span>8</span><small aria-hidden="true">TUV</small></button><button type="button" class="phone-key" data-phone-key="9" aria-label="9"><span>9</span><small aria-hidden="true">WXYZ</small></button><button type="button" class="phone-key" data-phone-key="*" aria-label="アスタリスク"><span>*</span><small aria-hidden="true">&nbsp;</small></button><button type="button" class="phone-key" data-phone-key="0" aria-label="0"><span>0</span><small aria-hidden="true">+</small></button><button type="button" class="phone-key" data-phone-key="#" aria-label="シャープ"><span>#</span><small aria-hidden="true">&nbsp;</small></button></div><div class="phone-dial-actions"><button type="submit" class="phone-call" aria-label="電話する"><i class="fa-solid fa-phone" aria-hidden="true"></i></button><button id="phoneBackspace" type="button" aria-label="1文字消す。長押しですべて消去"><i class="fa-solid fa-delete-left" aria-hidden="true"></i><small aria-hidden="true"><span>長押し</span><span>全消去</span></small></button></div></form></div></section>
  <section id="phoneContactsPanel" role="tabpanel" hidden><nav id="phoneBookTabs" class="phone-book-tabs notice-filter-tabs" role="tablist" aria-label="電話帳の種類"><button type="button" role="tab" data-phone-book-tab="people" aria-controls="phoneContactsView" aria-selected="true" tabindex="0"><i class="fa-solid fa-user" aria-hidden="true"></i><span>個人</span></button><button type="button" role="tab" data-phone-book-tab="groups" aria-controls="phoneGroupsView" aria-selected="false" tabindex="-1"><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>グループ</span></button></nav><div id="phoneContactsView" class="phone-book-view"><div class="phone-panel-head phone-section-head"><h2>個人の電話帳</h2><button id="phoneContactToolsToggle" class="phone-panel-icon" type="button" aria-label="電話帳を検索" aria-controls="phoneContactTools" aria-expanded="false"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button></div><div id="phoneContactTools" class="phone-list-tools phone-collapsible" inert aria-hidden="true"><input id="phoneContactSearch" type="search" placeholder="名前・番号で検索" aria-label="電話帳を検索"><button id="phoneQrScan" type="button"><i class="fa-solid fa-camera"></i> QRを読む</button></div><div id="phoneContacts"></div><details id="legacyPhonebook" hidden><summary>以前の電話帳から登録する</summary><p>相手の8桁の番号を確認して登録してください。</p><div id="legacyPhoneContacts"></div></details></div><div id="phoneGroupsView" class="phone-book-view" role="tabpanel" hidden><div class="phone-panel-head phone-section-head"><h2>グループ</h2><button id="phoneGroupToolsToggle" class="phone-panel-icon" type="button" aria-label="グループを検索" aria-controls="phoneGroupTools" aria-expanded="false"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button></div><div id="phoneGroupTools" class="phone-list-tools phone-collapsible" inert aria-hidden="true"><input id="phoneGroupSearch" type="search" placeholder="グループ名で検索" aria-label="グループを検索"></div><div id="phoneGroupInvites"></div><div id="phoneGroups"></div></div><button id="phoneContactAddToggle" class="phone-add-fab" hidden type="button" aria-label="電話帳に追加" aria-controls="phoneContactForm" aria-expanded="false"><i class="fa-solid fa-plus" aria-hidden="true"></i></button><button id="phoneGroupAddToggle" class="phone-add-fab" hidden type="button" aria-label="グループを作成"><i class="fa-solid fa-plus" aria-hidden="true"></i></button></section>
@@ -4378,7 +4384,7 @@
 
     <dialog id="phonePresenceDialog" class="number-modal presence-dialog" aria-labelledby="phonePresenceTitle"><div class="number-head"><h2 id="phonePresenceTitle">今の状態</h2><button id="phonePresenceClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div><p>相手が連絡方法を選ぶ目安になります。「対応できます」以外は90分後に自動で戻ります。</p><div class="presence-options"><button type="button" data-presence="available"><i class="fa-solid fa-circle-check"></i><span><strong>対応できます</strong><small>電話・連絡を受けられます</small></span></button><button type="button" data-presence="class"><i class="fa-solid fa-chalkboard-user"></i><span><strong>授業中</strong><small>急ぎでなければ連絡を残してください</small></span></button><button type="button" data-presence="away"><i class="fa-solid fa-person-walking"></i><span><strong>離席中</strong><small>戻ったら確認します</small></span></button><button type="button" data-presence="urgent"><i class="fa-solid fa-bell"></i><span><strong>緊急のみ</strong><small>急ぎの連絡だけ受けます</small></span></button></div></dialog>
     <dialog id="phoneNoticeCompose" class="number-modal school-notice-compose" aria-labelledby="phoneNoticeComposeTitle">
-      <div class="number-head"><h2 id="phoneNoticeComposeTitle">新しい連絡</h2><button id="phoneNoticeComposeClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="number-head"><h2 id="phoneNoticeComposeTitle">新たな連絡を作成</h2><button id="phoneNoticeComposeClose" type="button" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button></div>
       <form id="phoneNoticeForm">
         <section class="notice-compose-step" aria-labelledby="noticeRecipientStep"><h3 id="noticeRecipientStep"><span>1</span>誰に送りますか？</h3><div id="phoneNoticeRecipients" class="notice-recipient-list"></div><p id="phoneNoticeRecommendation" class="notice-operation-recommendation" hidden></p></section>
         <section class="notice-compose-step" aria-labelledby="noticePurposeStep"><h3 id="noticePurposeStep"><span>2</span>何を伝えますか？</h3><fieldset class="notice-purpose-picker"><legend class="sr-only">用件を選ぶ</legend><label><input type="radio" name="noticePurpose" value="callback" checked><span><i class="fa-solid fa-phone" aria-hidden="true"></i>保護者へ電話</span></label><label><input type="radio" name="noticePurpose" value="visitor"><span><i class="fa-solid fa-person-circle-check" aria-hidden="true"></i>来客対応</span></label><label><input type="radio" name="noticePurpose" value="office"><span><i class="fa-solid fa-building" aria-hidden="true"></i>職員室へ</span></label><label><input type="radio" name="noticePurpose" value="confirm"><span><i class="fa-solid fa-circle-check" aria-hidden="true"></i>確認してほしい</span></label><label><input type="radio" name="noticePurpose" value="custom"><span><i class="fa-solid fa-pen" aria-hidden="true"></i>その他</span></label></fieldset></section>
@@ -4416,11 +4422,11 @@
       <span class="tip-item"><i class="fa-solid fa-user-pen"></i><span><strong>最初の設定</strong><span>初めて開いたときは、プロフィール画面で8桁の専用番号を自動で準備します。相手に表示する名前を入力して保存してください。よみがなと所属も登録すると、相手の電話帳や履歴で探しやすくなります。名前と番号はこの端末にも安全に控えるため、次回の起動直後から表示できます。保存後はボタンが「保存済み」になり、内容を変えると「変更を保存」に切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-phone"></i><span><strong>電話をかける</strong><span>「電話」の「番号入力」で、相手の8桁番号を入力します。このアプリ利用者同士の専用電話で、一般の電話番号や緊急通報には発信できません。自分の番号は画面下部に常に表示され、押すとコピーできます。スマホやタブレットでは内容部分を左右へ動かすと、内容が指に追従します。そのままスワイプして、連絡・番号入力・履歴・電話帳を順に切り替えられます。グループは電話帳の中にまとめています。短く動かして離した場合は元の画面へ滑らかに戻ります。縦スクロール中やボタン操作中は切り替わりません。番号ボタンは、端末の横幅と縦幅に合わせて、押しやすさを保ちながら自動で大きさと間隔を調整します。着信と呼び出し終了はリアルタイムで反映し、応答後は接続準備を自動で進めます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-address-book"></i><span><strong>着信・履歴・電話帳</strong><span>着信すると、相手が登録した名前・よみがな・所属を表示し、履歴と電話帳にも記録します。履歴は日付ごとに区切り、終了した呼び出しは「呼び出し終了」または「不在着信」と表示します。日時と「詳細」は読み分けやすい間隔で配置しています。スマホでは「詳細」を発着信状態と同じ行の右端に置き、開いた内容だけがカード内の次行へ背景付きで広がるため、下の履歴と重ならずに読めます。ホーム画面版も新しい版を検出すると、通話中でなければ自動で一度だけ更新します。541〜959pxでは削除・連絡・電話をカード幅内に均等配置し、狭い幅ではアイコンを優先します。960px以上では「よく使う」を縦一列にして、履歴欄が横スクロールしないようにしています。電話帳は「個人」と「グループ」を上部で切り替えます。個人では相手を検索・登録でき、グループではグループ名の検索・作成・通話ができます。自分が編集した情報は、その後も優先して使います。「よく使う」はカードを押すと発信確認が開き、星はよく使う相手への追加と解除です。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-message"></i><span><strong>連絡</strong><span>「対応する」には、いま自分が行う連絡が表示されます。以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます。タブレットやPCでは、連絡・履歴・電話帳の内容を横幅に合わせて2列で表示します。連絡の返信はカード上部の「返信内容を確認」を押すと、カード上部から対応ボタンの手前まで返信一覧が広がり、最後までスクロールできます。完了した連絡は「その他」から「対応に戻す」を選ぶと、お願い・急ぎなどの表示も戻ります。「連絡を作成する」から個人またはプロフィールの学校・所属グループを選んで送ります。自分が送った内容は「送った連絡」で確認できます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-message"></i><span><strong>連絡</strong><span>「対応する」には、いま自分が行う連絡が表示されます。現在の状況は、連絡モード中だけアプリ名の右側から変更できます。カードを押すと、周囲のメニューを隠して、連絡内容と返信・対応だけの大きな詳細画面が開きます。タブレットやPCでは左に連絡内容、右に返信履歴と返信入力を並べ、スマホでは同じ順番で縦に表示します。返信履歴は常に開いており、その場で返信できます。完了した連絡は「その他」から「対応に戻す」を選べます。別件を送るときだけ「新たな連絡を作成」を使い、個人またはプロフィールの学校・所属グループを選びます。自分が送った内容は「送った連絡」で確認できます。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-spinner"></i><span><strong>応答したあと</strong><span>全画面の準備表示が消えるまで、そのままお待ちください。参加確認、マイク、音声接続を自動で進め、通話できる状態になると通話画面へ切り替わります。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-lightbulb"></i><span><strong>通話の種類</strong><span>「サポートあり」は会話から用語を見つけ、押すと説明を確認できます。iPhoneで音声処理が一時中断しても自動で再開し、処理が混み合った場合も次の発話の検出を続けます。手動操作が必要なときだけ「検出を再開」を表示します。「通常通話」は音声だけで、音声認識・用語検出・説明・たとえのAI処理は行いません。</span></span></span>
       <span class="tip-item"><i class="fa-solid fa-user-group"></i><span><strong>グループ</strong><span>電話帳の「グループ」から最初からグループで話すことも、通話中に参加者欄の「人を追加」から相手を加えることもできます。「最近」には個別通話と過去のグループ通話で話した人が、同じ人を重ねずに表示されます。「電話帳」または「番号入力」からも選べます。選び直すときは同じカードをもう一度押すか、「選択解除」を押してください。選ばれた人だけに参加確認が届きます。切替中は二重操作を防ぎ、新しいグループへ接続できてから元の通話を終了します。失敗時は準備途中の招待を整理して元の通話へ戻ります。通話を終えると通話用URLも消えるため、次の起動で過去のグループへ勝手に戻りません。古い通話中情報が残った場合も、着信への応答時と次の参加時に安全を確認して自動修復します。最大4人です。</span></span></span>
-      <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。管理者メニューは「料金・連絡・診断・設定」に分かれています。「使用上限目安」では、この端末の通話記録から無料枠の使用量と、10分通話をあと何回使えるかを確認できます。詳しい診断値は「診断」で必要な項目だけを開いて確認できます。</span></span></span>
+      <span class="tip-item"><i class="fa-solid fa-gear"></i><span><strong>プロフィールと設定</strong><span>上部の人型ボタンから、名前・よみがな・所属を変更できます。「設定」では、いつも使う通話、番号の引き継ぎ、着信通知、着信音、端末チェックを項目ごとに確認できます。左のヘッドホンは管理者メニューです。管理者メニューは「料金・連絡・診断・設定」に分かれ、見出しとタブを残したまま中身だけをスクロールできます。タブごとに読んでいた位置を覚え、料金超過・通知失敗・通話品質低下がある時だけ上部に案内します。「使用上限目安」では、この端末の通話記録から無料枠の使用量と、10分通話をあと何回使えるかを確認できます。詳しい診断値は「診断」で必要な項目だけを開いて確認できます。</span></span></span>
       <span id="qualityTip" class="tip-item"><i class="fa-solid fa-shield-halved"></i><span><strong>通話とプライバシー</strong><span>通話の声は録音・保存しません。同じブラウザでアプリを2つ開いた場合は、通話や着信が重ならないように片方だけを使います。「このタブで使う」で安全に切り替えられます。近くの端末同士ではイヤホンを使ってください。回線に合わせて音質を自動調整し、Wi-Fi切替や音声停止を検出すると、ICE再接続から接続の作り直しまで段階的に自動修復します。横幅のあるタブレットやPCでは、操作を左、参加者と用語を右に分けて一画面に収めます。通話時間は上部の接続状態の右に表示します。自分のアイコンまたは、その下の状態表示を押すと、マイクONとミュートを切り替えられます。相手のアイコンを押すと名前と8桁番号を確認・コピーできます。緑のボタンは進む・決定、淡い赤は取消・終了です。保存や送信などの処理中はボタンに待機状態を表示し、連打を防ぎます。キーボード操作では青い枠で現在位置を示し、文字を大きくした端末や動きを減らす設定にも対応します。管理者メニューでは2端末の診断比較と端末テストができます。通話を終えるときは画面下の退室ボタンを1回押してください。タッチ端末でも最初のタップを直接受け取り、すぐに終了画面へ切り替えます。アプリやタブを閉じた場合も退室として相手へ反映します。別のアプリや画面へ切り替えただけなら通話を維持します。グループ通話で誰かが退室すると、参加者欄に名前を一時表示します。</span></span></span>    </dialog>
 
     <section class="card participants-card">
@@ -4534,7 +4540,7 @@
   <div id="metricsModal" class="metrics-modal" aria-hidden="true">
     <div class="metrics-modal-card" role="dialog" aria-modal="true" aria-labelledby="metricsModalTitle">
       <div class="modal-head">
-        <h2 id="metricsModalTitle"><i class="fa-solid fa-yen-sign"></i> 運営料金の目安</h2>
+        <h2 id="metricsModalTitle"><i class="fa-solid fa-shield-halved"></i> 管理者メニュー</h2>
         <div class="modal-head-actions">
           <button id="metricsHistoryOpenBtn" aria-label="料金履歴" class="metrics-history-open-btn" type="button" aria-controls="metricsHistoryModal"><i class="fa-solid fa-chart-line"></i><span>履歴</span></button>
           <button id="adminLogoutBtn" aria-label="この端末の管理者認証を解除" class="metrics-history-open-btn" type="button"><i class="fa-solid fa-lock-open"></i><span>認証解除</span></button>
@@ -4542,11 +4548,14 @@
         </div>
       </div>
       <nav class="admin-main-tabs" role="tablist" aria-label="管理者メニューの項目">
-        <button id="adminCostTab" type="button" role="tab" data-admin-tab="cost" aria-controls="adminCostArea" aria-selected="true" onclick="window.selectAdminSection?.(this)"><i class="fa-solid fa-yen-sign"></i><span>料金</span></button>
-        <button id="adminNoticeTab" type="button" role="tab" data-admin-tab="notice" aria-controls="adminNoticeArea" aria-selected="false" tabindex="-1" onclick="window.selectAdminSection?.(this)"><i class="fa-solid fa-message"></i><span>連絡</span></button>
-        <button id="adminDiagnosticTab" type="button" role="tab" data-admin-tab="diagnostic" aria-controls="adminDiagnosticArea" aria-selected="false" tabindex="-1" onclick="window.selectAdminSection?.(this)"><i class="fa-solid fa-stethoscope"></i><span>診断</span></button>
-        <button id="adminSettingsTab" type="button" role="tab" data-admin-tab="settings" aria-controls="adminSettingsArea" aria-selected="false" tabindex="-1" onclick="window.selectAdminSection?.(this)"><i class="fa-solid fa-gear"></i><span>設定</span></button>
+        <button id="adminCostTab" type="button" role="tab" data-admin-tab="cost" aria-controls="adminCostArea" aria-selected="true"><i class="fa-solid fa-yen-sign"></i><span>料金</span></button>
+        <button id="adminNoticeTab" type="button" role="tab" data-admin-tab="notice" aria-controls="adminNoticeArea" aria-selected="false" tabindex="-1"><i class="fa-solid fa-message"></i><span>連絡</span></button>
+        <button id="adminDiagnosticTab" type="button" role="tab" data-admin-tab="diagnostic" aria-controls="adminDiagnosticArea" aria-selected="false" tabindex="-1"><i class="fa-solid fa-stethoscope"></i><span>診断</span></button>
+        <button id="adminSettingsTab" type="button" role="tab" data-admin-tab="settings" aria-controls="adminSettingsArea" aria-selected="false" tabindex="-1"><i class="fa-solid fa-gear"></i><span>設定</span></button>
       </nav>
+      <div id="adminAttentionSummary" class="admin-attention-summary" role="status" aria-live="polite">
+        <span class="admin-attention-ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 現在、注意が必要な項目はありません</span>
+      </div>
       <section id="adminCostArea" class="admin-main-panel" role="tabpanel" aria-labelledby="adminCostTab"></section>
       <section id="adminNoticeArea" class="admin-main-panel" role="tabpanel" aria-labelledby="adminNoticeTab" hidden></section>
       <section id="adminDiagnosticArea" class="admin-main-panel" role="tabpanel" aria-labelledby="adminDiagnosticTab" hidden></section>
@@ -4740,8 +4749,17 @@
       const costArea=document.getElementById('adminCostArea'),noticeArea=document.getElementById('adminNoticeArea'),diagnosticArea=document.getElementById('adminDiagnosticArea'),settingsArea=document.getElementById('adminSettingsArea');
       if(!costArea||!noticeArea||!diagnosticArea||!settingsArea)return;
       const tabs=Array.from(document.querySelectorAll('[data-admin-tab]')),panels=Array.from(document.querySelectorAll('.admin-main-panel'));
-      const select=function(tab,{focus=false}={}){const key=tab?.dataset.adminTab||'cost';tabs.forEach(function(button){const selected=button===tab;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1});panels.forEach(function(panel){panel.hidden=panel.id!==tab.getAttribute('aria-controls')});try{localStorage.setItem('wakaru-admin-section-v1',key)}catch(_){}if(focus)tab.focus()};
-      window.selectAdminSection=function(tab){select(tab)};
+      const scrollPositions=new Map();let activePanel=null;
+      const select=function(tab,{focus=false,resetScroll=false}={}){
+        if(!tab)return;
+        if(activePanel&&!activePanel.hidden)scrollPositions.set(activePanel.id,activePanel.scrollTop);
+        const key=tab.dataset.adminTab||'cost',targetId=tab.getAttribute('aria-controls');
+        tabs.forEach(function(button){const selected=button===tab;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1});
+        panels.forEach(function(panel){panel.hidden=panel.id!==targetId});activePanel=document.getElementById(targetId);const targetPanel=activePanel;
+        requestAnimationFrame(function(){if(targetPanel&&!targetPanel.hidden)targetPanel.scrollTop=resetScroll?0:(scrollPositions.get(targetId)||0)});
+        try{localStorage.setItem('wakaru-admin-section-v1',key)}catch(_){}if(focus)tab.focus();
+      };
+      window.selectAdminSection=function(tab,options){select(tab,options||{})};
       const move=(area,selector)=>{const node=document.querySelector(selector);if(node)area.append(node)};
       document.querySelectorAll('#currentCallPanel .admin-connection-quality').forEach(function(section){
         const disclosure=document.createElement('details');disclosure.className='admin-disclosure';const summary=document.createElement('summary'),heading=section.querySelector('h4');summary.innerHTML=heading?heading.innerHTML:'詳細';
@@ -4751,8 +4769,22 @@
       ['.metrics-breakdown','.metrics-output-head','#metricsOutput'].forEach(function(selector){const node=document.querySelector(selector);if(node)technical.append(node)});diagnosticArea.append(technical);
       ['.metrics-rate-row','.admin-budget-row','.cost-tabs','#costScenarioPanel','#freeUsagePanel','#currentCallPanel','#metricsNotePopover','#metricsRateTooltip'].forEach(function(selector){move(costArea,selector)});
       ['.admin-control-card[aria-labelledby="adminNoticePermissionTitle"]','.admin-notice-overview','.admin-notice-cost','.admin-two-device-check'].forEach(function(selector){move(noticeArea,selector)});move(settingsArea,'.admin-control-card[aria-labelledby="adminPasswordChangeTitle"]');
+      const intros={cost:['fa-yen-sign','料金と使用上限','今回の通話、10分間の試算、無料枠の目安を確認できます。'],notice:['fa-message','連絡の状態','通知失敗や未対応の件数、端末ごとの確認項目をまとめています。'],diagnostic:['fa-stethoscope','通話の診断','問題があるときだけ各項目を開き、送信用データを確認してください。'],settings:['fa-gear','管理者設定','この端末の管理者パスワードを変更できます。']};
+      tabs.forEach(function(tab){const panel=document.getElementById(tab.getAttribute('aria-controls')),info=intros[tab.dataset.adminTab];if(!panel||!info)return;const intro=document.createElement('div');intro.className='admin-panel-intro';intro.innerHTML='<i class="fa-solid '+info[0]+'" aria-hidden="true"></i><span><strong>'+info[1]+'</strong><small>'+info[2]+'</small></span>';panel.prepend(intro)});
+      const attention=document.getElementById('adminAttentionSummary');
+      const numberFrom=function(selector,index){const values=document.querySelectorAll(selector+' strong');return Number(values[index]?.textContent)||0};
+      const renderAttention=function(){
+        if(!attention)return;const issues=[];
+        if(document.getElementById('adminBudgetStatus')?.classList.contains('is-over'))issues.push({tab:'cost',icon:'fa-yen-sign',label:'料金が目安上限に達しました',level:'danger'});
+        const failed=numberFrom('#adminNoticeStats',2);if(failed>0)issues.push({tab:'notice',icon:'fa-bell-slash',label:'通知失敗 '+failed+'件',level:'danger'});
+        const quality=document.getElementById('qualityBadge');if(quality?.classList.contains('is-poor'))issues.push({tab:'diagnostic',icon:'fa-signal',label:'通話品質を確認',level:'danger'});else if(quality?.classList.contains('is-fair'))issues.push({tab:'diagnostic',icon:'fa-signal',label:'通話品質が不安定',level:'warning'});
+        attention.classList.toggle('has-issues',issues.length>0);
+        attention.innerHTML=issues.length?'<span class="admin-attention-label">確認してください</span>'+issues.map(function(item){return '<button type="button" class="is-'+item.level+'" data-admin-jump="'+item.tab+'"><i class="fa-solid '+item.icon+'" aria-hidden="true"></i>'+item.label+'<i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>'}).join(''):'<span class="admin-attention-ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 現在、注意が必要な項目はありません</span>';
+      };
+      attention?.addEventListener('click',function(event){const button=event.target.closest('[data-admin-jump]');if(!button)return;const tab=tabs.find(function(item){return item.dataset.adminTab===button.dataset.adminJump});if(tab)select(tab,{focus:true,resetScroll:true})});
+      const attentionObserver=new MutationObserver(renderAttention);['adminBudgetStatus','adminNoticeStats','qualityBadge'].forEach(function(id){const node=document.getElementById(id);if(node)attentionObserver.observe(node,{subtree:true,childList:true,attributes:true,characterData:true})});
       tabs.forEach(function(tab,index){tab.addEventListener('click',function(){select(tab)});tab.addEventListener('keydown',function(event){if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;select(tabs[next],{focus:true})})});
-      let remembered='';try{remembered=localStorage.getItem('wakaru-admin-section-v1')||''}catch(_){}const initial=tabs.find(function(tab){return tab.dataset.adminTab===remembered})||tabs[0];select(initial);
+      let remembered='';try{remembered=localStorage.getItem('wakaru-admin-section-v1')||''}catch(_){}const initial=tabs.find(function(tab){return tab.dataset.adminTab===remembered})||tabs[0];select(initial);renderAttention();
     })();
     if ("serviceWorker" in navigator) {
       let bootWorkerRefreshStarted = false;
@@ -4763,10 +4795,10 @@
           return;
         }
         bootWorkerRefreshStarted = true;
-        sessionStorage.setItem("wakaru-worker-refreshed", "2026-10-08-admin-fixed-height");
+        sessionStorage.setItem("wakaru-worker-refreshed", "2026-11-08-turn-auth-hardening");
         location.reload();
       });
-      navigator.serviceWorker.register("./service-worker.js?v=2026-10-08-admin-fixed-height", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-11-08-turn-auth-hardening", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4774,8 +4806,8 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-10-08-admin-fixed-height";
-    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-10-08-admin-fixed-height";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-11-08-turn-auth-hardening";
+    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-11-08-turn-auth-hardening";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createFreeUsageDashboard,aiNeurons as estimateAiNeurons} from "./free-usage.js?v=2026-10-07-free-usage";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
@@ -4821,7 +4853,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-10-08-admin-fixed-height";
+    const APP_VERSION = "2026-11-08-turn-auth-hardening";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -5897,14 +5929,19 @@
       const turnTimeout = window.setTimeout(function() {
         if (turnAbortController) turnAbortController.abort();
       }, 2500);
-      turnConfigurationPromise = fetch(TURN_CREDENTIALS_ENDPOINT, {
-        method: "POST",
-        mode: "cors",
-        cache: "no-store",
-        credentials: "omit",
-        signal: turnAbortController ? turnAbortController.signal : undefined,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ callId: callId, clientId: deviceId })
+      turnConfigurationPromise = ensureAnonymousAuth().then(function(user) {
+        if (!user) throw new Error("TURN_AUTH_UNAVAILABLE");
+        return user.getIdToken();
+      }).then(function(token) {
+        return fetch(TURN_CREDENTIALS_ENDPOINT, {
+          method: "POST",
+          mode: "cors",
+          cache: "no-store",
+          credentials: "omit",
+          signal: turnAbortController ? turnAbortController.signal : undefined,
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+          body: JSON.stringify({ callId: callId, clientId: deviceId })
+        });
       }).then(function(response) {
         if (!response.ok) throw new Error("TURN_CREDENTIALS_" + response.status);
         return response.json();
@@ -8530,7 +8567,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-10-08-admin-fixed-height", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-11-08-turn-auth-hardening", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);
