@@ -83,7 +83,7 @@ test('電話と連絡のタブ領域・スクロールバーをアプリ共通�
 test('phoneHomeは縦スクロールを邪魔せず左右スワイプで各タブを順に切り替える',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(app,/function bindPhoneSwipe\(\)/);
- assert.match(app,/\{tab:'notices',filter:'action'\},\{tab:'notices',filter:'sent'\},\{tab:'dial'\},\{tab:'history'\},\{tab:'contacts'\},\{tab:'groups'\}/);
+ assert.match(app,/\{tab:'notices',filter:'action'\},\{tab:'notices',filter:'sent'\},\{tab:'dial'\},\{tab:'history'\},\{tab:'contacts'\}/);
  assert.match(app,/distanceThreshold=Math\.min\(96,Math\.max\(48,width\*\.16\)\)/);
  assert.match(app,/event\.preventDefault\(\)/);
  assert.match(app,/button,a,input,textarea,select,label,summary,dialog/);
@@ -194,7 +194,7 @@ test('電話帳検索とグループ作成は必要なときだけ開く',()=>{
 
 test('グループ作成後にモーダルを連続表示せず一覧の操作状態へ戻す',()=>{
  const create=app.match(/async function createGroup\(\)\{([\s\S]*?)\n function renderInvites/)[1];
- assert.match(create,/close\(\);tab\('groups'\);/);
+ assert.match(create,/close\(\);tab\('contacts'\);setPhoneBookTab\('groups'\);/);
  assert.match(create,/msg\('グループを作成しました。一覧のカードから開けます。'\)/);
  assert.doesNotMatch(create,/await openGroup/);
  assert.match(app,/phoneContactAddToggle'\)\.focus\?\.\(\)/);
@@ -352,10 +352,10 @@ test('履歴画面は影を使わず罫線と色で操作の優先度を示す',
 });
 
 test('起動直後の履歴操作を遅い初期化で番号入力へ戻さない',()=>{
- const firstTab=app.indexOf("const initialPhoneTab=");
+ const firstTab=app.indexOf("initialPhoneTab=");
  const profileRead=app.indexOf("const p=await read(profile)");
  assert.ok(firstTab>=0&&firstTab<profileRead);
- assert.equal((app.match(/tab\(\['notices','history','contacts','dial','groups'\]/g)||[]).length,0);
+ assert.match(app,/initialPhoneTab=\['notices','history','contacts','dial'\]\.includes/);
 });
 
 test('よく使うカード全体で発信確認を開き、電話帳の補助操作はメニューへまとめる',()=>{
@@ -416,7 +416,7 @@ test('連絡の用件を保存でき失敗時は内容を残して再送方法�
 
 test('連絡の空表示を一つに絞り作成ボタンを文字付きで表示する',()=>{
  assert.doesNotMatch(html,/id="phoneNoticeSummary"/);
- assert.match(html,/id="phoneNoticeAddToggle"[^>]*aria-label="連絡を作成する"[^>]*><i class="fa-solid fa-plus"[^>]*><\/i><span>連絡を作成する<\/span>/);
+ assert.match(html,/id="phoneNoticeAddToggle"[^>]*aria-label="新たな連絡を作成"[^>]*>[\s\S]*?<span>新たな連絡を作成<\/span>/);
  const theme=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(theme,/#phoneNoticeAddToggle\.notice-add-button\{[^}]*width:auto[^}]*height:56px[^}]*border-radius:18px/);
 });
@@ -493,10 +493,10 @@ test('壊れた旧画面でもPWA更新を止めず次回起動は最新HTMLを�
 test('電話帳とグループの追加ボタンは同じ位置で下部タブと重ならない',()=>{
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(html,/<section id="phoneContactsPanel"[\s\S]*?id="phoneContactAddToggle"[\s\S]*?<\/section>/);
- assert.match(css,/#phoneContactsPanel,#phoneGroupsPanel\{position:relative;padding-bottom:90px!important\}/);
+ assert.match(html,/id="phoneContactsPanel"[\s\S]*?id="phoneContactAddToggle"[\s\S]*?id="phoneGroupAddToggle"[\s\S]*?<\/section>/);
  assert.match(css,/\.phone-home-card>\.phone-add-fab\{position:absolute;right:clamp\(12px,1\.6vw,20px\);bottom:86px/);
- assert.match(app,/\[\['phoneNoticeAddToggle','notices'\],\['phoneContactAddToggle','contacts'\],\['phoneGroupAddToggle','groups'\]\]/);
- assert.match(app,/addButton\.hidden=id!==panelId/);
+ assert.match(app,/for\(const actionId of \['phoneNoticeAddToggle','phoneContactAddToggle','phoneGroupAddToggle'\]\)/);
+ assert.match(app,/setPhoneBookTab\(activePhoneBookTab\)/);
  assert.match(css,/\.frequent-card>i\{font-size:52px\}/);
 });
 
@@ -631,7 +631,7 @@ test('主タブは連絡と電話だけにし電話の補助機能と設定を�
  assert.match(mainTabs,/fa-message[\s\S]*?<span>連絡<\/span>/);
  assert.match(mainTabs,/fa-phone[\s\S]*?<span>電話<\/span>/);
  assert.doesNotMatch(mainTabs,/>履歴<|>電話帳<|>グループ<|>設定</);
- assert.match(html,/id="phoneDialShortcuts" class="phone-dial-shortcuts notice-filter-tabs"[\s\S]*?data-phone-tab="dial"[\s\S]*?>番号入力<[\s\S]*?data-phone-tab="history"[\s\S]*?data-phone-tab="contacts"[\s\S]*?data-phone-tab="groups"/);
+ assert.match(html,/id="phoneDialShortcuts" class="phone-dial-shortcuts notice-filter-tabs"[\s\S]*?data-phone-tab="dial"[\s\S]*?>番号入力<[\s\S]*?data-phone-tab="history"[\s\S]*?data-phone-tab="contacts"/);
  assert.match(html,/class="profile-settings-tabs"[\s\S]*?data-profile-tab="name"[\s\S]*?data-profile-tab="settings"/);
  assert.match(app,/settingsHost\.append\(settingsPanel\)/);
  assert.match(app,/const primary=id==='notices'\?'notices':'dial'/);
@@ -657,9 +657,9 @@ test('電話の現在地・スクロール・追加ボタン・キーボード�
  assert.match(app,/b\.setAttribute\('aria-current',selected\?'page':'false'\)/);
  assert.match(app,/const bindTabKeys=host=>host\.addEventListener\('keydown'/);
  assert.match(app,/bindTabKeys\(tabs\);bindTabKeys\(\$\('phoneDialShortcuts'\)\)/);
- assert.match(app,/\['notices','history','contacts','dial','groups'\]\.includes\(params\.get\('tab'\)\)/);
+ assert.match(app,/initialPhoneTab=\['notices','history','contacts','dial'\]\.includes\(requestedPhoneTab\)/);
  assert.doesNotMatch(app,/\['notices','history','contacts','dial','groups','settings'\]/);
- assert.match(css,/#phoneContactsPanel,#phoneGroupsPanel\{padding-bottom:96px!important\}/);
+ assert.match(css,/#phoneContactsPanel\{position:relative;padding-bottom:12px\}/);
  assert.doesNotMatch(css,/#phoneDialUtility #phoneOwnDetails/);
  assert.match(css,/\.phone-dial-shortcuts button\[aria-selected="true"\],\.phone-notice-filters button\[aria-selected="true"\]\{[^}]*border:1px solid/);
 });
@@ -1132,7 +1132,7 @@ test('連絡カードは送信者と状態をバッジで示し操作対象を�
 test('アプリ更新の再読み込み後もユーザーが選んだ電話画面を復元する',()=>{
  assert.match(app,/route\.searchParams\.set\('tab',id\)/);
  assert.match(app,/window\.history\.replaceState\(window\.history\.state,'',route\)/);
- assert.match(app,/const initialPhoneTab=\['notices','history','contacts','dial','groups'\]\.includes\(params\.get\('tab'\)\)\?params\.get\('tab'\):'dial';tab\(initialPhoneTab\)/);
+ assert.match(app,/initialPhoneTab=\['notices','history','contacts','dial'\]\.includes\(requestedPhoneTab\)[\s\S]*?tab\(initialPhoneTab\)/);
  assert.match(html,/controllerchange[\s\S]*?location\.reload\(\)/);
 });
 
@@ -1140,7 +1140,7 @@ test('返信するたび件数を増やし送信者側へリアルタイム通�
  assert.match(app,/incrementReply:true/);
  assert.match(app,/replyCount=Math\.min\(999,\(Number\(previous\.replyCount\)\|\|0\)\+\(incrementReply\?1:0\)\)/);
  assert.match(app,/notice-reply-count/);
- assert.match(app,/querySelectorAll\('\[data-notice-reply\]'\)/);
+ assert.match(app,/noticeReplyItems\(item\)/);
  assert.match(app,/const replyTargets=currentItem\.senderUid===uid\?\(currentItem\.recipientUids\|\|\[\]\):\[currentItem\.senderUid\]/);
  assert.match(app,/replyTargets\.filter\(Boolean\)\.map\(target=>Promise\.resolve\(push\?\.\(target,\{action:'notice',invitationId:noticeId\}\)\)/);
  assert.match(rules,/replyCount/);
@@ -1151,8 +1151,8 @@ test('返信するたび件数を増やし送信者側へリアルタイム通�
  assert.match(app,/replies=Array\.isArray\(previous\.replies\)\?previous\.replies\.slice\(-99\)/);
  assert.match(app,/replies\.push\(\{name:myName\(\),text:replyText,at:now\}\)/);
  assert.match(app,/\$\('phoneNoticeReplyText'\)\.value=''/);
- assert.match(app,/notice-reply-author/);
- assert.match(app,/<time>\$\{noticeTime\(reply\.at\)\}<\/time>/);
+ assert.match(app,/notice-card-reply-summary/);
+ assert.match(app,/\$\{replies\?`\$\{replies\}件の返信を見る`:'返信して対応する'\}/);
  assert.match(css,/\.notice-reply-item time\{grid-column:2;justify-self:end/);
  assert.match(rules,/value\.replies is list/);
  assert.match(app,/mine&&item\.status==='open'\)secondary\.push\(`<button class="notice-reply-action" data-notice-reply=/);
@@ -1168,9 +1168,9 @@ test('連絡を対応する画面から開き送信先表示と固定追加ボ�
  assert.match(app,/b\.id==='phoneTab-notices'\)setNoticeFilter\('action'\)/);
  assert.match(app,/notice-self-sent-badge/);
  assert.doesNotMatch(css,/\.school-notice-card\.needs-action\{border-left:5px/);
- assert.match(css,/\.phone-home-card>\.phone-add-fab\{position:absolute;right:clamp\(12px,1\.6vw,20px\);bottom:86px/);
+ assert.match(css,/\.phone-home-card>#phoneNoticeAddToggle\.notice-add-button\{right:clamp\(12px,1\.6vw,20px\)\}/);
  assert.match(app,/action\.hidden=true;\$\('phoneHome'\)\.append\(action\)/);
- assert.match(html,/以前の日の連絡は日付カードを押すと開き、未完了の件数も確認できます/);
+ assert.match(html,/id="phoneNoticePastToggle"[\s\S]*?過去の連絡を見る/);
 });
 
 test('完了・返信・状態変更を全端末の連絡一覧へ同期する',()=>{
@@ -1187,7 +1187,7 @@ test('完了・返信・状態変更を全端末の連絡一覧へ同期する',
 test('起動中は別画面の追加ボタンを表示しない',()=>{
  for(const id of ['phoneNoticeAddToggle','phoneContactAddToggle','phoneGroupAddToggle'])assert.match(html,new RegExp('id="'+id+'" class="phone-add-fab(?: [^"]+)?" hidden'));
  assert.match(app,/const action=\$\(actionId\);action\.hidden=true;\$\('phoneHome'\)\.append\(action\)/);
- assert.match(app,/addButton\.hidden=id!==panelId/);
+ assert.match(app,/\$\('phoneNoticeAddToggle'\)\.hidden=id!=='notices'/);
 });
 
 test('連絡カードは状態をヘッダーへまとめ過去分を日付単位で展開する',()=>{
@@ -1244,10 +1244,10 @@ test('縦幅が短い学校端末では操作領域を圧縮し横向きテン�
 test('二列の連絡カードは固定高で本文を省略し返信を展開表示する',()=>{
  const js=fs.readFileSync(new URL('../phone-app.js',import.meta.url),'utf8');
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
- assert.match(js,/返信内容を確認/);
- assert.match(js,/class="notice-reply-list-inner"/);
+ assert.match(js,/返信を見る・送る/);
+ assert.match(js,/class="notice-card-reply-summary"/);
  assert.match(js,/function noticeCardTime\(value\)/);
- assert.match(css,/height:430px;min-height:430px;max-height:430px/);
+ assert.match(css,/height:clamp\(430px,65dvh,560px\)/);
  assert.match(css,/-webkit-line-clamp:3/);
  assert.match(css,/\.notice-reply-history\[open\]>.notice-reply-list/);
  assert.match(css,/\.school-notice-card header \.notice-card-status\{display:flex;flex-direction:row/);
@@ -1270,7 +1270,7 @@ test('返信履歴はカード操作に重ならない固定高の領域で最�
  assert.match(css,/\.notice-reply-history\[open\]\{display:block;height:190px;min-height:190px;max-height:190px;overflow:hidden\}/);
  assert.match(css,/\.notice-reply-history\[open\]>\.notice-reply-list\{[^}]*display:block[^}]*height:142px[^}]*overflow-y:scroll!important[^}]*scrollbar-gutter:stable[^}]*touch-action:pan-y/);
  assert.match(css,/\.notice-reply-history\[open\] \.notice-reply-list-inner\{[^}]*min-height:0[^}]*overflow:visible[^}]*padding-bottom:1px/);
- assert.match(app,/<\/header>\$\{renderNoticeReplies\(item\)\}<section class="notice-message-block">/);
+ assert.match(app,/<\/header><section class="notice-message-block">/);
  assert.match(css,/\.school-notice-list \.school-notice-card>header\+\.notice-reply-history\{[^}]*border-top:0!important[^}]*border-bottom:1px solid/);
  assert.match(css,/\.school-notice-list \.school-notice-card:has\(>\.notice-reply-history\[open\]\)>header,[\s\S]*?>\.notice-message-block,[\s\S]*?display:none!important/);
  assert.match(css,/\.school-notice-card:has\(>\.notice-reply-history\[open\]\)>\.notice-reply-history\[open\]\{[^}]*position:relative[^}]*flex:1 1 auto[^}]*height:auto[^}]*max-height:none/);
@@ -1298,7 +1298,7 @@ test('横向き電話画面ではテンキーと操作ボタン全体を中央�
 });
 
 test('現在の状況ボタンの横に操作目的を表示する',()=>{
- assert.match(html,/class="notice-presence-control"[\s\S]*?id="phonePresenceToggle"[\s\S]*?class="notice-presence-label">現在の状況を選択<\/span>/);
+ assert.match(html,/class="notice-header-presence notice-presence-control"[\s\S]*?id="phonePresenceToggle"[\s\S]*?class="notice-presence-label">現在の状況を選択<\/span>/);
  const css=fs.readFileSync(new URL('../phone-theme.css',import.meta.url),'utf8');
  assert.match(css,/\.notice-presence-control\{display:flex;align-items:center/);
  assert.match(css,/\.notice-presence-label\{[^}]*white-space:nowrap/);

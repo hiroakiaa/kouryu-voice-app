@@ -32,5 +32,5 @@ test('認証済み端末へ短期TURN認証情報を返す',async()=>{
 test('アプリはTURN取得時にFirebase IDトークンを送る',()=>{
   const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
   assert.match(html,/ensureAnonymousAuth\(\)[\s\S]*?user\.getIdToken\(\)[\s\S]*?"Authorization": "Bearer " \+ token/);
-  assert.match(html,/2026-11-08-turn-auth-hardening/);
+  assert.match(html,/2026-11-08-quality-30/);
 });
