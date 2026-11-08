@@ -4300,8 +4300,8 @@
     @keyframes callConnectPulse{0%{transform:scale(.72);opacity:.85}100%{transform:scale(1.18);opacity:0}}
     @media(prefers-reduced-motion:reduce){.call-connect-overlay{transition:none}.call-connect-visual::before,.call-connect-visual::after{animation:none}}
   </style>
-  <link rel="stylesheet" href="./metrics-theme.css?v=2026-11-08-turn-auth-hardening">
-  <link rel="stylesheet" href="./phone-theme.css?v=2026-11-08-turn-auth-hardening">
+  <link rel="stylesheet" href="./metrics-theme.css?v=2026-11-08-quality-30">
+  <link rel="stylesheet" href="./phone-theme.css?v=2026-11-08-quality-30">
 </head>
 <body class="phone-home">
 <div id="appRecovery" class="app-recovery" hidden role="alert"><strong>アプリを準備できませんでした</strong><span>通信や更新の途中で止まった可能性があります。</span><button type="button" onclick="window.recoverWakaruPhone()"><i class="fa-solid fa-rotate"></i> 更新して直す</button></div>
@@ -4318,11 +4318,11 @@
           <span id="callElapsed" class="connection-elapsed" role="timer" aria-live="off" title="最初に相手と接続してからの経過時間">接続待ち</span>
         </div>
       </div>
-      <div id="noticeHeaderPresence" class="notice-header-presence">
-        <span class="notice-presence-label">現在の状況</span>
-        <button id="phonePresenceToggle" class="phone-presence-toggle" type="button" aria-haspopup="dialog">
+      <div id="noticeHeaderPresence" class="notice-header-presence notice-presence-control">
+        <button id="phonePresenceToggle" class="phone-presence-toggle" type="button" aria-haspopup="dialog" aria-controls="phonePresenceDialog" aria-label="現在の状況を選択。現在は対応できます" title="現在の状況を選択">
           <i class="fa-solid fa-circle" aria-hidden="true"></i><span>対応できます</span>
         </button>
+        <span class="notice-presence-label">現在の状況を選択</span>
       </div>
       <div class="header-actions">
         <button id="phoneNameOpen" class="header-icon-btn" type="button" aria-label="プロフィールと設定" aria-haspopup="dialog" aria-controls="phoneNameDialog"><i class="fa-solid fa-user-pen" aria-hidden="true"></i></button>
@@ -4795,10 +4795,10 @@
           return;
         }
         bootWorkerRefreshStarted = true;
-        sessionStorage.setItem("wakaru-worker-refreshed", "2026-11-08-turn-auth-hardening");
+        sessionStorage.setItem("wakaru-worker-refreshed", "2026-11-08-quality-30");
         location.reload();
       });
-      navigator.serviceWorker.register("./service-worker.js?v=2026-11-08-turn-auth-hardening", { scope: "./", updateViaCache: "none" })
+      navigator.serviceWorker.register("./service-worker.js?v=2026-11-08-quality-30", { scope: "./", updateViaCache: "none" })
         .then(function(registration) { return registration.update(); })
         .catch(function() {});
     }
@@ -4806,8 +4806,8 @@
   <script src="./qrcode-generator.js?v=2026-09-05-group-join-button-style"></script>
   <script src="./jsQR.js?v=2026-09-05-group-join-button-style"></script>
   <script type="module">
-    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-11-08-turn-auth-hardening";
-    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-11-08-turn-auth-hardening";
+    import {createPhoneApp as createNumberCalls} from "./phone-app.js?v=2026-11-08-quality-30";
+    import {createSingleTabCoordinator} from "./single-tab-coordinator.js?v=2026-11-08-quality-30";
     import {createCallCost,estimateCallCost,bindCostTabs} from "./call-cost.js?v=2026-09-03-call-cost";
     import {createFreeUsageDashboard,aiNeurons as estimateAiNeurons} from "./free-usage.js?v=2026-10-07-free-usage";
     import {createCostEstimator} from "./operating-cost.js?v=2026-09-05-group-join-button-style";
@@ -4853,7 +4853,7 @@
     const APP_CHECK_SITE_KEY = (document.querySelector('meta[name="firebase-app-check-site-key"]')?.content || "").trim();
     let turnConfigurationPromise = null;
 
-    const APP_VERSION = "2026-11-08-turn-auth-hardening";
+    const APP_VERSION = "2026-11-08-quality-30";
     const ADMIN_PASSWORD_SHA256 = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
     const ADMIN_PASSWORD_HASH_KEY = "wakaru-phone-admin-password-hash-v2";
     const ADMIN_ACCESS_KEY = "wakaru-phone-admin-access-v1";
@@ -8567,7 +8567,7 @@
       if (!authUser) await authReadyPromise;
       if (!authUser || !("serviceWorker" in navigator) || !("PushManager" in window)
         || !PUSH_ENDPOINT || !PUSH_VAPID_PUBLIC_KEY) throw new Error("push_unsupported");
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-11-08-turn-auth-hardening", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2026-11-08-quality-30", { scope: "./", updateViaCache: "none" });
       await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       const expectedKey = urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY);

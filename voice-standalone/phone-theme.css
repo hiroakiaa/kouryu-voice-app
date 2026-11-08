@@ -330,8 +330,12 @@ body.is-in-call .participants .participant.is-self .participant-state-badge.is-m
 @media(max-width:480px){#phoneSettingsPanel>.account-help-head,#phoneSettingsPanel>.setting-subtitle-row,#phoneSettingsPanel>h3{margin-top:28px!important}}
 
 #phoneContactTools.is-visible{display:flex;padding:14px!important;margin-bottom:14px!important}
-#phoneContactsPanel,#phoneGroupsPanel{position:relative;padding-bottom:90px!important}
-#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{position:absolute;right:14px;bottom:14px}
+#phoneContactsPanel{position:relative;padding-bottom:90px!important}
+#phoneContactsPanel .phone-add-fab{position:absolute;right:14px;bottom:14px}
+.phone-book-tabs{margin-bottom:14px;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.phone-book-tabs button{min-width:0}
+.phone-book-view{min-width:0}
+.phone-book-view[hidden]{display:none!important}
 .phone-empty-state button{min-height:42px!important;padding:8px 14px!important;border-radius:14px!important}
 .history-details>p{margin:6px 0;color:#64725e;font-size:12px;overflow-wrap:anywhere}
 #phoneSettingsPanel{display:flex;flex-direction:column}
@@ -565,6 +569,10 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 @media(max-width:430px){.phone-dial-scope-note{left:8px;top:12px;padding:5px 8px;font-size:10px}}
 /* Notice workflow: one clear inbox with progressive disclosure. */
 .notice-filter-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 10px;padding:5px;border:1px solid #d6e5c8;border-radius:16px;background:#f1f7e9}
+.phone-home-card>.phone-dial-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.phone-book-tabs.notice-filter-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;margin:0 0 14px}
+.phone-book-tabs button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:12px;background:transparent;color:var(--muted);font-weight:800;box-shadow:none}
+.phone-book-tabs button[aria-selected="true"]{background:var(--control)!important;color:var(--accent-deep);border:1px solid var(--line-strong);box-shadow:inset 0 -3px 0 #76b953!important}
 .notice-filter-tabs button{min-width:0;min-height:42px;padding:7px 8px;border:0;border-radius:12px;background:transparent;box-shadow:none;color:#64745c;font-size:13px;font-weight:800}
 .notice-filter-tabs button[aria-selected="true"]{background:#fff;color:#35612d;box-shadow:0 2px 8px rgba(62,99,46,.12)}
 .notice-search-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;margin:0 0 7px}.notice-search-toggle-row .phone-panel-icon{margin:0}.notice-presence-control{display:flex;align-items:center;gap:9px;min-width:0}.notice-presence-label{color:#62745b;font-size:12px;font-weight:700;white-space:nowrap}.phone-presence-toggle{display:flex;align-items:center;gap:7px;min-height:42px;padding:7px 12px!important;border-radius:999px!important;font-size:12px;font-weight:800}.phone-presence-toggle i{font-size:9px;color:#62af42}.phone-presence-toggle[data-status="class"] i{color:#df9c34}.phone-presence-toggle[data-status="away"] i{color:#86927e}.phone-presence-toggle[data-status="urgent"] i{color:#d65260}.notice-search-wrap{margin:0 0 10px}.notice-search-wrap input{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid #bdd5a7;border-radius:13px;background:#fff;font:inherit;color:#30462d}
@@ -606,7 +614,7 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 @media(max-width:540px){.phone-home-card>.phone-tabs button{min-height:48px;font-size:16px}.phone-home-card>.phone-dial-shortcuts,.phone-home-card>.phone-notice-filters{gap:3px;margin:7px 0;padding:4px}.phone-home-card .phone-dial-shortcuts button,.phone-home-card .phone-notice-filters button{min-height:40px;padding:6px 2px;font-size:10px;gap:4px}.phone-dial-shortcuts button i{width:16px;flex-basis:16px;font-size:14px}}
 @media(max-width:340px){.phone-home-card .phone-dial-shortcuts button{font-size:11px;letter-spacing:-.04em}}
 #phoneHistoryPanel{padding-bottom:8px!important}
-#phoneContactsPanel,#phoneGroupsPanel{padding-bottom:96px!important}
+#phoneContactsPanel{padding-bottom:96px!important}
 .phone-home-card>#phoneDialUtility{order:3;position:relative;z-index:13;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;gap:12px;width:100%;min-height:58px;box-sizing:border-box;padding:7px 12px;border-top:1px solid #cad8b9;background:#fffef8}
 .phone-home-card>#phoneDialUtility[hidden]{display:none!important}
 #phoneDialUtility .phone-dial-scope-note{position:static;min-width:0;white-space:normal}
@@ -784,7 +792,133 @@ body.is-in-call .participants .participant.is-self .participant-state-badge{
 #callTips .tip-item>span>span{display:none;margin-top:8px;padding-top:8px;border-top:1px solid #dbe8d0;color:#4f614a;line-height:1.7}
 #callTips .tip-item.is-expanded{border-color:#8fc36d;background:#f2fae8;box-shadow:0 3px 0 #e0ecd5}
 #callTips .tip-item.is-expanded>span>strong::after{content:'−'}
-#callTips .tip-item.is-expanded>span>span{display:block}
+#callTips .tip-item.is-expanded>span>span{display:block;max-height:min(18rem,38dvh);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:8px;touch-action:pan-y}
+#callTips .tip-item.is-expanded>span>span::-webkit-scrollbar{width:8px}
+#callTips .tip-item.is-expanded>span>span::-webkit-scrollbar-track{background:#e9f2df;border-radius:999px}
+#callTips .tip-item.is-expanded>span>span::-webkit-scrollbar-thumb{background:#8fba72;border:2px solid #e9f2df;border-radius:999px}
+@media(max-height:620px){#callTips .tip-item.is-expanded>span>span{max-height:30dvh}}
+
+/* 2026-10-29 one-hundred-point usability pass.
+   The numbered rules map directly to docs/2026-10-29-100-improvements.md. */
+/* 001-010: predictable touch and keyboard interaction */
+:where(button,[role="button"],summary,a,input,select,textarea){-webkit-tap-highlight-color:transparent}
+:where(button,[role="button"],summary){touch-action:manipulation}
+:where(button,[role="button"],summary):not(:disabled){cursor:pointer}
+:where(button,[role="button"]):disabled{cursor:not-allowed}
+:where(button,[role="button"],summary):focus-visible{outline:3px solid #2f6fbd!important;outline-offset:3px!important}
+:where(input,select,textarea):focus-visible{outline:3px solid rgba(47,111,189,.35)!important;outline-offset:2px!important}
+:where(button,[role="button"],summary){-webkit-user-select:none;user-select:none}
+:where(input,textarea,[contenteditable="true"]){-webkit-user-select:text;user-select:text}
+:where(button,[role="button"]):active:not(:disabled){transform:translateY(1px)}
+@media(pointer:coarse){:where(button,[role="button"],summary,input,select){min-height:44px}}
+
+/* 011-020: typography and information hierarchy */
+body{font-kerning:normal;text-rendering:optimizeLegibility}
+:where(p,li,dd,.phone-note,.notice){line-height:1.65}
+:where(h1,h2,h3,strong){text-wrap:balance}
+:where(p,.notice-message-block,.notice-conversation-item){overflow-wrap:anywhere}
+:where(time,.phone-own-number-display strong,.history-row-time){font-variant-numeric:tabular-nums}
+.phone-home-card h2{line-height:1.3}
+.phone-home-card h3{line-height:1.4}
+.phone-note{max-width:72ch}
+.phone-empty-state span{max-width:36ch}
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+/* 021-030: forms are easier to scan and complete */
+:where(input,select,textarea){font:inherit}
+:where(input,select,textarea){color:#30462d;background:#fffef9}
+:where(input,select,textarea)::placeholder{color:#788970;opacity:1}
+:where(input,select,textarea):disabled{opacity:.68;background:#eef3e8}
+label{line-height:1.45}
+label>small{line-height:1.4}
+textarea{resize:vertical}
+input[type="checkbox"],input[type="radio"]{accent-color:#579f39}
+.phone-form-row{min-width:0}
+.phone-form-row>*{min-width:0}
+
+/* 031-040: dialogs stay usable on every viewport */
+dialog{max-width:calc(100vw - 1.25rem);max-height:calc(100dvh - 1.25rem);box-sizing:border-box}
+dialog[open]{overscroll-behavior:contain}
+dialog::backdrop{backdrop-filter:blur(2px)}
+.tips-modal-head,.modal-head,.number-head{position:sticky;top:0;z-index:4;background:inherit}
+.modal-close{flex:0 0 44px}
+.modal-close i{pointer-events:none}
+.call-tips{scroll-padding-top:4.5rem}
+.call-tips .tip-item{scroll-margin-top:4.5rem}
+.call-tips .tip-item>span{min-width:0}
+@media(max-width:420px){dialog{max-width:calc(100vw - .75rem);max-height:calc(100dvh - .75rem)}}
+
+/* 041-050: stable phone-home layout */
+.phone-home-card{isolation:isolate}
+.phone-home-card>[role="tabpanel"]{scrollbar-gutter:stable}
+.phone-home-card>[role="tabpanel"]{overscroll-behavior-y:contain}
+.phone-home-card>.phone-tabs{padding-bottom:max(.25rem,env(safe-area-inset-bottom))}
+.phone-home-card>.phone-tabs button{min-width:0}
+.phone-home-card>.phone-tabs button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phone-dial-shortcuts button{min-width:0}
+.phone-dial-shortcuts button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phone-dial-utility{min-width:0}
+.phone-dial-scope-note{min-width:0;overflow-wrap:anywhere}
+
+/* 051-060: dial controls remain clear and reachable */
+#phoneDialForm{max-width:100%}
+#phoneDialForm .phone-key{contain:layout paint}
+#phoneDialForm .phone-key:focus-visible{outline-offset:4px!important}
+#phoneDialNumber{font-variant-numeric:tabular-nums}
+#phoneDialNumber{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.phone-call{isolation:isolate}
+.phone-call i{pointer-events:none}
+#phoneBackspace{isolation:isolate}
+#phoneBackspace i{pointer-events:none}
+@media(max-width:350px){#phoneDialForm .phone-keypad{column-gap:clamp(.45rem,4vw,.8rem)}}
+
+/* 061-070: list cards scan quickly without accidental overflow */
+.phone-row{min-width:0}
+.phone-row>*{min-width:0}
+.history-row-content,.contact-row-person{overflow:hidden}
+.history-row-content>strong,.contact-row-person>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-row-actions,.contact-row-actions{min-width:0}
+.history-row-actions button,.contact-row-actions button{min-width:44px}
+.history-date-section,.contact-section{scroll-margin-top:.5rem}
+.frequent-card{min-width:0}
+.frequent-card strong{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:540px){.history-row-actions,.contact-row-actions{gap:.4rem}}
+
+/* 071-080: notices and replies keep task context visible */
+.school-notice-card{min-width:0}
+.school-notice-card>header{min-width:0}
+.notice-card-header-meta{min-width:max-content}
+.notice-message-block{min-width:0}
+.notice-message-block h3{overflow-wrap:anywhere}
+.notice-conversation-panel{min-width:0}
+.notice-conversation-list{scrollbar-gutter:stable}
+.notice-conversation-list{scroll-padding-block:1rem}
+.notice-inline-reply-form textarea{line-height:1.55}
+.notice-inline-reply-form button{white-space:nowrap}
+
+/* 081-090: call screen remains calm on phones and short tablets */
+body.is-in-call main{min-width:0}
+body.is-in-call .card{min-width:0}
+body.is-in-call .participants-card{isolation:isolate}
+body.is-in-call .participants{min-width:0}
+body.is-in-call .participant{touch-action:manipulation}
+body.is-in-call .participant:focus-visible{outline:3px solid #2f6fbd;outline-offset:4px}
+body.is-in-call .connection-pill{min-width:0}
+body.is-in-call .connection-pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.is-in-call #leaveBtn{min-height:52px}
+@media(min-width:641px) and (max-height:620px){body.is-in-call main{gap:.45rem!important;padding:.45rem!important}}
+
+/* 091-100: resilience, motion, contrast and safe areas */
+img,svg,video,canvas{max-width:100%}
+[hidden]{display:none!important}
+[aria-busy="true"]{cursor:progress}
+[aria-disabled="true"]{cursor:not-allowed}
+.phone-message,.notice[role="status"]{overflow-wrap:anywhere}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media(prefers-contrast:more){:where(button,input,select,textarea,dialog,.phone-row,.card){border-color:currentColor!important}}
+@media(forced-colors:active){:where(button,input,select,textarea,summary){forced-color-adjust:auto}}
+@supports(padding:max(0px)){body{padding-bottom:max(env(safe-area-inset-bottom),.35rem)}}
 
 /* A contact menu becomes a distinct sheet on phones instead of blending into the next card. */
 @media(max-width:600px){
@@ -826,9 +960,9 @@ body.is-in-call .participants-card .participants>.mic-unlock-hint{grid-column:1/
 @media(prefers-reduced-motion:reduce){#phoneHome>[role="tabpanel"]:not([hidden]),.school-notice-card{animation:none}.phone-tabs button,.notice-filter-tabs button{transition:none}}
 
 /* Keep creation actions in reach while only the panel content scrolls. */
-.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{position:fixed;right:max(22px,calc((100vw - 1180px)/2 + 30px));bottom:calc(env(safe-area-inset-bottom,0px) + 84px);left:auto;z-index:24}
+.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab{position:fixed;right:max(22px,calc((100vw - 1180px)/2 + 30px));bottom:calc(env(safe-area-inset-bottom,0px) + 84px);left:auto;z-index:24}
 .notice-self-sent-badge{display:inline-flex;align-items:center;gap:6px;margin:11px 0 2px;padding:6px 10px;border:1px solid #bcd8a3;border-radius:999px;background:#e8f5dc;color:#3e6735;font-size:12px;font-weight:800}.notice-self-sent-badge i{color:#65a946}
-@media(max-width:540px){.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab,#phoneGroupsPanel .phone-add-fab{right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 74px)}}
+@media(max-width:540px){.phone-home-card .phone-add-fab,#phoneContactsPanel .phone-add-fab{right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 74px)}}
 /* Add actions belong to phoneHome, so they stay at the visible section corner at every width. */
 .phone-home-card>.phone-add-fab{position:absolute;right:clamp(12px,1.6vw,20px);bottom:86px;left:auto;z-index:24}
 @media(max-width:540px){.phone-home-card>.phone-add-fab{right:12px;bottom:74px}}
@@ -1254,11 +1388,15 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
 .history-section,#phoneHistory{min-width:0;max-width:100%;overflow-x:hidden}
 .phone-home-card .history-row{max-width:100%;box-sizing:border-box}
 @media(max-width:540px){
- .history-row-side{position:absolute;top:9px;right:12px;display:grid;justify-items:end;gap:2px}
- .history-row-side .history-details>summary{position:static}
- .history-row-side .history-details[open]>summary{position:static}
- .history-row-side .history-details>div{min-width:0}
+ .history-row-side{display:contents;position:static}
+ .history-row-side .history-row-time{position:absolute;top:10px;right:12px}
+ .history-row-side .history-details{grid-column:1 / -1;grid-row:2;width:100%;min-width:0;margin:0;box-sizing:border-box}
+ .history-row-side .history-details>summary{position:absolute;top:2.8rem;right:.75rem;display:block;width:max-content;margin:0;padding:.15rem .35rem}
+ .history-row-side .history-details[open]{margin-top:.35rem;padding:.55rem .65rem .65rem;border:1px solid #c8ddae;border-radius:.75rem;background:#f3f9ea;color:#30462d}
+ .history-row-side .history-details[open]>summary{position:absolute;background:#e5f2d9}
+ .history-row-side .history-details>p,.history-row-side .history-details>div{min-width:0;margin:.25rem 0;padding:.45rem .55rem;border-radius:.5rem;background:#fffef9}
  .history-row-meta{margin-right:0;padding-right:0}
+ .phone-home-card .history-row-actions{grid-row:3}
 }
 @media(min-width:960px){
  #phoneHistoryPanel .frequent-list{grid-template-columns:minmax(0,1fr)}
@@ -1267,7 +1405,7 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
  #phoneHistoryPanel .history-row{display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"history-icon history-content history-side" "history-actions history-actions history-actions";align-items:center;gap:.45rem .7rem;overflow:hidden}
  #phoneHistoryPanel .history-row>i{grid-area:history-icon}
  #phoneHistoryPanel .history-row-content{grid-area:history-content;min-width:0}
- #phoneHistoryPanel .history-row-side{grid-area:history-side;align-self:center;display:grid;justify-items:end;gap:.18rem;min-width:3.5rem}
+ #phoneHistoryPanel .history-row-side{grid-area:history-side;align-self:center;display:grid;justify-items:end;gap:.45rem;min-width:3.5rem}
  #phoneHistoryPanel .history-row-time{font-size:.72rem;line-height:1.15;text-align:right}
  #phoneHistoryPanel .history-row-side .history-details>summary{position:static;padding:.05rem .3rem}
  #phoneHistoryPanel .history-row-side .history-details[open]>summary{position:static}
@@ -1280,7 +1418,7 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
  #phoneHistoryPanel .history-row{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"history-icon history-content history-side" "history-actions history-actions history-actions";align-items:center;gap:.5rem .65rem;max-width:100%;overflow:hidden}
  #phoneHistoryPanel .history-row>i{grid-area:history-icon}
  #phoneHistoryPanel .history-row-content{grid-area:history-content;min-width:0}
- #phoneHistoryPanel .history-row-side{grid-area:history-side;display:grid;justify-items:end;gap:.1rem;min-width:3.2rem}
+ #phoneHistoryPanel .history-row-side{grid-area:history-side;display:grid;justify-items:end;gap:.4rem;min-width:3.2rem}
  #phoneHistoryPanel .history-row-side .history-details>summary{position:static;padding:.05rem .25rem}
  #phoneHistoryPanel .history-row-side .history-details[open]>summary{position:static}
  #phoneHistoryPanel .history-row-side .history-details>div{min-width:0}
@@ -1291,3 +1429,143 @@ body.is-in-call :is(.danger,#cancelOutgoingBtn,#leaveBtn){border-color:#d59a9f!i
 @media(min-width:541px) and (max-width:700px){
  #phoneHistoryPanel .history-row-actions button span{display:none!important}
 }
+
+/* 2026-10-29 notice workspace: separate a new notice from an in-context reply. */
+.school-notice-card[data-notice-open]{cursor:pointer;transition:border-color .18s ease,background-color .18s ease}
+.school-notice-card[data-notice-open]:is(:hover,:focus-visible){border-color:#69a947!important;background:#fbfff6!important;outline:3px solid rgba(105,169,71,.2);outline-offset:2px}
+.notice-card-reply-summary{display:flex;align-items:center;gap:.55rem;padding:.7rem 1rem;border-top:1px solid #d9e8cc;background:#f3f9eb;color:#3f6a36;font-weight:800}
+.notice-card-reply-summary .fa-chevron-right{margin-left:auto;font-size:.78rem}
+.notice-detail-workspace{grid-column:1/-1;display:grid;grid-template-columns:1fr;gap:0;min-width:0;overflow:hidden;border:2px solid #78b956;border-radius:1.35rem;background:#f9fcf4}
+.notice-detail-workspace:focus{outline:none}
+.notice-detail-toolbar{display:flex;align-items:center;gap:.85rem;padding:.75rem;border-bottom:1px solid #d6e6c8;background:#eef7e4}
+.notice-detail-toolbar>button{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;padding:.55rem .8rem;border:1px solid #8fc66e;border-radius:.85rem;background:#fff;color:#315c2a;font-weight:800}
+.notice-detail-toolbar>div{display:grid;min-width:0;line-height:1.25}.notice-detail-toolbar small{color:#6f806a}.notice-detail-toolbar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notice-detail-left{min-width:0;padding:.85rem;background:#f8fbf4}
+.notice-detail-left>.school-notice-card{height:auto!important;min-height:0!important;margin:0;overflow:visible;box-shadow:none!important}
+.notice-detail-left .school-notice-actions{margin-top:0}
+.notice-conversation-panel{display:flex;flex-direction:column;min-width:0;min-height:25rem;border-top:1px solid #d6e6c8;background:#fffef9}
+.notice-conversation-panel>header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem;border-bottom:1px solid #dce8d2;background:#f4f9ee}
+.notice-conversation-panel>header div{display:grid}.notice-conversation-panel>header small{color:#6b7c66}.notice-conversation-panel>header h3{margin:.1rem 0 0;font-size:1.15rem;color:#315c2a}
+.notice-conversation-panel>header>span{flex:0 0 auto;padding:.25rem .65rem;border-radius:999px;background:#dff1ce;color:#315c2a;font-weight:800}
+.notice-conversation-list{display:flex;flex:1 1 auto;flex-direction:column;gap:.65rem;min-height:9rem;max-height:min(38dvh,24rem);padding:1rem;overflow-y:auto;overscroll-behavior:contain;scrollbar-color:#82b967 #eef5e8}
+.notice-conversation-item{position:relative;padding:.8rem .9rem 1.5rem;border:1px solid #d7e5cd;border-radius:1rem;background:#f9fcf5}
+.notice-conversation-item>div{display:flex;align-items:center;gap:.45rem;color:#3e6b35}.notice-conversation-item p{margin:.45rem 0 0;white-space:pre-wrap;overflow-wrap:anywhere;color:#283a27}.notice-conversation-item time{position:absolute;right:.8rem;bottom:.45rem;color:#74816f;font-size:.75rem}
+.notice-conversation-empty{display:grid;place-items:center;align-content:center;gap:.35rem;min-height:9rem;padding:1rem;text-align:center;color:#6b7d66}.notice-conversation-empty i{font-size:1.5rem;color:#78b956}.notice-conversation-empty span{font-size:.86rem}
+.notice-inline-reply-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.55rem;padding:1rem;border-top:1px solid #dce8d2;background:#f2f8eb}
+.notice-inline-reply-form label{grid-column:1/-1;color:#526c4c;font-size:.82rem;font-weight:800}
+.notice-inline-reply-form textarea{width:100%;min-height:4.8rem;max-height:9rem;resize:vertical;box-sizing:border-box;border:1px solid #a9cd90;border-radius:.85rem;background:#fff;padding:.75rem;color:#253d23;font:inherit}
+.notice-inline-reply-form button{align-self:stretch;min-width:7rem;border-radius:.85rem}.notice-inline-reply-form button[aria-busy="true"]{opacity:.7}
+.notice-conversation-closed{margin:0;padding:1rem;border-top:1px solid #dce8d2;background:#f3f7ef;color:#596a55}
+#phoneNoticesPanel.is-detail-open>#phoneNoticeAddToggle{display:none!important}
+@media(min-width:900px){
+ .notice-detail-workspace{grid-template-columns:minmax(0,.9fr) minmax(22rem,1.1fr);max-height:calc(100dvh - 15rem)}
+ .notice-detail-toolbar{grid-column:1/-1}
+ .notice-detail-left{overflow-y:auto}
+ .notice-conversation-panel{min-height:0;border-top:0;border-left:1px solid #d6e6c8;overflow:hidden}
+ .notice-conversation-list{max-height:none;min-height:0}
+}
+@media(max-width:620px){
+ .notice-detail-toolbar{align-items:flex-start}.notice-detail-toolbar>button span{display:none}.notice-detail-toolbar>button{width:44px;min-width:44px;justify-content:center;padding:0}
+ .notice-detail-left{padding:.55rem}.notice-conversation-panel{min-height:22rem}
+ .notice-inline-reply-form{grid-template-columns:1fr}.notice-inline-reply-form button{min-height:48px}
+}
+
+/* 2026-10-30: keep availability beside the brand and make one notice a focused workspace. */
+.notice-header-presence{display:none;align-items:center;gap:.55rem;min-width:0;margin-right:auto}
+body:has(#phoneTab-notices[aria-selected="true"]) .notice-header-presence{display:flex}
+.notice-header-presence .notice-presence-label{font-size:.78rem;white-space:nowrap}
+.notice-header-presence .phone-presence-toggle{min-width:0;white-space:nowrap;box-shadow:none}
+.notice-search-toggle-row>span{color:#687b61;font-size:.82rem;font-weight:700}
+
+main:has(#phoneNoticesPanel.is-detail-open)>header{display:none}
+.phone-home-card:has(#phoneNoticesPanel.is-detail-open){padding:0!important;border-radius:inherit;box-shadow:none}
+.phone-home-card:has(#phoneNoticesPanel.is-detail-open)>:not(#phoneNoticesPanel){display:none!important}
+#phoneNoticesPanel.is-detail-open{display:flex!important;flex:1 1 auto!important;width:100%;height:100%;padding:0!important;overflow:hidden!important}
+#phoneNoticesPanel.is-detail-open>.notice-search-toggle-row,
+#phoneNoticesPanel.is-detail-open>#phoneNoticeSearchWrap,
+#phoneNoticesPanel.is-detail-open>#phoneNoticePastToggle{display:none!important}
+#phoneNoticesPanel.is-detail-open>#phoneNotices{display:flex;flex:1 1 auto;min-width:0;min-height:0;width:100%}
+#phoneNoticesPanel.is-detail-open .notice-detail-workspace{flex:1 1 auto;width:100%;height:100%;max-height:none;border:0;border-radius:inherit}
+#phoneNoticesPanel.is-detail-open .notice-detail-left,
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel{min-height:0}
+
+@media(min-width:900px){
+ #phoneNoticesPanel.is-detail-open .notice-detail-workspace{grid-template-columns:minmax(18rem,.88fr) minmax(24rem,1.12fr)}
+}
+@media(max-width:760px){
+ .phone-home header{grid-template-columns:auto minmax(0,1fr) auto}
+ .notice-header-presence{grid-column:1/-1;justify-content:flex-end;width:100%;margin-top:.25rem}
+ .notice-header-presence .notice-presence-label{font-size:.72rem}
+ .notice-header-presence .phone-presence-toggle{min-height:40px;padding:5px 10px!important}
+ #phoneNoticesPanel.is-detail-open .notice-detail-workspace{overflow-y:auto}
+ #phoneNoticesPanel.is-detail-open .notice-conversation-panel{min-height:26rem}
+}
+
+/* 2026-10-30: a simpler notice detail with two unmistakable work areas. */
+#phoneNoticesPanel.is-detail-open .notice-detail-workspace{display:grid;grid-template-rows:auto minmax(0,1fr);gap:0;background:#f4f7f1;color:#2d432b}
+#phoneNoticesPanel.is-detail-open .notice-detail-toolbar{min-height:4rem;padding:.55rem .75rem;border-bottom:1px solid #cbd9c2;background:#fff;box-sizing:border-box}
+#phoneNoticesPanel.is-detail-open .notice-detail-toolbar>button{min-width:7.5rem;border:1px solid #91b77b;border-radius:.7rem;box-shadow:none;background:#fff;color:#31552c}
+#phoneNoticesPanel.is-detail-open .notice-detail-toolbar>h2{margin:0;font-size:1.15rem;color:#294a27}
+#phoneNoticesPanel.is-detail-open .notice-detail-left{display:flex;flex-direction:column;gap:.65rem;padding:1rem;border:0;background:#f4f7f1}
+.notice-detail-section-title{display:flex;align-items:center;gap:.5rem;margin:0!important;color:#345d30!important;font-size:1.05rem!important}
+.notice-detail-section-title i,.notice-conversation-panel>header h2 i{color:#65a848}
+#phoneNoticesPanel.is-detail-open .notice-detail-left>.school-notice-card{border:1px solid #afcba0;border-radius:1rem;background:#fff;overflow:hidden!important}
+#phoneNoticesPanel.is-detail-open .notice-detail-left>.school-notice-card>header{border-radius:0;background:#edf5e8}
+#phoneNoticesPanel.is-detail-open .notice-message-block{padding:1.1rem 1rem;background:#fff}
+#phoneNoticesPanel.is-detail-open .notice-message-block h3{margin:0 0 .65rem;font-size:1.35rem}
+#phoneNoticesPanel.is-detail-open .school-notice-actions{border-top:1px solid #dbe6d4;background:#f7faf4}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel{margin:1rem 1rem 1rem 0;border:1px solid #afcba0;border-radius:1rem;background:#fff;overflow:hidden}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header{min-height:4.2rem;padding:.75rem 1rem;border-bottom:1px solid #dbe6d4;background:#edf5e8}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header h2{display:flex;align-items:center;gap:.5rem;margin:0;color:#345d30;font-size:1.15rem}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header small{margin-top:.1rem;font-size:.76rem}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header>span{background:#fff;border:1px solid #bfd5b2}
+#phoneNoticesPanel.is-detail-open .notice-conversation-list{background:#fff;padding:1rem}
+#phoneNoticesPanel.is-detail-open .notice-conversation-empty{min-height:7rem;color:#667561}
+#phoneNoticesPanel.is-detail-open .notice-inline-reply-form{padding:.8rem 1rem 1rem;background:#f7faf4}
+#phoneNoticesPanel.is-detail-open .notice-inline-reply-form textarea{min-height:4.2rem}
+#phoneNoticesPanel.is-detail-open .notice-inline-reply-form button{min-width:6rem;box-shadow:none}
+
+@media(min-width:900px){
+ #phoneNoticesPanel.is-detail-open .notice-detail-workspace{grid-template-columns:minmax(20rem,.82fr) minmax(24rem,1.18fr)}
+ #phoneNoticesPanel.is-detail-open .notice-detail-toolbar{grid-column:1/-1}
+ #phoneNoticesPanel.is-detail-open .notice-detail-left{border-right:1px solid #cbd9c2}
+}
+@media(max-width:899px){
+ #phoneNoticesPanel.is-detail-open{overflow-y:auto!important}
+ #phoneNoticesPanel.is-detail-open>#phoneNotices{display:block}
+ #phoneNoticesPanel.is-detail-open .notice-detail-workspace{height:auto;min-height:100%;overflow:visible}
+ #phoneNoticesPanel.is-detail-open .notice-detail-left{padding:.75rem}
+ #phoneNoticesPanel.is-detail-open .notice-conversation-panel{margin:0 .75rem .75rem;min-height:20rem}
+}
+@media(max-width:620px){
+ #phoneNoticesPanel.is-detail-open .notice-detail-toolbar{position:sticky;top:0;z-index:4;min-height:3.6rem}
+ #phoneNoticesPanel.is-detail-open .notice-detail-toolbar>button{min-width:44px;width:44px}
+ #phoneNoticesPanel.is-detail-open .notice-detail-toolbar>h2{font-size:1.05rem}
+ #phoneNoticesPanel.is-detail-open .notice-message-block h3{font-size:1.15rem}
+ #phoneNoticesPanel.is-detail-open .notice-inline-reply-form{grid-template-columns:1fr}
+}
+
+/* 2026-10-30: remove decorative frames from the focused notice workspace. */
+#phoneNoticesPanel.is-detail-open .notice-detail-workspace{background:#fff}
+#phoneNoticesPanel.is-detail-open .notice-detail-toolbar{min-height:3.75rem;padding:.5rem .8rem;border:0;border-bottom:1px solid #dce6d7}
+#phoneNoticesPanel.is-detail-open .notice-detail-toolbar>button{border:0;background:transparent}
+#phoneNoticesPanel.is-detail-open .notice-detail-left{gap:.5rem;padding:1rem 1.25rem;background:#fafcf8}
+#phoneNoticesPanel.is-detail-open .notice-detail-left>.school-notice-card{border:0;border-radius:0;background:transparent}
+#phoneNoticesPanel.is-detail-open .notice-detail-left>.school-notice-card>header{padding:.65rem 0;border:0;border-bottom:1px solid #e2e9dd;background:transparent}
+#phoneNoticesPanel.is-detail-open .notice-message-block{padding:1rem 0 1.15rem;background:transparent}
+#phoneNoticesPanel.is-detail-open .school-notice-actions{padding:.85rem 0 0;border:0;border-top:1px solid #e2e9dd;background:transparent}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel{margin:0;border:0;border-radius:0}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header{min-height:3.75rem;padding:.65rem 1.1rem;border:0;border-bottom:1px solid #e2e9dd;background:#fafcf8}
+#phoneNoticesPanel.is-detail-open .notice-conversation-panel>header>span{border:0;background:#edf4e8}
+#phoneNoticesPanel.is-detail-open .notice-conversation-list{padding:1.1rem}
+#phoneNoticesPanel.is-detail-open .notice-inline-reply-form{padding:.85rem 1.1rem 1rem;border-top:1px solid #e2e9dd;background:#fafcf8}
+@media(min-width:900px){#phoneNoticesPanel.is-detail-open .notice-detail-left{border-right:1px solid #dce6d7}}
+@media(max-width:899px){#phoneNoticesPanel.is-detail-open .notice-detail-left{padding:1rem}#phoneNoticesPanel.is-detail-open .notice-conversation-panel{margin:0;border-top:1px solid #dce6d7}}
+/* 2026-11-08 quality pass: accessibility and resilient interaction states. */
+:is(.phone-home-card,.phone-dialog,.contact-form-dialog) :is(button,a,input,textarea,select,summary):focus-visible{outline:3px solid #315f27;outline-offset:3px}
+.notice-presence-control{display:flex;align-items:center;gap:9px;min-width:0}
+.notice-presence-control .notice-presence-label{color:#62745b;font-size:12px;font-weight:700;line-height:1.35;white-space:nowrap}
+@media(max-width:430px){.notice-presence-control{gap:6px}.notice-presence-control .notice-presence-label{max-width:7.5rem;font-size:11px;white-space:normal}}
+@media(pointer:coarse){.notice-filter-tabs button,.phone-book-tabs button{min-height:48px}.phone-panel-icon{min-width:48px;min-height:48px}}
+@media(prefers-reduced-motion:reduce){.phone-home-card *,.phone-dialog *{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media(forced-colors:active){.phone-home-card :is(button,input,textarea,select,summary),.school-notice-card{border:1px solid CanvasText}.phone-add-fab{forced-color-adjust:auto}}
