@@ -19,7 +19,7 @@
 
 ## Firestore Rules
 
-`firestore.rules` は対象コレクション、通話ID、参加者・シグナルの項目、型、文字数を制限します。Firebase Authenticationを使っていないため、Rulesだけで端末本人の完全な証明や、参加者コレクションの件数を数えて5人目を拒否することはできません。4人制限はアプリの参加前判定と、同時参加が競合した場合の追加参加者切断で守ります。
+`firestore.rules` は対象コレクション、通話ID、参加者・シグナルの項目、型、文字数を制限します。アプリはFirebase匿名認証を使うため端末ごとのUIDは検証できますが、職員本人や役職を組織アカウントとして証明するものではありません。4人制限は固定4枠のTransaction、アプリの参加前判定、競合時の追加参加者切断で守ります。
 
 Rulesを変更したときは、対象プロジェクトが `test-project-579c6` であることを確認してからデプロイし、本番で参加・退室・再接続を確認します。
 
@@ -28,7 +28,8 @@ Rulesを変更したときは、対象プロジェクトが `test-project-579c6`
 ## Cloudflare TURNの運用
 
 - Worker `kouryu-turn-credentials` はGitHub Pages以外からの呼び出しを拒否する。
-- IP・端末ごとの短時間・日次の認証情報発行数を制限する。
+- TURN認証情報はFirebase IDトークンを検証できた端末だけに発行する。
+- UID・IPごとの短時間制限と、UIDごとの日次制限で認証情報の大量発行を抑止する。
 - 異常増加時はWorker環境変数 `TURN_DISABLED=true` を設定するとTURNだけを緊急停止できる。アプリは直接接続とSTUNへ自動的に切り替わる。
 - TURNキーは半年ごと、または漏えいの疑いがあるときに交換する。新しいキーを作成し、Worker Secretsの `TURN_KEY_ID` と `TURN_KEY_API_TOKEN` を更新して疎通確認後、古いキーを失効する。
 - キーIDやAPIトークンをGitHub、HTML、診断ログへ保存しない。
