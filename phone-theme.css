@@ -1561,3 +1561,11 @@ main:has(#phoneNoticesPanel.is-detail-open)>header{display:none}
 #phoneNoticesPanel.is-detail-open .notice-inline-reply-form{padding:.85rem 1.1rem 1rem;border-top:1px solid #e2e9dd;background:#fafcf8}
 @media(min-width:900px){#phoneNoticesPanel.is-detail-open .notice-detail-left{border-right:1px solid #dce6d7}}
 @media(max-width:899px){#phoneNoticesPanel.is-detail-open .notice-detail-left{padding:1rem}#phoneNoticesPanel.is-detail-open .notice-conversation-panel{margin:0;border-top:1px solid #dce6d7}}
+/* 2026-11-08 quality pass: accessibility and resilient interaction states. */
+:is(.phone-home-card,.phone-dialog,.contact-form-dialog) :is(button,a,input,textarea,select,summary):focus-visible{outline:3px solid #315f27;outline-offset:3px}
+.notice-presence-control{display:flex;align-items:center;gap:9px;min-width:0}
+.notice-presence-control .notice-presence-label{color:#62745b;font-size:12px;font-weight:700;line-height:1.35;white-space:nowrap}
+@media(max-width:430px){.notice-presence-control{gap:6px}.notice-presence-control .notice-presence-label{max-width:7.5rem;font-size:11px;white-space:normal}}
+@media(pointer:coarse){.notice-filter-tabs button,.phone-book-tabs button{min-height:48px}.phone-panel-icon{min-width:48px;min-height:48px}}
+@media(prefers-reduced-motion:reduce){.phone-home-card *,.phone-dialog *{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media(forced-colors:active){.phone-home-card :is(button,input,textarea,select,summary),.school-notice-card{border:1px solid CanvasText}.phone-add-fab{forced-color-adjust:auto}}

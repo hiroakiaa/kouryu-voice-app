@@ -46,3 +46,11 @@ Rulesを変更したときは、対象プロジェクトが `test-project-579c6`
 - 接続診断の「障害記録をコピー」は、この端末の直近30件だけを対象にする。
 - 音声、表示名、通話URL、TURN秘密情報は保存しない。
 - 保存項目は発生日時、エラー種別、接続方式、アプリ版だけとする。
+# 2026-11-08 quality-30 再開メモ
+
+- 更新番号: `2026-11-08-quality-30` / Service Worker: `v152`
+- 実施: 現行導線とずれていた17検証を修復し、状態選択の説明・動的読み上げ・キーボード焦点・タッチ寸法・動きを減らす設定・強制配色対応など13項目を補強。
+- 検証: `node --test tests/*.test.mjs` は305件すべて成功、`node --check phone-app.js` 成功。
+- 配布: ルートと `voice-standalone` の `index.html` / `phone-app.js` / `phone-theme.css` / `service-worker.js` を同期済み。
+- 公開経路: Git認証が端末CLIから利用できない場合は、ログイン済みGitHubブラウザーのファイルアップロードを使用する。公開後はGitHub Pagesの更新番号と状態選択UIを実画面で確認する。
+
