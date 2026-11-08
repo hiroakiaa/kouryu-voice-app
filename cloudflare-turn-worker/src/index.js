@@ -217,9 +217,12 @@ async function handlePush(request, env, origin, path) {
   }
 }
 
-async function handleTurn(request, env, origin) {
+export async function handleTurn(request, env, origin, verify = authenticatedUid) {
   if (String(env.TURN_DISABLED || "").toLowerCase() === "true") return response({ error: "turn_temporarily_disabled" }, 503, origin);
   if (!env.TURN_KEY_ID || !env.TURN_KEY_API_TOKEN) return response({ error: "service_not_configured" }, 503, origin);
+  let uid;
+  try { uid = await verify(request); }
+  catch (_) { return response({ error: "unauthorized" }, 401, origin); }
   let callId = "unknown";
   let clientId = "unknown";
   try {
@@ -227,10 +230,16 @@ async function handleTurn(request, env, origin) {
     if (typeof body.callId === "string" && /^[A-Za-z0-9_-]{1,48}$/.test(body.callId)) callId = body.callId;
     if (typeof body.clientId === "string" && /^[A-Za-z0-9_-]{8,96}$/.test(body.clientId)) clientId = body.clientId;
   } catch (_) {}
+  const clientIp = String(request.headers.get("CF-Connecting-IP") || "unknown").slice(0, 64);
+  if (!allowRequest("relay-user-window:" + uid, 30, TEN_MINUTES)
+    || !allowRequest("relay-user-daily:" + uid, 180, ONE_DAY)
+    || !allowRequest("relay-network-window:" + clientIp, 90, TEN_MINUTES)) {
+    return response({ error: "rate_limited" }, 429, origin);
+  }
   const upstream = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${encodeURIComponent(env.TURN_KEY_ID)}/credentials/generate-ice-servers`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.TURN_KEY_API_TOKEN}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ ttl: 7200, customIdentifier: callId.slice(0, 48) })
+    body: JSON.stringify({ ttl: 7200, customIdentifier: (uid + ":" + callId).slice(0, 48) })
   });
   if (!upstream.ok) return response({ error: "credential_generation_failed" }, 502, origin);
   const data = await upstream.json();
